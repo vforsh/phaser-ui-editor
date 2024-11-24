@@ -6,10 +6,11 @@ import { projectConfigSchema } from '../data/project/ProjectConfig'
 import trpc from '../trpc'
 import type { FileItem } from '../types/files'
 import AssetsPanel from './AssetsPanel'
-import Canvas from './canvas/Canvas'
+import Canvas from './Canvas/Canvas'
 import HierarchyPanel from './HierarchyPanel'
 import InspectorPanel from './InspectorPanel'
 import ResizableDivider from './ResizableDivider'
+import { state } from '../state/State'
 
 const MIN_PANEL_WIDTH = 200
 const MAX_PANEL_WIDTH = 400
@@ -62,8 +63,8 @@ export default function EditorLayout() {
 		return () => window.removeEventListener('keydown', onKeyDown)
 	}, [])
 
+	// open project from query param or from saved state
 	useEffect(() => {
-		// open project from query param
 		const urlParams = new URLSearchParams(window.location.search)
 		const projectDirPath = urlParams.get('projectDir')
 		if (projectDirPath) {
@@ -72,12 +73,11 @@ export default function EditorLayout() {
 		}
 
 		// open last opened project
-		// TODO import state
-		// const lastOpenedProjectDir = state.lastOpenedProjectDir
-		// if (lastOpenedProjectDir) {
-		// 	openProject(lastOpenedProjectDir)
-		// 	return
-		// }
+		const lastOpenedProjectDir = state.lastOpenedProjectDir
+		if (lastOpenedProjectDir) {
+			openProject(lastOpenedProjectDir)
+			return
+		}
 	}, [])
 
 	const openProject = async (projectDirPath: string) => {
@@ -113,18 +113,18 @@ export default function EditorLayout() {
 
 		// state.lastOpenedProjectDir = projectDirPath
 
-		// // update recent projects
-		// state.recentProjects ??= []
-		// const recentProject = state.recentProjects.find((item) => item.dir === projectDirPath)
-		// if (recentProject) {
-		// 	recentProject.lastOpenedAt = Date.now()
-		// } else {
-		// 	state.recentProjects.push({
-		// 		name: openedProject.projectConfig.name,
-		// 		dir: projectDirPath,
-		// 		lastOpenedAt: Date.now(),
-		// 	})
-		// }
+		// update recent projects
+		state.recentProjects ??= []
+		const recentProject = state.recentProjects.find((item) => item.dir === projectDirPath)
+		if (recentProject) {
+			recentProject.lastOpenedAt = Date.now()
+		} else {
+			state.recentProjects.push({
+				name: openedProject.projectConfig.name,
+				dir: projectDirPath,
+				lastOpenedAt: Date.now(),
+			})
+		}
 	}
 
 	// TODO return Result (true-myth)

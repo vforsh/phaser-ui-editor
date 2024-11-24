@@ -23,7 +23,8 @@
 		"phaser": "^3.87.0",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
-		"type-fest": "^4.28.0"
+		"type-fest": "^4.28.0",
+		"valtio": "^2.1.2"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.9.1",
