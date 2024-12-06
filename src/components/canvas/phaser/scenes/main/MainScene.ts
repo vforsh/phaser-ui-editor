@@ -32,7 +32,6 @@ export class MainScene extends BaseScene {
 		this.add.existing(this.grid)
 
 		this.axes = new Axes(this)
-		this.axes.visible = false
 		this.add.existing(this.axes)
 
 		this.container = this.add.container(0, 0)
@@ -58,7 +57,11 @@ export class MainScene extends BaseScene {
 		this.projectSizeFrame.fillRect(0, 0, size.width, size.height)
 	}
 
-	private addKeyboadShortcuts() {}
+	private addKeyboadShortcuts() {
+		this.onKeyDown('F', this.alignCameraToProjectFrame, this, this.shutdownSignal)
+		this.onKeyDown('ONE', this.resetCameraZoom, this, this.shutdownSignal)
+		// this.onKeyDown('TWO', this.resetCameraZoom, this, this.shutdownSignal)
+	}
 
 	private addPointerCallbacks() {
 		this.input.on(Phaser.Input.Events.POINTER_DOWN, this.onPointerDown, this, this.shutdownSignal)
@@ -103,7 +106,7 @@ export class MainScene extends BaseScene {
 			if (this.cameraDragStart) {
 				let dx = pointer.x - this.cameraDragStart.x
 				let dy = pointer.y - this.cameraDragStart.y
-				
+
 				const camera = this.cameras.main
 				camera.scrollX -= dx / camera.zoom
 				camera.scrollY -= dy / camera.zoom
@@ -136,13 +139,12 @@ export class MainScene extends BaseScene {
 
 	private setCameraZoom(zoom: number): void {
 		this.cameras.main.zoom = zoom
-		// console.log('zoom', Phaser.Math.RoundTo(zoom, -2))
 	}
 
 	private onCameraChange() {
-		// console.log('camera', this.cameras.main.scrollX, this.cameras.main.scrollY, this.cameras.main.zoom)
-		this.grid.redraw(this.scale.gameSize, this.cameras.main)
-		this.axes.redraw(this.scale.gameSize, this.cameras.main.zoom, this.cameras.main.scrollX, this.cameras.main.scrollY)
+		let camera = this.cameras.main
+		this.grid.redraw(this.scale.gameSize, camera)
+		this.axes.redraw(this.scale.gameSize, camera.zoom, camera.scrollX, camera.scrollY)
 	}
 
 	private onPointerGameOut(): void {}
@@ -166,8 +168,9 @@ export class MainScene extends BaseScene {
 		camera.scrollX = -(camera.width - projectSize.width) / 2
 		camera.scrollY = -(camera.height - projectSize.height) / 2
 
-		const zoomPadding = 50
-		camera.zoom = Math.min(camera.width / (projectSize.width + zoomPadding), camera.height / (projectSize.height + zoomPadding))
+		const zoomPaddingX = camera.width * 0.1
+		const zoomPaddingY = camera.height * 0.1
+		camera.zoom = Math.min(camera.width / (projectSize.width + zoomPaddingX), camera.height / (projectSize.height + zoomPaddingY))
 	}
 
 	public onShutdown(): void {

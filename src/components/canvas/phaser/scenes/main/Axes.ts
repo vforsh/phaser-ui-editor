@@ -1,5 +1,4 @@
 export class Axes extends Phaser.GameObjects.Container {
-	// TODO use bitmap texts
 	private texts: Phaser.GameObjects.Text[] = []
 
 	constructor(scene: Phaser.Scene) {
@@ -9,31 +8,45 @@ export class Axes extends Phaser.GameObjects.Container {
 	public redraw(gameSize: { width: number; height: number }, cameraZoom: number, cameraScrollX: number, cameraScrollY: number): void {
 		this.texts.forEach((text) => text.kill())
 
-		let cellSize = 100
-
 		const width = gameSize.width / cameraZoom
-
 		const height = gameSize.height / cameraZoom
 
+		const marginX = 5
+		const marginY = 5
+
+		// Calculate visible area bounds accounting for camera scroll and zoom
+		const visibleLeft = cameraScrollX - width / 2 + (width / 2) * cameraZoom
+		const visibleTop = cameraScrollY - height / 2 + (height / 2) * cameraZoom
+
+		const labelScale = Phaser.Math.Clamp(1 / cameraZoom, 0.5, 3)
+
+		// add less texts when zoom is small
+		// add more texts when zoom is large
+		const cellSize = Phaser.Math.Snap.Floor(Phaser.Math.Clamp(100 / cameraZoom, 25, 200), 50)
+
+		// add texts to the left and right of the camera
 		let rowsNum = (Math.ceil(height / cellSize) + 1) * 2
 		for (let row = -rowsNum / 2; row <= rowsNum / 2; row += 1) {
 			let y = row * cellSize
 
 			let leftText = this.getOrCreateText()
 			leftText.setText(y.toString())
-			leftText.setOrigin(0, 1)
-			leftText.x = 0 + 5
-			leftText.y = y - 5
+			leftText.setOrigin(0, 0.5)
+			leftText.setScale(labelScale)
+			leftText.x = visibleLeft + marginX
+			leftText.y = y
 			leftText.revive()
 
 			let rightText = this.getOrCreateText()
 			rightText.setText(y.toString())
-			rightText.setOrigin(1, 1)
-			rightText.x = width - 5
-			rightText.y = y - 5
+			rightText.setOrigin(1, 0.5)
+			rightText.setScale(labelScale)
+			rightText.x = visibleLeft + width - marginX
+			rightText.y = y
 			rightText.revive()
 		}
 
+		// add texts to the bottom of the camera
 		let columnsNum = (Math.ceil(width / cellSize) + 1) * 2
 		for (let col = -columnsNum / 2; col <= columnsNum / 2; col += 1) {
 			const x = col * cellSize
@@ -41,8 +54,9 @@ export class Axes extends Phaser.GameObjects.Container {
 			let bottomText = this.getOrCreateText()
 			bottomText.setText(x.toString())
 			bottomText.setOrigin(0.5, 1)
+			bottomText.setScale(labelScale)
 			bottomText.x = x
-			bottomText.y = height - 5
+			bottomText.y = visibleTop + height - marginY
 			bottomText.revive()
 		}
 	}
@@ -53,10 +67,13 @@ export class Axes extends Phaser.GameObjects.Container {
 			text = this.scene.make.text(
 				{
 					style: {
+						// TODO load web font in Phaser
+						fontFamily: 'Nunito',
+						fontSize: '16px',
+						color: `rgba(255, 255, 255, 0.66)`,
 						resolution: devicePixelRatio,
-						fontSize: '20px',
-						color: '#ffffff',
-						backgroundColor: '#303030',
+						backgroundColor: '#242424',
+						padding: { x: 5, y: 5 },
 					},
 				},
 				false
