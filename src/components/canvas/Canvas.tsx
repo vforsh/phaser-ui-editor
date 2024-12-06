@@ -1,131 +1,87 @@
-import { Center, Text } from '@mantine/core'
-import { useState } from 'react'
-import type { FileItem } from '../../types/files'
+import Phaser from 'phaser'
+import { useLayoutEffect, useRef } from 'react'
+import { ref } from 'valtio'
+import { AppCommands } from '../../AppCommands'
+import { AppEvents } from '../../AppEvents'
+import { ProjectConfig } from '../../project/ProjectConfig'
+import { state } from '../../state/State'
+import { PhaserApp } from './phaser/PhaserApp'
+import { TypedEventEmitter } from './phaser/robowhale/phaser3/TypedEventEmitter'
+import { CommandEmitter } from './phaser/robowhale/utils/events/CommandEmitter'
 
-const MIN_ZOOM = 0.1
-const MAX_ZOOM = 5
-const ZOOM_STEP = 0.1
+type Props = {
+	projectConfig: ProjectConfig | null
+	appEvents: TypedEventEmitter<AppEvents> | null
+	appCommands: CommandEmitter<AppCommands> | null
+}
 
-export default function Canvas() {
-	const [isDragOver, setIsDragOver] = useState(false)
-	const [zoom, setZoom] = useState(1)
+// use memo to prevent re-rendering of the canvas element
+// it will only re-render when the projectConfig changes
+export const Canvas: React.FC<Props> = ({ projectConfig, appEvents, appCommands }) => {
+	const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
-	const handleDragOver = (e: React.DragEvent) => {
-		e.preventDefault()
-		setIsDragOver(true)
-	}
+	const phaserAppRef = useRef<PhaserApp | null>(null)
 
-	const handleDragLeave = () => {
-		setIsDragOver(false)
-	}
+	useLayoutEffect(() => {
+		if (canvasRef.current && canvasRef.current.parentElement && projectConfig && appEvents && appCommands) {
+			const phaserApp = createPhaserApp(canvasRef.current, projectConfig, appEvents, appCommands)
 
-	const handleDrop = (e: React.DragEvent) => {
-		e.preventDefault()
-		setIsDragOver(false)
+			state.phaser = ref({
+				events: phaserApp.ev3nts,
+				commands: phaserApp.commands,
+			})
 
-		try {
-			const item = JSON.parse(e.dataTransfer.getData('application/json')) as FileItem
-			if (item.type === 'image') {
-				console.log('Image dropped at:', {
-					x: e.clientX,
-					y: e.clientY,
-					item,
-				})
-			}
-		} catch (error) {
-			console.error('Invalid drop data')
+			phaserAppRef.current = phaserApp
 		}
-	}
 
-	const handleZoomIn = () => {
-		setZoom((prev) => Math.min(prev + ZOOM_STEP, MAX_ZOOM))
-	}
+		return () => {
+			if (phaserAppRef.current) {
+				state.phaser?.events?.destroy()
+				state.phaser?.commands?.destroy()
+				state.phaser = null
 
-	const handleZoomOut = () => {
-		setZoom((prev) => Math.max(prev - ZOOM_STEP, MIN_ZOOM))
-	}
+				phaserAppRef.current.destroy(true)
+				phaserAppRef.current = null
+			}
+		}
+	}, [canvasRef.current]) // Dependency array includes canvasRef.current to recreate PhaserApp on each render
 
-	const handleZoomReset = () => {
-		setZoom(1)
-	}
-
-	const handleZoomFit = () => {
-		// TODO: Implement fit to view logic
-		setZoom(1)
-	}
-
-	// Horizontal alignment handlers
-	const handleAlignLeft = () => {
-		console.log('Align left')
-	}
-
-	const handleAlignHorizontalCenter = () => {
-		console.log('Align horizontal center')
-	}
-
-	const handleAlignRight = () => {
-		console.log('Align right')
-	}
-
-	// Vertical alignment handlers
-	const handleAlignTop = () => {
-		console.log('Align top')
-	}
-
-	const handleAlignVerticalCenter = () => {
-		console.log('Align vertical center')
-	}
-
-	const handleAlignBottom = () => {
-		console.log('Align bottom')
-	}
+	// Generate a unique key for the canvas element on each render
+	const key = Date.now().toString()
 
 	return (
-		<div
-			id="canvas-container"
-			onDragOver={handleDragOver}
-			onDragLeave={handleDragLeave}
-			onDrop={handleDrop}
+		<canvas
+			key={key}
+			ref={canvasRef}
+			id="canvas"
 			style={{
-				position: 'relative',
-				width: '100%',
-				height: '100%',
-				transition: 'all 200ms ease',
-				background: isDragOver ? 'rgba(51, 102, 255, 0.05)' : '#242424',
 				borderRadius: 'inherit',
-				overflow: 'hidden',
+				maxWidth: '100%',
+				maxHeight: '100%',
 			}}
-		>
-			{/* <PhaserApp /> */}
-
-			{/* <ZoomControls
-        onZoomIn={handleZoomIn}
-        onZoomOut={handleZoomOut}
-        onReset={handleZoomReset}
-        onFit={handleZoomFit}
-      /> */}
-
-			{/* <AlignmentControls
-        orientation="horizontal"
-        onAlignStart={handleAlignLeft}
-        onAlignCenter={handleAlignHorizontalCenter}
-        onAlignEnd={handleAlignRight}
-      /> */}
-
-			{/* <AlignmentControls
-        orientation="vertical"
-        onAlignStart={handleAlignTop}
-        onAlignCenter={handleAlignVerticalCenter}
-        onAlignEnd={handleAlignBottom}
-      /> */}
-
-			{isDragOver && (
-				<Center h="100%" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
-					<Text c="dimmed" fs="italic" style={{ userSelect: 'none' }}>
-						Drop image here
-					</Text>
-				</Center>
-			)}
-		</div>
+		/>
 	)
+}
+
+function createPhaserApp(
+	canvas: HTMLCanvasElement,
+	projectConfig: ProjectConfig,
+	appEvents: TypedEventEmitter<AppEvents>,
+	appCommands: CommandEmitter<AppCommands>
+) {
+	const config: Phaser.Types.Core.GameConfig = {
+		type: Phaser.WEBGL,
+		scale: {
+			expandParent: false,
+			mode: Phaser.Scale.NONE,
+		},
+		parent: canvas.parentElement,
+		canvas: canvas,
+		backgroundColor: '#242424',
+		audio: {
+			noAudio: true,
+		},
+	}
+
+	return new PhaserApp(config, projectConfig, appEvents, appCommands)
 }

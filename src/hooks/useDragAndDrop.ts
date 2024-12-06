@@ -1,31 +1,82 @@
-import { useState } from 'react'
-import type { FileItem } from '../types/files'
+import { useState } from "react";
+import type { AssetTreeItemData } from "../types/assets";
 
 interface DragState {
-	isDragging: boolean
-	item: FileItem | null
+  isDragging: boolean;
+  item: AssetTreeItemData | null;
+}
+
+const MAX_PREVIEW_DIMENSION = 512;
+
+function calculatePreviewDimensions(width: number, height: number) {
+  const aspectRatio = width / height;
+
+  if (width > height) {
+    const newWidth = Math.min(width, MAX_PREVIEW_DIMENSION);
+    const newHeight = Math.round(newWidth / aspectRatio);
+    return { width: newWidth, height: newHeight };
+  } else {
+    const newHeight = Math.min(height, MAX_PREVIEW_DIMENSION);
+    const newWidth = Math.round(newHeight * aspectRatio);
+    return { width: newWidth, height: newHeight };
+  }
 }
 
 export function useDragAndDrop() {
-	const [dragState, setDragState] = useState<DragState>({
-		isDragging: false,
-		item: null,
-	})
+  const [dragState, setDragState] = useState<DragState>({
+    isDragging: false,
+    item: null,
+  });
 
-	const handleDragStart = (item: FileItem, event: React.DragEvent) => {
-		if (item.type !== 'image') return
+  const handleDragStart = (item: AssetTreeItemData, event: React.DragEvent) => {
+    if (item.type !== "image" && item.type !== "spritesheet-frame") return;
 
-		event.dataTransfer.setData('application/json', JSON.stringify(item))
-		setDragState({ isDragging: true, item })
-	}
+    event.dataTransfer.setData("application/json", JSON.stringify(item));
+    event.dataTransfer.effectAllowed = "move";
 
-	const handleDragEnd = () => {
-		setDragState({ isDragging: false, item: null })
-	}
+    // Create drag preview
+    const preview = document.createElement("div");
+    preview.style.position = "fixed";
+    preview.style.pointerEvents = "none";
+    preview.style.zIndex = "1000";
+    preview.style.opacity = "0.8";
+    preview.style.backgroundColor = "rgba(0, 0, 0, 0.2)";
+    preview.style.border = "2px dashed #3399ff";
+    preview.style.borderRadius = "4px";
 
-	return {
-		dragState,
-		handleDragStart,
-		handleDragEnd,
-	}
+    let previewDimensions = { width: 100, height: 100 };
+
+    if (item.type === "spritesheet-frame") {
+      previewDimensions = calculatePreviewDimensions(item.size.w, item.size.h);
+    } else if (item.type === "image") {
+      previewDimensions = calculatePreviewDimensions(item.size.w, item.size.h);
+    }
+
+    preview.style.width = `${previewDimensions.width}px`;
+    preview.style.height = `${previewDimensions.height}px`;
+
+    document.body.appendChild(preview);
+    event.dataTransfer.setDragImage(
+      preview,
+      previewDimensions.width / 2,
+      previewDimensions.height / 2,
+    );
+
+    // Clean up preview after drag ends
+    requestAnimationFrame(() => {
+      document.body.removeChild(preview);
+    });
+
+    setDragState({ isDragging: true, item });
+  };
+
+  const handleDragEnd = () => {
+    setDragState({ isDragging: false, item: null });
+  };
+
+  return {
+    dragState,
+    handleDragStart,
+    handleDragEnd,
+  };
 }

@@ -6,6 +6,7 @@ import fse from 'fs-extra'
 import { globby } from 'globby'
 import { Plugin } from 'vite'
 import { z } from 'zod'
+import sizeOf from 'image-size'
 
 const t = initTRPC.create()
 
@@ -55,6 +56,12 @@ const appRouter = t.router({
 		const { oldPath, newPath } = input
 		await fse.rename(oldPath, newPath)
 		return { success: true }
+	}),
+	readImageSize: t.procedure.input(z.object({ path: absPathSchema })).query(async ({ input }) => {
+		const { path } = input
+		const file = await fse.readFile(path)
+		const imageInfo = sizeOf(file)
+		return { width: imageInfo.width, height: imageInfo.height }
 	}),
 	readFile: t.procedure.input(z.object({ path: absPathSchema })).query(async ({ input }) => {
 		const { path } = input

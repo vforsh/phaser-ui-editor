@@ -1,0 +1,267 @@
+import {
+  Stack,
+  Group,
+  UnstyledButton,
+  Text,
+  useMantineTheme,
+} from '@mantine/core';
+import {
+  ChevronDown,
+  Folder,
+  File,
+  Image,
+  FileJson,
+  FileSpreadsheet,
+  FileType,
+  LayoutGrid,
+  Images,
+  FolderTree,
+} from 'lucide-react';
+import type { AssetTreeItemData } from '../../types/assets';
+import { useState } from 'react';
+import { useDragAndDrop } from '../../hooks/useDragAndDrop';
+
+const INDENT_SIZE = 20;
+const ICON_SIZE = 16;
+const GRID_LINE_COLOR = 'rgba(255, 255, 255, 0.1)';
+const ITEM_HEIGHT = 28;
+const BASE_PADDING = 3;
+
+interface AssetTreeItemProps {
+  item: AssetTreeItemData;
+  level?: number;
+  onToggle: (path: string) => void;
+  onSelect: (item: AssetTreeItemData) => void;
+  onContextMenu: (
+    item: AssetTreeItemData,
+    position: { x: number; y: number }
+  ) => void;
+  selectedItem?: AssetTreeItemData | null;
+  isLastChild?: boolean;
+  isOpen?: boolean;
+  openFolders: Set<string>;
+}
+
+export default function AssetTreeItem({
+  item,
+  level = 0,
+  onToggle,
+  onSelect,
+  onContextMenu,
+  selectedItem,
+  isLastChild = false,
+  isOpen = false,
+  openFolders,
+}: AssetTreeItemProps) {
+  const [isHovered, setIsHovered] = useState(false);
+  const theme = useMantineTheme();
+  const isSelected = selectedItem === item;
+  const { dragState, handleDragStart, handleDragEnd } = useDragAndDrop();
+  const isDraggable =
+    item.type === 'image' || item.type === 'spritesheet-frame';
+
+  const getIcon = () => {
+    switch (item.type) {
+      case 'folder':
+        return <Folder size={ICON_SIZE} />;
+      case 'image':
+        return <Image size={ICON_SIZE} />;
+      case 'json':
+        return <FileJson size={ICON_SIZE} />;
+      case 'xml':
+        return <FileSpreadsheet size={ICON_SIZE} />;
+      case 'web-font':
+      case 'bitmap-font':
+        return <FileType size={ICON_SIZE} />;
+      case 'spritesheet':
+        return <Images size={ICON_SIZE} />;
+      case 'spritesheet-folder':
+        return <FolderTree size={ICON_SIZE} />;
+      case 'spritesheet-frame':
+        return <LayoutGrid size={ICON_SIZE} />;
+      default:
+        return <File size={ICON_SIZE} />;
+    }
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (
+      item.type === 'folder' ||
+      item.type === 'spritesheet' ||
+      item.type === 'spritesheet-folder'
+    ) {
+      onToggle(item.path);
+    } else {
+      onSelect(item);
+    }
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onContextMenu(item, { x: e.clientX, y: e.clientY });
+  };
+
+  const hasChildren = (item: AssetTreeItemData): boolean => {
+    switch (item.type) {
+      case 'folder':
+        return item.children.length > 0;
+      case 'spritesheet':
+        return item.frames.length > 0;
+      case 'spritesheet-folder':
+        return item.children.length > 0;
+      default:
+        return false;
+    }
+  };
+
+  const getChildren = (item: AssetTreeItemData) => {
+    switch (item.type) {
+      case 'folder':
+        return item.children;
+      case 'spritesheet':
+        return item.frames;
+      case 'spritesheet-folder':
+        return item.children;
+      default:
+        return [];
+    }
+  };
+
+  const getItemKey = (child: AssetTreeItemData, index: number) => {
+    if (child.type === 'spritesheet-frame') {
+      return `${item.path}-frame-${child.name}-${index}`;
+    }
+    return `${child.path}-${index}`;
+  };
+
+  return (
+    <Stack gap={0}>
+      <UnstyledButton
+        onClick={handleClick}
+        onContextMenu={handleContextMenu}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        draggable={isDraggable}
+        onDragStart={(e) => handleDragStart(item, e)}
+        onDragEnd={handleDragEnd}
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: ITEM_HEIGHT,
+          backgroundColor: isSelected
+            ? theme.colors.dark[5]
+            : isHovered
+            ? theme.colors.dark[6]
+            : 'transparent',
+          transition: 'background-color 100ms ease',
+          cursor: isDraggable ? 'grab' : 'pointer',
+          opacity: dragState.isDragging && dragState.item === item ? 0.5 : 1,
+        }}
+      >
+        {/* Grid Lines */}
+        {level > 0 && (
+          <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0 }}>
+            {Array.from({ length: level }).map((_, index) => (
+              <div
+                key={index}
+                style={{
+                  position: 'absolute',
+                  left: index * INDENT_SIZE + INDENT_SIZE / 2,
+                  top: 0,
+                  bottom: isLastChild && index === level - 1 ? '50%' : 0,
+                  width: 1,
+                  backgroundColor: GRID_LINE_COLOR,
+                }}
+              />
+            ))}
+            {/* Horizontal connector */}
+            <div
+              style={{
+                position: 'absolute',
+                left: (level - 1) * INDENT_SIZE + INDENT_SIZE / 2,
+                width: INDENT_SIZE / 2,
+                top: '50%',
+                height: 1,
+                backgroundColor: GRID_LINE_COLOR,
+              }}
+            />
+          </div>
+        )}
+
+        {/* Content */}
+        <Group
+          wrap="nowrap"
+          gap={8}
+          style={{
+            height: '100%',
+            paddingLeft: level * INDENT_SIZE + BASE_PADDING,
+          }}
+        >
+          {/* Arrow icon for expandable items */}
+          <div
+            style={{
+              width: ICON_SIZE,
+              visibility: hasChildren(item) ? 'visible' : 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: isHovered ? theme.colors.blue[4] : theme.colors.gray[5],
+              transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
+              transition: 'transform 100ms ease, color 100ms ease',
+            }}
+          >
+            <ChevronDown size={14} />
+          </div>
+
+          {/* Item type icon */}
+          <div
+            style={{
+              width: ICON_SIZE,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: theme.colors.blue[4],
+            }}
+          >
+            {getIcon()}
+          </div>
+
+          {/* Item name */}
+          <Text
+            size="sm"
+            style={{
+              color:
+                isSelected || isHovered ? theme.white : theme.colors.gray[4],
+              transition: 'color 100ms ease',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              userSelect: 'none',
+            }}
+          >
+            {item.name}
+          </Text>
+        </Group>
+      </UnstyledButton>
+
+      {/* Children */}
+      {hasChildren(item) &&
+        isOpen &&
+        getChildren(item).map((child, index, arr) => (
+          <AssetTreeItem
+            key={getItemKey(child, index)}
+            item={child}
+            level={level + 1}
+            onToggle={onToggle}
+            onSelect={onSelect}
+            onContextMenu={onContextMenu}
+            selectedItem={selectedItem}
+            isLastChild={index === arr.length - 1}
+            isOpen={openFolders.has(child.path)}
+            openFolders={openFolders}
+          />
+        ))}
+    </Stack>
+  );
+}

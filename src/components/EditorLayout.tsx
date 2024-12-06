@@ -1,16 +1,17 @@
-import { Box, Group, Paper, Stack } from '@mantine/core'
-import JSON5 from 'json5'
+import { Box, Group, Paper, Stack, useMantineTheme } from '@mantine/core'
 import path from 'path-browserify'
 import { useCallback, useEffect, useState } from 'react'
-import { projectConfigSchema } from '../data/project/ProjectConfig'
-import trpc from '../trpc'
-import type { FileItem } from '../types/files'
-import AssetsPanel from './AssetsPanel'
-import Canvas from './Canvas/Canvas'
-import HierarchyPanel from './HierarchyPanel'
-import InspectorPanel from './InspectorPanel'
-import ResizableDivider from './ResizableDivider'
+import { mockAssetsPaths } from '../data/mockAssets'
+import { mockOpenedProject } from '../data/mockOpenedProject'
 import { state } from '../state/State'
+import { AssetTreeItemData } from '../types/assets'
+import AssetsPanel from './assetsPanel/AssetsPanel'
+import { buildAssetTree } from './assetsPanel/build-asset-tree'
+import CanvasContainer from './canvas/CanvasContainer'
+import OpenProjectDialog from './dialogs/OpenProjectDialog'
+import HierarchyPanel from './hierarchyPanel/HierarchyPanel'
+import InspectorPanel from './inspector/InspectorPanel'
+import ResizableDivider from './ResizableDivider'
 
 const MIN_PANEL_WIDTH = 200
 const MAX_PANEL_WIDTH = 400
@@ -18,43 +19,45 @@ const MIN_PANEL_HEIGHT = 300
 const MAX_PANEL_HEIGHT = 800
 
 export default function EditorLayout() {
-	// const theme = useMantineTheme()
-	const [leftPanelWidth, setLeftPanelWidth] = useState(250)
-	const [rightPanelWidth, setRightPanelWidth] = useState(300)
-	const [hierarchyHeight, setHierarchyHeight] = useState(Math.round(window.innerHeight / 2) - 6)
-	const [selectedAsset, setSelectedAsset] = useState<FileItem | null>(null)
+	const theme = useMantineTheme()
+
+	const { leftPanelWidth: lpw, rightPanelWidth: rpw, hierarchyHeight: hh } = state.panelDimensions
+	const [leftPanelWidth, setLeftPanelWidth] = useState(lpw)
+	const [rightPanelWidth, setRightPanelWidth] = useState(rpw)
+	const [hierarchyHeight, setHierarchyHeight] = useState(hh || Math.round(window.innerHeight / 2) - 6)
+	const [selectedAsset, setSelectedAsset] = useState<AssetTreeItemData | null>(null)
+	const [assets, setAssets] = useState([])
+	const [openProjectDialogOpen, setOpenProjectDialogOpen] = useState(false)
 
 	const handleLeftResize = useCallback((delta: number) => {
 		setLeftPanelWidth((prev) => {
-			const newWidth = prev + delta
-			return Math.min(Math.max(newWidth, MIN_PANEL_WIDTH), MAX_PANEL_WIDTH)
+			const newWidth = Math.min(Math.max(prev + delta, MIN_PANEL_WIDTH), MAX_PANEL_WIDTH)
+			state.panelDimensions.leftPanelWidth = newWidth
+			return newWidth
 		})
 	}, [])
 
 	const handleRightResize = useCallback((delta: number) => {
 		setRightPanelWidth((prev) => {
-			const newWidth = prev - delta
-			return Math.min(Math.max(newWidth, MIN_PANEL_WIDTH), MAX_PANEL_WIDTH)
+			const newWidth = Math.min(Math.max(prev - delta, MIN_PANEL_WIDTH), MAX_PANEL_WIDTH)
+			state.panelDimensions.rightPanelWidth = newWidth
+			return newWidth
 		})
 	}, [])
 
 	const handleHierarchyResize = useCallback((delta: number) => {
 		setHierarchyHeight((prev) => {
-			const newHeight = prev + delta
-			return Math.min(Math.max(newHeight, MIN_PANEL_HEIGHT), MAX_PANEL_HEIGHT)
+			const newHeight = Math.min(Math.max(prev + delta, MIN_PANEL_HEIGHT), MAX_PANEL_HEIGHT)
+			state.panelDimensions.hierarchyHeight = newHeight
+			return newHeight
 		})
 	}, [])
 
+	// open project dialog
 	useEffect(() => {
-		const onKeyDown = async (event: KeyboardEvent) => {
+		const onKeyDown = (event: KeyboardEvent) => {
 			if (event.key === 'p' || event.key === 'P') {
-				// TODO remove prompt default value later
-				const projectDirPath = prompt('Enter project directory path', '/Users/vlad/dev/papa-cherry-2')
-				if (!projectDirPath) {
-					return
-				}
-
-				openProject(projectDirPath)
+				setOpenProjectDialogOpen(true)
 			}
 		}
 
@@ -75,6 +78,7 @@ export default function EditorLayout() {
 		// open last opened project
 		const lastOpenedProjectDir = state.lastOpenedProjectDir
 		if (lastOpenedProjectDir) {
+			// TODO handle loading state
 			openProject(lastOpenedProjectDir)
 			return
 		}
@@ -95,23 +99,16 @@ export default function EditorLayout() {
 
 		const assetsGlob = path.join(openedProject.assetsDir, '**/*')
 		const assetsToIgnore = openedProject.projectConfig.assetsIgnore.map((item) => path.join(openedProject.assetsDir, item))
-		const assets = await trpc.globby.query({
-			patterns: [assetsGlob],
-			options: { ignore: assetsToIgnore },
-		})
+		const assets = mockAssetsPaths
 
-		console.log('assets', assets)
+		console.log('assets paths', assets)
 
-		// TODO refactor into separate function
-		// const fileTreeData = await buildFileTree(assets, openedProject.assetsDir)
-		// const assetsTreeData = await buildAssetsTree(fileTreeData)
-		// setAssetTreeData(assetsTreeData)
+		const assetTree = await buildAssetTree(assets, openedProject.assetsDir)
+		console.log('assetTree', assetTree)
 
-		// TODO init Project instance
+		setAssets(assetTree)
 
-		// setProject(openedProject.projectConfig)
-
-		// state.lastOpenedProjectDir = projectDirPath
+		state.lastOpenedProjectDir = projectDirPath
 
 		// update recent projects
 		state.recentProjects ??= []
@@ -125,127 +122,101 @@ export default function EditorLayout() {
 				lastOpenedAt: Date.now(),
 			})
 		}
+
+		state.project = openedProject.projectConfig
 	}
 
-	// TODO return Result (true-myth)
+	// TODO return Result (neverthrow)
 	const doOpenProject = async (projectDirPath: string) => {
-		const files = (
-			await trpc.globby.query({
-				patterns: ['**/*'],
-				options: {
-					cwd: projectDirPath,
-					gitignore: true,
-				},
-			})
-		).map((item) => path.join(projectDirPath, item))
-
-		const projectConfigFileName = 'project.json5'
-		const projectConfigPath = files.find((item) => item.endsWith(projectConfigFileName))
-		if (!projectConfigPath) {
-			console.log(`${projectConfigFileName} is not found in the ${projectDirPath}`)
-			return null
-		}
-
-		const projectConfigRaw = await trpc.readText.query({ path: projectConfigPath })
-		const projectConfigParsed = JSON5.parse(projectConfigRaw.content)
-		const projectConfig = projectConfigSchema.parse(projectConfigParsed)
-
-		const assetsDirPath = path.join(projectDirPath, projectConfig.assetsDir)
-		const assetsDirStats = await trpc.stat.query({ path: assetsDirPath })
-		if (assetsDirStats.isDirectory === false) {
-			console.log(`assetsDir ${assetsDirPath} not found`)
-			return null
-		}
-
-		return {
-			projectDir: projectDirPath,
-			projectConfig,
-			assetsDir: assetsDirPath,
-		}
+		return mockOpenedProject
 	}
 
 	return (
-		<Group align="stretch" style={{ height: '100vh', margin: 0, backgroundColor: 'black' }} spacing={0} gap={0}>
-			{/* Left Column */}
-			<Stack
-				id="left-column"
-				style={{
-					width: leftPanelWidth,
-					transition: 'width 0.05s ease-out',
-					padding: '4px 0px 4px 4px',
-					height: '100vh',
-				}}
-				gap="4px"
-			>
-				{/* Hierarchy Panel */}
-				<Box
+		<>
+			<Group align="stretch" style={{ height: '100vh', margin: 0, backgroundColor: 'black' }} spacing={0} gap={0}>
+				{/* Left Column */}
+				<Stack
+					id="left-column"
 					style={{
-						height: hierarchyHeight,
-						minHeight: MIN_PANEL_HEIGHT,
-						maxHeight: MAX_PANEL_HEIGHT,
-						display: 'flex',
-						flexDirection: 'column',
+						width: leftPanelWidth,
+						transition: 'width 0.05s ease-out',
+						padding: '4px 0px 4px 4px',
+						height: '100vh',
 					}}
+					gap="4px"
 				>
-					<HierarchyPanel />
-				</Box>
+					{/* Hierarchy Panel */}
+					<Box
+						style={{
+							height: hierarchyHeight,
+							minHeight: MIN_PANEL_HEIGHT,
+							maxHeight: MAX_PANEL_HEIGHT,
+							display: 'flex',
+							flexDirection: 'column',
+						}}
+					>
+						<HierarchyPanel />
+					</Box>
 
-				{/* Horizontal Divider */}
-				<ResizableDivider onResize={handleHierarchyResize} />
+					{/* Horizontal Divider */}
+					<ResizableDivider onResize={handleHierarchyResize} />
 
-				{/* Assets Panel */}
-				<Box
-					style={{
-						flex: 1,
-						minHeight: MIN_PANEL_HEIGHT,
-						display: 'flex',
-						flexDirection: 'column',
-					}}
-				>
-					<AssetsPanel onSelectAsset={setSelectedAsset} />
-				</Box>
-			</Stack>
+					{/* Assets Panel */}
+					<Box
+						style={{
+							flex: 1,
+							minHeight: MIN_PANEL_HEIGHT,
+							display: 'flex',
+							flexDirection: 'column',
+						}}
+					>
+						<AssetsPanel onSelectAsset={setSelectedAsset} assets={assets} />
+					</Box>
+				</Stack>
 
-			{/* Left Divider */}
-			<ResizableDivider onResize={handleLeftResize} vertical />
+				{/* Left Divider */}
+				<ResizableDivider onResize={handleLeftResize} vertical />
 
-			{/* Middle Column - Canvas */}
-			<Paper
-				radius="sm"
-				style={{
-					padding: '4px 0px',
-					flex: 1,
-					backgroundColor: 'inherit',
-					position: 'relative',
-				}}
-			>
-				<Canvas />
-			</Paper>
-
-			{/* Right Divider */}
-			<ResizableDivider onResize={handleRightResize} vertical />
-
-			{/* Right Column - Inspector */}
-			<Paper
-				style={{
-					width: rightPanelWidth,
-					backgroundColor: 'inherit',
-					transition: 'width 0.05s ease-out',
-					padding: '4px 4px 4px 0px',
-				}}
-			>
-				<Box
+				{/* Middle Column - Canvas */}
+				<Paper
 					radius="sm"
 					style={{
-						backgroundColor: '#242424',
-						height: '100%',
-						display: 'flex',
-						flexDirection: 'column',
+						padding: '4px 0px',
+						flex: 1,
+						backgroundColor: 'inherit',
+						position: 'relative',
 					}}
 				>
-					<InspectorPanel selectedAsset={selectedAsset} />
-				</Box>
-			</Paper>
-		</Group>
+					<CanvasContainer />
+				</Paper>
+
+				{/* Right Divider */}
+				<ResizableDivider onResize={handleRightResize} vertical />
+
+				{/* Right Column - Inspector */}
+				<Paper
+					style={{
+						width: rightPanelWidth,
+						backgroundColor: 'inherit',
+						transition: 'width 0.05s ease-out',
+						padding: '4px 4px 4px 0px',
+					}}
+				>
+					<Box
+						radius="sm"
+						style={{
+							backgroundColor: '#242424',
+							height: '100%',
+							display: 'flex',
+							flexDirection: 'column',
+						}}
+					>
+						<InspectorPanel selectedAsset={selectedAsset} />
+					</Box>
+				</Paper>
+			</Group>
+
+			<OpenProjectDialog opened={openProjectDialogOpen} onClose={() => setOpenProjectDialogOpen(false)} onOpenProject={openProject} />
+		</>
 	)
 }
