@@ -10,29 +10,29 @@ import { TypedEventEmitter } from './phaser/robowhale/phaser3/TypedEventEmitter'
 import { CommandEmitter } from './phaser/robowhale/utils/events/CommandEmitter'
 
 type Props = {
-	projectConfig: ProjectConfig | null
-	appEvents: TypedEventEmitter<AppEvents> | null
-	appCommands: CommandEmitter<AppCommands> | null
+	projectConfig: ProjectConfig
+	appEvents: TypedEventEmitter<AppEvents>
+	appCommands: CommandEmitter<AppCommands>
 }
 
-// use memo to prevent re-rendering of the canvas element
-// it will only re-render when the projectConfig changes
 export const Canvas: React.FC<Props> = ({ projectConfig, appEvents, appCommands }) => {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null)
-
 	const phaserAppRef = useRef<PhaserApp | null>(null)
 
 	useLayoutEffect(() => {
-		if (canvasRef.current && canvasRef.current.parentElement && projectConfig && appEvents && appCommands) {
-			const phaserApp = createPhaserApp(canvasRef.current, projectConfig, appEvents, appCommands)
-
-			state.phaser = ref({
-				events: phaserApp.ev3nts,
-				commands: phaserApp.commands,
-			})
-
-			phaserAppRef.current = phaserApp
+		// Only create Phaser app if we have all required props
+		if (!canvasRef.current?.parentElement) {
+			return
 		}
+
+		const phaserApp = createPhaserApp(canvasRef.current, projectConfig, appEvents, appCommands)
+
+		state.phaser = ref({
+			events: phaserApp.ev3nts,
+			commands: phaserApp.commands,
+		})
+
+		phaserAppRef.current = phaserApp
 
 		return () => {
 			if (phaserAppRef.current) {
@@ -44,10 +44,10 @@ export const Canvas: React.FC<Props> = ({ projectConfig, appEvents, appCommands 
 				phaserAppRef.current = null
 			}
 		}
-	}, [canvasRef.current]) // Dependency array includes canvasRef.current to recreate PhaserApp on each render
+	}, [projectConfig, appEvents, appCommands]) // Only recreate when these props change
 
-	// Generate a unique key for the canvas element on each render
-	const key = Date.now().toString()
+	// use a unique key to force re-rendering of the canvas
+	const key = Date.now()
 
 	return (
 		<canvas

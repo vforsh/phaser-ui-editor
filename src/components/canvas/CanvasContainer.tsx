@@ -1,15 +1,13 @@
 import { Center, Text } from '@mantine/core'
 import { isEmpty } from 'lodash-es'
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { AppCommands } from '../../AppCommands'
 import { AppEvents } from '../../AppEvents'
 import { state, useSnapshot } from '../../state/State'
 import type { AssetTreeItemData } from '../../types/assets'
-import AlignmentControls from './AlignmentControls'
 import { Canvas } from './Canvas'
 import { TypedEventEmitter } from './phaser/robowhale/phaser3/TypedEventEmitter'
 import { CommandEmitter } from './phaser/robowhale/utils/events/CommandEmitter'
-import ZoomControls from './ZoomControls'
 
 const MIN_ZOOM = 0.1
 const MAX_ZOOM = 5
@@ -125,6 +123,22 @@ export default function CanvasContainer() {
 		console.log('Align bottom')
 	}
 
+	// use memo to prevent re-rendering of the canvas element
+	const canvas = useMemo(() => {
+		// Only create canvas if we have all required props
+		if (!snap.project || isEmpty(snap.project) || !snap.app?.events || !snap.app?.commands) {
+			return null
+		}
+
+		return (
+			<Canvas
+				projectConfig={snap.project}
+				appEvents={snap.app.events as TypedEventEmitter<AppEvents>}
+				appCommands={snap.app.commands as CommandEmitter<AppCommands>}
+			/>
+		)
+	}, [snap.project, snap.app?.events, snap.app?.commands])
+
 	return (
 		<div
 			ref={containerRef}
@@ -144,13 +158,7 @@ export default function CanvasContainer() {
 				alignItems: 'center',
 			}}
 		>
-			{snap.project && !isEmpty(snap.project) && snap.app?.events && snap.app?.commands && (
-				<Canvas
-					projectConfig={snap.project}
-					appEvents={snap.app.events as TypedEventEmitter<AppEvents>}
-					appCommands={snap.app.commands as CommandEmitter<AppCommands>}
-				/>
-			)}
+			{canvas}
 
 			{dropPreview && (
 				<div

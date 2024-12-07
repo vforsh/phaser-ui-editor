@@ -9,6 +9,7 @@ import { PhaserAppEvents } from '../components/canvas/phaser/PhaserAppEvents'
 import { TypedEventEmitter } from '../components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { CommandEmitter } from '../components/canvas/phaser/robowhale/utils/events/CommandEmitter'
 import { getObjectKeys } from '../utils/collection/get-object-keys'
+import { projectConfigSchema } from '../project/ProjectConfig'
 
 const absolutePathSchema = z
 	.string()
@@ -29,7 +30,7 @@ const stateSchema = z.object({
 		rightPanelWidth: z.number().int().positive(),
 		hierarchyHeight: z.number().int().positive().optional(),
 	}),
-	project: z.object({}).nullable(),
+	project: projectConfigSchema.nullable(),
 	app: z
 		.object({
 			events: z.instanceof(TypedEventEmitter<AppEvents>),
@@ -65,7 +66,7 @@ const initialStateParsed = Object.assign(
 
 const initialState = stateSchema.parse(initialStateParsed)
 
-// temp code, remove later
+// TODO remove later
 while (initialState.recentProjects.length < 5) {
 	initialState.recentProjects.push({
 		name: `Project ${initialState.recentProjects.length}`,
