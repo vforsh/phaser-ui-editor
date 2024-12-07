@@ -1,12 +1,11 @@
-import type { IncomingMessage, ServerResponse } from 'http'
-import path from 'path'
 import { initTRPC } from '@trpc/server'
 import { createHTTPHandler } from '@trpc/server/adapters/standalone'
 import fse from 'fs-extra'
 import { globby } from 'globby'
+import sizeOf from 'image-size'
+import path from 'path'
 import { Plugin } from 'vite'
 import { z } from 'zod'
-import sizeOf from 'image-size'
 
 const t = initTRPC.create()
 
@@ -78,9 +77,19 @@ const appRouter = t.router({
 		const text = await fse.readFile(path, 'utf-8')
 		return { content: text }
 	}),
-	writeFile: t.procedure.mutation(async ({ ctx }) => {
-		const req = (ctx as any).req as IncomingMessage
-		const res = (ctx as any).res as ServerResponse
+	readSpritesheetFrame: t.procedure.input(z.object({ spritesheetPath: absPathSchema, frameKey: z.string().min(1) })).query(async ({ input }) => {
+		const { spritesheetPath } = input
+		const file = await fse.readFile(spritesheetPath)
+
+		// TODO split spritesheet into frames
+		// save it to local .cache folder
+		// TODO get frame from spritesheet
+
+		return file
+	}),
+	writeFile: t.procedure.mutation(async () => {
+		// const req = (ctx as any).req as IncomingMessage
+		// const res = (ctx as any).res as ServerResponse
 
 		// TODO implement
 		return { success: true }
@@ -102,7 +111,7 @@ export const apiServerPlugin: Plugin = {
 			createContext: ({ req, res }) => ({ req, res }),
 		})
 
-		server.middlewares.use('/api', (req, res, next) => {
+		server.middlewares.use('/api', (req, res) => {
 			handler(req, res)
 		})
 	},
