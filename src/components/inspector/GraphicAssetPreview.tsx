@@ -156,9 +156,12 @@ export function GraphicAssetPreview({ asset }: GraphicAssetPreviewProps) {
 					overflow: 'hidden',
 					borderRadius: 4,
 					backgroundColor: '#1A1B1E',
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
 				}}
 			>
-				{imageUrl && <Image src={imageUrl} alt={asset.name} style={{ objectFit: 'contain', width: '100%', height: '100%' }} />}
+				{imageUrl && <Image src={imageUrl} alt={asset.name} style={{ objectFit: 'contain', maxWidth: '100%', maxHeight: '100%' }} />}
 			</Box>
 
 			<Stack gap="xs">

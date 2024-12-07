@@ -110,7 +110,7 @@ const appRouter = t.router({
 async function extractFrameFromSpritesheet(spritesheetPath: string, frameData: TexturePacker.Frame) {
 	const image = sharp(spritesheetPath)
 
-	const frame = await image.extract({
+	const frame = image.extract({
 		left: frameData.frame.x,
 		top: frameData.frame.y,
 		width: frameData.frame.w,
