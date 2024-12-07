@@ -65,11 +65,11 @@ export class BaseScene extends Phaser.Scene {
 		this.game.restartScene(this.scene.key, data ?? this.initData)
 	}
 
-	public onKeyDown(key: Key, callback: Function, context?: any, signal?: AbortSignal): void {
+	public onKeyDown(key: Key, callback: (e: KeyboardEvent) => void, context?: any, signal?: AbortSignal): void {
 		this.keyboard?.on(`keydown-${key}`, callback, context, signal || this.shutdownSignal)
 	}
 
-	public onceKeyDown(key: Key, callback: Function, context?: any, signal?: AbortSignal): void {
+	public onceKeyDown(key: Key, callback: (e: KeyboardEvent) => void, context?: any, signal?: AbortSignal): void {
 		this.keyboard?.once(`keydown-${key}`, callback, context, signal || this.shutdownSignal)
 	}
 

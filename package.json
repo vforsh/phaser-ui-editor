@@ -18,6 +18,8 @@
 	"dependencies": {
 		"@mantine/core": "^7.6.1",
 		"@mantine/hooks": "^7.6.1",
+		"@open-draft/deferred-promise": "^2.2.0",
+		"@open-draft/until": "^2.1.0",
 		"@types/lodash-es": "^4.17.12",
 		"css-element-queries": "^1.2.3",
 		"es-toolkit": "^1.29.0",
@@ -31,6 +33,7 @@
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"ts-pattern": "^5.5.0",
+		"tslog": "^4.9.3",
 		"type-fest": "^4.28.0",
 		"valtio": "^2.1.2",
 		"zod": "^3.23.8"

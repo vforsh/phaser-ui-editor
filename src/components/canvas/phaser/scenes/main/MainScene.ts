@@ -2,11 +2,12 @@ import { match } from 'ts-pattern'
 import { AppCommandsEmitter } from '../../../../../AppCommands'
 import { Project } from '../../../../../project/Project'
 import { ProjectConfig } from '../../../../../project/ProjectConfig'
-import { AssetTreeItemData, AssetTreeSpritesheetFrameData, fetchImageUrl, GraphicAssetData } from '../../../../../types/assets'
+import trpc from '../../../../../trpc'
+import { AssetTreeImageData, AssetTreeItemData, AssetTreeSpritesheetFrameData, fetchImageUrl, GraphicAssetData } from '../../../../../types/assets'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { Axes } from './Axes'
 import { Grid } from './Grid'
-import trpc from '../../../../../trpc'
+import { Selectable, SelectionManager } from './selection/SelectionManager'
 
 export type MainSceneInitData = {
 	project: Project
@@ -16,9 +17,11 @@ export class MainScene extends BaseScene {
 	public initData: MainSceneInitData
 	private cameraDrag = false
 	private cameraDragStart: { x: number; y: number } | undefined
+	private objectDrag: { obj: Selectable; offsetX: number; offsetY: number } | undefined
 	private grid: Grid
 	private axes: Axes
 	private container: Phaser.GameObjects.Container
+	private selectionManager: SelectionManager | undefined
 	private projectSizeFrame: Phaser.GameObjects.Graphics
 
 	init(data: MainSceneInitData) {
@@ -40,9 +43,11 @@ export class MainScene extends BaseScene {
 
 		this.container = this.add.container(0, 0)
 
+		this.addSelectionManager()
+
 		this.addProjectSizeFrame(this.initData.project.config.size)
 
-		this.addKeyboadShortcuts()
+		this.addKeyboadCallbacks()
 
 		this.addPointerCallbacks()
 
@@ -67,42 +72,45 @@ export class MainScene extends BaseScene {
 			return
 		}
 
+		this.selectionManager.addSelectable(gameObject)
+
+		gameObject.setOrigin(0, 0)
 		gameObject.setPosition(data.position.x, data.position.y)
 
 		this.container.add(gameObject)
-
-		console.log(this.container.list)
 	}
 
 	// TODO return Result
 	private createGameObjectFromAsset(asset: AssetTreeItemData) {
-		return match(asset)
-			.with({ type: 'image' }, async (image) => {
-				let texture: Phaser.Textures.Texture | null = this.textures.get(image.path)
-				if (!texture || texture.key === '__MISSING') {
-					texture = await this.loadTexture(image)
-				}
+		return (
+			match(asset)
+				.with({ type: 'image' }, async (image) => {
+					let texture: Phaser.Textures.Texture | null = this.textures.get(image.path)
+					if (!texture || texture.key === '__MISSING') {
+						texture = await this.loadTexture(image)
+					}
 
-				if (!texture) {
-					return null
-				}
+					if (!texture) {
+						return null
+					}
 
-				return this.make.image({ key: texture.key }, false)
-			})
-			.with({ type: 'spritesheet-frame' }, async (spritesheetFrame) => {
-				let texture: Phaser.Textures.Texture | null = this.textures.get(spritesheetFrame.imagePath)
-				if (!texture || texture.key === '__MISSING') {
-					texture = await this.loadTextureAtlas(spritesheetFrame)
-				}
+					return this.make.image({ key: texture.key }, false)
+				})
+				.with({ type: 'spritesheet-frame' }, async (spritesheetFrame) => {
+					let texture: Phaser.Textures.Texture | null = this.textures.get(spritesheetFrame.imagePath)
+					if (!texture || texture.key === '__MISSING') {
+						texture = await this.loadTextureAtlas(spritesheetFrame)
+					}
 
-				if (!texture) {
-					return null
-				}
+					if (!texture) {
+						return null
+					}
 
-				return this.make.image({ key: texture.key, frame: spritesheetFrame.pathInHierarchy }, false)
-			})
-			// TODO handle fonts drop - create a new Phaser.GameObjects.BitmapText or Phaser.GameObjects.Text
-			.otherwise(() => null)
+					return this.make.image({ key: texture.key, frame: spritesheetFrame.pathInHierarchy }, false)
+				})
+				// TODO handle fonts drop - create a new Phaser.GameObjects.BitmapText or Phaser.GameObjects.Text
+				.otherwise(() => null)
+		)
 	}
 
 	private async loadTexture(asset: GraphicAssetData): Promise<Phaser.Textures.Texture | null> {
@@ -119,7 +127,9 @@ export class MainScene extends BaseScene {
 	}
 
 	private async loadTextureAtlas(asset: AssetTreeSpritesheetFrameData): Promise<Phaser.Textures.Texture | null> {
-		const img = await this.createImgForTexture(asset)
+		// TODO we create 'fake' image asset here to load the WHOLE spritesheet as a texture and not just a single frame
+		const imgAsset: AssetTreeImageData = { type: 'image', path: asset.imagePath, name: '', size: { w: 0, h: 0 } }
+		const img = await this.createImgForTexture(imgAsset)
 		if (!img) {
 			return null
 		}
@@ -154,19 +164,52 @@ export class MainScene extends BaseScene {
 		})
 	}
 
+	private addSelectionManager() {
+		this.selectionManager = new SelectionManager(this)
+	}
+
 	private addProjectSizeFrame(size: ProjectConfig['size']) {
 		this.projectSizeFrame = this.add.graphics()
 		this.projectSizeFrame.lineStyle(1, 0xffffff, 1)
 		this.projectSizeFrame.strokeRect(0, 0, size.width, size.height)
-		this.projectSizeFrame.fillStyle(0x2f0559, 0.25)
-		this.projectSizeFrame.fillRect(0, 0, size.width, size.height)
+		// this.projectSizeFrame.fillStyle(0x2f0559, 0.25)
+		// this.projectSizeFrame.fillRect(0, 0, size.width, size.height)
 	}
 
-	private addKeyboadShortcuts() {
+	private addKeyboadCallbacks() {
 		// TODO implement restart scene
 		this.onKeyDown('R', this.restart, this, this.shutdownSignal)
 		this.onKeyDown('F', this.alignCameraToProjectFrame, this, this.shutdownSignal)
 		this.onKeyDown('ONE', this.resetCameraZoom, this, this.shutdownSignal)
+
+		this.onKeyDown('DELETE', this.removeSelectedGameObject, this, this.shutdownSignal)
+		this.onKeyDown('BACKSPACE', this.removeSelectedGameObject, this, this.shutdownSignal)
+
+		this.onKeyDown('LEFT', (e) => this.moveSelectedGameObject(-1, 0, e), this, this.shutdownSignal)
+		this.onKeyDown('RIGHT', (e) => this.moveSelectedGameObject(1, 0, e), this, this.shutdownSignal)
+		this.onKeyDown('UP', (e) => this.moveSelectedGameObject(0, -1, e), this, this.shutdownSignal)
+		this.onKeyDown('DOWN', (e) => this.moveSelectedGameObject(0, 1, e), this, this.shutdownSignal)
+	}
+
+	private removeSelectedGameObject(): void {
+		const selected = this.selectionManager.selectedGameObject
+		if (!selected) {
+			return
+		}
+
+		this.selectionManager.removeSelectable(selected)
+		selected.destroy()
+	}
+
+	private moveSelectedGameObject(dx: number, dy: number = 0, event: KeyboardEvent): void {
+		const selected = this.selectionManager.selectedGameObject
+		if (!selected) {
+			return
+		}
+
+		selected.x += dx * (event.shiftKey ? 10 : 1)
+		selected.y += dy * (event.shiftKey ? 10 : 1)
+		event.preventDefault()
 	}
 
 	private addPointerCallbacks() {
@@ -177,15 +220,35 @@ export class MainScene extends BaseScene {
 		this.input.on(Phaser.Input.Events.GAME_OUT, this.onPointerGameOut, this, this.shutdownSignal)
 	}
 
-	private onPointerDown(pointer: Phaser.Input.Pointer): void {
-		if (this.isMiddleButton(pointer)) {
-			this.startCameraDrag(pointer)
-		}
+	private onPointerDown(pointer: Phaser.Input.Pointer, objects: Phaser.GameObjects.GameObject[]): void {
+		const buttonType = this.getButtonType(pointer)
+
+		match(buttonType)
+			.with('left', () => {
+				const wasSelected = objects.some((obj) => {
+					if (this.selectionManager!.isSelectable(obj)) {
+						this.startObjectDrag(obj, pointer)
+						return true
+					}
+				})
+
+				if (!wasSelected) {
+					this.selectionManager!.cancelSelection()
+				}
+			})
+			.with('middle', () => this.startCameraDrag(pointer))
+			.with('right', () => console.log('right button click'))
+			.otherwise(() => console.warn('unknown button', buttonType))
 	}
 
 	private onPointerUp(pointer: Phaser.Input.Pointer): void {
-		if (this.isMiddleButton(pointer)) {
+		if (this.getButtonType(pointer) === 'middle') {
 			this.stopCameraDrag()
+			return
+		}
+
+		if (this.getButtonType(pointer) === 'left') {
+			this.stopObjectDrag()
 		}
 	}
 
@@ -207,24 +270,50 @@ export class MainScene extends BaseScene {
 		this.cameraDragStart = undefined
 	}
 
-	private onPointerMove(pointer: Phaser.Input.Pointer): void {
-		if (this.cameraDrag) {
-			if (this.cameraDragStart) {
-				let dx = pointer.x - this.cameraDragStart.x
-				let dy = pointer.y - this.cameraDragStart.y
+	private startObjectDrag(gameObject: Selectable, pointer: Phaser.Input.Pointer) {
+		if (this.objectDrag) {
+			return
+		}
 
-				const camera = this.cameras.main
-				camera.scrollX -= dx / camera.zoom
-				camera.scrollY -= dy / camera.zoom
-				this.cameraDragStart = { x: pointer.x, y: pointer.y }
-				this.onCameraChange()
-			}
+		const camera = this.cameras.main
+		const { x, y } = pointer.positionToCamera(camera) as Phaser.Math.Vector2
+		this.objectDrag = { obj: gameObject, offsetX: gameObject.x - x, offsetY: gameObject.y - y }
+
+		this.selectionManager!.onDragStart(gameObject)
+	}
+
+	private stopObjectDrag() {
+		if (!this.objectDrag) {
+			return
+		}
+
+		this.selectionManager!.onDragEnd(this.objectDrag.obj)
+
+		this.objectDrag = undefined
+	}
+
+	private onPointerMove(pointer: Phaser.Input.Pointer): void {
+		if (this.cameraDrag && this.cameraDragStart) {
+			let dx = pointer.x - this.cameraDragStart.x
+			let dy = pointer.y - this.cameraDragStart.y
+
+			const camera = this.cameras.main
+			camera.scrollX -= dx / camera.zoom
+			camera.scrollY -= dy / camera.zoom
+			this.cameraDragStart = { x: pointer.x, y: pointer.y }
+			this.onCameraChange()
+		}
+
+		if (this.objectDrag) {
+			const camera = this.cameras.main
+			const { x, y } = pointer.positionToCamera(camera) as Phaser.Math.Vector2
+			this.objectDrag.obj.x = x + this.objectDrag.offsetX
+			this.objectDrag.obj.y = y + this.objectDrag.offsetY
 		}
 	}
 
-	private isMiddleButton(pointer: Phaser.Input.Pointer) {
-		// wheel button (at least for my mouse)
-		return pointer.button === 1
+	private getButtonType(pointer: Phaser.Input.Pointer): 'left' | 'middle' | 'right' {
+		return pointer.button === 0 ? 'left' : pointer.button === 1 ? 'middle' : 'right'
 	}
 
 	private resetCameraZoom() {
@@ -235,10 +324,19 @@ export class MainScene extends BaseScene {
 
 	private onPointerWheel(pointer: Phaser.Input.Pointer, objects: Phaser.GameObjects.GameObject[], dx: number, dy: number): void {
 		let camera = this.cameras.main
+
+		const pointerPositionBefore = pointer.positionToCamera(camera) as Phaser.Math.Vector2
+
 		let k = pointer.event.shiftKey ? 2 : 1
 		let delta = Phaser.Math.Sign(dy) * -0.1 * k
 		let newZoom = Phaser.Math.RoundTo(Math.max(0.1, camera.zoom + delta), -2)
 		this.setCameraZoom(newZoom)
+
+		const pointerPositionAfter = pointer.positionToCamera(camera) as Phaser.Math.Vector2
+
+		// TODO fix this, it doesn't work as expected
+		camera.scrollX += pointerPositionAfter.x - pointerPositionBefore.x
+		camera.scrollY += pointerPositionAfter.y - pointerPositionBefore.y
 
 		this.onResize(this.scale.gameSize)
 	}
@@ -261,9 +359,11 @@ export class MainScene extends BaseScene {
 		this.onResize(this.scale.gameSize)
 	}
 
-	onResize(gameSize: Phaser.Structs.Size) {
+	onResize(gameSize?: Phaser.Structs.Size) {
+		gameSize ??= this.scale.gameSize
+
 		let camera = this.cameras.main
-		this.grid.redraw(gameSize, camera)
+		this.grid.redraw(gameSize, camera, camera.scrollX, camera.scrollY)
 		this.axes.redraw(gameSize, camera.zoom, camera.scrollX, camera.scrollY)
 	}
 
@@ -277,11 +377,14 @@ export class MainScene extends BaseScene {
 		const zoomPaddingX = camera.width * 0.1
 		const zoomPaddingY = camera.height * 0.1
 		camera.zoom = Math.min(camera.width / (projectSize.width + zoomPaddingX), camera.height / (projectSize.height + zoomPaddingY))
+
+		this.onResize()
 	}
 
 	public onShutdown(): void {
 		super.onShutdown()
 
-		// custom shutdown logic
+		this.selectionManager?.destroy()
+		this.selectionManager = undefined
 	}
 }

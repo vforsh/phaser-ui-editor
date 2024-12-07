@@ -8,11 +8,11 @@ export class Grid extends Phaser.GameObjects.Container {
 		this.add(this.graphics)
 	}
 
-	public redraw(gameSize: { width: number; height: number }, camera: Phaser.Cameras.Scene2D.Camera): void {
-		this.redrawGrid(gameSize, camera)
+	public redraw(gameSize: { width: number; height: number }, camera: Phaser.Cameras.Scene2D.Camera, scrollX: number, scrollY: number): void {
+		this.redrawGrid(gameSize, camera, scrollX, scrollY)
 	}
 
-	private redrawGrid(gameSize: { width: number; height: number }, camera: Phaser.Cameras.Scene2D.Camera) {
+	private redrawGrid(gameSize: { width: number; height: number }, camera: Phaser.Cameras.Scene2D.Camera, scrollX: number, scrollY: number) {
 		// TODO account for camera scroll
 
 		const cameraZoom = camera.zoom

@@ -5,6 +5,7 @@ export class Axes extends Phaser.GameObjects.Container {
 		super(scene)
 	}
 
+	// TODO it hangs on large zoom (probably because of the too many texts)
 	public redraw(gameSize: { width: number; height: number }, cameraZoom: number, cameraScrollX: number, cameraScrollY: number): void {
 		this.texts.forEach((text) => text.kill())
 
@@ -26,6 +27,12 @@ export class Axes extends Phaser.GameObjects.Container {
 
 		// add texts to the left and right of the camera
 		let rowsNum = (Math.ceil(height / cellSize) + 1) * 2
+
+		// TODO remove later
+		if (rowsNum > 100) {
+			rowsNum = 100
+		}
+
 		for (let row = -rowsNum / 2; row <= rowsNum / 2; row += 1) {
 			let y = row * cellSize
 
@@ -48,6 +55,12 @@ export class Axes extends Phaser.GameObjects.Container {
 
 		// add texts to the bottom of the camera
 		let columnsNum = (Math.ceil(width / cellSize) + 1) * 2
+
+		// TODO remove later
+		if (columnsNum > 100) {
+			columnsNum = 100
+		}
+
 		for (let col = -columnsNum / 2; col <= columnsNum / 2; col += 1) {
 			const x = col * cellSize
 
