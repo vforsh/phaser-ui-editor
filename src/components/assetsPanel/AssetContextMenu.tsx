@@ -39,6 +39,7 @@ export default function AssetContextMenu({
           top: position.y,
         },
       }}
+      // @ts-expect-error
       style={{
         zIndex: 100,
       }}

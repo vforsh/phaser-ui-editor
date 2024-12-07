@@ -62,6 +62,7 @@ export default function ResizableDivider({
         zIndex: 99,
         userSelect: "none",
         position: "relative",
+        // @ts-expect-error
         "&::after": {
           content: '""',
           position: "absolute",

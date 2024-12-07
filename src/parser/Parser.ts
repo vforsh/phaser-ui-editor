@@ -10,7 +10,8 @@ export class Parser {
 		return ''
 	}
 
-	public fromJSON(json: string): Phaser.GameObjects.GameObject {
+	// TODO return Result
+	public fromJSON(json: string): Phaser.GameObjects.GameObject | null {
 		return null
 	}
 }

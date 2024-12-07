@@ -8,7 +8,7 @@ interface PanelTitleProps {
 export const PanelTitle: React.FC<PanelTitleProps> = ({ title }) => {
   return (
     <Box w="100%">
-      <Title order={5} ml="4px" align="left">
+      <Title order={5} ml="4px" ta="left">
         {title}
       </Title>
       <Space h="xs" />
