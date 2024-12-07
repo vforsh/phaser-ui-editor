@@ -4,6 +4,7 @@ import fse from 'fs-extra'
 import { globby } from 'globby'
 import sizeOf from 'image-size'
 import path from 'path'
+import sharp from 'sharp'
 import { Plugin } from 'vite'
 import { z } from 'zod'
 
@@ -77,15 +78,20 @@ const appRouter = t.router({
 		const text = await fse.readFile(path, 'utf-8')
 		return { content: text }
 	}),
-	readSpritesheetFrame: t.procedure.input(z.object({ spritesheetPath: absPathSchema, frameKey: z.string().min(1) })).query(async ({ input }) => {
-		const { spritesheetPath } = input
-		const file = await fse.readFile(spritesheetPath)
+	readSpritesheetFrame: t.procedure.input(z.object({ spritesheetPath: absPathSchema, frameName: z.string().min(1) })).query(async ({ input }) => {
+		const { spritesheetPath, frameName } = input
 
-		// TODO split spritesheet into frames
-		// save it to local .cache folder
-		// TODO get frame from spritesheet
+		const json = (await fse.readJson(spritesheetPath.replace(path.extname(spritesheetPath), '.json'))) as TexturePacker.Atlas
+		const texture = json.textures.find((texture) => texture.frames.find((frame) => frame.filename === frameName))
+		const frameData = texture?.frames.find((frame) => frame.filename === frameName)
 
-		return file
+		if (!frameData) {
+			throw new Error(`Frame '${frameName}' not found in spritesheet '${spritesheetPath}'`)
+		}
+
+		const frame = await extractFrameFromSpritesheet(spritesheetPath, frameData)
+
+		return frame
 	}),
 	writeFile: t.procedure.mutation(async () => {
 		// const req = (ctx as any).req as IncomingMessage
@@ -100,6 +106,19 @@ const appRouter = t.router({
 		return { path }
 	}),
 })
+
+async function extractFrameFromSpritesheet(spritesheetPath: string, frameData: TexturePacker.Frame) {
+	const image = sharp(spritesheetPath)
+
+	const frame = await image.extract({
+		left: frameData.frame.x,
+		top: frameData.frame.y,
+		width: frameData.frame.w,
+		height: frameData.frame.h,
+	})
+
+	return frame.toBuffer()
+}
 
 export type AppRouter = typeof appRouter
 

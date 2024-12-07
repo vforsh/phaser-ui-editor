@@ -11,7 +11,7 @@ export function BasicInfoSection({ asset }: BasicInfoSectionProps) {
     <Stack gap="xs">
       <PropertyRow label="Name" value={asset.name} />
       <PropertyRow label="Type" value={asset.type} />
-      <PropertyRow label="Path" value={asset.path} />
+      <PropertyRow label="Path" value={asset.imagePath} />
     </Stack>
   );
 }

@@ -1,9 +1,11 @@
 import { Box, Group, Paper, Stack, useMantineTheme } from '@mantine/core'
+import JSON5 from 'json5'
 import path from 'path-browserify'
 import { useCallback, useEffect, useState } from 'react'
 import { mockAssetsPaths } from '../data/mockAssets'
-import { mockOpenedProject } from '../data/mockOpenedProject'
+import { projectConfigSchema } from '../project/ProjectConfig'
 import { state } from '../state/State'
+import trpc from '../trpc'
 import { AssetTreeItemData } from '../types/assets'
 import AssetsPanel from './assetsPanel/AssetsPanel'
 import { buildAssetTree } from './assetsPanel/build-asset-tree'
@@ -66,7 +68,7 @@ export default function EditorLayout() {
 		return () => window.removeEventListener('keydown', onKeyDown)
 	}, [])
 
-	// open project from query param or from saved state
+	// open project from query param or from saved state if present
 	useEffect(() => {
 		const urlParams = new URLSearchParams(window.location.search)
 		const projectDirPath = urlParams.get('projectDir')
@@ -90,7 +92,7 @@ export default function EditorLayout() {
 			return
 		}
 
-		let openedProject = await doOpenProject(projectDirPath)
+		const openedProject = await doOpenProject(projectDirPath)
 		if (!openedProject) {
 			return
 		}
@@ -110,7 +112,7 @@ export default function EditorLayout() {
 
 		state.lastOpenedProjectDir = projectDirPath
 
-		// update recent projects
+		// update recent projects in state
 		state.recentProjects ??= []
 		const recentProject = state.recentProjects.find((item) => item.dir === projectDirPath)
 		if (recentProject) {
@@ -128,7 +130,43 @@ export default function EditorLayout() {
 
 	// TODO return Result (neverthrow)
 	const doOpenProject = async (projectDirPath: string) => {
-		return mockOpenedProject
+		// return mockOpenedProject
+
+		const files = (
+			await trpc.globby.query({
+				patterns: ['**/*'],
+				options: {
+					cwd: projectDirPath,
+					gitignore: true,
+				},
+			})
+		).map((item) => path.join(projectDirPath, item))
+
+		const projectConfigFileName = 'project.json5'
+		const projectConfigPath = files.find((item) => item.endsWith(projectConfigFileName))
+		if (!projectConfigPath) {
+			// TODO show mantine warning toast
+			console.log(`${projectConfigFileName} is not found in the ${projectDirPath}`)
+			return null
+		}
+
+		const projectConfigRaw = await trpc.readText.query({ path: projectConfigPath })
+		const projectConfigParsed = JSON5.parse(projectConfigRaw.content)
+		const projectConfig = projectConfigSchema.parse(projectConfigParsed)
+
+		const assetsDirPath = path.join(projectDirPath, projectConfig.assetsDir)
+		const assetsDirStats = await trpc.stat.query({ path: assetsDirPath })
+		if (assetsDirStats.isDirectory === false) {
+			// TODO show mantine warning toast
+			console.log(`assetsDir ${assetsDirPath} not found`)
+			return null
+		}
+
+		return {
+			projectDir: projectDirPath,
+			projectConfig,
+			assetsDir: assetsDirPath,
+		}
 	}
 
 	return (

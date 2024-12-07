@@ -1,4 +1,3 @@
-import path from 'path-browserify'
 import { PartialDeep } from 'type-fest'
 import { proxy, subscribe, unstable_getInternalStates, useSnapshot } from 'valtio'
 import { z } from 'zod'
@@ -8,14 +7,9 @@ import { PhaserAppCommands } from '../components/canvas/phaser/PhaserAppCommands
 import { PhaserAppEvents } from '../components/canvas/phaser/PhaserAppEvents'
 import { TypedEventEmitter } from '../components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { CommandEmitter } from '../components/canvas/phaser/robowhale/utils/events/CommandEmitter'
-import { getObjectKeys } from '../utils/collection/get-object-keys'
 import { projectConfigSchema } from '../project/ProjectConfig'
-
-const absolutePathSchema = z
-	.string()
-	.min(1)
-	.refine((value) => path.isAbsolute(value), 'must be an absolute path')
-
+import { getObjectKeys } from '../utils/collection/get-object-keys'
+import { absolutePathSchema } from './Schemas'
 const stateSchema = z.object({
 	lastOpenedProjectDir: absolutePathSchema.optional(),
 	recentProjects: z.array(
@@ -49,6 +43,7 @@ const stateSchema = z.object({
 
 type State = z.infer<typeof stateSchema>
 
+// state from localStorage, hydrated with default values
 const initialStateParsed = Object.assign(
 	{},
 	{
@@ -64,19 +59,12 @@ const initialStateParsed = Object.assign(
 	JSON.parse(localStorage.getItem('state') || '{}')
 )
 
+// TODO handle errors
 const initialState = stateSchema.parse(initialStateParsed)
-
-// TODO remove later
-while (initialState.recentProjects.length < 5) {
-	initialState.recentProjects.push({
-		name: `Project ${initialState.recentProjects.length}`,
-		dir: `/some/not/real/${Math.floor(Math.random() * 10_000)}/dir/${Math.floor(Math.random() * 10_000)}`,
-		lastOpenedAt: Date.now(),
-	})
-}
 
 const state = proxy(initialState)
 
+// save state to localStorage on change, but filter out valtio refs
 subscribe(state, () => {
 	const serializedState = serializeState()
 	localStorage.setItem('state', serializedState)

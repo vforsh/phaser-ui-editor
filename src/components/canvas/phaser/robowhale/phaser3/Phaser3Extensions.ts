@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { callAllMethods } from '../Polyfills'
 import { arrayify } from '../utils/collection/arrayify'
 import { parseJsonBitmapFont } from './gameObjects/bitmap-text/parse-json-bitmap-font'

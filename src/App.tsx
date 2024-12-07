@@ -11,7 +11,7 @@ import { state } from './state/State'
 const theme = createTheme({
 	primaryColor: 'blue',
 	primaryShade: 6,
-	colorScheme: 'dark',
+	// colorScheme: 'dark',
 	fontFamily: 'Nunito, sans-serif',
 	headings: {
 		fontFamily: 'Nunito, sans-serif',
