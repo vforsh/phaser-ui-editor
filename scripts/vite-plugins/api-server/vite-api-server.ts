@@ -71,7 +71,7 @@ const appRouter = t.router({
 	readJson: t.procedure.input(z.object({ path: absPathSchema })).query(async ({ input }) => {
 		const { path } = input
 		const json = await fse.readJson(path)
-		return { content: json }
+		return json
 	}),
 	readText: t.procedure.input(z.object({ path: absPathSchema })).query(async ({ input }) => {
 		const { path } = input

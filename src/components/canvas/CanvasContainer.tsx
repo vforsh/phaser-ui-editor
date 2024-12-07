@@ -68,11 +68,13 @@ export default function CanvasContainer() {
 				if (rect) {
 					const x = e.clientX - rect.left
 					const y = e.clientY - rect.top
-					console.log('Asset dropped:', {
-						item,
-						position: { x, y },
-					})
-					// TODO: Add item to Phaser scene at position
+
+					if (state.app?.commands) {
+						state.app.commands.emit('handle-asset-drop', {
+							asset: item,
+							position: { x, y },
+						})
+					}
 				}
 			}
 		} catch (error) {

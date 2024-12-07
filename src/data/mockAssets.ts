@@ -204,6 +204,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png',
 								pathInHierarchy: 'level_complete/star_glow',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png/level_complete/star_glow',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -215,6 +216,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png',
 								pathInHierarchy: 'level_complete/star_circle_fx',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png/level_complete/star_circle_fx',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -226,6 +228,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png',
 								pathInHierarchy: 'level_complete/Chef Cherry',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png/level_complete/Chef Cherry',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -237,6 +240,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png',
 								pathInHierarchy: 'level_complete/popover',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png/level_complete/popover',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -248,6 +252,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png',
 								pathInHierarchy: 'level_complete/Star',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png/level_complete/Star',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.json',
 							},
 						],
 					},
@@ -266,6 +271,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png',
 								pathInHierarchy: 'left_panel/left_panel_back',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png/left_panel/left_panel_back',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -277,6 +283,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png',
 								pathInHierarchy: 'left_panel/left_panel_inner',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png/left_panel/left_panel_inner',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.json',
 							},
 						],
 					},
@@ -295,6 +302,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png',
 								pathInHierarchy: 'pause_screen/button_graphics_quality',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png/pause_screen/button_graphics_quality',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.json',
 							},
 						],
 					},
@@ -313,6 +321,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png',
 								pathInHierarchy: 'tutorial/chef',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png/tutorial/chef',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.json',
 							},
 						],
 					},
@@ -331,6 +340,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png',
 								pathInHierarchy: 'boosters/popover',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png/boosters/popover',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.json',
 							},
 						],
 					},
@@ -371,6 +381,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.png',
 								pathInHierarchy: 'main_menu/side_button_font',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.png/main_menu/side_button_font',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -382,6 +393,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.png',
 								pathInHierarchy: 'main_menu/round_base_button',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.png/main_menu/round_base_button',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -393,6 +405,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.png',
 								pathInHierarchy: 'main_menu/play_button_white',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.png/main_menu/play_button_white',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -404,6 +417,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.png',
 								pathInHierarchy: 'main_menu/label_coins_icon',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.png/main_menu/label_coins_icon',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -415,6 +429,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.png',
 								pathInHierarchy: 'main_menu/cup_icon',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.png/main_menu/cup_icon',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -426,6 +441,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.png',
 								pathInHierarchy: 'main_menu/settings_button',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.png/main_menu/settings_button',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -437,6 +453,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.png',
 								pathInHierarchy: 'main_menu/play_button_circles',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.png/main_menu/play_button_circles',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.json',
 							},
 						],
 					},
@@ -455,6 +472,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.png',
 								pathInHierarchy: 'settings/wide_button',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.png/settings/wide_button',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -466,6 +484,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.png',
 								pathInHierarchy: 'settings/Close Button',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.png/settings/Close Button',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -477,6 +496,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.png',
 								pathInHierarchy: 'settings/button_fullscreen_disabled',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.png/settings/button_fullscreen_disabled',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/main_menu.json',
 							},
 						],
 					},
@@ -526,6 +546,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png',
 								pathInHierarchy: 'popups_2/black_rect.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png/popups_2/black_rect.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.json',
 							},
 						],
 					},
@@ -544,6 +565,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png',
 								pathInHierarchy: 'daily_cup/popup_frame.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png/daily_cup/popup_frame.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -555,6 +577,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png',
 								pathInHierarchy: 'daily_cup/popup_back.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png/daily_cup/popup_back.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -566,6 +589,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png',
 								pathInHierarchy: 'daily_cup/bottom_panel_back.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png/daily_cup/bottom_panel_back.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -577,6 +601,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png',
 								pathInHierarchy: 'daily_cup/popover_help.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png/daily_cup/popover_help.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.json',
 							},
 						],
 					},
@@ -595,6 +620,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png',
 								pathInHierarchy: 'chapters/card_back_with_hole.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png/chapters/card_back_with_hole.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -606,6 +632,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png',
 								pathInHierarchy: 'chapters/card_loading_back.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png/chapters/card_loading_back.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.json',
 							},
 						],
 					},
@@ -624,6 +651,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png',
 								pathInHierarchy: 'chefs_cup/rays.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png/chefs_cup/rays.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -635,6 +663,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png',
 								pathInHierarchy: 'chefs_cup/chefs_cup_banner.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png/chefs_cup/chefs_cup_banner.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -646,6 +675,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png',
 								pathInHierarchy: 'chefs_cup/line.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png/chefs_cup/line.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.json',
 							},
 						],
 					},
@@ -686,6 +716,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.png',
 								pathInHierarchy: 'popups/popup_back.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.png/popups/popup_back.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -697,6 +728,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.png',
 								pathInHierarchy: 'popups/popup_small_back.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.png/popups/popup_small_back.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.json',
 							},
 						],
 					},
@@ -715,6 +747,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.png',
 								pathInHierarchy: 'chapter_complete/glow.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.png/chapter_complete/glow.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -726,6 +759,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.png',
 								pathInHierarchy: 'chapter_complete/rays.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.png/chapter_complete/rays.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.json',
 							},
 						],
 					},
@@ -744,6 +778,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.png',
 								pathInHierarchy: 'lives/popup.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.png/lives/popup.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.json',
 							},
 						],
 					},
@@ -762,6 +797,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.png',
 								pathInHierarchy: 'shop/popup.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.png/shop/popup.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.json',
 							},
 						],
 					},
@@ -780,6 +816,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.png',
 								pathInHierarchy: 'goals_popup/Small Popup Background.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.png/goals_popup/Small Popup Background.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.json',
 							},
 						],
 					},
@@ -798,6 +835,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.png',
 								pathInHierarchy: 'greetings/card_back.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.png/greetings/card_back.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.json',
 							},
 						],
 					},
@@ -816,6 +854,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.png',
 								pathInHierarchy: 'cloches/goal_panel_back.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.png/cloches/goal_panel_back.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.json',
 							},
 						],
 					},
@@ -834,6 +873,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.png',
 								pathInHierarchy: 'start_level/goal_panel_back.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.png/start_level/goal_panel_back.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups.json',
 							},
 						],
 					},
@@ -874,6 +914,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.png',
 								pathInHierarchy: 'replayer/player_back.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.png/replayer/player_back.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -885,6 +926,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.png',
 								pathInHierarchy: 'replayer/white_rect.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.png/replayer/white_rect.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -896,6 +938,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.png',
 								pathInHierarchy: 'replayer/collapse_back.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.png/replayer/collapse_back.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -907,6 +950,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.png',
 								pathInHierarchy: 'replayer/backward-button.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.png/replayer/backward-button.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -918,6 +962,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.png',
 								pathInHierarchy: 'replayer/forward-button.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.png/replayer/forward-button.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -929,6 +974,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.png',
 								pathInHierarchy: 'replayer/pause-button.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.png/replayer/pause-button.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -940,6 +986,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.png',
 								pathInHierarchy: 'replayer/collapse_button.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.png/replayer/collapse_button.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -951,6 +998,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.png',
 								pathInHierarchy: 'replayer/expand_button.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.png/replayer/expand_button.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -962,6 +1010,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.png',
 								pathInHierarchy: 'replayer/next-button.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.png/replayer/next-button.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -973,6 +1022,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.png',
 								pathInHierarchy: 'replayer/collapse-icon.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.png/replayer/collapse-icon.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/replay_gui.json',
 							},
 						],
 					},
@@ -1013,6 +1063,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.png',
 								pathInHierarchy: 'rewards/reward_rays.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.png/rewards/reward_rays.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -1024,6 +1075,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.png',
 								pathInHierarchy: 'rewards/gift_white.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.png/rewards/gift_white.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -1035,6 +1087,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.png',
 								pathInHierarchy: 'rewards/flags_right.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.png/rewards/flags_right.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -1046,6 +1099,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.png',
 								pathInHierarchy: 'rewards/gift.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.png/rewards/gift.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -1057,6 +1111,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.png',
 								pathInHierarchy: 'rewards/flags_left.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.png/rewards/flags_left.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -1068,6 +1123,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.png',
 								pathInHierarchy: 'rewards/button_double.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.png/rewards/button_double.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.json',
 							},
 						],
 					},
@@ -1086,6 +1142,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.png',
 								pathInHierarchy: 'particles/wheel_reward_circle.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.png/particles/wheel_reward_circle.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.json',
 							},
 						],
 					},
@@ -1104,6 +1161,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.png',
 								pathInHierarchy: 'rewards/bomb.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.png/rewards/bomb.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -1115,6 +1173,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.png',
 								pathInHierarchy: 'rewards/rolling_pin.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.png/rewards/rolling_pin.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.json',
 							},
 							{
 								type: 'spritesheet-frame',
@@ -1126,6 +1185,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.png',
 								pathInHierarchy: 'rewards/super_sphere.png',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.png/rewards/super_sphere.png',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/rewards.json',
 							},
 						],
 					},
@@ -1161,6 +1221,7 @@ export const mockAssets = [
 						imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.png',
 						pathInHierarchy: 'black_rect_big',
 						path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.png/black_rect_big',
+						jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.json',
 					},
 					{
 						type: 'spritesheet-frame',
@@ -1172,6 +1233,7 @@ export const mockAssets = [
 						imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.png',
 						pathInHierarchy: 'stripes_fx',
 						path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.png/stripes_fx',
+						jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.json',
 					},
 					{
 						type: 'spritesheet-frame',
@@ -1183,6 +1245,7 @@ export const mockAssets = [
 						imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.png',
 						pathInHierarchy: 'generator_turns',
 						path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.png/generator_turns',
+						jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.json',
 					},
 					{
 						type: 'spritesheet-frame',
@@ -1194,6 +1257,7 @@ export const mockAssets = [
 						imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.png',
 						pathInHierarchy: 'cell_border_back',
 						path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.png/cell_border_back',
+						jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.json',
 					},
 					{
 						type: 'spritesheet-frame',
@@ -1205,6 +1269,7 @@ export const mockAssets = [
 						imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.png',
 						pathInHierarchy: 'field_labels',
 						path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.png/field_labels',
+						jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.json',
 					},
 					{
 						type: 'spritesheet-frame',
@@ -1216,6 +1281,7 @@ export const mockAssets = [
 						imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.png',
 						pathInHierarchy: 'cloche_3_2',
 						path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.png/cloche_3_2',
+						jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.json',
 					},
 					{
 						type: 'spritesheet-frame',
@@ -1227,6 +1293,7 @@ export const mockAssets = [
 						imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.png',
 						pathInHierarchy: 'cloche_2_2',
 						path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.png/cloche_2_2',
+						jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.json',
 					},
 					{
 						type: 'spritesheet-folder',
@@ -1243,6 +1310,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.png',
 								pathInHierarchy: 'pizza/slice_4_shadow',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.png/pizza/slice_4_shadow',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.json',
 							},
 						],
 					},
@@ -1261,6 +1329,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.png',
 								pathInHierarchy: 'donut_box/donut',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.png/donut_box/donut',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.json',
 							},
 						],
 					},
@@ -1285,6 +1354,7 @@ export const mockAssets = [
 								imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.png',
 								pathInHierarchy: 'content/Polygon-Cookie-Orange',
 								path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.png/content/Polygon-Cookie-Orange',
+								jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay.json',
 							},
 						],
 					},
@@ -1303,3 +1373,27 @@ export const mockAssets = [
 		],
 	},
 ]
+
+function addJsonPathToSpritesheetFrames<T extends any>(item: T): T {
+	if (typeof item !== 'object' || item === null) {
+		return item
+	}
+
+	if (Array.isArray(item)) {
+		return item.map((i) => addJsonPathToSpritesheetFrames(i)) as T
+	}
+
+	if (item.type === 'spritesheet-frame') {
+		const { imagePath } = item
+		return {
+			...item,
+			jsonPath: imagePath.replace(/\.png$/, '.json'),
+		} as T
+	}
+
+	const result: any = {}
+	for (const key in item) {
+		result[key] = addJsonPathToSpritesheetFrames(item[key])
+	}
+	return result
+}

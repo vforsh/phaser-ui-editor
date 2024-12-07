@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { match } from 'ts-pattern'
 import trpc from '../../trpc'
 import { GraphicAssetData } from '../../types/assets'
+import { imageDataToUrl } from '../../utils/image-data-to-url'
 
 interface GraphicAssetPreviewProps {
 	asset: GraphicAssetData
@@ -64,12 +65,6 @@ function detectImageType(asset: GraphicAssetData) {
 	}
 }
 
-function createImageUrl(imageData: number[], type = 'image/png') {
-	const blob = new Blob([new Uint8Array(imageData)], { type })
-	const url = URL.createObjectURL(blob)
-	return url
-}
-
 /**
  * Returns the file size of the image in bytes
  */
@@ -119,7 +114,7 @@ export function GraphicAssetPreview({ asset }: GraphicAssetPreviewProps) {
 		const fetchData = async () => {
 			const imageData = await readImageData(asset, ac.signal)
 			const imageType = detectImageType(asset)
-			const imageUrl = createImageUrl(imageData.data, imageType)
+			const imageUrl = imageDataToUrl(imageData.data, imageType)
 			setImageUrl(imageUrl)
 		}
 

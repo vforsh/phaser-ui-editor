@@ -1,8 +1,12 @@
+import { match } from 'ts-pattern'
+import { AppCommandsEmitter } from '../../../../../AppCommands'
 import { Project } from '../../../../../project/Project'
 import { ProjectConfig } from '../../../../../project/ProjectConfig'
+import { AssetTreeItemData, AssetTreeSpritesheetFrameData, fetchImageUrl, GraphicAssetData } from '../../../../../types/assets'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { Axes } from './Axes'
 import { Grid } from './Grid'
+import trpc from '../../../../../trpc'
 
 export type MainSceneInitData = {
 	project: Project
@@ -47,9 +51,110 @@ export class MainScene extends BaseScene {
 		this.onResize(this.scale.gameSize)
 
 		this.alignCameraToProjectFrame()
+
+		this.setupAppCommands()
 	}
 
-	addProjectSizeFrame(size: ProjectConfig['size']) {
+	private setupAppCommands() {
+		const appCommands = (this.game as PhaserGameExtra).appCommands as AppCommandsEmitter
+
+		appCommands.on('handle-asset-drop', this.handleAssetDrop, this, undefined, this.shutdownSignal)
+	}
+
+	private async handleAssetDrop(data: { asset: AssetTreeItemData; position: { x: number; y: number } }) {
+		const gameObject = await this.createGameObjectFromAsset(data.asset)
+		if (!gameObject) {
+			return
+		}
+
+		gameObject.setPosition(data.position.x, data.position.y)
+
+		this.container.add(gameObject)
+
+		console.log(this.container.list)
+	}
+
+	// TODO return Result
+	private createGameObjectFromAsset(asset: AssetTreeItemData) {
+		return match(asset)
+			.with({ type: 'image' }, async (image) => {
+				let texture: Phaser.Textures.Texture | null = this.textures.get(image.path)
+				if (!texture || texture.key === '__MISSING') {
+					texture = await this.loadTexture(image)
+				}
+
+				if (!texture) {
+					return null
+				}
+
+				return this.make.image({ key: texture.key }, false)
+			})
+			.with({ type: 'spritesheet-frame' }, async (spritesheetFrame) => {
+				let texture: Phaser.Textures.Texture | null = this.textures.get(spritesheetFrame.imagePath)
+				if (!texture || texture.key === '__MISSING') {
+					texture = await this.loadTextureAtlas(spritesheetFrame)
+				}
+
+				if (!texture) {
+					return null
+				}
+
+				return this.make.image({ key: texture.key, frame: spritesheetFrame.pathInHierarchy }, false)
+			})
+			// TODO handle fonts drop - create a new Phaser.GameObjects.BitmapText or Phaser.GameObjects.Text
+			.otherwise(() => null)
+	}
+
+	private async loadTexture(asset: GraphicAssetData): Promise<Phaser.Textures.Texture | null> {
+		const img = await this.createImgForTexture(asset)
+		if (!img) {
+			return null
+		}
+
+		const textureKey = asset.path
+
+		this.textures.addImage(textureKey, img)
+
+		return this.textures.get(textureKey)
+	}
+
+	private async loadTextureAtlas(asset: AssetTreeSpritesheetFrameData): Promise<Phaser.Textures.Texture | null> {
+		const img = await this.createImgForTexture(asset)
+		if (!img) {
+			return null
+		}
+
+		const json = await trpc.readJson.query({ path: asset.jsonPath })
+		if (!json) {
+			return null
+		}
+
+		const textureKey = asset.imagePath
+
+		this.textures.addAtlas(textureKey, img, json)
+
+		return this.textures.get(textureKey)
+	}
+
+	/**
+	 * Creates an `<img>` element that will be used as a Phaser texture source.
+	 * TODO return Result
+	 */
+	private async createImgForTexture(asset: GraphicAssetData): Promise<HTMLImageElement | null> {
+		const imgUrl = await fetchImageUrl(asset)
+		if (!imgUrl) {
+			return null
+		}
+
+		return new Promise((resolve, reject) => {
+			const img = new Image()
+			img.onload = () => resolve(img)
+			img.onerror = () => reject(new Error(`Failed to load image: ${asset.path}`))
+			img.src = imgUrl
+		})
+	}
+
+	private addProjectSizeFrame(size: ProjectConfig['size']) {
 		this.projectSizeFrame = this.add.graphics()
 		this.projectSizeFrame.lineStyle(1, 0xffffff, 1)
 		this.projectSizeFrame.strokeRect(0, 0, size.width, size.height)
@@ -58,9 +163,10 @@ export class MainScene extends BaseScene {
 	}
 
 	private addKeyboadShortcuts() {
+		// TODO implement restart scene
+		this.onKeyDown('R', this.restart, this, this.shutdownSignal)
 		this.onKeyDown('F', this.alignCameraToProjectFrame, this, this.shutdownSignal)
 		this.onKeyDown('ONE', this.resetCameraZoom, this, this.shutdownSignal)
-		// this.onKeyDown('TWO', this.resetCameraZoom, this, this.shutdownSignal)
 	}
 
 	private addPointerCallbacks() {

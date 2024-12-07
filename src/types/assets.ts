@@ -1,4 +1,6 @@
 import { match } from 'ts-pattern'
+import { imageDataToUrl } from '../utils/image-data-to-url'
+import trpc from '../trpc'
 
 export type AssetTreeData = AssetTreeItemData[]
 
@@ -101,6 +103,10 @@ export type AssetTreeSpritesheetFrameData = {
 	 */
 	imagePath: string
 	/**
+	 * Absolute path to the JSON file (e.g. `/Users/user/game/assets/graphics/gameplay_gui.json`)
+	 */
+	jsonPath: string
+	/**
 	 * Absolute path to the frame (e.g. `/Users/user/game/assets/graphics/gameplay_gui.png/pause_screen/button_graphics_quality`)
 	 * Used as a key in React
 	 */
@@ -118,4 +124,36 @@ export function isGraphicAsset(asset: AssetTreeItemData): asset is GraphicAssetD
 	return match(asset.type)
 		.with('image', 'spritesheet', 'spritesheet-frame', 'bitmap-font', () => true)
 		.otherwise(() => false)
+}
+
+/**
+ * Returns a URL for the image data, that can be used as an img.src
+ * TODO return Result
+ */
+export async function fetchImageUrl(asset: GraphicAssetData, signal?: AbortSignal): Promise<string> {
+	const imgData = await fetchImageData(asset, signal)
+	const imgUrl = imageDataToUrl(imgData)
+	return imgUrl
+}
+
+async function fetchImageData(asset: GraphicAssetData, signal?: AbortSignal): Promise<number[]> {
+	const res = await match(asset)
+		.with({ type: 'image' }, async (image) => {
+			return trpc.readFile.query({ path: image.path }, { signal })
+		})
+		.with({ type: 'spritesheet' }, async (spritesheet) => {
+			return trpc.readFile.query({ path: spritesheet.image.path }, { signal })
+		})
+		.with({ type: 'spritesheet-frame' }, async (spritesheetFrame) => {
+			return trpc.readSpritesheetFrame.query(
+				{ spritesheetPath: spritesheetFrame.imagePath, frameName: spritesheetFrame.pathInHierarchy },
+				{ signal }
+			)
+		})
+		.with({ type: 'bitmap-font' }, async (bitmapFont) => {
+			return trpc.readFile.query({ path: bitmapFont.image.path }, { signal })
+		})
+		.exhaustive()
+
+	return res.data
 }
