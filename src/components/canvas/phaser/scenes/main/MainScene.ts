@@ -5,7 +5,7 @@ import { ProjectConfig } from '../../../../../project/ProjectConfig'
 import trpc from '../../../../../trpc'
 import { AssetTreeImageData, AssetTreeItemData, AssetTreeSpritesheetFrameData, fetchImageUrl, GraphicAssetData } from '../../../../../types/assets'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
-import { Axes } from './Axes'
+import { Rulers } from './Axes'
 import { Grid } from './Grid'
 import { Selectable, SelectionManager } from './selection/SelectionManager'
 
@@ -14,15 +14,15 @@ export type MainSceneInitData = {
 }
 
 export class MainScene extends BaseScene {
-	public initData: MainSceneInitData
+	public initData!: MainSceneInitData
 	private cameraDrag = false
 	private cameraDragStart: { x: number; y: number } | undefined
 	private objectDrag: { obj: Selectable; offsetX: number; offsetY: number } | undefined
-	private grid: Grid
-	private axes: Axes
-	private container: Phaser.GameObjects.Container
-	private selectionManager: SelectionManager | undefined
-	private projectSizeFrame: Phaser.GameObjects.Graphics
+	private grid!: Grid
+	private rulers!: Rulers
+	private container!: Phaser.GameObjects.Container
+	private selectionManager!: SelectionManager
+	private projectSizeFrame!: Phaser.GameObjects.Graphics
 
 	init(data: MainSceneInitData) {
 		super.init(data)
@@ -36,10 +36,12 @@ export class MainScene extends BaseScene {
 		}
 
 		this.grid = new Grid(this)
+		this.grid.name = 'grid'
 		this.add.existing(this.grid)
 
-		this.axes = new Axes(this)
-		this.add.existing(this.axes)
+		this.rulers = new Rulers(this)
+		this.rulers.name = 'rulers'
+		this.add.existing(this.rulers)
 
 		this.container = this.add.container(0, 0)
 
@@ -58,6 +60,28 @@ export class MainScene extends BaseScene {
 		this.alignCameraToProjectFrame()
 
 		this.setupAppCommands()
+
+		this.addTestImage()
+	}
+
+	private async addTestImage() {
+		const frame = {
+			type: 'spritesheet-frame',
+			name: 'Chef Cherry',
+			size: {
+				w: 285,
+				h: 375,
+			},
+			imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png',
+			pathInHierarchy: 'level_complete/Chef Cherry',
+			path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png/level_complete/Chef Cherry',
+			jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.json',
+		} as AssetTreeSpritesheetFrameData
+
+		this.handleAssetDrop({
+			asset: frame,
+			position: { x: this.initData.project.config.size.width / 2 - frame.size.w / 2, y: this.initData.project.config.size.height / 2 - frame.size.h / 2 },
+		})
 	}
 
 	private setupAppCommands() {
@@ -232,6 +256,11 @@ export class MainScene extends BaseScene {
 					}
 				})
 
+				const clickedOnTransformControls = objects.some((obj) => obj.parentContainer === this.selectionManager!.transformControls)
+				if (clickedOnTransformControls) {
+					return
+				}
+
 				if (!wasSelected) {
 					this.selectionManager!.cancelSelection()
 				}
@@ -348,7 +377,7 @@ export class MainScene extends BaseScene {
 	private onCameraChange() {
 		let camera = this.cameras.main
 		this.grid.redraw(this.scale.gameSize, camera)
-		this.axes.redraw(this.scale.gameSize, camera.zoom, camera.scrollX, camera.scrollY)
+		this.rulers.redraw(this.scale.gameSize, camera.zoom, camera.scrollX, camera.scrollY)
 	}
 
 	private onPointerGameOut(): void {}
@@ -364,7 +393,7 @@ export class MainScene extends BaseScene {
 
 		let camera = this.cameras.main
 		this.grid.redraw(gameSize, camera, camera.scrollX, camera.scrollY)
-		this.axes.redraw(gameSize, camera.zoom, camera.scrollX, camera.scrollY)
+		this.rulers.redraw(gameSize, camera.zoom, camera.scrollX, camera.scrollY)
 	}
 
 	private alignCameraToProjectFrame() {

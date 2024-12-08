@@ -1,4 +1,4 @@
-export class SelectionRect extends Phaser.GameObjects.Container {
+export class ResizeableRect extends Phaser.GameObjects.Container {
 	private graphics: Phaser.GameObjects.Graphics
 
 	constructor(scene: Phaser.Scene) {

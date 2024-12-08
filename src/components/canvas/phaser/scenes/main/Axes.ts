@@ -1,4 +1,4 @@
-export class Axes extends Phaser.GameObjects.Container {
+export class Rulers extends Phaser.GameObjects.Container {
 	private texts: Phaser.GameObjects.Text[] = []
 
 	constructor(scene: Phaser.Scene) {

@@ -6,13 +6,13 @@ import ResizeSensor from 'css-element-queries/src/ResizeSensor'
 import { debounce } from 'es-toolkit'
 import { AppCommands, AppCommandsEmitter } from '../../../AppCommands'
 import { AppEvents, AppEventsEmitter } from '../../../AppEvents'
+import { Project } from '../../../project/Project'
 import { ProjectConfig } from '../../../project/ProjectConfig'
 import { PhaserAppCommands, PhaserAppCommandsEmitter } from './PhaserAppCommands'
 import { PhaserAppEvents, PhaserAppEventsEmitter } from './PhaserAppEvents'
 import { Phaser3Extensions } from './robowhale/phaser3/Phaser3Extensions'
 import { TypedEventEmitter } from './robowhale/phaser3/TypedEventEmitter'
 import { CommandEmitter } from './robowhale/utils/events/CommandEmitter'
-import { Project } from '../../../project/Project'
 
 /**
  * Extra properties that are added to the Phaser.Game instance
@@ -53,7 +53,7 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 
 		this.appCommands = appCommands
 
-		this.setupScaling()
+		this.resizeSensor = this.setupScaling()
 
 		// TODO add Boot scene where we load editor assets
 		this.scene.add('MainScene', MainScene)
@@ -69,11 +69,13 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 			edges: ['trailing'],
 		})
 
-		new ResizeSensor(this.canvas.parentElement!, (size) => onResizeDebounced(size))
+		const resizeSensor = new ResizeSensor(this.canvas.parentElement!, (size) => onResizeDebounced(size))
 
 		const width = this.canvas.parentElement!.clientWidth
 		const height = this.canvas.parentElement!.clientHeight
 		this.handleResize({ width, height })
+
+		return resizeSensor
 	}
 
 	private handleResize(size: { width: number; height: number }) {

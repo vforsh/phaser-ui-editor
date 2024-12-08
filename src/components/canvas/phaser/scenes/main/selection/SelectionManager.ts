@@ -1,5 +1,6 @@
 import { MainScene } from '../MainScene'
-import { SelectionRect } from './SelectionRect'
+import { ResizeableRect } from './SelectionRect'
+import { TransformControls } from './TransformControls'
 
 export type Selectable = Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | Phaser.GameObjects.Container
 
@@ -7,35 +8,54 @@ export class SelectionManager {
 	private scene: MainScene
 	private selectables: Selectable[] = []
 	public selectedGameObject: Selectable | null = null
-	private focusedRect!: SelectionRect
-	private hoverRect!: SelectionRect
+	private hoverRect!: ResizeableRect
+	public transformControls!: TransformControls
 	private hoverEnabled = true
 	private destroyController = new AbortController()
 
 	constructor(scene: MainScene) {
 		this.scene = scene
 
-		this.scene.events.on(Phaser.Scenes.Events.POST_UPDATE, this.onPostUpdate, this, this.destroyController.signal)
-
-		this.addFocusedRect()
 		this.addHoverRect()
+		this.addTransformControls()
+
+		this.scene.events.on(Phaser.Scenes.Events.POST_UPDATE, this.onPostUpdate, this, this.destroyController.signal)
 	}
 
 	private onPostUpdate(): void {
 		if (this.selectedGameObject) {
-			this.focusedRect.setPosition(this.selectedGameObject.x, this.selectedGameObject.y)
+			this.transformControls.setPosition(this.selectedGameObject.x, this.selectedGameObject.y)
 		}
 	}
 
-	private addFocusedRect() {
-		this.focusedRect = new SelectionRect(this.scene)
-		this.scene.add.existing(this.focusedRect)
-	}
-
 	private addHoverRect() {
-		this.hoverRect = new SelectionRect(this.scene)
+		this.hoverRect = new ResizeableRect(this.scene)
 		this.hoverRect.setAlpha(0.5)
 		this.scene.add.existing(this.hoverRect)
+	}
+
+	private addTransformControls() {
+		this.transformControls = new TransformControls(this.scene, {
+			resizeBorders: {
+				thickness: 2,
+				color: 0x1854a8,
+				hitAreaPadding: 10,
+			},
+			resizeKnobs: {
+				fillRadius: 6,
+				fillColor: 0xffffff,
+				outlineThickness: 2,
+				outlineColor: 0x1854a8,
+			},
+			rotateKnobs: {
+				radius: 15,
+			},
+		})
+
+		this.transformControls.name = 'transform-controls'
+		this.transformControls.kill()
+
+		this.scene.add.existing(this.transformControls)
 	}
 
 	public addSelectable(go: Selectable): void {
@@ -57,16 +77,16 @@ export class SelectionManager {
 
 		if (this.selectedGameObject === gameObject) {
 			this.selectedGameObject = null
-			this.focusedRect.kill()
+			this.transformControls.kill()
 		}
 	}
 
 	private onSelectablePointerDown(gameObject: Selectable, pointer: Phaser.Input.Pointer, x: number, y: number): void {
 		this.selectedGameObject = gameObject
 
-		this.focusedRect.resize(this.selectedGameObject.displayWidth, this.selectedGameObject.displayHeight)
-		this.focusedRect.setPosition(this.selectedGameObject.x, this.selectedGameObject.y)
-		this.focusedRect.revive()
+		this.transformControls.resizeTo(gameObject.displayWidth, gameObject.displayHeight)
+		this.transformControls.setPosition(gameObject.x, gameObject.y)
+		this.transformControls.revive()
 	}
 
 	private onSelectablePointerOver(gameObject: Selectable): void {
@@ -102,7 +122,7 @@ export class SelectionManager {
 
 	public cancelSelection() {
 		this.selectedGameObject = null
-		this.focusedRect.kill()
+		this.transformControls.kill()
 	}
 
 	public destroy(): void {
