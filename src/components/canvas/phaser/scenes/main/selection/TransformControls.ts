@@ -1,7 +1,7 @@
 import { ReadonlyDeep } from 'type-fest'
 import { CssCursor } from '../../../../../../utils/CssCursor'
 import { signalFromEvent } from '../../../robowhale/utils/events/create-abort-signal-from-event'
-import { Transformable } from './Transformable'
+import { Selection } from './Selection'
 
 export interface TransformControlOptions {
 	resizeBorders: {
@@ -45,7 +45,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	private bottomLeftRotateKnob!: Phaser.GameObjects.Image
 	private bottomRightRotateKnob!: Phaser.GameObjects.Image
 
-	private followTarget: Transformable[] | null = null
+	private followTarget: Selection | null = null
 
 	constructor(scene: Phaser.Scene, options: TransformControlOptions) {
 		super(scene)
@@ -271,26 +271,26 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.innerContainer.add(this.bottomRightKnob)
 	}
 
-	public startFollow(selection: Transformable[]) {
+	public startFollow(selection: Selection) {
 		this.adjustToSelection(selection)
 		this.followTarget = selection
 	}
 
-	private adjustToSelection(selection: Transformable[]): void {
+	private adjustToSelection(selection: Selection): void {
 		this.adjustToSelectionSize(selection)
 		this.adjustToSelectionOrigin(selection)
 		this.adjustToSelectionAngle(selection)
 		this.adjustToSelectionPosition(selection)
 	}
 
-	private adjustToSelectionSize(selection: Transformable[]): void {
+	private adjustToSelectionSize(selection: Selection): void {
 		this.resizeBorders(selection)
 		this.alignResizeKnobs()
 		this.alignRotateKnobs()
 	}
 
-	private resizeBorders(selection: Transformable[]) {
-		const { left, right, top, bottom } = this.calculateSelectionBounds(selection)
+	private resizeBorders(selection: Selection) {
+		const { left, right, top, bottom } = selection.bounds
 
 		const width = right - left
 		const height = bottom - top
@@ -304,14 +304,6 @@ export class TransformControls extends Phaser.GameObjects.Container {
 
 		this.rightBorder.displayHeight = height
 		this.rightBorder.x = width
-	}
-
-	private calculateSelectionBounds(selection: Transformable[]): { left: number; right: number; top: number; bottom: number } {
-		const left = selection.reduce((min, obj) => Math.min(min, obj.left), Infinity)
-		const right = selection.reduce((max, obj) => Math.max(max, obj.right), -Infinity)
-		const top = selection.reduce((min, obj) => Math.min(min, obj.top), Infinity)
-		const bottom = selection.reduce((max, obj) => Math.max(max, obj.bottom), -Infinity)
-		return { left, right, top, bottom }
 	}
 
 	// resize borders before calling this!
@@ -344,15 +336,16 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.bottomRightRotateKnob.y = this.bottomRightKnob.y
 	}
 
-	private adjustToSelectionOrigin(selection: Transformable[]): void {
-		if (selection.length === 1) {
-			const offsetX = -selection[0].displayWidth * selection[0].originX
-			const offsetY = -selection[0].displayHeight * selection[0].originY
+	private adjustToSelectionOrigin(selection: Selection): void {
+		if (selection.size === 1) {
+			const first = selection.at(0)!
+			const offsetX = -first.displayWidth * first.originX
+			const offsetY = -first.displayHeight * first.originY
 			this.innerContainer.setPosition(offsetX, offsetY)
 			return
 		}
 
-		const { left, right, top, bottom } = this.calculateSelectionBounds(selection)
+		const { left, right, top, bottom } = selection.bounds
 		const width = right - left
 		const height = bottom - top
 		const centerX = width / 2
@@ -360,22 +353,22 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.innerContainer.setPosition(-centerX, -centerY)
 	}
 
-	private adjustToSelectionAngle(selection: Transformable[]): void {
-		if (selection.length === 1) {
-			this.setAngle(selection[0].angle)
+	private adjustToSelectionAngle(selection: Selection): void {
+		if (selection.size === 1) {
+			this.setAngle(selection.at(0)!.angle)
 			return
 		}
 
 		this.setAngle(0)
 	}
 
-	private adjustToSelectionPosition(selection: Transformable[]): void {
-		if (selection.length === 1) {
-			this.setPosition(selection[0].x, selection[0].y)
+	private adjustToSelectionPosition(selection: Selection): void {
+		if (selection.size === 1) {
+			this.setPosition(selection.at(0)!.x, selection.at(0)!.y)
 			return
 		}
 
-		const { left, right, top, bottom } = this.calculateSelectionBounds(selection)
+		const { left, right, top, bottom } = selection.bounds
 		const width = right - left
 		const height = bottom - top
 		const centerX = width / 2

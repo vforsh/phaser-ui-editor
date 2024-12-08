@@ -231,8 +231,8 @@ export class MainScene extends BaseScene {
 		this.onKeyDown('F', this.alignCameraToProjectFrame, this, this.shutdownSignal)
 		this.onKeyDown('ONE', this.resetCameraZoom, this, this.shutdownSignal)
 
-		this.onKeyDown('DELETE', this.removeSelectedGameObject, this, this.shutdownSignal)
-		this.onKeyDown('BACKSPACE', this.removeSelectedGameObject, this, this.shutdownSignal)
+		this.onKeyDown('DELETE', this.removeSelection, this, this.shutdownSignal)
+		this.onKeyDown('BACKSPACE', this.removeSelection, this, this.shutdownSignal)
 
 		this.onKeyDown('LEFT', (e) => this.moveSelectedGameObject(-1, 0, e), this, this.shutdownSignal)
 		this.onKeyDown('RIGHT', (e) => this.moveSelectedGameObject(1, 0, e), this, this.shutdownSignal)
@@ -245,9 +245,9 @@ export class MainScene extends BaseScene {
 		// this.onKeyDown('G', (event) => this.group(event), this, this.shutdownSignal)
 	}
 
-	private removeSelectedGameObject(): void {
-		const selected = this.selectionManager.selected
-		if (!selected) {
+	private removeSelection(): void {
+		const selection = this.selectionManager.selection
+		if (!selection) {
 			return
 		}
 
@@ -256,7 +256,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private moveSelectedGameObject(dx: number, dy: number = 0, event: KeyboardEvent): void {
-		const selected = this.selectionManager.selected
+		const selected = this.selectionManager.selection
 		if (!selected) {
 			return
 		}
@@ -267,7 +267,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private moveSelectedGameObjectDownInHierarchy(event: KeyboardEvent) {
-		const selected = this.selectionManager.selected
+		const selected = this.selectionManager.selection
 		if (!selected) {
 			return
 		}
@@ -287,7 +287,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private moveSelectedGameObjectUpInHierarchy(event: KeyboardEvent) {
-		const selected = this.selectionManager.selected
+		const selected = this.selectionManager.selection
 		if (!selected) {
 			return
 		}

@@ -1,5 +1,6 @@
 import { MainScene } from '../MainScene'
 import { AdjustableRect } from './AdjustableRect'
+import { Selection } from './Selection'
 import { TransformControls } from './TransformControls'
 
 export type Selectable = Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | Phaser.GameObjects.Container
@@ -7,7 +8,7 @@ export type Selectable = Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | 
 export class SelectionManager {
 	private scene: MainScene
 	private selectables: Selectable[] = []
-	public selected: Selectable[] = []
+	public selection: Selection | null = null
 	private hoverRect!: AdjustableRect
 	public transformControls!: TransformControls
 	private hoverEnabled = true
@@ -70,20 +71,35 @@ export class SelectionManager {
 
 		this.selectables = this.selectables.filter((selectable) => selectable !== gameObject)
 
-		if (this.selected === gameObject) {
-			this.selected = null
-			this.transformControls.kill()
+		if (this.selection?.has(gameObject)) {
+			this.selection.remove(gameObject)
+			if (this.selection.size === 0) {
+				this.selection.destroy()
+				this.selection = null
+				this.transformControls.kill()
+			}
 		}
 	}
 
 	private onSelectablePointerDown(gameObject: Selectable, pointer: Phaser.Input.Pointer, x: number, y: number): void {
 		if (pointer.event.shiftKey) {
-			this.selected.push(gameObject)
+			if (this.selection && this.selection.has(gameObject)) {
+				this.selection.remove(gameObject)
+				if (this.selection.isEmpty) {
+					this.selection.destroy()
+					this.selection = null
+					this.transformControls.kill()
+				}
+				return
+			}
+
+			this.selection ??= new Selection([])
+			this.selection.add(gameObject)
 		} else {
-			this.selected = [gameObject]
+			this.selection = new Selection([gameObject])
 		}
 
-		this.transformControls.startFollow(this.selected)
+		this.transformControls.startFollow(this.selection)
 		this.transformControls.revive()
 	}
 
@@ -92,7 +108,7 @@ export class SelectionManager {
 			return
 		}
 
-		if (this.selected.includes(gameObject)) {
+		if (this.selection?.has(gameObject)) {
 			return
 		}
 
@@ -118,13 +134,17 @@ export class SelectionManager {
 	}
 
 	public cancelSelection() {
-		this.selected.length = 0
+		this.selection = null
 		this.transformControls.stopFollow()
 	}
 
 	public destroy(): void {
 		this.destroyController.abort()
-		this.selected.length = 0
+
+		if (this.selection) {
+			this.selection.destroy()
+			this.selection = null
+		}
 	}
 
 	public get destroySignal(): AbortSignal {
