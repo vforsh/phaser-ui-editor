@@ -83,6 +83,7 @@ export class SelectionManager {
 
 	private onSelectablePointerDown(gameObject: Selectable, pointer: Phaser.Input.Pointer, x: number, y: number): void {
 		if (pointer.event.shiftKey) {
+			// deselect the clicked object if it was selected
 			if (this.selection && this.selection.has(gameObject)) {
 				this.selection.remove(gameObject)
 				if (this.selection.isEmpty) {
@@ -93,9 +94,16 @@ export class SelectionManager {
 				return
 			}
 
+			// add clicked object to selection (if no selection exists, create a new one)
 			this.selection ??= new Selection([])
 			this.selection.add(gameObject)
 		} else {
+			// if the clicked object is already in the selection, do nothing
+			if (this.selection?.has(gameObject)) {
+				return
+			}
+
+			// create a new selection with the clicked object
 			this.selection = new Selection([gameObject])
 		}
 
@@ -124,17 +132,21 @@ export class SelectionManager {
 		return this.selectables.includes(gameObject as Selectable)
 	}
 
-	public onDragStart(gameObject: Selectable) {
+	public onDragStart(selection: Selection) {
 		this.hoverEnabled = false
 		this.hoverRect.kill()
 	}
 
-	public onDragEnd(gameObject: Selectable) {
+	public onDragEnd(selection: Selection) {
 		this.hoverEnabled = true
 	}
 
 	public cancelSelection() {
-		this.selection = null
+		if (this.selection) {
+			this.selection.destroy()
+			this.selection = null
+		}
+
 		this.transformControls.stopFollow()
 	}
 

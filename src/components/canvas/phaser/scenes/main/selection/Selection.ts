@@ -1,6 +1,9 @@
 import { ReadonlyDeep } from 'type-fest'
 import { Transformable } from './Transformable'
 
+/**
+ * A wrapper around an array of transformable objects.
+ */
 export class Selection {
 	public objects: Transformable[]
 	private _bounds: Phaser.Geom.Rectangle
@@ -47,8 +50,35 @@ export class Selection {
 		return this.objects[index]
 	}
 
+	public move(dx: number, dy = 0): Selection {
+		this.objects.forEach((obj) => {
+			obj.x += dx
+			obj.y += dy
+		})
+
+		this._bounds = this.calculateBounds()
+
+		return this
+	}
+
 	public destroy(): void {
 		this.objects.length = 0
+	}
+
+	public get x(): number {
+		return this._bounds.x
+	}
+
+	public get y(): number {
+		return this._bounds.y
+	}
+
+	public get width(): number {
+		return this._bounds.width
+	}
+
+	public get height(): number {
+		return this._bounds.height
 	}
 
 	public get isEmpty(): boolean {

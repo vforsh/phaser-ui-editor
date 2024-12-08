@@ -7,10 +7,23 @@ import { AssetTreeImageData, AssetTreeItemData, AssetTreeSpritesheetFrameData, f
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { Rulers } from './Axes'
 import { Grid } from './Grid'
-import { Selectable, SelectionManager } from './selection/SelectionManager'
+import { Selection } from './selection/Selection'
+import { SelectionManager } from './selection/SelectionManager'
 
 export type MainSceneInitData = {
 	project: Project
+}
+
+type SelectionDragData = {
+	obj: Selection
+	// initial position of the selection
+	currentX: number
+	currentY: number
+	// initial offset of the selection relative to the pointer
+	offsetX: number
+	offsetY: number
+	// axis to lock the selection movement on
+	lockAxis: 'x' | 'y' | 'none'
 }
 
 /**
@@ -25,7 +38,7 @@ export class MainScene extends BaseScene {
 	public initData!: MainSceneInitData
 	private cameraDrag = false
 	private cameraDragStart: { x: number; y: number } | undefined
-	private selectionDrag: { obj: Selectable; offsetX: number; offsetY: number; lockAxis: 'x' | 'y' | 'none' } | undefined
+	private selectionDrag: SelectionDragData | undefined
 	private grid!: Grid
 	private rulers!: Rulers
 	private container!: Phaser.GameObjects.Container
@@ -245,6 +258,10 @@ export class MainScene extends BaseScene {
 		// this.onKeyDown('G', (event) => this.group(event), this, this.shutdownSignal)
 	}
 
+	public restart() {
+		this.scene.restart(this.initData)
+	}
+
 	private removeSelection(): void {
 		const selection = this.selectionManager.selection
 		if (!selection) {
@@ -267,12 +284,12 @@ export class MainScene extends BaseScene {
 	}
 
 	private moveSelectedGameObjectDownInHierarchy(event: KeyboardEvent) {
-		const selected = this.selectionManager.selection
-		if (!selected) {
+		const selection = this.selectionManager.selection
+		if (!selection) {
 			return
 		}
 
-		const isOnBottom = selected.parentContainer.getIndex(selected) === 0
+		const isOnBottom = selection.parentContainer.getIndex(selection) === 0
 		if (isOnBottom) {
 			// display Mantine toast
 			// console.log('already on BOTTOM')
@@ -280,9 +297,9 @@ export class MainScene extends BaseScene {
 		}
 
 		if (event.shiftKey) {
-			selected.parentContainer.sendToBack(selected)
+			selection.parentContainer.sendToBack(selection)
 		} else {
-			selected.parentContainer.moveDown(selected)
+			selection.parentContainer.moveDown(selection)
 		}
 	}
 
@@ -319,9 +336,20 @@ export class MainScene extends BaseScene {
 
 		match(buttonType)
 			.with('left', () => {
-				const wasSelected = objects.some((obj) => {
-					if (this.selectionManager!.isSelectable(obj)) {
-						this.startSelectionDrag(obj, pointer)
+				if (this.selectionManager.selection?.bounds.contains(pointer.worldX, pointer.worldY)) {
+					this.startSelectionDrag(this.selectionManager.selection, pointer)
+					return
+				}
+
+				objects.some((obj) => {
+					if (this.selectionManager.isSelectable(obj) && this.selectionManager.selection?.has(obj)) {
+						this.startSelectionDrag(this.selectionManager.selection, pointer)
+						return true
+					}
+				})
+
+				const wasProcessedBySelection = objects.some((obj) => {
+					if (this.selectionManager.isSelectable(obj)) {
 						return true
 					}
 				})
@@ -334,7 +362,7 @@ export class MainScene extends BaseScene {
 					return
 				}
 
-				if (!wasSelected) {
+				if (!wasProcessedBySelection) {
 					this.selectionManager!.cancelSelection()
 				}
 			})
@@ -372,16 +400,23 @@ export class MainScene extends BaseScene {
 		this.cameraDragStart = undefined
 	}
 
-	private startSelectionDrag(gameObject: Selectable, pointer: Phaser.Input.Pointer) {
+	private startSelectionDrag(selection: Selection, pointer: Phaser.Input.Pointer) {
 		if (this.selectionDrag) {
 			return
 		}
 
 		const camera = this.cameras.main
 		const { x, y } = pointer.positionToCamera(camera) as Phaser.Math.Vector2
-		this.selectionDrag = { obj: gameObject, offsetX: gameObject.x - x, offsetY: gameObject.y - y, lockAxis: 'none' }
+		this.selectionDrag = {
+			obj: selection,
+			currentX: selection.x,
+			currentY: selection.y,
+			offsetX: selection.x - x,
+			offsetY: selection.y - y,
+			lockAxis: 'none',
+		}
 
-		this.selectionManager!.onDragStart(gameObject)
+		this.selectionManager!.onDragStart(selection)
 	}
 
 	private stopSelectionDrag() {
@@ -411,13 +446,18 @@ export class MainScene extends BaseScene {
 			const { x, y } = pointer.positionToCamera(camera) as Phaser.Math.Vector2
 
 			if (this.selectionDrag.lockAxis === 'x') {
-				this.selectionDrag.obj.x = x + this.selectionDrag.offsetX
+				this.selectionDrag.obj.move(x + this.selectionDrag.offsetX - this.selectionDrag.currentX, 0)
 			} else if (this.selectionDrag.lockAxis === 'y') {
-				this.selectionDrag.obj.y = y + this.selectionDrag.offsetY
+				this.selectionDrag.obj.move(0, y + this.selectionDrag.offsetY - this.selectionDrag.currentY)
 			} else {
-				this.selectionDrag.obj.x = x + this.selectionDrag.offsetX
-				this.selectionDrag.obj.y = y + this.selectionDrag.offsetY
+				this.selectionDrag.obj.move(
+					x + this.selectionDrag.offsetX - this.selectionDrag.currentX,
+					y + this.selectionDrag.offsetY - this.selectionDrag.currentY
+				)
 			}
+
+			this.selectionDrag.currentX = this.selectionDrag.obj.x
+			this.selectionDrag.currentY = this.selectionDrag.obj.y
 		}
 	}
 
