@@ -1,5 +1,5 @@
 import { MainScene } from '../MainScene'
-import { ResizeableRect } from './SelectionRect'
+import { AdjustableRect } from './AdjustableRect'
 import { TransformControls } from './TransformControls'
 
 export type Selectable = Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | Phaser.GameObjects.Container
@@ -8,7 +8,7 @@ export class SelectionManager {
 	private scene: MainScene
 	private selectables: Selectable[] = []
 	public selectedGameObject: Selectable | null = null
-	private hoverRect!: ResizeableRect
+	private hoverRect!: AdjustableRect
 	public transformControls!: TransformControls
 	private hoverEnabled = true
 	private destroyController = new AbortController()
@@ -18,19 +18,16 @@ export class SelectionManager {
 
 		this.addHoverRect()
 		this.addTransformControls()
-
-		this.scene.events.on(Phaser.Scenes.Events.POST_UPDATE, this.onPostUpdate, this, this.destroyController.signal)
-	}
-
-	private onPostUpdate(): void {
-		if (this.selectedGameObject) {
-			this.transformControls.setPosition(this.selectedGameObject.x, this.selectedGameObject.y)
-		}
 	}
 
 	private addHoverRect() {
-		this.hoverRect = new ResizeableRect(this.scene)
-		this.hoverRect.setAlpha(0.5)
+		this.hoverRect = new AdjustableRect(this.scene, {
+			thickness: 2,
+			color: 0x0E99FF,
+		})
+
+		this.hoverRect.name = 'hover-rect'
+		// this.hoverRect.setAlpha(0.5)
 		this.scene.add.existing(this.hoverRect)
 	}
 
@@ -38,17 +35,16 @@ export class SelectionManager {
 		this.transformControls = new TransformControls(this.scene, {
 			resizeBorders: {
 				thickness: 2,
-				color: 0x1854a8,
+				color: 0x0C8CE8,
 				hitAreaPadding: 10,
 			},
 			resizeKnobs: {
-				fillRadius: 6,
-				fillColor: 0xffffff,
-				outlineThickness: 2,
-				outlineColor: 0x1854a8,
+				fillSize: 16,
+				fillColor: 0x0C8CE8,
+				resolution: 2,
 			},
 			rotateKnobs: {
-				radius: 15,
+				radius: 30,
 			},
 		})
 
@@ -84,8 +80,7 @@ export class SelectionManager {
 	private onSelectablePointerDown(gameObject: Selectable, pointer: Phaser.Input.Pointer, x: number, y: number): void {
 		this.selectedGameObject = gameObject
 
-		this.transformControls.resizeTo(gameObject.displayWidth, gameObject.displayHeight)
-		this.transformControls.setPosition(gameObject.x, gameObject.y)
+		this.transformControls.startFollow(gameObject)
 		this.transformControls.revive()
 	}
 
@@ -98,8 +93,7 @@ export class SelectionManager {
 			return
 		}
 
-		this.hoverRect.resize(gameObject.displayWidth, gameObject.displayHeight)
-		this.hoverRect.setPosition(gameObject.x, gameObject.y)
+		this.hoverRect.adjustTo(gameObject)
 		this.hoverRect.revive()
 	}
 
@@ -122,7 +116,7 @@ export class SelectionManager {
 
 	public cancelSelection() {
 		this.selectedGameObject = null
-		this.transformControls.kill()
+		this.transformControls.stopFollow()
 	}
 
 	public destroy(): void {

@@ -78,10 +78,15 @@ export class MainScene extends BaseScene {
 			jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.json',
 		} as AssetTreeSpritesheetFrameData
 
-		this.handleAssetDrop({
+		const gameObject = await this.handleAssetDrop({
 			asset: frame,
-			position: { x: this.initData.project.config.size.width / 2 - frame.size.w / 2, y: this.initData.project.config.size.height / 2 - frame.size.h / 2 },
+			position: { x: this.initData.project.config.size.width / 2, y: this.initData.project.config.size.height / 2 },
 		})
+
+		if (gameObject) {
+			// gameObject.setOrigin(1)
+			// gameObject.angle = 45
+		}
 	}
 
 	private setupAppCommands() {
@@ -93,15 +98,17 @@ export class MainScene extends BaseScene {
 	private async handleAssetDrop(data: { asset: AssetTreeItemData; position: { x: number; y: number } }) {
 		const gameObject = await this.createGameObjectFromAsset(data.asset)
 		if (!gameObject) {
-			return
+			return null
 		}
 
 		this.selectionManager.addSelectable(gameObject)
 
-		gameObject.setOrigin(0, 0)
+		gameObject.setOrigin(0.5, 0.5)
 		gameObject.setPosition(data.position.x, data.position.y)
 
 		this.container.add(gameObject)
+
+		return gameObject
 	}
 
 	// TODO return Result
@@ -256,7 +263,10 @@ export class MainScene extends BaseScene {
 					}
 				})
 
-				const clickedOnTransformControls = objects.some((obj) => obj.parentContainer === this.selectionManager!.transformControls)
+				const clickedOnTransformControls = objects.some(
+					// TODO find a better way to check if the click was on the transform controls
+					(obj) => obj.parentContainer.parentContainer === this.selectionManager!.transformControls
+				)
 				if (clickedOnTransformControls) {
 					return
 				}

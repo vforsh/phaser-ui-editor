@@ -81,6 +81,7 @@ function createPhaserApp(
 		audio: {
 			noAudio: true,
 		},
+		banner: false,
 	}
 
 	return new PhaserApp(config, projectConfig, appEvents, appCommands)

@@ -1,6 +1,7 @@
 import { ReadonlyDeep } from 'type-fest'
 import { CssCursor } from '../../../../../../utils/CssCursor'
 import { signalFromEvent } from '../../../robowhale/utils/events/create-abort-signal-from-event'
+import { Transformable } from './Transformable'
 
 export interface TransformControlOptions {
 	resizeBorders: {
@@ -9,18 +10,23 @@ export interface TransformControlOptions {
 		hitAreaPadding: number
 	}
 	resizeKnobs: {
-		fillRadius: number
+		// width and height of the knob texture
+		fillSize: number
 		fillColor: number
-		outlineColor: number
-		outlineThickness: number
+		resolution: number
 	}
 	rotateKnobs: {
 		radius: number
 	}
 }
 
+/**
+ * Controls that allows to adjust scale, angle and origin of a transformable object.
+ */
 export class TransformControls extends Phaser.GameObjects.Container {
 	private readonly options: ReadonlyDeep<TransformControlOptions>
+
+	private innerContainer: Phaser.GameObjects.Container
 
 	private topBorder!: Phaser.GameObjects.Image
 	private bottomBorder!: Phaser.GameObjects.Image
@@ -39,12 +45,17 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	private bottomLeftRotateKnob!: Phaser.GameObjects.Image
 	private bottomRightRotateKnob!: Phaser.GameObjects.Image
 
+	private followTarget: Transformable | null = null
+
 	constructor(scene: Phaser.Scene, options: TransformControlOptions) {
 		super(scene)
 
 		this.options = options
 
 		const destroySignal = signalFromEvent(this, Phaser.GameObjects.Events.DESTROY)
+
+		this.innerContainer = this.scene.add.container(0, 0)
+		this.add(this.innerContainer)
 
 		// Add the borders
 		this.addTopBorder()
@@ -55,8 +66,9 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		// Setup the borders interactivity
 		const borders = [this.topBorder, this.bottomBorder, this.leftBorder, this.rightBorder]
 		borders.forEach((border) => {
-			// border.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, this.onBorderPointerDown, this)
-			// border.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, this.onBorderPointerDown, this)
+			border.setTint(this.options.resizeBorders.color)
+			border.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => border.setTint(0xcee9fd), this, destroySignal)
+			border.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => border.setTint(this.options.resizeBorders.color), this, destroySignal)
 			border.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.onBorderPointerDown, this, destroySignal)
 		})
 
@@ -72,9 +84,10 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		rotateKnobs.forEach((knob) => {
 			knob.alpha = 0.001
 			knob.setInteractive()
-			this.setKnobHitArea(knob.input!, this.options.rotateKnobs.radius)
-			// TODO setup custom cursors for rotate knobs, like in Rive
+			this.setKnobCircleHitArea(knob.input!, this.options.rotateKnobs.radius)
 			knob.input!.cursor = 'grab' satisfies CssCursor
+			// knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => knob.setAlpha(0.1), this, destroySignal)
+			// knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => knob.setAlpha(0.001), this, destroySignal)
 			knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.onRotateKnobPointerDown, this, destroySignal)
 		})
 
@@ -89,29 +102,38 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		const resizeKnobs = [this.topLeftKnob, this.topRightKnob, this.bottomLeftKnob, this.bottomRightKnob]
 		resizeKnobs.forEach((knob) => {
 			knob.setInteractive()
-			this.setKnobHitArea(knob.input!, this.options.resizeKnobs.fillRadius + this.options.resizeKnobs.outlineThickness)
+			this.setKnobRectHitArea(knob.input!, this.options.resizeKnobs.fillSize * 2)
 			knob.input!.cursor = knob === this.topLeftKnob || knob === this.bottomRightKnob ? 'nwse-resize' : 'nesw-resize'
+			knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => knob.setTintFill(0xcee9fd), this, destroySignal)
+			knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => knob.setTintFill(this.options.resizeKnobs.fillColor), this, destroySignal)
 			knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.onResizeKnobPointerDown, this, destroySignal)
+			knob.setScale(1 / this.options.resizeKnobs.resolution)
+			knob.setTintFill(this.options.resizeKnobs.fillColor)
 		})
 
-		this.resizeTo(100, 100)
+		this.scene.events.on(Phaser.Scenes.Events.UPDATE, this.onUpdate, this, destroySignal)
 	}
 
-	private setKnobHitArea(knobInput: Phaser.Types.Input.InteractiveObject, radius: number) {
+	private setKnobRectHitArea(knobInput: Phaser.Types.Input.InteractiveObject, size: number) {
+		knobInput.hitArea = new Phaser.Geom.Rectangle(0, 0, size, size)
+		knobInput.hitAreaCallback = Phaser.Geom.Rectangle.Contains
+	}
+
+	private setKnobCircleHitArea(knobInput: Phaser.Types.Input.InteractiveObject, radius: number) {
 		knobInput.hitArea = new Phaser.Geom.Circle(radius, radius, radius)
 		knobInput.hitAreaCallback = Phaser.Geom.Circle.Contains
 	}
 
 	private onBorderPointerDown(pointer: Phaser.Input.Pointer, x: number, y: number) {
-		console.log('onBorderPointerDown', pointer, x, y)
+		console.log('BORDER CLICK', pointer, x, y)
 	}
 
 	private onRotateKnobPointerDown(pointer: Phaser.Input.Pointer, x: number, y: number) {
-		console.log('onRotateKnobPointerDown', pointer, x, y)
+		console.log('ROTATE KNOB CLICK', pointer, x, y)
 	}
 
 	private onResizeKnobPointerDown(pointer: Phaser.Input.Pointer, x: number, y: number) {
-		console.log('onResizeKnobPointerDown', pointer, x, y)
+		console.log('RESIZE KNOB CLICK', pointer, x, y)
 	}
 
 	private addTopBorder() {
@@ -119,11 +141,10 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.topBorder.name = 'top-border'
 		this.topBorder.displayHeight = this.options.resizeBorders.thickness
 		this.topBorder.setOrigin(0, 0.5)
-		this.topBorder.setTint(this.options.resizeBorders.color)
 		this.topBorder.setInteractive()
 		Phaser.Geom.Rectangle.Inflate(this.topBorder.input!.hitArea, 0, this.options.resizeBorders.hitAreaPadding)
 		this.topBorder.input!.cursor = 'ns-resize' satisfies CssCursor
-		this.add(this.topBorder)
+		this.innerContainer.add(this.topBorder)
 	}
 
 	private addBottomBorder() {
@@ -131,11 +152,10 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.bottomBorder.name = 'bottom-border'
 		this.bottomBorder.displayHeight = this.options.resizeBorders.thickness
 		this.bottomBorder.setOrigin(0, 0.5)
-		this.bottomBorder.setTint(this.options.resizeBorders.color)
 		this.bottomBorder.setInteractive()
 		Phaser.Geom.Rectangle.Inflate(this.bottomBorder.input!.hitArea, 0, this.options.resizeBorders.hitAreaPadding)
 		this.bottomBorder.input!.cursor = 'ns-resize' satisfies CssCursor
-		this.add(this.bottomBorder)
+		this.innerContainer.add(this.bottomBorder)
 	}
 
 	private addLeftBorder() {
@@ -143,11 +163,10 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.leftBorder.name = 'left-border'
 		this.leftBorder.displayWidth = this.options.resizeBorders.thickness
 		this.leftBorder.setOrigin(0.5, 0)
-		this.leftBorder.setTint(this.options.resizeBorders.color)
 		this.leftBorder.setInteractive()
 		Phaser.Geom.Rectangle.Inflate(this.leftBorder.input!.hitArea, this.options.resizeBorders.hitAreaPadding, 0)
 		this.leftBorder.input!.cursor = 'ew-resize' satisfies CssCursor
-		this.add(this.leftBorder)
+		this.innerContainer.add(this.leftBorder)
 	}
 
 	private addRightBorder() {
@@ -155,11 +174,10 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.rightBorder.name = 'right-border'
 		this.rightBorder.displayWidth = this.options.resizeBorders.thickness
 		this.rightBorder.setOrigin(0.5, 0)
-		this.rightBorder.setTint(this.options.resizeBorders.color)
 		this.rightBorder.setInteractive()
 		Phaser.Geom.Rectangle.Inflate(this.rightBorder.input!.hitArea, this.options.resizeBorders.hitAreaPadding, 0)
 		this.rightBorder.input!.cursor = 'ew-resize' satisfies CssCursor
-		this.add(this.rightBorder)
+		this.innerContainer.add(this.rightBorder)
 	}
 
 	private createRotateKnobTexture(textureKey: string) {
@@ -167,7 +185,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		const centerY = centerX
 
 		const graphics = this.scene.make.graphics()
-		graphics.fillStyle(0xff0000, 1)
+		graphics.fillStyle(0xffffff, 1)
 		graphics.fillCircle(centerX, centerY, this.options.rotateKnobs.radius)
 		graphics.fillPath()
 
@@ -184,41 +202,39 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.topRightRotateKnob = this.scene.add.image(0, 0, this.rotateKnobTexture)
 		this.topRightRotateKnob.name = 'top-right-rotate-knob'
 		this.topRightRotateKnob.setOrigin(0.5, 0.5)
-		this.add(this.topRightRotateKnob)
+		this.innerContainer.add(this.topRightRotateKnob)
 	}
 
 	private addTopLeftRotateKnob() {
 		this.topLeftRotateKnob = this.scene.add.image(0, 0, this.rotateKnobTexture)
 		this.topLeftRotateKnob.name = 'top-left-rotate-knob'
 		this.topLeftRotateKnob.setOrigin(0.5, 0.5)
-		this.add(this.topLeftRotateKnob)
+		this.innerContainer.add(this.topLeftRotateKnob)
 	}
 
 	private addBottomLeftRotateKnob() {
 		this.bottomLeftRotateKnob = this.scene.add.image(0, 0, this.rotateKnobTexture)
 		this.bottomLeftRotateKnob.name = 'bottom-left-rotate-knob'
 		this.bottomLeftRotateKnob.setOrigin(0.5, 0.5)
-		this.add(this.bottomLeftRotateKnob)
+		this.innerContainer.add(this.bottomLeftRotateKnob)
 	}
 
 	private addBottomRightRotateKnob() {
 		this.bottomRightRotateKnob = this.scene.add.image(0, 0, this.rotateKnobTexture)
 		this.bottomRightRotateKnob.name = 'bottom-right-rotate-knob'
 		this.bottomRightRotateKnob.setOrigin(0.5, 0.5)
-		this.add(this.bottomRightRotateKnob)
+		this.innerContainer.add(this.bottomRightRotateKnob)
 	}
 
 	private createResizeKnobTexture(textureKey: string) {
-		const centerX = this.options.resizeKnobs.fillRadius + this.options.resizeKnobs.outlineThickness
-		const centerY = centerX
+		// we use higher resolution for the knob texture to make it look sharper
+		const resolution = this.options.resizeKnobs.resolution
 
 		const graphics = this.scene.make.graphics()
-		graphics.fillStyle(this.options.resizeKnobs.fillColor, 1)
-		graphics.fillCircle(centerX, centerY, this.options.resizeKnobs.fillRadius)
-		graphics.lineStyle(this.options.resizeKnobs.outlineThickness, this.options.resizeKnobs.outlineColor, 1)
-		graphics.strokeCircle(centerX, centerY, this.options.resizeKnobs.fillRadius)
+		graphics.fillStyle(0xffffff, 1)
+		graphics.fillRect(0, 0, this.options.resizeKnobs.fillSize * resolution, this.options.resizeKnobs.fillSize * resolution)
 
-		const width = this.options.resizeKnobs.fillRadius * 2 + this.options.resizeKnobs.outlineThickness * 2
+		const width = this.options.resizeKnobs.fillSize * resolution
 		const height = width
 		graphics.generateTexture(textureKey, width, height)
 
@@ -231,31 +247,55 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.topLeftKnob = this.scene.add.image(0, 0, this.resizeKnobTexture)
 		this.topLeftKnob.name = 'top-left-resize-knob'
 		this.topLeftKnob.setOrigin(0.5, 0.5)
-		this.add(this.topLeftKnob)
+		this.innerContainer.add(this.topLeftKnob)
 	}
 
 	private addTopRightKnob() {
 		this.topRightKnob = this.scene.add.image(0, 0, this.resizeKnobTexture)
 		this.topRightKnob.name = 'top-right-resize-knob'
 		this.topRightKnob.setOrigin(0.5, 0.5)
-		this.add(this.topRightKnob)
+		this.innerContainer.add(this.topRightKnob)
 	}
 
 	private addBottomLeftKnob() {
 		this.bottomLeftKnob = this.scene.add.image(0, 0, this.resizeKnobTexture)
 		this.bottomLeftKnob.name = 'bottom-left-resize-knob'
 		this.bottomLeftKnob.setOrigin(0.5, 0.5)
-		this.add(this.bottomLeftKnob)
+		this.innerContainer.add(this.bottomLeftKnob)
 	}
 
 	private addBottomRightKnob() {
 		this.bottomRightKnob = this.scene.add.image(0, 0, this.resizeKnobTexture)
 		this.bottomRightKnob.name = 'bottom-right-resize-knob'
 		this.bottomRightKnob.setOrigin(0.5, 0.5)
-		this.add(this.bottomRightKnob)
+		this.innerContainer.add(this.bottomRightKnob)
 	}
 
-	public resizeTo(width: number, height: number) {
+	public startFollow(obj: Transformable) {
+		this.adjustToTarget(obj)
+		this.followTarget = obj
+	}
+
+	private adjustToTarget(target: Transformable): void {
+		this.adjustToTargetSize(target)
+		this.adjustToTargetOrigin(target)
+		this.setAngle(target.angle)
+		this.setPosition(target.x, target.y)
+	}
+
+	private adjustToTargetSize(obj: Transformable): void {
+		this.resizeBorders(obj.displayWidth, obj.displayHeight)
+		this.alignResizeKnobs()
+		this.alignRotateKnobs()
+	}
+
+	private adjustToTargetOrigin(obj: Transformable): void {
+		const offsetX = -obj.displayWidth * obj.originX
+		const offsetY = -obj.displayHeight * obj.originY
+		this.innerContainer.setPosition(offsetX, offsetY)
+	}
+
+	private resizeBorders(width: number, height: number) {
 		this.topBorder.displayWidth = width
 
 		this.bottomBorder.displayWidth = width
@@ -265,11 +305,9 @@ export class TransformControls extends Phaser.GameObjects.Container {
 
 		this.rightBorder.displayHeight = height
 		this.rightBorder.x = width
-
-		this.alignResizeKnobs()
-		this.alignRotateKnobs()
 	}
 
+	// resize borders before calling this
 	private alignResizeKnobs() {
 		this.topLeftKnob.x = this.topBorder.left
 		this.topLeftKnob.y = this.topBorder.y
@@ -284,6 +322,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.bottomRightKnob.y = this.bottomBorder.y
 	}
 
+	// align resize knobs before calling this
 	private alignRotateKnobs() {
 		this.topLeftRotateKnob.x = this.topLeftKnob.x
 		this.topLeftRotateKnob.y = this.topLeftKnob.y
@@ -296,5 +335,18 @@ export class TransformControls extends Phaser.GameObjects.Container {
 
 		this.bottomRightRotateKnob.x = this.bottomRightKnob.x
 		this.bottomRightRotateKnob.y = this.bottomRightKnob.y
+	}
+
+	public stopFollow() {
+		this.followTarget = null
+		this.kill()
+	}
+
+	private onUpdate(time: number, deltaMs: number): void {
+		if (!this.followTarget) {
+			return
+		}
+
+		this.adjustToTarget(this.followTarget)
 	}
 }
