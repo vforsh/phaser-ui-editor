@@ -13,6 +13,6 @@ type EventEmitter = {
  */
 export function signalFromEvent(emitter: EventEmitter, event: string) {
 	const controller = new AbortController()
-	emitter.once(event, () => controller.abort())
+	emitter.once(event, () => controller.abort(`'${event}' event was emitted`))
 	return controller.signal
 }

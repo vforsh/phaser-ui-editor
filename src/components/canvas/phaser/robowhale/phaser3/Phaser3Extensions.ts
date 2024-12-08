@@ -532,6 +532,7 @@ export class Phaser3Extensions {
 		// that's why we extend prototype of a prototype
 		let EE = Object.getPrototypeOf(Phaser.Events.EventEmitter.prototype) as Phaser.Events.EventEmitter
 
+		const originalOn = EE.on
 		EE.on = function (event, fn, context, signal?: AbortSignal) {
 			if (signal) {
 				if (signal.aborted) {
@@ -541,9 +542,10 @@ export class Phaser3Extensions {
 				signal.addEventListener('abort', () => this.off(event, fn, context), { once: true })
 			}
 
-			return this.addListener(event, fn, context)
+			return originalOn.call(this, event, fn, context)
 		}
 
+		const originalOnce = EE.once
 		EE.once = function (event, fn, context, signal?: AbortSignal) {
 			if (signal) {
 				if (signal.aborted) {
@@ -553,8 +555,7 @@ export class Phaser3Extensions {
 				signal.addEventListener('abort', () => this.off(event, fn, context), { once: true })
 			}
 
-			// @ts-expect-error
-			return this.addListener(event, fn, context, true)
+			return originalOnce.call(this, event, fn, context)
 		}
 
 		EE.has = function (event, fn, context): boolean {
