@@ -220,6 +220,9 @@ export class MainScene extends BaseScene {
 		this.onKeyDown('RIGHT', (e) => this.moveSelectedGameObject(1, 0, e), this, this.shutdownSignal)
 		this.onKeyDown('UP', (e) => this.moveSelectedGameObject(0, -1, e), this, this.shutdownSignal)
 		this.onKeyDown('DOWN', (e) => this.moveSelectedGameObject(0, 1, e), this, this.shutdownSignal)
+
+		this.onKeyDown('OPEN_BRACKET', (event) => this.moveSelectedGameObjectDownInHierarchy(event), this, this.shutdownSignal)
+		this.onKeyDown('CLOSED_BRACKET', (event) => this.moveSelectedGameObjectUpInHierarchy(event), this, this.shutdownSignal)
 	}
 
 	private removeSelectedGameObject(): void {
@@ -241,6 +244,46 @@ export class MainScene extends BaseScene {
 		selected.x += dx * (event.shiftKey ? 10 : 1)
 		selected.y += dy * (event.shiftKey ? 10 : 1)
 		event.preventDefault()
+	}
+
+	private moveSelectedGameObjectDownInHierarchy(event: KeyboardEvent) {
+		const selected = this.selectionManager.selectedGameObject
+		if (!selected) {
+			return
+		}
+
+		const isOnBottom = selected.parentContainer.getIndex(selected) === 0
+		if (isOnBottom) {
+			// display Mantine toast
+			// console.log('already on BOTTOM')
+			return
+		}
+
+		if (event.shiftKey) {
+			selected.parentContainer.sendToBack(selected)
+		} else {
+			selected.parentContainer.moveDown(selected)
+		}
+	}
+
+	private moveSelectedGameObjectUpInHierarchy(event: KeyboardEvent) {
+		const selected = this.selectionManager.selectedGameObject
+		if (!selected) {
+			return
+		}
+
+		const isOnTop = selected.parentContainer.getIndex(selected) === selected.parentContainer.length - 1
+		if (isOnTop) {
+			// display Mantine toast
+			// console.log('already on TOP')
+			return
+		}
+
+		if (event.shiftKey) {
+			selected.parentContainer.bringToTop(selected)
+		} else {
+			selected.parentContainer.moveUp(selected)
+		}
 	}
 
 	private addPointerCallbacks() {
