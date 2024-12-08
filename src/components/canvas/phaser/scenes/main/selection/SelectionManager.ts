@@ -6,14 +6,19 @@ import { TransformControls } from './TransformControls'
 
 export type Selectable = Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | Phaser.GameObjects.Container
 
+type HoverMode = 'disabled' | 'normal' | 'selection-rect'
+
 export class SelectionManager {
 	private scene: MainScene
 	public selectables: Selectable[] = []
 	public selection: Selection | null = null
+	// replace with AdjustableRect[]
 	private hoverRect!: AdjustableRect
 	public selectionRect!: SelectionRect
 	public transformControls!: TransformControls
+	// @deprecated use hoverMode instead
 	private hoverEnabled = true
+	private hoverMode: HoverMode = 'normal'
 	private destroyController = new AbortController()
 
 	constructor(scene: MainScene) {
@@ -22,6 +27,32 @@ export class SelectionManager {
 		this.addHoverRect()
 		this.addSelectionRect()
 		this.addTransformControls()
+
+		this.scene.events.on(Phaser.Scenes.Events.UPDATE, this.onSceneUpdate, this, AbortSignal.any([this.destroySignal]))
+	}
+
+	public setHoverMode(mode: HoverMode) {
+		this.hoverMode = mode
+
+		if (this.hoverMode === 'disabled') {
+			this.hoverRect.kill()
+		}
+	}
+
+	private onSceneUpdate() {
+		this.processHover()
+	}
+
+	private processHover() {
+		if (this.hoverMode === 'disabled') {
+			return
+		}
+
+		if (this.hoverMode === 'normal') {
+			// display single hover rect over selectable under the pointer
+		} else {
+			// display multiple hover rects over selectables under the selection rect
+		}
 	}
 
 	private addHoverRect() {
@@ -111,11 +142,8 @@ export class SelectionManager {
 				return
 			}
 
-			if (!this.selection) {
-				this.selection = this.createSelection([])
-			}
-
-			this.selection.add(gameObject)
+			// add the clicked object to the selection (create a new selection if it doesn't exist)
+			this.selection ? this.selection.add(gameObject) : (this.selection = this.createSelection([gameObject]))
 		} else {
 			// if the clicked object is already in the selection, do nothing
 			if (this.selection?.includes(gameObject)) {
@@ -172,14 +200,6 @@ export class SelectionManager {
 		}
 
 		this.transformControls.stopFollow()
-	}
-
-	public startDrawingSelectionRect(pointer: Phaser.Input.Pointer) {
-		this.selectionRect.draw({ x: pointer.downX, y: pointer.downY }, { x: pointer.worldX, y: pointer.worldY })
-	}
-
-	public stopDrawingSelectionRect() {
-		this.selectionRect.kill()
 	}
 
 	public destroy(): void {

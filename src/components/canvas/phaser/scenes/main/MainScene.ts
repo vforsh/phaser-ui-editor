@@ -8,7 +8,7 @@ import { AssetTreeImageData, AssetTreeItemData, AssetTreeSpritesheetFrameData, f
 import { rectIntersect } from '../../robowhale/phaser3/geom/rect-intersect'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { signalFromEvent } from '../../robowhale/utils/events/create-abort-signal-from-event'
-import { Rulers } from './Axes'
+import { Rulers } from './Rulers'
 import { Grid } from './Grid'
 import { Selection } from './selection/Selection'
 import { SelectionManager } from './selection/SelectionManager'
