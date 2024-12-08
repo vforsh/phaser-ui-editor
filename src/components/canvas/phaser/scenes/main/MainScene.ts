@@ -1,10 +1,13 @@
+import { once } from 'es-toolkit'
 import { match } from 'ts-pattern'
 import { AppCommandsEmitter } from '../../../../../AppCommands'
 import { Project } from '../../../../../project/Project'
 import { ProjectConfig } from '../../../../../project/ProjectConfig'
 import trpc from '../../../../../trpc'
 import { AssetTreeImageData, AssetTreeItemData, AssetTreeSpritesheetFrameData, fetchImageUrl, GraphicAssetData } from '../../../../../types/assets'
+import { rectIntersect } from '../../robowhale/phaser3/geom/rect-intersect'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
+import { signalFromEvent } from '../../robowhale/utils/events/create-abort-signal-from-event'
 import { Rulers } from './Axes'
 import { Grid } from './Grid'
 import { Selection } from './selection/Selection'
@@ -28,14 +31,13 @@ type SelectionDragData = {
 
 /**
  * TODO
- * [x] allow to select multiple objects
- * [ ] allow to drag multiple objects
+ * [ ] add selection rect to select multiple objects with mouse
  * [ ] allow to group selected objects (create a new container and add all selected objects to it)
  * [ ] allow to ungroup (detach all children from this container and make them children of this container's parent)
  */
 
 export class MainScene extends BaseScene {
-	public initData!: MainSceneInitData
+	public declare initData: MainSceneInitData
 	private cameraDrag = false
 	private cameraDragStart: { x: number; y: number } | undefined
 	private selectionDrag: SelectionDragData | undefined
@@ -247,13 +249,13 @@ export class MainScene extends BaseScene {
 		this.onKeyDown('DELETE', this.removeSelection, this, this.shutdownSignal)
 		this.onKeyDown('BACKSPACE', this.removeSelection, this, this.shutdownSignal)
 
-		this.onKeyDown('LEFT', (e) => this.moveSelectedGameObject(-1, 0, e), this, this.shutdownSignal)
-		this.onKeyDown('RIGHT', (e) => this.moveSelectedGameObject(1, 0, e), this, this.shutdownSignal)
-		this.onKeyDown('UP', (e) => this.moveSelectedGameObject(0, -1, e), this, this.shutdownSignal)
-		this.onKeyDown('DOWN', (e) => this.moveSelectedGameObject(0, 1, e), this, this.shutdownSignal)
+		this.onKeyDown('LEFT', (e) => this.moveSelection(-1, 0, e), this, this.shutdownSignal)
+		this.onKeyDown('RIGHT', (e) => this.moveSelection(1, 0, e), this, this.shutdownSignal)
+		this.onKeyDown('UP', (e) => this.moveSelection(0, -1, e), this, this.shutdownSignal)
+		this.onKeyDown('DOWN', (e) => this.moveSelection(0, 1, e), this, this.shutdownSignal)
 
-		this.onKeyDown('OPEN_BRACKET', (event) => this.moveSelectedGameObjectDownInHierarchy(event), this, this.shutdownSignal)
-		this.onKeyDown('CLOSED_BRACKET', (event) => this.moveSelectedGameObjectUpInHierarchy(event), this, this.shutdownSignal)
+		this.onKeyDown('OPEN_BRACKET', (event) => this.moveSelectionDownInHierarchy(event), this, this.shutdownSignal)
+		this.onKeyDown('CLOSED_BRACKET', (event) => this.moveSelectionUpInHierarchy(event), this, this.shutdownSignal)
 
 		// this.onKeyDown('G', (event) => this.group(event), this, this.shutdownSignal)
 	}
@@ -268,59 +270,51 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		this.selectionManager.removeSelectable(selected)
-		selected.destroy()
+		// create a copy of the objects array bc obj.destroy() will remove it from the original array `selection.objects`
+		selection.objects.slice(0).forEach((obj) => {
+			obj.destroy()
+		})
 	}
 
-	private moveSelectedGameObject(dx: number, dy: number = 0, event: KeyboardEvent): void {
+	private moveSelection(dx: number, dy: number = 0, event: KeyboardEvent): void {
 		const selected = this.selectionManager.selection
 		if (!selected) {
 			return
 		}
 
-		selected.x += dx * (event.shiftKey ? 10 : 1)
-		selected.y += dy * (event.shiftKey ? 10 : 1)
+		selected.move(dx * (event.shiftKey ? 10 : 1), dy * (event.shiftKey ? 10 : 1))
+
 		event.preventDefault()
 	}
 
-	private moveSelectedGameObjectDownInHierarchy(event: KeyboardEvent) {
+	private moveSelectionDownInHierarchy(event: KeyboardEvent) {
 		const selection = this.selectionManager.selection
 		if (!selection) {
 			return
 		}
 
-		const isOnBottom = selection.parentContainer.getIndex(selection) === 0
-		if (isOnBottom) {
-			// display Mantine toast
-			// console.log('already on BOTTOM')
-			return
-		}
-
-		if (event.shiftKey) {
-			selection.parentContainer.sendToBack(selection)
-		} else {
-			selection.parentContainer.moveDown(selection)
-		}
+		selection.objects.forEach((obj) => {
+			if (event.shiftKey) {
+				obj.parentContainer.sendToBack(obj)
+			} else {
+				obj.parentContainer.moveDown(obj)
+			}
+		})
 	}
 
-	private moveSelectedGameObjectUpInHierarchy(event: KeyboardEvent) {
-		const selected = this.selectionManager.selection
-		if (!selected) {
+	private moveSelectionUpInHierarchy(event: KeyboardEvent) {
+		const selection = this.selectionManager.selection
+		if (!selection) {
 			return
 		}
 
-		const isOnTop = selected.parentContainer.getIndex(selected) === selected.parentContainer.length - 1
-		if (isOnTop) {
-			// display Mantine toast
-			// console.log('already on TOP')
-			return
-		}
-
-		if (event.shiftKey) {
-			selected.parentContainer.bringToTop(selected)
-		} else {
-			selected.parentContainer.moveUp(selected)
-		}
+		selection.objects.forEach((obj) => {
+			if (event.shiftKey) {
+				obj.parentContainer.bringToTop(obj)
+			} else {
+				obj.parentContainer.moveUp(obj)
+			}
+		})
 	}
 
 	private addPointerCallbacks() {
@@ -342,7 +336,7 @@ export class MainScene extends BaseScene {
 				}
 
 				objects.some((obj) => {
-					if (this.selectionManager.isSelectable(obj) && this.selectionManager.selection?.has(obj)) {
+					if (this.selectionManager.isSelectable(obj) && this.selectionManager.selection?.includes(obj)) {
 						this.startSelectionDrag(this.selectionManager.selection, pointer)
 						return true
 					}
@@ -365,10 +359,61 @@ export class MainScene extends BaseScene {
 				if (!wasProcessedBySelection) {
 					this.selectionManager!.cancelSelection()
 				}
+
+				this.startDrawingSelectionRect(pointer)
 			})
 			.with('middle', () => this.startCameraDrag(pointer))
 			.with('right', () => console.log('right button click'))
 			.otherwise(() => console.warn('unknown button', buttonType))
+	}
+
+	private startDrawingSelectionRect(pointer: Phaser.Input.Pointer) {
+		const pointerUpSignal = signalFromEvent(this.input, Phaser.Input.Events.POINTER_UP)
+
+		const selectionRect = this.selectionManager!.selectionRect
+
+		const drawFrom = { x: pointer.worldX, y: pointer.worldY }
+
+		let setupWasCalled = false
+		const setup = once(() => {
+			selectionRect.revive()
+			selectionRect.resetBounds()
+			setupWasCalled = true
+		})
+
+		this.input.on(
+			Phaser.Input.Events.POINTER_MOVE,
+			(pointer: Phaser.Input.Pointer) => {
+				setup()
+				selectionRect.draw(drawFrom, { x: pointer.worldX, y: pointer.worldY })
+			},
+			this,
+			AbortSignal.any([this.shutdownSignal, pointerUpSignal])
+		)
+
+		this.input.once(
+			Phaser.Input.Events.POINTER_UP,
+			() => {
+				if (setupWasCalled === false) {
+					return
+				}
+
+				const objectsUnderSelectionRect = this.selectionManager.selectables.filter((obj) => {
+					return rectIntersect(selectionRect.bounds, obj.getBounds(), false)
+				})
+
+				this.selectionManager.selection?.destroy()
+
+				if (objectsUnderSelectionRect.length > 0) {
+					this.selectionManager.selection = this.selectionManager.createSelection(objectsUnderSelectionRect)
+					this.selectionManager.transformControls.startFollow(this.selectionManager.selection)
+				}
+
+				selectionRect.kill()
+			},
+			this,
+			this.shutdownSignal
+		)
 	}
 
 	private onPointerUp(pointer: Phaser.Input.Pointer): void {

@@ -1,15 +1,17 @@
 import { MainScene } from '../MainScene'
 import { AdjustableRect } from './AdjustableRect'
 import { Selection } from './Selection'
+import { SelectionRect } from './SelectionRect'
 import { TransformControls } from './TransformControls'
 
 export type Selectable = Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | Phaser.GameObjects.Container
 
 export class SelectionManager {
 	private scene: MainScene
-	private selectables: Selectable[] = []
+	public selectables: Selectable[] = []
 	public selection: Selection | null = null
 	private hoverRect!: AdjustableRect
+	public selectionRect!: SelectionRect
 	public transformControls!: TransformControls
 	private hoverEnabled = true
 	private destroyController = new AbortController()
@@ -18,6 +20,7 @@ export class SelectionManager {
 		this.scene = scene
 
 		this.addHoverRect()
+		this.addSelectionRect()
 		this.addTransformControls()
 	}
 
@@ -28,7 +31,23 @@ export class SelectionManager {
 		})
 
 		this.hoverRect.name = 'hover-rect'
+		this.hoverRect.kill()
+
 		this.scene.add.existing(this.hoverRect)
+	}
+
+	private addSelectionRect() {
+		this.selectionRect = new SelectionRect(this.scene, {
+			fillColor: 0x0e99ff,
+			fillAlpha: 0.25,
+			outlineThickness: 2,
+			outlineColor: 0x0e99ff,
+		})
+
+		this.selectionRect.name = 'selection-rect'
+		this.selectionRect.kill()
+
+		this.scene.add.existing(this.selectionRect)
 	}
 
 	private addTransformControls() {
@@ -61,6 +80,7 @@ export class SelectionManager {
 		go.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.onSelectablePointerDown.bind(this, go), this, signal)
 		go.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, this.onSelectablePointerOver.bind(this, go), this, signal)
 		go.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, this.onSelectablePointerOut.bind(this, go), this, signal)
+		go.once(Phaser.GameObjects.Events.DESTROY, () => this.removeSelectable(go), this, signal)
 
 		this.selectables.push(go)
 	}
@@ -71,40 +91,39 @@ export class SelectionManager {
 
 		this.selectables = this.selectables.filter((selectable) => selectable !== gameObject)
 
-		if (this.selection?.has(gameObject)) {
+		if (this.selection?.includes(gameObject)) {
 			this.selection.remove(gameObject)
-			if (this.selection.size === 0) {
-				this.selection.destroy()
-				this.selection = null
-				this.transformControls.kill()
-			}
 		}
+	}
+
+	public createSelection(selectables: Selectable[]): Selection {
+		const selection = new Selection(selectables)
+		selection.once('destroyed', this.onSelectionDestroyed, this, this.destroySignal)
+
+		return selection
 	}
 
 	private onSelectablePointerDown(gameObject: Selectable, pointer: Phaser.Input.Pointer, x: number, y: number): void {
 		if (pointer.event.shiftKey) {
 			// deselect the clicked object if it was selected
-			if (this.selection && this.selection.has(gameObject)) {
+			if (this.selection && this.selection.includes(gameObject)) {
 				this.selection.remove(gameObject)
-				if (this.selection.isEmpty) {
-					this.selection.destroy()
-					this.selection = null
-					this.transformControls.kill()
-				}
 				return
 			}
 
-			// add clicked object to selection (if no selection exists, create a new one)
-			this.selection ??= new Selection([])
+			if (!this.selection) {
+				this.selection = this.createSelection([])
+			}
+
 			this.selection.add(gameObject)
 		} else {
 			// if the clicked object is already in the selection, do nothing
-			if (this.selection?.has(gameObject)) {
+			if (this.selection?.includes(gameObject)) {
 				return
 			}
 
 			// create a new selection with the clicked object
-			this.selection = new Selection([gameObject])
+			this.selection = this.createSelection([gameObject])
 		}
 
 		this.transformControls.startFollow(this.selection)
@@ -116,7 +135,7 @@ export class SelectionManager {
 			return
 		}
 
-		if (this.selection?.has(gameObject)) {
+		if (this.selection?.includes(gameObject)) {
 			return
 		}
 
@@ -126,6 +145,11 @@ export class SelectionManager {
 
 	private onSelectablePointerOut(gameObject: Selectable): void {
 		this.hoverRect.kill()
+	}
+
+	private onSelectionDestroyed(): void {
+		this.selection = null
+		this.transformControls.stopFollow()
 	}
 
 	public isSelectable(gameObject: Phaser.GameObjects.GameObject): gameObject is Selectable {
@@ -148,6 +172,14 @@ export class SelectionManager {
 		}
 
 		this.transformControls.stopFollow()
+	}
+
+	public startDrawingSelectionRect(pointer: Phaser.Input.Pointer) {
+		this.selectionRect.draw({ x: pointer.downX, y: pointer.downY }, { x: pointer.worldX, y: pointer.worldY })
+	}
+
+	public stopDrawingSelectionRect() {
+		this.selectionRect.kill()
 	}
 
 	public destroy(): void {

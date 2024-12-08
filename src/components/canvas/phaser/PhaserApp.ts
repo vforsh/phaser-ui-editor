@@ -14,6 +14,7 @@ import { Phaser3Extensions } from './robowhale/phaser3/Phaser3Extensions'
 import { TypedEventEmitter } from './robowhale/phaser3/TypedEventEmitter'
 import { CommandEmitter } from './robowhale/utils/events/CommandEmitter'
 
+export type Vector2Like = Phaser.Types.Math.Vector2Like
 /**
  * Extra properties that are added to the Phaser.Game instance
  */

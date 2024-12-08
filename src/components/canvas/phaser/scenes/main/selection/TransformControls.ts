@@ -45,7 +45,8 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	private bottomLeftRotateKnob!: Phaser.GameObjects.Image
 	private bottomRightRotateKnob!: Phaser.GameObjects.Image
 
-	private followTarget: Selection | null = null
+	// selection that this transform controls follows
+	private targetSelection: Selection | null = null
 
 	constructor(scene: Phaser.Scene, options: TransformControlOptions) {
 		super(scene)
@@ -273,7 +274,11 @@ export class TransformControls extends Phaser.GameObjects.Container {
 
 	public startFollow(selection: Selection) {
 		this.adjustToSelection(selection)
-		this.followTarget = selection
+
+		this.targetSelection = selection
+		this.targetSelection.once('destroyed', this.stopFollow, this)
+
+		this.revive()
 	}
 
 	private adjustToSelection(selection: Selection): void {
@@ -377,15 +382,15 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	public stopFollow() {
-		this.followTarget = null
+		this.targetSelection = null
 		this.kill()
 	}
 
 	private onUpdate(time: number, deltaMs: number): void {
-		if (!this.followTarget) {
+		if (!this.targetSelection) {
 			return
 		}
 
-		this.adjustToSelection(this.followTarget)
+		this.adjustToSelection(this.targetSelection)
 	}
 }

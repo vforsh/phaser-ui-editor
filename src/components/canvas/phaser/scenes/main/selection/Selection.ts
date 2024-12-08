@@ -1,15 +1,26 @@
 import { ReadonlyDeep } from 'type-fest'
+import { TypedEventEmitter } from '../../../robowhale/phaser3/TypedEventEmitter'
 import { Transformable } from './Transformable'
+
+type Events = {
+	changed: (type: 'add' | 'remove', object: Transformable) => void
+	destroyed: () => void
+}
 
 /**
  * A wrapper around an array of transformable objects.
+ *
+ * **DO NOT instantiate this class directly, use `SelectionManager.createSelection()` instead.**
  */
-export class Selection {
+export class Selection extends TypedEventEmitter<Events> {
 	public objects: Transformable[]
 	private _bounds: Phaser.Geom.Rectangle
 
 	constructor(objects: Transformable[]) {
+		super()
+
 		this.objects = objects
+
 		this._bounds = this.calculateBounds()
 	}
 
@@ -20,18 +31,34 @@ export class Selection {
 
 		this.objects.push(object)
 		this._bounds = this.calculateBounds()
+
+		this.emit('changed', 'add', object)
 	}
 
-	public remove(object: Transformable): void {
+	/**
+	 * Removes an object from the selection.
+	 * It will **auto-destroy** the selection if it becomes empty.
+	 * @returns `true` if the selection became empty after the removal and was destroyed, `false` otherwise.
+	 */
+	public remove(object: Transformable): boolean {
 		if (!this.objects.includes(object)) {
-			return
+			return false
 		}
 
 		this.objects = this.objects.filter((o) => o !== object)
 		this._bounds = this.calculateBounds()
+
+		this.emit('changed', 'remove', object)
+
+		if (this.isEmpty) {
+			this.destroy()
+			return true
+		}
+
+		return false
 	}
 
-	public has(object: Transformable): boolean {
+	public includes(object: Transformable): boolean {
 		return this.objects.includes(object)
 	}
 
@@ -62,6 +89,10 @@ export class Selection {
 	}
 
 	public destroy(): void {
+		this.emit('destroyed')
+
+		super.destroy()
+
 		this.objects.length = 0
 	}
 
