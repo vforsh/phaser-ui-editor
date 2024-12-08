@@ -13,11 +13,19 @@ export type MainSceneInitData = {
 	project: Project
 }
 
+/**
+ * TODO
+ * [x] allow to select multiple objects
+ * [ ] allow to drag multiple objects
+ * [ ] allow to group selected objects (create a new container and add all selected objects to it)
+ * [ ] allow to ungroup (detach all children from this container and make them children of this container's parent)
+ */
+
 export class MainScene extends BaseScene {
 	public initData!: MainSceneInitData
 	private cameraDrag = false
 	private cameraDragStart: { x: number; y: number } | undefined
-	private objectDrag: { obj: Selectable; offsetX: number; offsetY: number } | undefined
+	private selectionDrag: { obj: Selectable; offsetX: number; offsetY: number; lockAxis: 'x' | 'y' | 'none' } | undefined
 	private grid!: Grid
 	private rulers!: Rulers
 	private container!: Phaser.GameObjects.Container
@@ -61,11 +69,11 @@ export class MainScene extends BaseScene {
 
 		this.setupAppCommands()
 
-		this.addTestImage()
+		this.addTestImages()
 	}
 
-	private async addTestImage() {
-		const frame = {
+	private async addTestImages(): Promise<void> {
+		const chefCherryFrame = {
 			type: 'spritesheet-frame',
 			name: 'Chef Cherry',
 			size: {
@@ -78,15 +86,25 @@ export class MainScene extends BaseScene {
 			jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.json',
 		} as AssetTreeSpritesheetFrameData
 
+		const chefCherry_1 = await this.addTestImage(chefCherryFrame, -200, 0)
+
+		const chefCherry_2 = await this.addTestImage(chefCherryFrame, 200, 0)
+	}
+
+	private async addTestImage(asset: GraphicAssetData, offsetX: number, offsetY: number, angle = 0) {
 		const gameObject = await this.handleAssetDrop({
-			asset: frame,
+			asset,
 			position: { x: this.initData.project.config.size.width / 2, y: this.initData.project.config.size.height / 2 },
 		})
 
 		if (gameObject) {
-			// gameObject.setOrigin(1)
-			// gameObject.angle = 45
+			const centerX = this.initData.project.config.size.width / 2
+			const centerY = this.initData.project.config.size.height / 2
+			gameObject.setPosition(centerX + offsetX, centerY + offsetY)
+			gameObject.angle = angle
 		}
+
+		return gameObject
 	}
 
 	private setupAppCommands() {
@@ -223,10 +241,12 @@ export class MainScene extends BaseScene {
 
 		this.onKeyDown('OPEN_BRACKET', (event) => this.moveSelectedGameObjectDownInHierarchy(event), this, this.shutdownSignal)
 		this.onKeyDown('CLOSED_BRACKET', (event) => this.moveSelectedGameObjectUpInHierarchy(event), this, this.shutdownSignal)
+
+		// this.onKeyDown('G', (event) => this.group(event), this, this.shutdownSignal)
 	}
 
 	private removeSelectedGameObject(): void {
-		const selected = this.selectionManager.selectedGameObject
+		const selected = this.selectionManager.selected
 		if (!selected) {
 			return
 		}
@@ -236,7 +256,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private moveSelectedGameObject(dx: number, dy: number = 0, event: KeyboardEvent): void {
-		const selected = this.selectionManager.selectedGameObject
+		const selected = this.selectionManager.selected
 		if (!selected) {
 			return
 		}
@@ -247,7 +267,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private moveSelectedGameObjectDownInHierarchy(event: KeyboardEvent) {
-		const selected = this.selectionManager.selectedGameObject
+		const selected = this.selectionManager.selected
 		if (!selected) {
 			return
 		}
@@ -267,7 +287,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private moveSelectedGameObjectUpInHierarchy(event: KeyboardEvent) {
-		const selected = this.selectionManager.selectedGameObject
+		const selected = this.selectionManager.selected
 		if (!selected) {
 			return
 		}
@@ -301,7 +321,7 @@ export class MainScene extends BaseScene {
 			.with('left', () => {
 				const wasSelected = objects.some((obj) => {
 					if (this.selectionManager!.isSelectable(obj)) {
-						this.startObjectDrag(obj, pointer)
+						this.startSelectionDrag(obj, pointer)
 						return true
 					}
 				})
@@ -330,7 +350,7 @@ export class MainScene extends BaseScene {
 		}
 
 		if (this.getButtonType(pointer) === 'left') {
-			this.stopObjectDrag()
+			this.stopSelectionDrag()
 		}
 	}
 
@@ -352,26 +372,26 @@ export class MainScene extends BaseScene {
 		this.cameraDragStart = undefined
 	}
 
-	private startObjectDrag(gameObject: Selectable, pointer: Phaser.Input.Pointer) {
-		if (this.objectDrag) {
+	private startSelectionDrag(gameObject: Selectable, pointer: Phaser.Input.Pointer) {
+		if (this.selectionDrag) {
 			return
 		}
 
 		const camera = this.cameras.main
 		const { x, y } = pointer.positionToCamera(camera) as Phaser.Math.Vector2
-		this.objectDrag = { obj: gameObject, offsetX: gameObject.x - x, offsetY: gameObject.y - y }
+		this.selectionDrag = { obj: gameObject, offsetX: gameObject.x - x, offsetY: gameObject.y - y, lockAxis: 'none' }
 
 		this.selectionManager!.onDragStart(gameObject)
 	}
 
-	private stopObjectDrag() {
-		if (!this.objectDrag) {
+	private stopSelectionDrag() {
+		if (!this.selectionDrag) {
 			return
 		}
 
-		this.selectionManager!.onDragEnd(this.objectDrag.obj)
+		this.selectionManager!.onDragEnd(this.selectionDrag.obj)
 
-		this.objectDrag = undefined
+		this.selectionDrag = undefined
 	}
 
 	private onPointerMove(pointer: Phaser.Input.Pointer): void {
@@ -386,11 +406,18 @@ export class MainScene extends BaseScene {
 			this.onCameraChange()
 		}
 
-		if (this.objectDrag) {
+		if (this.selectionDrag) {
 			const camera = this.cameras.main
 			const { x, y } = pointer.positionToCamera(camera) as Phaser.Math.Vector2
-			this.objectDrag.obj.x = x + this.objectDrag.offsetX
-			this.objectDrag.obj.y = y + this.objectDrag.offsetY
+
+			if (this.selectionDrag.lockAxis === 'x') {
+				this.selectionDrag.obj.x = x + this.selectionDrag.offsetX
+			} else if (this.selectionDrag.lockAxis === 'y') {
+				this.selectionDrag.obj.y = y + this.selectionDrag.offsetY
+			} else {
+				this.selectionDrag.obj.x = x + this.selectionDrag.offsetX
+				this.selectionDrag.obj.y = y + this.selectionDrag.offsetY
+			}
 		}
 	}
 

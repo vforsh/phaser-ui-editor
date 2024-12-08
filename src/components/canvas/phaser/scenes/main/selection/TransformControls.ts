@@ -45,7 +45,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	private bottomLeftRotateKnob!: Phaser.GameObjects.Image
 	private bottomRightRotateKnob!: Phaser.GameObjects.Image
 
-	private followTarget: Transformable | null = null
+	private followTarget: Transformable[] | null = null
 
 	constructor(scene: Phaser.Scene, options: TransformControlOptions) {
 		super(scene)
@@ -271,31 +271,30 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.innerContainer.add(this.bottomRightKnob)
 	}
 
-	public startFollow(obj: Transformable) {
-		this.adjustToTarget(obj)
-		this.followTarget = obj
+	public startFollow(selection: Transformable[]) {
+		this.adjustToSelection(selection)
+		this.followTarget = selection
 	}
 
-	private adjustToTarget(target: Transformable): void {
-		this.adjustToTargetSize(target)
-		this.adjustToTargetOrigin(target)
-		this.setAngle(target.angle)
-		this.setPosition(target.x, target.y)
+	private adjustToSelection(selection: Transformable[]): void {
+		this.adjustToSelectionSize(selection)
+		this.adjustToSelectionOrigin(selection)
+		this.adjustToSelectionAngle(selection)
+		this.adjustToSelectionPosition(selection)
 	}
 
-	private adjustToTargetSize(obj: Transformable): void {
-		this.resizeBorders(obj.displayWidth, obj.displayHeight)
+	private adjustToSelectionSize(selection: Transformable[]): void {
+		this.resizeBorders(selection)
 		this.alignResizeKnobs()
 		this.alignRotateKnobs()
 	}
 
-	private adjustToTargetOrigin(obj: Transformable): void {
-		const offsetX = -obj.displayWidth * obj.originX
-		const offsetY = -obj.displayHeight * obj.originY
-		this.innerContainer.setPosition(offsetX, offsetY)
-	}
+	private resizeBorders(selection: Transformable[]) {
+		const { left, right, top, bottom } = this.calculateSelectionBounds(selection)
 
-	private resizeBorders(width: number, height: number) {
+		const width = right - left
+		const height = bottom - top
+
 		this.topBorder.displayWidth = width
 
 		this.bottomBorder.displayWidth = width
@@ -307,7 +306,15 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.rightBorder.x = width
 	}
 
-	// resize borders before calling this
+	private calculateSelectionBounds(selection: Transformable[]): { left: number; right: number; top: number; bottom: number } {
+		const left = selection.reduce((min, obj) => Math.min(min, obj.left), Infinity)
+		const right = selection.reduce((max, obj) => Math.max(max, obj.right), -Infinity)
+		const top = selection.reduce((min, obj) => Math.min(min, obj.top), Infinity)
+		const bottom = selection.reduce((max, obj) => Math.max(max, obj.bottom), -Infinity)
+		return { left, right, top, bottom }
+	}
+
+	// resize borders before calling this!
 	private alignResizeKnobs() {
 		this.topLeftKnob.x = this.topBorder.left
 		this.topLeftKnob.y = this.topBorder.y
@@ -322,7 +329,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.bottomRightKnob.y = this.bottomBorder.y
 	}
 
-	// align resize knobs before calling this
+	// align resize knobs before calling this!
 	private alignRotateKnobs() {
 		this.topLeftRotateKnob.x = this.topLeftKnob.x
 		this.topLeftRotateKnob.y = this.topLeftKnob.y
@@ -337,6 +344,45 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.bottomRightRotateKnob.y = this.bottomRightKnob.y
 	}
 
+	private adjustToSelectionOrigin(selection: Transformable[]): void {
+		if (selection.length === 1) {
+			const offsetX = -selection[0].displayWidth * selection[0].originX
+			const offsetY = -selection[0].displayHeight * selection[0].originY
+			this.innerContainer.setPosition(offsetX, offsetY)
+			return
+		}
+
+		const { left, right, top, bottom } = this.calculateSelectionBounds(selection)
+		const width = right - left
+		const height = bottom - top
+		const centerX = width / 2
+		const centerY = height / 2
+		this.innerContainer.setPosition(-centerX, -centerY)
+	}
+
+	private adjustToSelectionAngle(selection: Transformable[]): void {
+		if (selection.length === 1) {
+			this.setAngle(selection[0].angle)
+			return
+		}
+
+		this.setAngle(0)
+	}
+
+	private adjustToSelectionPosition(selection: Transformable[]): void {
+		if (selection.length === 1) {
+			this.setPosition(selection[0].x, selection[0].y)
+			return
+		}
+
+		const { left, right, top, bottom } = this.calculateSelectionBounds(selection)
+		const width = right - left
+		const height = bottom - top
+		const centerX = width / 2
+		const centerY = height / 2
+		this.setPosition(left + centerX, top + centerY)
+	}
+
 	public stopFollow() {
 		this.followTarget = null
 		this.kill()
@@ -347,6 +393,6 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			return
 		}
 
-		this.adjustToTarget(this.followTarget)
+		this.adjustToSelection(this.followTarget)
 	}
 }
