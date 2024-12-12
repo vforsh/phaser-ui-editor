@@ -5,8 +5,8 @@
 			"label": "Start Dev",
 			"dependsOrder": "parallel",
 			"dependsOn": [
-				"npm: start",
-				"npm: typecheck-dev"
+				"vite",
+				"typecheck"
 			],
 			"group": {
 				"kind": "build",
@@ -17,7 +17,7 @@
 			"type": "npm",
 			"script": "start",
 			"problemMatcher": [],
-			"label": "npm: start",
+			"label": "vite",
 			"detail": "vite --host",
 			"isBackground": true
 		},
@@ -25,7 +25,7 @@
 			"type": "npm",
 			"script": "typecheck-dev",
 			"problemMatcher": ["$tsc-watch"],
-			"label": "npm: typecheck-dev",
+			"label": "typecheck",
 			"detail": "tsc --noEmit --watch --pretty false --project tsconfig.app.json",
 			"isBackground": true
 		}
