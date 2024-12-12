@@ -512,8 +512,10 @@ export class MainScene extends BaseScene {
 
 		this.cameraDrag = true
 		this.cameraDragStart = { x: pointer.x, y: pointer.y }
+		
+		this.game.canvas.style.cursor = 'grabbing'
 	}
-
+	
 	private stopCameraDrag() {
 		if (!this.cameraDrag) {
 			return
@@ -521,6 +523,8 @@ export class MainScene extends BaseScene {
 
 		this.cameraDrag = false
 		this.cameraDragStart = undefined
+
+		this.game.canvas.style.cursor = 'default'
 	}
 
 	private startSelectionDrag(selection: Selection, pointer: Phaser.Input.Pointer) {
