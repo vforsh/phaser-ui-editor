@@ -291,6 +291,7 @@ export class MainScene extends BaseScene {
 		
 		// this.onKeyDown('G', (event) => this.group(event), this, this.shutdownSignal)
 		
+		this.onKeyDown('X', (event) => this.cut(event), this, this.shutdownSignal)
 		this.onKeyDown('C', (event) => this.copy(event), this, this.shutdownSignal)
 		this.onKeyDown('V', (event) => this.paste(event), this, this.shutdownSignal)
 	}
@@ -307,6 +308,11 @@ export class MainScene extends BaseScene {
 		this.clipboard.copy(this.selectionManager.selection.objects)
 		
 		event.preventDefault()
+	}
+	
+	private cut(event: KeyboardEvent): void {
+		this.copy(event)
+		this.removeSelection()
 	}
 	
 	private paste(event: KeyboardEvent): void {
