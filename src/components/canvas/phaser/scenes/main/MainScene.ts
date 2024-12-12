@@ -532,10 +532,21 @@ export class MainScene extends BaseScene {
 		dy: number
 	): void {
 		let camera = this.cameras.main
+		
+		let factor = (pointer.event.ctrlKey || pointer.event.metaKey) ? 1.3 : 1.1
+		let newZoom = camera.zoom
+		
+		let direction = Phaser.Math.Sign(dy) * -1
+		if (direction > 0) {
+			// Zooming in
+			newZoom *= factor
+		} else {
+			// Zooming out
+			newZoom /= factor
+		}
 
-		let k = pointer.event.shiftKey ? 2 : 1
-		let delta = Phaser.Math.Sign(dy) * -0.1 * k
-		let newZoom = Phaser.Math.RoundTo(Math.max(0.1, camera.zoom + delta), -2)
+		newZoom = Phaser.Math.Clamp(newZoom, 0.05, 30)
+		newZoom = Phaser.Math.RoundTo(newZoom, -2)
 
 		this.zoomToPointer(newZoom, pointer)
 
