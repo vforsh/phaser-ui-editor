@@ -1,0 +1,33 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Start Dev",
+			"dependsOrder": "parallel",
+			"dependsOn": [
+				"npm: start",
+				"npm: typecheck-dev"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
+			"type": "npm",
+			"script": "start",
+			"problemMatcher": [],
+			"label": "npm: start",
+			"detail": "vite --host",
+			"isBackground": true
+		},
+		{
+			"type": "npm",
+			"script": "typecheck-dev",
+			"problemMatcher": ["$tsc-watch"],
+			"label": "npm: typecheck-dev",
+			"detail": "tsc --noEmit --watch --pretty false --project tsconfig.app.json",
+			"isBackground": true
+		}
+	]
+}
