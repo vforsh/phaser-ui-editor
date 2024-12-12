@@ -28,7 +28,12 @@ export class SelectionManager {
 		this.addSelectionRect()
 		this.addTransformControls()
 
-		this.scene.events.on(Phaser.Scenes.Events.UPDATE, this.onSceneUpdate, this, AbortSignal.any([this.destroySignal]))
+		this.scene.events.on(
+			Phaser.Scenes.Events.UPDATE,
+			this.onSceneUpdate,
+			this,
+			AbortSignal.any([this.destroySignal])
+		)
 	}
 
 	public setHoverMode(mode: HoverMode) {

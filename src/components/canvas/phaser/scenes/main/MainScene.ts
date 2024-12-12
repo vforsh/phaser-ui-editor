@@ -1,5 +1,6 @@
 import { once } from 'es-toolkit'
 import { match } from 'ts-pattern'
+import { Logger } from 'tslog'
 import { AppCommandsEmitter } from '../../../../../AppCommands'
 import { Project } from '../../../../../project/Project'
 import { ProjectConfig } from '../../../../../project/ProjectConfig'
@@ -14,6 +15,7 @@ import {
 import { rectIntersect } from '../../robowhale/phaser3/geom/rect-intersect'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { signalFromEvent } from '../../robowhale/utils/events/create-abort-signal-from-event'
+import { CanvasClipboard } from './CanvasClipboard'
 import { Grid } from './Grid'
 import { Rulers } from './Rulers'
 import { Selection } from './selection/Selection'
@@ -51,46 +53,67 @@ export class MainScene extends BaseScene {
 	private rulers!: Rulers
 	private container!: Phaser.GameObjects.Container
 	private selectionManager!: SelectionManager
+	private clipboard!: CanvasClipboard
 	private projectSizeFrame!: Phaser.GameObjects.Graphics
-
+	
 	init(data: MainSceneInitData) {
 		super.init(data)
-
+		
 		console.log('MainScene init', data)
 	}
-
+	
 	create() {
 		if (!this.initData) {
 			throw new Error('MainScene.initData is not set')
 		}
-
+		
 		this.grid = new Grid(this)
 		this.grid.name = 'grid'
 		this.add.existing(this.grid)
-
+		
 		this.rulers = new Rulers(this)
 		this.rulers.name = 'rulers'
 		this.add.existing(this.rulers)
-
+		
 		this.container = this.add.container(0, 0)
-
-		this.addSelectionManager()
-
+		
+		this.initClipboard()
+		
+		this.initSelectionManager()
+		
 		this.addProjectSizeFrame(this.initData.project.config.size)
-
+		
 		this.addKeyboadCallbacks()
-
+		
 		this.addPointerCallbacks()
-
+		
 		this.scale.on('resize', this.resize, this, this.shutdownSignal)
-
+		
 		this.onResize(this.scale.gameSize)
-
+		
 		this.alignCameraToProjectFrame()
-
+		
 		this.setupAppCommands()
 
 		this.addTestImages()
+	}
+
+	private initClipboard() {
+		// TODO create parent logger in App
+		const logger = new Logger({
+			name: 'clipboard',
+			hideLogPositionForProduction: true,
+			prettyLogTemplate: '{{logLevelName}}#[{{hh}}:{{MM}}:{{ss}}.{{ms}}] [{{name}}]',
+			prettyErrorParentNamesSeparator: '',
+			prettyLogTimeZone: 'local',
+			argumentsArrayName: 'messages',
+			stylePrettyLogs: false,
+			// overwrite: {
+			// transportFormatted: this.logToBrowserConsole.bind(this),
+			// },
+		})
+
+		this.clipboard = new CanvasClipboard(this, { logger })
 	}
 
 	private async addTestImages(): Promise<void> {
@@ -237,7 +260,7 @@ export class MainScene extends BaseScene {
 		})
 	}
 
-	private addSelectionManager() {
+	private initSelectionManager() {
 		this.selectionManager = new SelectionManager(this)
 	}
 
@@ -254,21 +277,61 @@ export class MainScene extends BaseScene {
 		this.onKeyDown('R', this.restart, this, this.shutdownSignal)
 		this.onKeyDown('F', this.alignCameraToProjectFrame, this, this.shutdownSignal)
 		this.onKeyDown('ONE', this.resetCameraZoom, this, this.shutdownSignal)
-
+		
 		this.onKeyDown('DELETE', this.removeSelection, this, this.shutdownSignal)
 		this.onKeyDown('BACKSPACE', this.removeSelection, this, this.shutdownSignal)
-
+		
 		this.onKeyDown('LEFT', (e) => this.moveSelection(-1, 0, e), this, this.shutdownSignal)
 		this.onKeyDown('RIGHT', (e) => this.moveSelection(1, 0, e), this, this.shutdownSignal)
 		this.onKeyDown('UP', (e) => this.moveSelection(0, -1, e), this, this.shutdownSignal)
 		this.onKeyDown('DOWN', (e) => this.moveSelection(0, 1, e), this, this.shutdownSignal)
-
+		
 		this.onKeyDown('OPEN_BRACKET', (event) => this.moveSelectionDownInHierarchy(event), this, this.shutdownSignal)
 		this.onKeyDown('CLOSED_BRACKET', (event) => this.moveSelectionUpInHierarchy(event), this, this.shutdownSignal)
-
+		
 		// this.onKeyDown('G', (event) => this.group(event), this, this.shutdownSignal)
+		
+		this.onKeyDown('C', (event) => this.copy(event), this, this.shutdownSignal)
+		this.onKeyDown('V', (event) => this.paste(event), this, this.shutdownSignal)
 	}
+	
+	private copy(event: KeyboardEvent): void {
+		if (!event.ctrlKey && !event.metaKey) {
+			return
+		}
+		
+		if (!this.selectionManager.selection) {
+			return
+		}
+		
+		this.clipboard.copy(this.selectionManager.selection.objects)
+		
+		event.preventDefault()
+	}
+	
+	private paste(event: KeyboardEvent): void {
+		if (!event.ctrlKey && !event.metaKey) {
+			return
+		}
+		
+		const createdFromClipboard = this.clipboard.paste()
+		if (!createdFromClipboard) {
+			return
+		}
 
+		this.container.add(createdFromClipboard)
+		
+		createdFromClipboard.forEach((obj) => {
+			this.selectionManager.addSelectable(obj)
+		})
+		
+		this.selectionManager.selection?.destroy()
+		this.selectionManager.selection = this.selectionManager.createSelection(createdFromClipboard)
+		this.selectionManager.transformControls.startFollow(this.selectionManager.selection)
+
+		event.preventDefault()
+	}
+	
 	public restart() {
 		this.scene.restart(this.initData)
 	}
@@ -532,10 +595,10 @@ export class MainScene extends BaseScene {
 		dy: number
 	): void {
 		let camera = this.cameras.main
-		
-		let factor = (pointer.event.ctrlKey || pointer.event.metaKey) ? 1.3 : 1.1
+
+		let factor = pointer.event.ctrlKey || pointer.event.metaKey ? 1.3 : 1.1
 		let newZoom = camera.zoom
-		
+
 		let direction = Phaser.Math.Sign(dy) * -1
 		if (direction > 0) {
 			// Zooming in
