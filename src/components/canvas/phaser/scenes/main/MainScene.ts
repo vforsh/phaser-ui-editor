@@ -4,12 +4,18 @@ import { AppCommandsEmitter } from '../../../../../AppCommands'
 import { Project } from '../../../../../project/Project'
 import { ProjectConfig } from '../../../../../project/ProjectConfig'
 import trpc from '../../../../../trpc'
-import { AssetTreeImageData, AssetTreeItemData, AssetTreeSpritesheetFrameData, fetchImageUrl, GraphicAssetData } from '../../../../../types/assets'
+import {
+	AssetTreeImageData,
+	AssetTreeItemData,
+	AssetTreeSpritesheetFrameData,
+	fetchImageUrl,
+	GraphicAssetData,
+} from '../../../../../types/assets'
 import { rectIntersect } from '../../robowhale/phaser3/geom/rect-intersect'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { signalFromEvent } from '../../robowhale/utils/events/create-abort-signal-from-event'
-import { Rulers } from './Rulers'
 import { Grid } from './Grid'
+import { Rulers } from './Rulers'
 import { Selection } from './selection/Selection'
 import { SelectionManager } from './selection/SelectionManager'
 
@@ -109,7 +115,10 @@ export class MainScene extends BaseScene {
 	private async addTestImage(asset: GraphicAssetData, offsetX: number, offsetY: number, angle = 0) {
 		const gameObject = await this.handleAssetDrop({
 			asset,
-			position: { x: this.initData.project.config.size.width / 2, y: this.initData.project.config.size.height / 2 },
+			position: {
+				x: this.initData.project.config.size.width / 2,
+				y: this.initData.project.config.size.height / 2,
+			},
 		})
 
 		if (gameObject) {
@@ -516,23 +525,40 @@ export class MainScene extends BaseScene {
 		this.onResize(this.scale.gameSize)
 	}
 
-	private onPointerWheel(pointer: Phaser.Input.Pointer, objects: Phaser.GameObjects.GameObject[], dx: number, dy: number): void {
+	private onPointerWheel(
+		pointer: Phaser.Input.Pointer,
+		objects: Phaser.GameObjects.GameObject[],
+		dx: number,
+		dy: number
+	): void {
 		let camera = this.cameras.main
-
-		const pointerPositionBefore = pointer.positionToCamera(camera) as Phaser.Math.Vector2
 
 		let k = pointer.event.shiftKey ? 2 : 1
 		let delta = Phaser.Math.Sign(dy) * -0.1 * k
 		let newZoom = Phaser.Math.RoundTo(Math.max(0.1, camera.zoom + delta), -2)
-		this.setCameraZoom(newZoom)
 
-		const pointerPositionAfter = pointer.positionToCamera(camera) as Phaser.Math.Vector2
-
-		// TODO fix this, it doesn't work as expected
-		camera.scrollX += pointerPositionAfter.x - pointerPositionBefore.x
-		camera.scrollY += pointerPositionAfter.y - pointerPositionBefore.y
+		this.zoomToPointer(newZoom, pointer)
 
 		this.onResize(this.scale.gameSize)
+	}
+
+	private zoomToPointer(newZoom: number, pointer: Phaser.Input.Pointer): void {
+		const camera = this.cameras.main
+
+		const pointerPosBeforeZoom = pointer.positionToCamera(camera) as Phaser.Math.Vector2
+
+		// Change the camera zoom
+		camera.zoom = newZoom
+
+		// hack to update the camera matrix and get the new pointer position
+		// @ts-expect-error
+		camera.preRender()
+
+		const pointerPosAfterZoom = pointer.positionToCamera(camera) as Phaser.Math.Vector2
+
+		// Adjust camera position to keep the pointer in the same world position
+		camera.scrollX -= pointerPosAfterZoom.x - pointerPosBeforeZoom.x
+		camera.scrollY -= pointerPosAfterZoom.y - pointerPosBeforeZoom.y
 	}
 
 	private setCameraZoom(zoom: number): void {
@@ -570,7 +596,10 @@ export class MainScene extends BaseScene {
 
 		const zoomPaddingX = camera.width * 0.1
 		const zoomPaddingY = camera.height * 0.1
-		camera.zoom = Math.min(camera.width / (projectSize.width + zoomPaddingX), camera.height / (projectSize.height + zoomPaddingY))
+		camera.zoom = Math.min(
+			camera.width / (projectSize.width + zoomPaddingX),
+			camera.height / (projectSize.height + zoomPaddingY)
+		)
 
 		this.onResize()
 	}
