@@ -7,6 +7,7 @@ import { ComplexButton } from './gameObjects/buttons/ComplexButton'
 import { SimpleButton } from './gameObjects/buttons/SimpleButton'
 import { ToggleButton } from './gameObjects/buttons/ToggleButton'
 import { AutoSizeText } from './gameObjects/text/AutoSizeText'
+import { rectIntersect } from './geom/rect-intersect'
 
 type CircleTweenConfig = Phaser.Tweens.CircleTweenConfig
 type CurveTweenConfig = Phaser.Tweens.CurveTweenConfig
@@ -23,6 +24,12 @@ export class Phaser3Extensions {
 		callAllMethods(Phaser3Extensions, ['extend'])
 	}
 
+	public static extendGeom(): void {
+		Phaser.Geom.Rectangle.prototype.intersects = function (rect: Phaser.Geom.Rectangle, countTouchingEdges = false): boolean {
+			return rectIntersect(this, rect, countTouchingEdges)
+		}
+	}
+	
 	public static extendGroup(): void {
 		Phaser.GameObjects.Group.prototype.createItems = function (quantity: number): any[] {
 			let items = []

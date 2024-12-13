@@ -295,5 +295,11 @@ declare module Phaser {
 			addCurveTween(config: CurveTweenConfig): Phaser.Tweens.Tween
 		}
 	}
+
+	namespace Geom {
+		interface Rectangle {
+			intersects(rect: Rectangle, countTouchingEdges?: boolean): boolean
+		}
+	}
 	
 }
