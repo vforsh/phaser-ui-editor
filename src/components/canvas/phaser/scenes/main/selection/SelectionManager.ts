@@ -12,21 +12,20 @@ export class SelectionManager {
 	private scene: MainScene
 	public selectables: Selectable[] = []
 	public selection: Selection | null = null
-	// replace with AdjustableRect[]
-	private hoverRect!: AdjustableRect
+	private hoverRects!: AdjustableRect[]
 	public selectionRect!: SelectionRect
 	public transformControls!: TransformControls
-	// @deprecated use hoverMode instead
-	private hoverEnabled = true
 	private hoverMode: HoverMode = 'normal'
 	private destroyController = new AbortController()
+	private debugGraphics: Phaser.GameObjects.Graphics | null = null
 
 	constructor(scene: MainScene) {
 		this.scene = scene
 
-		this.addHoverRect()
+		this.addHoverRects()
 		this.addSelectionRect()
 		this.addTransformControls()
+		this.addDebugGraphics()
 
 		this.scene.events.on(
 			Phaser.Scenes.Events.UPDATE,
@@ -40,7 +39,7 @@ export class SelectionManager {
 		this.hoverMode = mode
 
 		if (this.hoverMode === 'disabled') {
-			this.hoverRect.kill()
+			this.hoverRects.forEach((hoverRect) => hoverRect.kill())
 		}
 	}
 
@@ -54,22 +53,158 @@ export class SelectionManager {
 		}
 
 		if (this.hoverMode === 'normal') {
-			// display single hover rect over selectable under the pointer
+			this.processNormalHover()
 		} else {
-			// display multiple hover rects over selectables under the selection rect
+			this.processSelectionRectHover()
 		}
 	}
 
-	private addHoverRect() {
-		this.hoverRect = new AdjustableRect(this.scene, {
+	private processNormalHover(): void {
+		const pointer = this.scene.input.activePointer
+
+		this.hoverRects.forEach((hoverRect) => hoverRect.kill())
+
+		const objectsUnderPointer = this.scene.input.hitTestPointer(pointer).reverse()
+		const selectableUnderPointer = objectsUnderPointer.find(
+			(object) => this.selectables.includes(object as any) && !this.selection?.includes(object as any)
+		) as Selectable | undefined
+		if (!selectableUnderPointer) {
+			return
+		}
+
+		const hoverRect = this.getOrCreateHoverRect()
+		hoverRect.adjustTo(selectableUnderPointer)
+		hoverRect.revive()
+	}
+
+	private processSelectionRectHover(): void {
+		// TODO there are way too much allocations here, need to find a better solution
+		const selectablesUnderSelectionRect = this.selectables.filter((selectable) => {
+			const globalOrigin = selectable.getWorldPosition()
+			const left = globalOrigin.x - selectable.displayWidth * selectable.originX
+			const right = globalOrigin.x + selectable.displayWidth * selectable.originX
+			const top = globalOrigin.y - selectable.displayHeight * selectable.originY
+			const bottom = globalOrigin.y + selectable.displayHeight * selectable.originY
+
+			const topLeft = new Phaser.Math.Vector2(left, top)
+			const topRight = new Phaser.Math.Vector2(right, top)
+			const bottomLeft = new Phaser.Math.Vector2(left, bottom)
+			const bottomRight = new Phaser.Math.Vector2(right, bottom)
+			const points = [topLeft, topRight, bottomLeft, bottomRight]
+
+			// check if aabb intersects at first
+			// if not, return false
+			// if yes, continue with polygon intersection check
+			
+			// account for rotation
+			const angle = Phaser.Math.DegToRad(selectable.angle)
+			points.forEach((point) => {
+				const dx = point.x - globalOrigin.x
+				const dy = point.y - globalOrigin.y
+				point.x = globalOrigin.x + (dx * Math.cos(angle) - dy * Math.sin(angle))
+				point.y = globalOrigin.y + (dx * Math.sin(angle) + dy * Math.cos(angle))
+			})
+
+			// create a polygon from the points
+			const polygon = new Phaser.Geom.Polygon(points)
+
+			return this.doesPolygonIntersectsRect(polygon, this.selectionRect.bounds)
+		})
+
+		this.hoverRects.forEach((rect) => rect.kill())
+
+		// display hover rects for selectables under selection rect
+		selectablesUnderSelectionRect.forEach((selectable) => {
+			const hoverRect = this.getOrCreateHoverRect()
+			hoverRect.adjustTo(selectable)
+			hoverRect.revive()
+		})
+	}
+
+	private doesPolygonIntersectsRect(polygon: Phaser.Geom.Polygon, rect: Phaser.Geom.Rectangle): boolean {
+		// First, check if any point of the polygon is inside the rectangle
+		for (const point of polygon.points) {
+			if (rect.contains(point.x, point.y)) {
+				return true
+			}
+		}
+
+		// Then, check if any point of the rectangle is inside the polygon
+		const rectPoints = [
+			new Phaser.Math.Vector2(rect.x, rect.y),
+			new Phaser.Math.Vector2(rect.x + rect.width, rect.y),
+			new Phaser.Math.Vector2(rect.x + rect.width, rect.y + rect.height),
+			new Phaser.Math.Vector2(rect.x, rect.y + rect.height),
+		]
+
+		for (const point of rectPoints) {
+			if (polygon.contains(point.x, point.y)) {
+				return true
+			}
+		}
+
+		// Finally, check if any line segment of the polygon intersects with any line segment of the rectangle
+		const polygonLines = this.getPolygonLines(polygon)
+		const rectLines = [
+			new Phaser.Geom.Line(rect.x, rect.y, rect.x + rect.width, rect.y),
+			new Phaser.Geom.Line(rect.x + rect.width, rect.y, rect.x + rect.width, rect.y + rect.height),
+			new Phaser.Geom.Line(rect.x + rect.width, rect.y + rect.height, rect.x, rect.y + rect.height),
+			new Phaser.Geom.Line(rect.x, rect.y + rect.height, rect.x, rect.y),
+		]
+
+		for (const polygonLine of polygonLines) {
+			for (const rectLine of rectLines) {
+				if (Phaser.Geom.Intersects.LineToLine(polygonLine, rectLine)) {
+					return true
+				}
+			}
+		}
+
+		return false
+	}
+
+	private getPolygonLines(polygon: Phaser.Geom.Polygon): Phaser.Geom.Line[] {
+		const lines: Phaser.Geom.Line[] = []
+		const points = polygon.points
+
+		for (let i = 0; i < points.length; i++) {
+			const point1 = points[i]
+			const point2 = points[(i + 1) % points.length]
+			lines.push(new Phaser.Geom.Line(point1.x, point1.y, point2.x, point2.y))
+		}
+
+		return lines
+	}
+
+	private addHoverRects(amount = 3) {
+		this.hoverRects = []
+
+		for (let i = 0; i < amount; i++) {
+			this.createHoverRect()
+		}
+	}
+
+	private getOrCreateHoverRect(): AdjustableRect {
+		const hoverRect = this.hoverRects.find((hoverRect) => hoverRect.active === false)
+		if (hoverRect) {
+			return hoverRect
+		}
+
+		return this.createHoverRect()
+	}
+
+	private createHoverRect(): AdjustableRect {
+		const hoverRect = new AdjustableRect(this.scene, {
 			thickness: 2,
 			color: 0x0e99ff,
 		})
+		hoverRect.name = 'hover-rect'
+		hoverRect.kill()
 
-		this.hoverRect.name = 'hover-rect'
-		this.hoverRect.kill()
+		this.hoverRects.push(hoverRect)
+		this.scene.add.existing(hoverRect)
 
-		this.scene.add.existing(this.hoverRect)
+		return hoverRect
 	}
 
 	private addSelectionRect() {
@@ -109,13 +244,19 @@ export class SelectionManager {
 		this.scene.add.existing(this.transformControls)
 	}
 
+	private addDebugGraphics() {
+		// TODO remove later
+		this.debugGraphics = this.scene.add.graphics()
+		this.debugGraphics.fillStyle(0xff0000, 0.5)
+		this.debugGraphics.fillRect(0, 0, 100, 100)
+		this.debugGraphics.kill()
+	}
+
 	public addSelectable(go: Selectable): void {
 		const signal = this.scene.shutdownSignal
 
 		go.setInteractive()
 		go.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.onSelectablePointerDown.bind(this, go), this, signal)
-		go.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, this.onSelectablePointerOver.bind(this, go), this, signal)
-		go.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, this.onSelectablePointerOut.bind(this, go), this, signal)
 		go.once(Phaser.GameObjects.Events.DESTROY, () => this.removeSelectable(go), this, signal)
 
 		this.selectables.push(go)
@@ -163,23 +304,6 @@ export class SelectionManager {
 		this.transformControls.revive()
 	}
 
-	private onSelectablePointerOver(gameObject: Selectable): void {
-		if (!this.hoverEnabled) {
-			return
-		}
-
-		if (this.selection?.includes(gameObject)) {
-			return
-		}
-
-		this.hoverRect.adjustTo(gameObject)
-		this.hoverRect.revive()
-	}
-
-	private onSelectablePointerOut(gameObject: Selectable): void {
-		this.hoverRect.kill()
-	}
-
 	private onSelectionDestroyed(): void {
 		this.selection = null
 		this.transformControls.stopFollow()
@@ -190,12 +314,11 @@ export class SelectionManager {
 	}
 
 	public onDragStart(selection: Selection) {
-		this.hoverEnabled = false
-		this.hoverRect.kill()
+		this.setHoverMode('disabled')
 	}
 
 	public onDragEnd(selection: Selection) {
-		this.hoverEnabled = true
+		this.setHoverMode('normal')
 	}
 
 	public cancelSelection() {
@@ -209,6 +332,8 @@ export class SelectionManager {
 
 	public destroy(): void {
 		this.destroyController.abort()
+
+		this.hoverRects.length = 0
 
 		if (this.selection) {
 			this.selection.destroy()

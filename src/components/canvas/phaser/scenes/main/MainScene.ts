@@ -133,6 +133,7 @@ export class MainScene extends BaseScene {
 		const chefCherry_1 = await this.addTestImage(chefCherryFrame, -200, 0)
 
 		const chefCherry_2 = await this.addTestImage(chefCherryFrame, 200, 0)
+		chefCherry_2?.setAngle(45)
 	}
 
 	private async addTestImage(asset: GraphicAssetData, offsetX: number, offsetY: number, angle = 0) {
@@ -451,11 +452,12 @@ export class MainScene extends BaseScene {
 		const selectionRect = this.selectionManager!.selectionRect
 
 		const drawFrom = { x: pointer.worldX, y: pointer.worldY }
-
+		
 		let setupWasCalled = false
 		const setup = once(() => {
 			selectionRect.revive()
 			selectionRect.resetBounds()
+			this.selectionManager!.setHoverMode('selection-rect')
 			setupWasCalled = true
 		})
 
@@ -488,6 +490,8 @@ export class MainScene extends BaseScene {
 				}
 
 				selectionRect.kill()
+				
+				this.selectionManager!.setHoverMode('normal')
 			},
 			this,
 			this.shutdownSignal
