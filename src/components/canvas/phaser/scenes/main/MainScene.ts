@@ -21,6 +21,7 @@ import { Rulers } from './Rulers'
 import { Selection } from './selection/Selection'
 import { isSelectable, SelectionManager } from './selection/SelectionManager'
 import { logs } from '../../../../../logs/logs'
+import { ObjectsFactory } from './factory/ObjectsFactory'
 
 export type MainSceneInitData = {
 	project: Project
@@ -54,6 +55,7 @@ export class MainScene extends BaseScene {
 	private rulers!: Rulers
 	private container!: Phaser.GameObjects.Container
 	private selectionManager!: SelectionManager
+	private objectsFactory!: ObjectsFactory
 	private clipboard!: CanvasClipboard
 	private projectSizeFrame!: Phaser.GameObjects.Graphics
 	private logger!: Logger<{}>
@@ -80,6 +82,8 @@ export class MainScene extends BaseScene {
 		this.add.existing(this.rulers)
 
 		this.container = this.add.container(0, 0)
+		
+		this.initObjectsFactory()
 
 		this.initClipboard()
 
@@ -102,10 +106,20 @@ export class MainScene extends BaseScene {
 		this.addTestImages()
 	}
 
+	private initObjectsFactory() {
+		this.objectsFactory = new ObjectsFactory({
+			scene: this,
+			logger: this.logger.getSubLogger({ name: ':objects-factory' }),
+		})
+	}
+
 	private initClipboard() {
 		const logger = this.logger.getSubLogger({ name: ':clipboard' })
 		
-		this.clipboard = new CanvasClipboard(this, { logger })
+		this.clipboard = new CanvasClipboard(this, {
+			logger,
+			factory: this.objectsFactory,
+		})
 	}
 
 	private async addTestImages(): Promise<void> {
@@ -392,7 +406,8 @@ export class MainScene extends BaseScene {
 		if (!this.selectionManager.selection) {
 			return
 		}
-
+		
+		// TODO check if the selection is serializable
 		this.clipboard.copy(this.selectionManager.selection.objects)
 
 		event.preventDefault()
