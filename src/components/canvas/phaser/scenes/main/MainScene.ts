@@ -256,7 +256,10 @@ export class MainScene extends BaseScene {
 	}
 
 	private initSelectionManager() {
-		this.selectionManager = new SelectionManager(this)
+		this.selectionManager = new SelectionManager({
+			scene: this,
+			logger: this.logger.getSubLogger({ name: ':selection' }),
+		})
 	}
 
 	private addProjectSizeFrame(size: ProjectConfig['size']) {

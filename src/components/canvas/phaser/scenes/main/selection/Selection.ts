@@ -9,7 +9,9 @@ type Events = {
 
 /**
  * A wrapper around an array of transformable objects.
- *
+ * It auto-destroys itself when empty (i.e. when all objects are removed).
+ * Objects auto-remove themselves from the selection when destroyed.
+ * 
  * **DO NOT instantiate this class directly, use `SelectionManager.createSelection()` instead.**
  */
 export class Selection extends TypedEventEmitter<Events> {

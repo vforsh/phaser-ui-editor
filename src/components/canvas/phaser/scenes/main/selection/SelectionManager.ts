@@ -1,7 +1,9 @@
+import { Logger } from 'tslog'
 import { MainScene } from '../MainScene'
 import { AdjustableRect } from './AdjustableRect'
 import { Selection } from './Selection'
 import { SelectionRect } from './SelectionRect'
+import { Transformable } from './Transformable'
 import { TransformControls } from './TransformControls'
 
 export type Selectable = Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | Phaser.GameObjects.Container
@@ -16,21 +18,56 @@ export function isSelectable(gameObject: Phaser.GameObjects.GameObject): gameObj
 
 type HoverMode = 'disabled' | 'normal' | 'selection-rect'
 
+export type SelectionManagerOptions = {
+	scene: MainScene
+	logger: Logger<{}>
+}
+
 export class SelectionManager {
+	private options: SelectionManagerOptions
 	private scene: MainScene
+	private logger: Logger<{}>
 	public selectables: Selectable[] = []
 	public selection: Selection | null = null
+
+	/**
+	 * Hover rects are used to visualize the hover state of selectables.
+	 */
 	private hoverRects!: AdjustableRect[]
-	public selectionRect!: SelectionRect
-	public transformControls!: TransformControls
+
+	/**
+	 * The current hover mode.
+	 *
+	 * - `normal`: Hover rects are displayed for all selectables under the pointer.
+	 * - `selection-rect`: Hover rects are displayed for all selectables under the current selection rect.
+	 * - `disabled`: Hover rects are hidden.
+	 */
 	private hoverMode: HoverMode = 'normal'
+
+	/**
+	 * Selection rect is used to visualize the selection while dragging.
+	 */
+	public selectionRect!: SelectionRect
+
+	/**
+	 * Sub-selection rects are used to visualize the selection of each object in the selection.
+	 */
+	private subSelectionRects!: AdjustableRect[]
+
+	/**
+	 * Transform controls are used to transform the selection (scale, rotate, etc.)
+	 */
+	public transformControls!: TransformControls
 	private destroyController = new AbortController()
 	private debugGraphics: Phaser.GameObjects.Graphics | null = null
 
-	constructor(scene: MainScene) {
-		this.scene = scene
+	constructor(options: SelectionManagerOptions) {
+		this.options = options
+		this.scene = options.scene
+		this.logger = options.logger
 
 		this.addHoverRects()
+		this.addSubSelectionRects()
 		this.addSelectionRect()
 		this.addTransformControls()
 		this.addDebugGraphics()
@@ -52,7 +89,21 @@ export class SelectionManager {
 	}
 
 	private onSceneUpdate() {
+		this.updateSubSelectionRects()
 		this.processHover()
+	}
+
+	private updateSubSelectionRects() {
+		this.subSelectionRects.forEach((rect) => {
+			if (rect.active === false) {
+				return
+			}
+
+			const object = rect.getData('object')
+			if (object) {
+				rect.adjustTo(object)
+			}
+		})
 	}
 
 	private processHover() {
@@ -203,7 +254,7 @@ export class SelectionManager {
 
 	private createHoverRect(): AdjustableRect {
 		const hoverRect = new AdjustableRect(this.scene, {
-			thickness: 2,
+			thickness: 3,
 			color: 0x0e99ff,
 		})
 		hoverRect.name = 'hover-rect'
@@ -213,6 +264,37 @@ export class SelectionManager {
 		this.scene.add.existing(hoverRect)
 
 		return hoverRect
+	}
+
+	private addSubSelectionRects(amount = 3) {
+		this.subSelectionRects = []
+
+		for (let i = 0; i < amount; i++) {
+			this.createSubSelectionRect()
+		}
+	}
+
+	private getOrCreateSubSelectionRect(): AdjustableRect {
+		const subSelectionRect = this.subSelectionRects.find((rect) => rect.active === false)
+		if (subSelectionRect) {
+			return subSelectionRect
+		}
+
+		return this.createSubSelectionRect()
+	}
+
+	private createSubSelectionRect(): AdjustableRect {
+		const subSelectionRect = new AdjustableRect(this.scene, {
+			thickness: 2,
+			color: 0x0e99ff,
+		})
+		subSelectionRect.name = 'sub-selection-rect_' + (this.subSelectionRects.length + 1)
+		subSelectionRect.kill()
+
+		this.subSelectionRects.push(subSelectionRect)
+		this.scene.add.existing(subSelectionRect)
+
+		return subSelectionRect
 	}
 
 	private addSelectionRect() {
@@ -261,17 +343,21 @@ export class SelectionManager {
 	}
 
 	public addSelectable(go: Selectable): void {
+		if (this.selectables.includes(go)) {
+			return
+		}
+
 		const signal = this.scene.shutdownSignal
 
 		go.setInteractive()
 		go.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.onSelectablePointerDown.bind(this, go), this, signal)
 		go.once(Phaser.GameObjects.Events.DESTROY, () => this.removeSelectable(go), this, signal)
-
+		
 		this.selectables.push(go)
 	}
 
 	public removeSelectable(gameObject: Selectable): void {
-		gameObject.removeByContext(this)
+		gameObject.offByContext(this)
 		gameObject.removeInteractive()
 
 		this.selectables = this.selectables.filter((selectable) => selectable !== gameObject)
@@ -283,9 +369,41 @@ export class SelectionManager {
 
 	public createSelection(selectables: Selectable[]): Selection {
 		const selection = new Selection(selectables)
+		selection.on('changed', this.onSelectionChanged, this, this.destroySignal)
 		selection.once('destroyed', this.onSelectionDestroyed, this, this.destroySignal)
 
+		selection.objects.forEach((object) => {
+			const subSelectionRect = this.getOrCreateSubSelectionRect()
+			subSelectionRect.adjustTo(object)
+			subSelectionRect.revive()
+			subSelectionRect.setData('object', object)
+		})
+
 		return selection
+	}
+
+	private onSelectionChanged(type: 'add' | 'remove', object: Transformable): void {
+		if (type === 'add') {
+			const subSelectionRect = this.getOrCreateSubSelectionRect()
+			subSelectionRect.adjustTo(object)
+			subSelectionRect.revive()
+			subSelectionRect.setData('object', object)
+		} else {
+			const subSelectionRect = this.subSelectionRects.find((rect) => rect.getData('object') === object)
+			if (subSelectionRect) {
+				subSelectionRect.kill()
+				subSelectionRect.setData('object', null)
+			}
+		}
+	}
+
+	private onSelectionDestroyed(): void {
+		this.selection = null
+		this.transformControls.stopFollow()
+		this.subSelectionRects.forEach((rect) => {
+			rect.kill()
+			rect.setData('object', null)
+		})
 	}
 
 	private onSelectablePointerDown(gameObject: Selectable, pointer: Phaser.Input.Pointer, x: number, y: number): void {
@@ -304,17 +422,16 @@ export class SelectionManager {
 				return
 			}
 
+			if (this.selection) {
+				this.selection.destroy()
+			}
+
 			// create a new selection with the clicked object
 			this.selection = this.createSelection([gameObject])
 		}
 
 		this.transformControls.startFollow(this.selection)
 		this.transformControls.revive()
-	}
-
-	private onSelectionDestroyed(): void {
-		this.selection = null
-		this.transformControls.stopFollow()
 	}
 
 	public isSelectable(gameObject: Phaser.GameObjects.GameObject): gameObject is Selectable {

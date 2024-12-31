@@ -25,11 +25,14 @@ export class Phaser3Extensions {
 	}
 
 	public static extendGeom(): void {
-		Phaser.Geom.Rectangle.prototype.intersects = function (rect: Phaser.Geom.Rectangle, countTouchingEdges = false): boolean {
+		Phaser.Geom.Rectangle.prototype.intersects = function (
+			rect: Phaser.Geom.Rectangle,
+			countTouchingEdges = false
+		): boolean {
 			return rectIntersect(this, rect, countTouchingEdges)
 		}
 	}
-	
+
 	public static extendGroup(): void {
 		Phaser.GameObjects.Group.prototype.createItems = function (quantity: number): any[] {
 			let items = []
@@ -80,7 +83,9 @@ export class Phaser3Extensions {
 			})
 		}
 
-		Phaser.Tweens.TweenManager.prototype.addCircleTween = function (config: CircleTweenConfig): Phaser.Tweens.Tween {
+		Phaser.Tweens.TweenManager.prototype.addCircleTween = function (
+			config: CircleTweenConfig
+		): Phaser.Tweens.Tween {
 			config.startAngle ??= -90
 			config.endAngle ??= config.startAngle + 360
 
@@ -243,7 +248,9 @@ export class Phaser3Extensions {
 
 		Phaser.Animations.AnimationManager.prototype.getFrameNames = function (atlasKey, prefix) {
 			let allFrames: string[] = this.game.textures.get(atlasKey).getFrameNames()
-			let animationFrameNames: string[] = allFrames.filter((frameName) => frameName.includes(prefix)).sort(sortByFrameNumbers)
+			let animationFrameNames: string[] = allFrames
+				.filter((frameName) => frameName.includes(prefix))
+				.sort(sortByFrameNumbers)
 
 			return animationFrameNames.map((frameName) => {
 				return {
@@ -315,7 +322,11 @@ export class Phaser3Extensions {
 			return item
 		}
 
-		Phaser.Math.RandomDataGenerator.prototype.pickExceptMultiple = function <T>(array: T[], exceptions: T[], safetyCounter: number = 100): T {
+		Phaser.Math.RandomDataGenerator.prototype.pickExceptMultiple = function <T>(
+			array: T[],
+			exceptions: T[],
+			safetyCounter: number = 100
+		): T {
 			let item: T
 
 			do {
@@ -337,15 +348,30 @@ export class Phaser3Extensions {
 			return new SimpleButton(this.scene, texture, frame, parent)
 		}
 
-		factory.toggleButton = function (texture: string, frame_1: string, frame_2: string, parent?: Phaser.GameObjects.Container) {
+		factory.toggleButton = function (
+			texture: string,
+			frame_1: string,
+			frame_2: string,
+			parent?: Phaser.GameObjects.Container
+		) {
 			return new ToggleButton(this.scene, texture, frame_1, frame_2, parent)
 		}
 
-		factory.soundButton = function (texture: string, frame_1: string, frame_2: string, parent?: Phaser.GameObjects.Container) {
+		factory.soundButton = function (
+			texture: string,
+			frame_1: string,
+			frame_2: string,
+			parent?: Phaser.GameObjects.Container
+		) {
 			return new SoundButton(this.scene, texture, frame_1, frame_2, parent)
 		}
 
-		factory.musicButton = function (texture: string, frame_1: string, frame_2: string, parent?: Phaser.GameObjects.Container) {
+		factory.musicButton = function (
+			texture: string,
+			frame_1: string,
+			frame_2: string,
+			parent?: Phaser.GameObjects.Container
+		) {
 			return new MusicButton(this.scene, texture, frame_1, frame_2, parent)
 		}
 
@@ -353,7 +379,12 @@ export class Phaser3Extensions {
 			return new ComplexButton(this.scene, backTexture, backFrame, parent)
 		}
 
-		factory.autoSizeText = function (content, style?, options?, parent?: Phaser.GameObjects.Container): AutoSizeText {
+		factory.autoSizeText = function (
+			content,
+			style?,
+			options?,
+			parent?: Phaser.GameObjects.Container
+		): AutoSizeText {
 			let text = new AutoSizeText(this.scene, 0, 0, content, style, options)
 
 			parent ? parent.add(text) : this.scene.add.existing(text)
@@ -603,7 +634,13 @@ export class Phaser3Extensions {
 		EE.removeByContext = function (context, eventToRemove?: string) {
 			for (let [event, listeners] of Object.entries(this._events)) {
 				arrayify(listeners).forEach((listener: Phaser.Events.EventListener) => {
-					if (listener.context === context && eventToRemove && event === eventToRemove) {
+					if (listener.context !== context) {
+						return
+					}
+
+					if (typeof eventToRemove === 'string' && event === eventToRemove) {
+						this.off(event, listener.fn, listener.context)
+					} else {
 						this.off(event, listener.fn, listener.context)
 					}
 				})
