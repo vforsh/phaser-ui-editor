@@ -19,7 +19,8 @@ import { CanvasClipboard } from './CanvasClipboard'
 import { Grid } from './Grid'
 import { Rulers } from './Rulers'
 import { Selection } from './selection/Selection'
-import { SelectionManager } from './selection/SelectionManager'
+import { isSelectable, SelectionManager } from './selection/SelectionManager'
+import { logs } from '../../../../../logs/logs'
 
 export type MainSceneInitData = {
 	project: Project
@@ -55,64 +56,55 @@ export class MainScene extends BaseScene {
 	private selectionManager!: SelectionManager
 	private clipboard!: CanvasClipboard
 	private projectSizeFrame!: Phaser.GameObjects.Graphics
+	private logger!: Logger<{}>
 	
 	init(data: MainSceneInitData) {
 		super.init(data)
+
+		this.logger = logs.getOrCreate('canvas')
 		
-		console.log('MainScene init', data)
+		this.logger.info('MainScene init', data)
 	}
-	
+
 	create() {
 		if (!this.initData) {
 			throw new Error('MainScene.initData is not set')
 		}
-		
+
 		this.grid = new Grid(this)
 		this.grid.name = 'grid'
 		this.add.existing(this.grid)
-		
+
 		this.rulers = new Rulers(this)
 		this.rulers.name = 'rulers'
 		this.add.existing(this.rulers)
-		
+
 		this.container = this.add.container(0, 0)
-		
+
 		this.initClipboard()
-		
+
 		this.initSelectionManager()
-		
+
 		this.addProjectSizeFrame(this.initData.project.config.size)
-		
+
 		this.addKeyboadCallbacks()
-		
+
 		this.addPointerCallbacks()
-		
+
 		this.scale.on('resize', this.resize, this, this.shutdownSignal)
-		
+
 		this.onResize(this.scale.gameSize)
-		
+
 		this.alignCameraToProjectFrame()
-		
+
 		this.setupAppCommands()
 
 		this.addTestImages()
 	}
 
 	private initClipboard() {
-		// TODO create parent logger in App
-		const logger = new Logger({
-			name: 'clipboard',
-			hideLogPositionForProduction: true,
-			prettyLogTemplate: '{{logLevelName}}#[{{hh}}:{{MM}}:{{ss}}.{{ms}}] [{{name}}]',
-			prettyErrorParentNamesSeparator: '',
-			prettyLogTimeZone: 'local',
-			argumentsArrayName: 'messages',
-			stylePrettyLogs: false,
-			// overwrite: {
-			// transportFormatted: this.logToBrowserConsole.bind(this),
-			// },
-		})
-
+		const logger = this.logger.getSubLogger({ name: ':clipboard' })
+		
 		this.clipboard = new CanvasClipboard(this, { logger })
 	}
 
@@ -131,9 +123,11 @@ export class MainScene extends BaseScene {
 		} as AssetTreeSpritesheetFrameData
 
 		const chefCherry_1 = await this.addTestImage(chefCherryFrame, -200, 0)
+		chefCherry_1?.setName('chefCherry_1')
 
 		const chefCherry_2 = await this.addTestImage(chefCherryFrame, 200, 0)
 		chefCherry_2?.setAngle(45)
+		chefCherry_2?.setName('chefCherry_2')
 	}
 
 	private async addTestImage(asset: GraphicAssetData, offsetX: number, offsetY: number, angle = 0) {
@@ -278,67 +272,157 @@ export class MainScene extends BaseScene {
 		this.onKeyDown('R', this.restart, this, this.shutdownSignal)
 		this.onKeyDown('F', this.alignCameraToProjectFrame, this, this.shutdownSignal)
 		this.onKeyDown('ONE', this.resetCameraZoom, this, this.shutdownSignal)
-		
+
 		this.onKeyDown('DELETE', this.removeSelection, this, this.shutdownSignal)
 		this.onKeyDown('BACKSPACE', this.removeSelection, this, this.shutdownSignal)
-		
+
 		this.onKeyDown('LEFT', (e) => this.moveSelection(-1, 0, e), this, this.shutdownSignal)
 		this.onKeyDown('RIGHT', (e) => this.moveSelection(1, 0, e), this, this.shutdownSignal)
 		this.onKeyDown('UP', (e) => this.moveSelection(0, -1, e), this, this.shutdownSignal)
 		this.onKeyDown('DOWN', (e) => this.moveSelection(0, 1, e), this, this.shutdownSignal)
-		
+
 		this.onKeyDown('OPEN_BRACKET', (event) => this.moveSelectionDownInHierarchy(event), this, this.shutdownSignal)
 		this.onKeyDown('CLOSED_BRACKET', (event) => this.moveSelectionUpInHierarchy(event), this, this.shutdownSignal)
-		
-		// this.onKeyDown('G', (event) => this.group(event), this, this.shutdownSignal)
-		
+
+		this.onKeyDown(
+			'G',
+			(event) => {
+				if (!event.ctrlKey && !event.metaKey) {
+					return
+				}
+
+				if (this.selectionManager.selection?.size === 0) {
+					return
+				}
+
+				if (event.shiftKey) {
+					this.ungroup(event)
+				} else {
+					this.group(event)
+				}
+
+				event.preventDefault()
+			},
+			this,
+			this.shutdownSignal
+		)
+
 		this.onKeyDown('X', (event) => this.cut(event), this, this.shutdownSignal)
 		this.onKeyDown('C', (event) => this.copy(event), this, this.shutdownSignal)
 		this.onKeyDown('V', (event) => this.paste(event), this, this.shutdownSignal)
 	}
-	
+
+	private group(event: KeyboardEvent): void {
+		const selection = this.selectionManager.selection
+		if (!selection) {
+			return
+		}
+
+		const group = this.make.container({})
+		group.name = this.getNewGroupName()
+		group.setPosition(selection.x + selection.width / 2, selection.y + selection.height / 2)
+		group.setSize(selection.width, selection.height)
+		this.container.add(group)
+		
+		const grouped = selection.objects.map((obj) => obj.name || 'item').join(', ')
+		this.logger.debug(`grouped [${grouped}] (${selection.objects.length}) -> '${group.name}'`)
+		
+		selection.objects.forEach((obj) => {
+			group.add(obj)
+			obj.x -= group.x
+			obj.y -= group.y
+
+			this.selectionManager.removeSelectable(obj)
+		})
+		selection.destroy()
+
+		this.selectionManager.addSelectable(group)
+		this.selectionManager.selection = this.selectionManager.createSelection([group])
+		this.selectionManager.transformControls.startFollow(this.selectionManager.selection)
+	}
+
+	private getNewGroupName(): string {
+		const existingGroups = this.container.list.filter((child) => child.name.startsWith('group_'))
+		return `group_${existingGroups.length + 1}`
+	}
+
+	private ungroup(event: KeyboardEvent): void {
+		const selection = this.selectionManager.selection
+		if (!selection) {
+			return
+		}
+
+		const groups = selection.objects.filter((obj) => obj instanceof Phaser.GameObjects.Container)
+		if (groups.length === 0) {
+			return
+		}
+		
+		const ungrouped = groups.flatMap((group) => {
+			const ungrouped = group.list.slice(0).map((child) => {
+				if (!isSelectable(child)) {
+					throw new Error(`Ungrouping failed: ${child.name} is not selectable`)
+				}
+
+				child.x += group.x
+				child.y += group.y
+				this.container.add(child)
+				this.selectionManager.addSelectable(child)
+				return child
+			})
+			
+			group.destroy()
+
+			this.logger.debug(`ungrouped ${group.name} -> [${ungrouped.map((obj) => obj.name || 'item').join(', ')}] (${ungrouped.length})`)
+			
+			return ungrouped
+		})
+
+		this.selectionManager.selection = this.selectionManager.createSelection(ungrouped)
+		this.selectionManager.transformControls.startFollow(this.selectionManager.selection)
+	}
+
 	private copy(event: KeyboardEvent): void {
 		if (!event.ctrlKey && !event.metaKey) {
 			return
 		}
-		
+
 		if (!this.selectionManager.selection) {
 			return
 		}
-		
+
 		this.clipboard.copy(this.selectionManager.selection.objects)
-		
+
 		event.preventDefault()
 	}
-	
+
 	private cut(event: KeyboardEvent): void {
 		this.copy(event)
 		this.removeSelection()
 	}
-	
+
 	private paste(event: KeyboardEvent): void {
 		if (!event.ctrlKey && !event.metaKey) {
 			return
 		}
-		
+
 		const createdFromClipboard = this.clipboard.paste()
 		if (!createdFromClipboard) {
 			return
 		}
 
 		this.container.add(createdFromClipboard)
-		
+
 		createdFromClipboard.forEach((obj) => {
 			this.selectionManager.addSelectable(obj)
 		})
-		
+
 		this.selectionManager.selection?.destroy()
 		this.selectionManager.selection = this.selectionManager.createSelection(createdFromClipboard)
 		this.selectionManager.transformControls.startFollow(this.selectionManager.selection)
 
 		event.preventDefault()
 	}
-	
+
 	public restart() {
 		this.scene.restart(this.initData)
 	}
@@ -452,7 +536,7 @@ export class MainScene extends BaseScene {
 		const selectionRect = this.selectionManager!.selectionRect
 
 		const drawFrom = { x: pointer.worldX, y: pointer.worldY }
-		
+
 		let setupWasCalled = false
 		const setup = once(() => {
 			selectionRect.revive()
@@ -490,7 +574,7 @@ export class MainScene extends BaseScene {
 				}
 
 				selectionRect.kill()
-				
+
 				this.selectionManager!.setHoverMode('normal')
 			},
 			this,
@@ -516,10 +600,10 @@ export class MainScene extends BaseScene {
 
 		this.cameraDrag = true
 		this.cameraDragStart = { x: pointer.x, y: pointer.y }
-		
+
 		this.game.canvas.style.cursor = 'grabbing'
 	}
-	
+
 	private stopCameraDrag() {
 		if (!this.cameraDrag) {
 			return

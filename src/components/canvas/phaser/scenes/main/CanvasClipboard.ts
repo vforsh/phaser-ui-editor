@@ -10,7 +10,7 @@ type Events = {
 }
 
 export type ClipboardOptions = {
-	logger: Logger<unknown>
+	logger: Logger<{}>
 }
 
 // TODO pass logger

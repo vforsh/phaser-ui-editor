@@ -6,6 +6,14 @@ import { TransformControls } from './TransformControls'
 
 export type Selectable = Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | Phaser.GameObjects.Container
 
+export function isSelectable(gameObject: Phaser.GameObjects.GameObject): gameObject is Selectable {
+	return (
+		gameObject instanceof Phaser.GameObjects.Image ||
+		gameObject instanceof Phaser.GameObjects.Sprite ||
+		gameObject instanceof Phaser.GameObjects.Container
+	)
+}
+
 type HoverMode = 'disabled' | 'normal' | 'selection-rect'
 
 export class SelectionManager {
@@ -95,7 +103,7 @@ export class SelectionManager {
 			// check if aabb intersects at first
 			// if not, return false
 			// if yes, continue with polygon intersection check
-			
+
 			// account for rotation
 			const angle = Phaser.Math.DegToRad(selectable.angle)
 			points.forEach((point) => {
