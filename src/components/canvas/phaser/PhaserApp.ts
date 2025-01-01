@@ -60,6 +60,7 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 		super(phaserConfig)
 
 		this.logger = logger.getOrCreate('canvas')
+		this.logger.info('PhaserApp created')
 
 		this.appEvents = appEvents
 
@@ -95,23 +96,25 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 	}
 
 	override destroy(removeCanvas: boolean, noReturn?: boolean): void {
+		this.logger.info('PhaserApp destroy - start')
+		
 		super.destroy(removeCanvas, noReturn)
-
-		this.logger.info('PhaserApp destroy')
-
+		
 		this.scene.scenes.forEach((scene) => {
 			if (scene instanceof BaseScene) {
 				scene.onShutdown()
 			}
 		})
-
+		
 		this.destroyController.abort()
-
+		
 		if (this.resizeSensor) {
 			this.resizeSensor.detach()
 		}
+		
+		this.logger.info('PhaserApp destroy - complete')
 	}
-
+	
 	public get destroySignal(): AbortSignal {
 		return this.destroyController.signal
 	}

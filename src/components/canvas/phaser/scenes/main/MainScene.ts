@@ -183,7 +183,7 @@ export class MainScene extends BaseScene {
 		
 		this.editContextCurrent = editContext
 
-		this.logger.info(`switched to '${container.name}' context`)
+		this.logger.info(`switched to '${container.name}' edit context`)
 
 		return editContext
 	}
@@ -454,7 +454,7 @@ export class MainScene extends BaseScene {
 			group.destroy()
 
 			this.logger.debug(
-				`ungrouped ${group.name} -> [${ungrouped.map((obj) => obj.name || 'item').join(', ')}] (${ungrouped.length})`
+				`ungrouped '${group.name}' -> [${ungrouped.map((obj) => obj.name || 'item').join(', ')}] (${ungrouped.length})`
 			)
 
 			return ungrouped
@@ -523,7 +523,7 @@ export class MainScene extends BaseScene {
 
 		event.preventDefault()
 	}
-
+	
 	public restart() {
 		this.scene.restart(this.initData)
 	}
