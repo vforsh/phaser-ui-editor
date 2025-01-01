@@ -1,3 +1,4 @@
+import { urlParams } from '@url-params'
 import { once } from 'es-toolkit'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
@@ -13,7 +14,6 @@ import {
 	fetchImageUrl,
 	GraphicAssetData,
 } from '../../../../../types/assets'
-import { urlParams } from '@url-params'
 import { rectIntersect } from '../../robowhale/phaser3/geom/rect-intersect'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { signalFromEvent } from '../../robowhale/utils/events/create-abort-signal-from-event'
@@ -161,6 +161,9 @@ export class MainScene extends BaseScene {
 		const chefCherry_2 = await this.addTestImage(chefCherryFrame, 200, 0)
 		chefCherry_2?.setAngle(45)
 		chefCherry_2?.setName('chefCherry_2')
+
+		// const selection = this.selectionManager.createSelection([chefCherry_1!, chefCherry_2!])
+		// this.group(selection)
 	}
 
 	private async addTestImage(asset: GraphicAssetData, offsetX: number, offsetY: number, angle = 0) {

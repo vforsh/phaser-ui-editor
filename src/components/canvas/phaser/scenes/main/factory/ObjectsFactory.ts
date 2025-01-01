@@ -35,6 +35,8 @@ export class ObjectsFactory {
 
 				return {
 					...container.toJSON(),
+					width: container.width,
+					height: container.height,
 					depth: container.depth,
 					blendMode: container.blendMode,
 					name: container.name,
@@ -51,7 +53,7 @@ export class ObjectsFactory {
 			}))
 			.exhaustive()
 	}
-	
+
 	/**
 	 * Creates an object but it doesn't add it to the scene
 	 */
@@ -76,9 +78,10 @@ export class ObjectsFactory {
 				container.setName(containerJson.name)
 				container.setDepth(containerJson.depth)
 				container.setBlendMode(containerJson.blendMode)
+				container.setSize(containerJson.width, containerJson.height)
 
-				containerJson.children.forEach((child) => {
-					container.add(this.fromJson(child))
+				containerJson.children.forEach((childJson) => {
+					container.add(this.fromJson(childJson))
 				})
 
 				return container as SerializableGameObjectOfType<'Container'>
@@ -113,7 +116,7 @@ export class ObjectsFactory {
 	public clone(obj: SerializableGameObject, options?: CloneOptions): SerializableGameObject {
 		const json = this.toJson(obj)
 		const cloned = this.fromJson(json)
-		
+
 		if (options?.addToScene) {
 			this.scene.add.existing(cloned)
 		}
@@ -140,6 +143,8 @@ export function isSerializableGameObject(obj: Phaser.GameObjects.GameObject): ob
 export type JSONGameObject =
 	| ({
 			type: 'Container'
+			width: number
+			height: number
 			children: JSONGameObject[]
 			name: string
 			depth: number
