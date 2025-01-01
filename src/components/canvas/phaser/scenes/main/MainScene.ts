@@ -2,6 +2,7 @@ import { once } from 'es-toolkit'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import { AppCommandsEmitter } from '../../../../../AppCommands'
+import { logs } from '../../../../../logs/logs'
 import { Project } from '../../../../../project/Project'
 import { ProjectConfig } from '../../../../../project/ProjectConfig'
 import trpc from '../../../../../trpc'
@@ -16,12 +17,11 @@ import { rectIntersect } from '../../robowhale/phaser3/geom/rect-intersect'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { signalFromEvent } from '../../robowhale/utils/events/create-abort-signal-from-event'
 import { CanvasClipboard } from './CanvasClipboard'
+import { isSerializableGameObject, ObjectsFactory, SerializableGameObject } from './factory/ObjectsFactory'
 import { Grid } from './Grid'
 import { Rulers } from './Rulers'
 import { Selection } from './selection/Selection'
 import { isSelectable, SelectionManager } from './selection/SelectionManager'
-import { logs } from '../../../../../logs/logs'
-import { ObjectsFactory } from './factory/ObjectsFactory'
 
 export type MainSceneInitData = {
 	project: Project
@@ -59,12 +59,12 @@ export class MainScene extends BaseScene {
 	private clipboard!: CanvasClipboard
 	private projectSizeFrame!: Phaser.GameObjects.Graphics
 	private logger!: Logger<{}>
-	
+
 	init(data: MainSceneInitData) {
 		super.init(data)
 
 		this.logger = logs.getOrCreate('canvas')
-		
+
 		this.logger.info('MainScene init', data)
 	}
 
@@ -82,7 +82,7 @@ export class MainScene extends BaseScene {
 		this.add.existing(this.rulers)
 
 		this.container = this.add.container(0, 0)
-		
+
 		this.initObjectsFactory()
 
 		this.initClipboard()
@@ -114,12 +114,25 @@ export class MainScene extends BaseScene {
 	}
 
 	private initClipboard() {
-		const logger = this.logger.getSubLogger({ name: ':clipboard' })
-		
 		this.clipboard = new CanvasClipboard(this, {
-			logger,
+			logger: this.logger.getSubLogger({ name: ':clipboard' }),
 			factory: this.objectsFactory,
 		})
+	}
+
+	private initSelectionManager() {
+		this.selectionManager = new SelectionManager({
+			scene: this,
+			logger: this.logger.getSubLogger({ name: ':selection' }),
+		})
+	}
+
+	private addProjectSizeFrame(size: ProjectConfig['size']) {
+		this.projectSizeFrame = this.add.graphics()
+		this.projectSizeFrame.lineStyle(1, 0xffffff, 1)
+		this.projectSizeFrame.strokeRect(0, 0, size.width, size.height)
+		// this.projectSizeFrame.fillStyle(0x2f0559, 0.25)
+		// this.projectSizeFrame.fillRect(0, 0, size.width, size.height)
 	}
 
 	private async addTestImages(): Promise<void> {
@@ -269,21 +282,6 @@ export class MainScene extends BaseScene {
 		})
 	}
 
-	private initSelectionManager() {
-		this.selectionManager = new SelectionManager({
-			scene: this,
-			logger: this.logger.getSubLogger({ name: ':selection' }),
-		})
-	}
-
-	private addProjectSizeFrame(size: ProjectConfig['size']) {
-		this.projectSizeFrame = this.add.graphics()
-		this.projectSizeFrame.lineStyle(1, 0xffffff, 1)
-		this.projectSizeFrame.strokeRect(0, 0, size.width, size.height)
-		// this.projectSizeFrame.fillStyle(0x2f0559, 0.25)
-		// this.projectSizeFrame.fillRect(0, 0, size.width, size.height)
-	}
-
 	private addKeyboadCallbacks() {
 		// TODO implement restart scene
 		this.onKeyDown('R', this.restart, this, this.shutdownSignal)
@@ -340,10 +338,10 @@ export class MainScene extends BaseScene {
 		group.setPosition(selection.x + selection.width / 2, selection.y + selection.height / 2)
 		group.setSize(selection.width, selection.height)
 		this.container.add(group)
-		
+
 		const grouped = selection.objects.map((obj) => obj.name || 'item').join(', ')
 		this.logger.debug(`grouped [${grouped}] (${selection.objects.length}) -> '${group.name}'`)
-		
+
 		selection.objects.forEach((obj) => {
 			group.add(obj)
 			obj.x -= group.x
@@ -373,7 +371,7 @@ export class MainScene extends BaseScene {
 		if (groups.length === 0) {
 			return
 		}
-		
+
 		const ungrouped = groups.flatMap((group) => {
 			const ungrouped = group.list.slice(0).map((child) => {
 				if (!isSelectable(child)) {
@@ -386,11 +384,13 @@ export class MainScene extends BaseScene {
 				this.selectionManager.addSelectable(child)
 				return child
 			})
-			
+
 			group.destroy()
 
-			this.logger.debug(`ungrouped ${group.name} -> [${ungrouped.map((obj) => obj.name || 'item').join(', ')}] (${ungrouped.length})`)
-			
+			this.logger.debug(
+				`ungrouped ${group.name} -> [${ungrouped.map((obj) => obj.name || 'item').join(', ')}] (${ungrouped.length})`
+			)
+
 			return ungrouped
 		})
 
@@ -406,9 +406,17 @@ export class MainScene extends BaseScene {
 		if (!this.selectionManager.selection) {
 			return
 		}
-		
-		// TODO check if the selection is serializable
-		this.clipboard.copy(this.selectionManager.selection.objects)
+
+		const hasNonSerializableObjects = this.selectionManager.selection.objects.filter(
+			(obj) => !isSerializableGameObject(obj)
+		)
+		if (hasNonSerializableObjects.length > 0) {
+			throw new Error(
+				`copy failed: ${hasNonSerializableObjects.map((obj) => obj.name).join(', ')} are not serializable`
+			)
+		}
+
+		this.clipboard.copy(this.selectionManager.selection.objects as SerializableGameObject[])
 
 		event.preventDefault()
 	}
