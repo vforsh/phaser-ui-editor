@@ -13,6 +13,7 @@ import {
 	fetchImageUrl,
 	GraphicAssetData,
 } from '../../../../../types/assets'
+import { urlParams } from '@url-params'
 import { rectIntersect } from '../../robowhale/phaser3/geom/rect-intersect'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { signalFromEvent } from '../../robowhale/utils/events/create-abort-signal-from-event'
@@ -104,6 +105,11 @@ export class MainScene extends BaseScene {
 		this.setupAppCommands()
 
 		this.addTestImages()
+
+		const zoom = urlParams.getNumber('zoom')
+		if (typeof zoom === 'number') {
+			this.setCameraZoom(zoom)
+		}
 	}
 
 	private initObjectsFactory() {
@@ -286,7 +292,6 @@ export class MainScene extends BaseScene {
 		// TODO implement restart scene
 		this.onKeyDown('R', this.restart, this, this.shutdownSignal)
 		this.onKeyDown('F', this.alignCameraToProjectFrame, this, this.shutdownSignal)
-		this.onKeyDown('ONE', this.resetCameraZoom, this, this.shutdownSignal)
 
 		this.onKeyDown('DELETE', this.removeSelection, this, this.shutdownSignal)
 		this.onKeyDown('BACKSPACE', this.removeSelection, this, this.shutdownSignal)
@@ -306,14 +311,14 @@ export class MainScene extends BaseScene {
 					return
 				}
 
-				if (this.selectionManager.selection?.size === 0) {
+				if (!this.selectionManager.selection || this.selectionManager.selection.isEmpty) {
 					return
 				}
 
 				if (event.shiftKey) {
-					this.ungroup(event)
+					this.ungroup(this.selectionManager.selection)
 				} else {
-					this.group(event)
+					this.group(this.selectionManager.selection)
 				}
 
 				event.preventDefault()
@@ -325,14 +330,13 @@ export class MainScene extends BaseScene {
 		this.onKeyDown('X', (event) => this.cut(event), this, this.shutdownSignal)
 		this.onKeyDown('C', (event) => this.copy(event), this, this.shutdownSignal)
 		this.onKeyDown('V', (event) => this.paste(event), this, this.shutdownSignal)
+
+		this.onKeyDown('ONE', () => this.setCameraZoom(1), this, this.shutdownSignal)
+		this.onKeyDown('TWO', ({ shiftKey }) => this.setCameraZoom(shiftKey ? 0.5 : 2), this, this.shutdownSignal)
+		this.onKeyDown('THREE', ({ shiftKey }) => this.setCameraZoom(shiftKey ? 0.25 : 4), this, this.shutdownSignal)
 	}
 
-	private group(event: KeyboardEvent): void {
-		const selection = this.selectionManager.selection
-		if (!selection) {
-			return
-		}
-
+	private group(selection: Selection) {
 		const group = this.make.container({})
 		group.name = this.getNewGroupName()
 		group.setPosition(selection.x + selection.width / 2, selection.y + selection.height / 2)
@@ -354,6 +358,8 @@ export class MainScene extends BaseScene {
 		this.selectionManager.addSelectable(group)
 		this.selectionManager.selection = this.selectionManager.createSelection([group])
 		this.selectionManager.transformControls.startFollow(this.selectionManager.selection)
+
+		return group
 	}
 
 	private getNewGroupName(): string {
@@ -361,12 +367,7 @@ export class MainScene extends BaseScene {
 		return `group_${existingGroups.length + 1}`
 	}
 
-	private ungroup(event: KeyboardEvent): void {
-		const selection = this.selectionManager.selection
-		if (!selection) {
-			return
-		}
-
+	private ungroup(selection: Selection) {
 		const groups = selection.objects.filter((obj) => obj instanceof Phaser.GameObjects.Container)
 		if (groups.length === 0) {
 			return
@@ -396,6 +397,8 @@ export class MainScene extends BaseScene {
 
 		this.selectionManager.selection = this.selectionManager.createSelection(ungrouped)
 		this.selectionManager.transformControls.startFollow(this.selectionManager.selection)
+
+		return ungrouped
 	}
 
 	private copy(event: KeyboardEvent): void {
@@ -420,12 +423,12 @@ export class MainScene extends BaseScene {
 
 		event.preventDefault()
 	}
-	
+
 	private cut(event: KeyboardEvent): void {
 		this.copy(event)
 		this.removeSelection()
 	}
-	
+
 	private paste(event: KeyboardEvent): void {
 		if (!event.ctrlKey && !event.metaKey) {
 			return
@@ -448,7 +451,7 @@ export class MainScene extends BaseScene {
 
 		event.preventDefault()
 	}
-	
+
 	public restart() {
 		this.scene.restart(this.initData)
 	}
@@ -706,12 +709,6 @@ export class MainScene extends BaseScene {
 		return pointer.button === 0 ? 'left' : pointer.button === 1 ? 'middle' : 'right'
 	}
 
-	private resetCameraZoom() {
-		const cameraZoom = 1
-		this.setCameraZoom(cameraZoom)
-		this.onResize(this.scale.gameSize)
-	}
-
 	private onPointerWheel(
 		pointer: Phaser.Input.Pointer,
 		objects: Phaser.GameObjects.GameObject[],
@@ -761,6 +758,7 @@ export class MainScene extends BaseScene {
 
 	private setCameraZoom(zoom: number): void {
 		this.cameras.main.zoom = zoom
+		this.onResize(this.scale.gameSize)
 	}
 
 	private onCameraChange() {

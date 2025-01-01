@@ -1,6 +1,6 @@
 import { ReadonlyDeep } from 'type-fest'
 import { TypedEventEmitter } from '../../../robowhale/phaser3/TypedEventEmitter'
-import { Transformable } from './Transformable'
+import { calculateBounds, Transformable } from './Transformable'
 
 type Events = {
 	changed: (type: 'add' | 'remove', object: Transformable) => void
@@ -11,7 +11,7 @@ type Events = {
  * A wrapper around an array of transformable objects.
  * It auto-destroys itself when empty (i.e. when all objects are removed).
  * Objects auto-remove themselves from the selection when destroyed.
- * 
+ *
  * **DO NOT instantiate this class directly, use `SelectionManager.createSelection()` instead.**
  */
 export class Selection extends TypedEventEmitter<Events> {
@@ -59,19 +59,13 @@ export class Selection extends TypedEventEmitter<Events> {
 
 		return false
 	}
-
+	
 	public includes(object: Transformable): boolean {
 		return this.objects.includes(object)
 	}
 
 	public calculateBounds(): Phaser.Geom.Rectangle {
-		const left = this.objects.reduce((min, obj) => Math.min(min, obj.left), Infinity)
-		const right = this.objects.reduce((max, obj) => Math.max(max, obj.right), -Infinity)
-		const top = this.objects.reduce((min, obj) => Math.min(min, obj.top), Infinity)
-		const bottom = this.objects.reduce((max, obj) => Math.max(max, obj.bottom), -Infinity)
-
-		this._bounds = new Phaser.Geom.Rectangle(left, top, right - left, bottom - top)
-
+		this._bounds = calculateBounds(this.objects)
 		return this._bounds
 	}
 

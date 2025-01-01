@@ -420,14 +420,14 @@ export class SelectionManager {
 				this.selection.remove(gameObject)
 				return
 			}
-
+			
 			// add the clicked object to the selection (create a new selection if it doesn't exist)
 			this.selection ? this.selection.add(gameObject) : (this.selection = this.createSelection([gameObject]))
 		} else if (pointer.event.ctrlKey || pointer.event.metaKey) {
 			if (!this.selection) {
 				return
 			}
-			
+
 			// if the clicked object is not in the selection, do nothing
 			if (!this.selection.includes(gameObject)) {
 				return

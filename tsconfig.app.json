@@ -21,6 +21,14 @@
 		"noFallthroughCasesInSwitch": true,
 
 		"types": ["phaser"],
+
+		"paths": {
+			"@state/*": ["./src/state/*"],
+			"@logs/*": ["./src/logs/*"],
+			"@url-params": ["./src/UrlParams.ts"],
+			"@components/*": ["./src/components/*"],
+			"@utils/*": ["./src/utils/*"],
+		}
 	},
 	"include": ["src", "types"]
 }
