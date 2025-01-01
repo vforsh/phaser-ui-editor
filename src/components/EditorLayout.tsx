@@ -1,4 +1,5 @@
 import { Box, Group, Paper, Stack, useMantineTheme } from '@mantine/core'
+import { urlParams } from '@url-params'
 import JSON5 from 'json5'
 import path from 'path-browserify'
 import { useCallback, useEffect, useState } from 'react'
@@ -100,7 +101,9 @@ export default function EditorLayout() {
 		console.log('project', openedProject)
 
 		const assetsGlob = path.join(openedProject.assetsDir, '**/*')
-		const assetsToIgnore = openedProject.projectConfig.assetsIgnore.map((item) => path.join(openedProject.assetsDir, item))
+		const assetsToIgnore = openedProject.projectConfig.assetsIgnore.map((item) =>
+			path.join(openedProject.assetsDir, item)
+		)
 		const assets = mockAssetsPaths
 
 		console.log('assets paths', assets)
@@ -111,7 +114,7 @@ export default function EditorLayout() {
 		setAssets(assetTree)
 
 		state.lastOpenedProjectDir = projectDirPath
-		
+
 		// update recent projects in state
 		state.recentProjects ??= []
 		const recentProject = state.recentProjects.find((item) => item.dir === projectDirPath)
@@ -171,11 +174,7 @@ export default function EditorLayout() {
 
 	return (
 		<>
-			<Group 
-				align="stretch" 
-				style={{ height: '100vh', margin: 0, backgroundColor: 'black' }} 
-				gap={0}
-			>
+			<Group align="stretch" style={{ height: '100vh', margin: 0, backgroundColor: 'black' }} gap={0}>
 				{/* Left Column */}
 				<Stack
 					id="left-column"
@@ -233,7 +232,7 @@ export default function EditorLayout() {
 				</Paper>
 
 				{/* Right Divider */}
-				<ResizableDivider onResize={handleRightResize} vertical />
+				{urlParams.getBool('inspector') && <ResizableDivider onResize={handleRightResize} vertical />}
 
 				{/* Right Column - Inspector */}
 				<Paper
@@ -242,6 +241,7 @@ export default function EditorLayout() {
 						backgroundColor: 'inherit',
 						transition: 'width 0.05s ease-out',
 						padding: '4px 4px 4px 0px',
+						display: urlParams.getBool('inspector') ? 'block' : 'none',
 					}}
 				>
 					<Box
@@ -250,7 +250,7 @@ export default function EditorLayout() {
 							height: '100%',
 							display: 'flex',
 							flexDirection: 'column',
-							borderRadius: 'var(--mantine-radius-sm)'
+							borderRadius: 'var(--mantine-radius-sm)',
 						}}
 					>
 						<InspectorPanel selectedAsset={selectedAsset} />
@@ -258,7 +258,11 @@ export default function EditorLayout() {
 				</Paper>
 			</Group>
 
-			<OpenProjectDialog opened={openProjectDialogOpen} onClose={() => setOpenProjectDialogOpen(false)} onOpenProject={openProject} />
+			<OpenProjectDialog
+				opened={openProjectDialogOpen}
+				onClose={() => setOpenProjectDialogOpen(false)}
+				onOpenProject={openProject}
+			/>
 		</>
 	)
 }
