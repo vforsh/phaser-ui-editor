@@ -11,4 +11,14 @@ export default defineConfig({
 	optimizeDeps: {
 		exclude: ['lucide-react'],
 	},
+	define: {
+		__ESM_POLYFILL__: true
+	},
+	build: {
+		rollupOptions: {
+			input: {
+				polyfills: 'core-js/actual/iterator'
+			}
+		}
+	}
 })
