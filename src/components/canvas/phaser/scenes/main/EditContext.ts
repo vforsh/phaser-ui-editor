@@ -1,4 +1,4 @@
-import { logs } from '@logs/logs'
+import { logger } from '@logs/logs'
 import { TypedEventEmitter } from '../../robowhale/phaser3/TypedEventEmitter'
 import { MainScene } from './MainScene'
 import { SelectionManager } from './selection/SelectionManager'
@@ -32,7 +32,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 		
 		this.selection = new SelectionManager({
 			scene: this.scene,
-			logger: logs.getOrCreate('canvas').getSubLogger({ name: ':selection' }),
+			logger: logger.getOrCreate('canvas').getSubLogger({ name: ':selection' }),
 		})
 	}
 	

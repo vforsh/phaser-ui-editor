@@ -14,7 +14,7 @@ export function promptFiles(options: FilePromptOptions): Promise<File[]> {
 		uploadInput.addEventListener(
 			'change',
 			() => {
-				let filesArr = Array.from(uploadInput.files)
+				let filesArr = Array.from(uploadInput.files ?? [])
 				uploadInput.remove()
 				resolve(filesArr)
 			},

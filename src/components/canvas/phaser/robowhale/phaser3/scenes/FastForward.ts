@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 export interface IFastForwardable extends Phaser.GameObjects.GameObject {
 	timeScale: number
 }

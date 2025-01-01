@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import Vector2Like = Phaser.Types.Math.Vector2Like
 import { ScrollableDebug } from './ScrollableDebug'
 

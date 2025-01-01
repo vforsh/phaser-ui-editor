@@ -1,4 +1,4 @@
-import { BmFontData } from './create-bmfont-data'
+import { BmFontChar, BmFontData } from './create-bmfont-data'
 
 type PhaserBmfontData = Phaser.Types.GameObjects.BitmapText.BitmapFontData
 
@@ -109,6 +109,16 @@ export function parseJsonBitmapFont(json: BmFontData, frame: Phaser.Textures.Fra
 	return data as PhaserBmfontData
 }
 
-function getValue(node, prop: string): number {
-	return parseInt(node[prop])
+function getValue(node: BmFontChar, prop: string): number {
+	const value = node[prop]
+	
+	if (typeof value === 'number') {
+		return value
+	}
+	
+	if (typeof value === 'string') {
+		return parseInt(value)
+	}
+	
+	throw new Error(`Invalid value for ${prop}: ${value}`)
 }

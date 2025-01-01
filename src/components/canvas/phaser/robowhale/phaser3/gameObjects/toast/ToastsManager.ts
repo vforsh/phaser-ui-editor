@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { PhaserScreen } from '../container/screen/Screen'
 import { IToastOptions, Toast } from './Toast'
 

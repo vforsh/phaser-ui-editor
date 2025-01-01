@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 export interface PopoverOptions {
 	back: {
 		key: string

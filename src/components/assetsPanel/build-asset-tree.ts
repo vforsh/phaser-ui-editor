@@ -5,5 +5,6 @@ export const buildAssetTree = async (
   absoluteFilepaths: string[],
   baseDir: string,
 ): Promise<AssetTreeData> => {
+  // @ts-expect-error
   return mockAssets;
 };

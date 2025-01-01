@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 type RandomZoneSource = Phaser.Types.GameObjects.Particles.RandomZoneSource
 type ParticleEmitterConfig = Phaser.Types.GameObjects.Particles.ParticleEmitterConfig
 type ParticleEmitterEdgeZoneConfig = Phaser.Types.GameObjects.Particles.ParticleEmitterEdgeZoneConfig

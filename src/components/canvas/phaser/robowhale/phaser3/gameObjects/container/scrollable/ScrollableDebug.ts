@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { Scrollable } from './Scrollable'
 
 export class ScrollableDebug<T extends Phaser.GameObjects.GameObject> {

@@ -13,6 +13,9 @@ import { PhaserAppEvents, PhaserAppEventsEmitter } from './PhaserAppEvents'
 import { Phaser3Extensions } from './robowhale/phaser3/Phaser3Extensions'
 import { TypedEventEmitter } from './robowhale/phaser3/TypedEventEmitter'
 import { CommandEmitter } from './robowhale/utils/events/CommandEmitter'
+import { Logger } from 'tslog'
+import { logger } from '@logs/logs'
+import { BaseScene } from './robowhale/phaser3/scenes/BaseScene'
 
 export type Vector2Like = Phaser.Types.Math.Vector2Like
 /**
@@ -30,16 +33,22 @@ export interface PhaserGameExtra {
 
 	/** to receive commands from the parent React app */
 	appCommands: AppCommandsEmitter
+
+	/** logger for the Phaser app */
+	logger: Logger<{}>
+
+	destroySignal: AbortSignal
 }
 
 export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
+	public logger: Logger<{}>
 	public ev3nts = new TypedEventEmitter<PhaserAppEvents>()
 	public commands = new CommandEmitter<PhaserAppCommands>('phaser-app')
 	public appEvents: AppEventsEmitter
 	public appCommands: AppCommandsEmitter
 	private resizeSensor: ResizeSensor
 	private destroyController = new AbortController()
-
+	
 	constructor(
 		phaserConfig: Phaser.Types.Core.GameConfig,
 		projectConfig: ProjectConfig,
@@ -49,6 +58,8 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 		Phaser3Extensions.extend()
 
 		super(phaserConfig)
+
+		this.logger = logger.getOrCreate('canvas')
 
 		this.appEvents = appEvents
 
@@ -85,6 +96,14 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 
 	override destroy(removeCanvas: boolean, noReturn?: boolean): void {
 		super.destroy(removeCanvas, noReturn)
+
+		this.logger.info('PhaserApp destroy')
+
+		this.scene.scenes.forEach((scene) => {
+			if (scene instanceof BaseScene) {
+				scene.onShutdown()
+			}
+		})
 
 		this.destroyController.abort()
 

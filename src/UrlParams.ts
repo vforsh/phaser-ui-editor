@@ -1,5 +1,5 @@
 import { Logger } from 'tslog'
-import { logs } from './logs/logs'
+import { logger } from './logs/logs'
 
 export type UrlParam = GenericUrlParam
 
@@ -72,6 +72,6 @@ export class UrlParams {
 }
 
 export const urlParams = new UrlParams({
-	logger: logs.getOrCreate('url-params'),
+	logger: logger.getOrCreate('url-params'),
 	search: window.location.search,
 })

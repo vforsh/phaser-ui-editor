@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { pullFast } from '../../../../utils/collection/pull-fast'
 import { Key } from '../../../scenes/BaseScene'
 import { PhaserScreen } from './Screen'

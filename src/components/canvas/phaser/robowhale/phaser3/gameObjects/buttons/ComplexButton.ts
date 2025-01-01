@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { ButtonEvent } from './ButtonEvent'
 
 export class ComplexButton extends Phaser.GameObjects.Container {

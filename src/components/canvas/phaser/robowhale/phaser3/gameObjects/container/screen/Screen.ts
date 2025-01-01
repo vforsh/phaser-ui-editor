@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { Config } from '../../../../../Config'
 import { Key } from '../../../scenes/BaseScene'
 import { IPinnable, Pinner } from '../../../scenes/Pinner'

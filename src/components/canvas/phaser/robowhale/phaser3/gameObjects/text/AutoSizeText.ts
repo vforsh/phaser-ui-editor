@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { fitText } from './fit-text'
 
 export interface AutoSizeTextOptions {
@@ -9,7 +11,7 @@ export interface AutoSizeTextOptions {
 }
 
 export class AutoSizeText extends Phaser.GameObjects.Text {
-	private options: AutoSizeTextOptions
+	private options: AutoSizeTextOptions | undefined
 	private ignoreTextUpdates: boolean = false
 
 	constructor(

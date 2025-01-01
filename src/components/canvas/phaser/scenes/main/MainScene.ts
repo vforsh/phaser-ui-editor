@@ -3,7 +3,7 @@ import { once } from 'es-toolkit'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import { AppCommandsEmitter } from '../../../../../AppCommands'
-import { logs } from '../../../../../logs/logs'
+import { logger } from '../../../../../logs/logs'
 import { Project } from '../../../../../project/Project'
 import { ProjectConfig } from '../../../../../project/ProjectConfig'
 import trpc from '../../../../../trpc'
@@ -67,7 +67,7 @@ export class MainScene extends BaseScene {
 	public init(data: MainSceneInitData) {
 		super.init(data)
 
-		this.logger = logs.getOrCreate('canvas')
+		this.logger = logger.getOrCreate('canvas')
 
 		this.logger.info('MainScene init', data)
 	}
@@ -867,17 +867,23 @@ export class MainScene extends BaseScene {
 	}
 
 	public onShutdown(): void {
+		this.logger.debug(`${this.scene.key} shutdown - start`)
+		
 		super.onShutdown()
 		
 		this.editContexts.forEach((editContext) => editContext.destroy())
 		this.editContexts.clear()
-
+		
+		this.editContextCurrent = undefined
+		
 		this.selectionManager?.destroy()
 		// @ts-expect-error
 		this.selectionManager = undefined
-
+		
 		this.clipboard?.destroy()
 		// @ts-expect-error
 		this.clipboard = undefined
+		
+		this.logger.debug(`${this.scene.key} shutdown - complete`)
 	}
 }

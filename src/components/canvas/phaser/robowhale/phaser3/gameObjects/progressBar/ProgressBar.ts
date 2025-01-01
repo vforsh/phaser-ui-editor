@@ -6,7 +6,7 @@ export enum ProgressBarDirection {
 export class ProgressBar extends Phaser.GameObjects.Image {
 	private cropRect: Phaser.Geom.Rectangle
 	private direction: ProgressBarDirection
-	private cropTween: Phaser.Tweens.Tween
+	private cropTween: Phaser.Tweens.Tween | null = null
 
 	constructor(scene: Phaser.Scene, direction: ProgressBarDirection, texture: string, frame?: string) {
 		super(scene, 0, 0, texture, frame)

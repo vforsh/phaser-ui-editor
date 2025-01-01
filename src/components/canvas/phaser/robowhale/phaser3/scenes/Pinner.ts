@@ -82,6 +82,5 @@ export class Pinner {
 
 	public destroy(): void {
 		this.pins.clear()
-		this.pins = null
 	}
 }

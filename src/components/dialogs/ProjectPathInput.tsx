@@ -5,7 +5,7 @@ import { useProjectPathValidation } from '../../hooks/useProjectPathValidation';
 interface ProjectPathInputProps {
   value: string;
   onChange: (value: string) => void;
-  onSubmit: () => void;
+  onSubmit: (e: React.FormEvent) => void;
   autoFocus?: boolean;
 }
 
@@ -18,7 +18,7 @@ export function ProjectPathInput({ value, onChange, onSubmit, autoFocus }: Proje
       inputRef.current.focus();
     }
   }, [autoFocus]);
-
+  
   return (
     <Group gap="sm" grow>
       <TextInput
@@ -26,6 +26,7 @@ export function ProjectPathInput({ value, onChange, onSubmit, autoFocus }: Proje
         placeholder="Enter project directory path"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onSubmit={(e) => onSubmit(e)}
         error={value.length > 0 ? validationMessage : undefined}
         style={{ flex: 1 }}
         data-autofocus={autoFocus}

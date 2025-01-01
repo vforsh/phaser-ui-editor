@@ -28,7 +28,7 @@ export default function EditorLayout() {
 	const [rightPanelWidth, setRightPanelWidth] = useState(rpw)
 	const [hierarchyHeight, setHierarchyHeight] = useState(hh || Math.round(window.innerHeight / 2) - 6)
 	const [selectedAsset, setSelectedAsset] = useState<AssetTreeItemData | null>(null)
-	const [assets, setAssets] = useState([])
+	const [assets, setAssets] = useState<AssetTreeItemData[]>([])
 	const [openProjectDialogOpen, setOpenProjectDialogOpen] = useState(false)
 
 	const handleLeftResize = useCallback((delta: number) => {
@@ -111,7 +111,7 @@ export default function EditorLayout() {
 		setAssets(assetTree)
 
 		state.lastOpenedProjectDir = projectDirPath
-
+		
 		// update recent projects in state
 		state.recentProjects ??= []
 		const recentProject = state.recentProjects.find((item) => item.dir === projectDirPath)
@@ -171,7 +171,11 @@ export default function EditorLayout() {
 
 	return (
 		<>
-			<Group align="stretch" style={{ height: '100vh', margin: 0, backgroundColor: 'black' }} spacing={0} gap={0}>
+			<Group 
+				align="stretch" 
+				style={{ height: '100vh', margin: 0, backgroundColor: 'black' }} 
+				gap={0}
+			>
 				{/* Left Column */}
 				<Stack
 					id="left-column"
@@ -241,12 +245,12 @@ export default function EditorLayout() {
 					}}
 				>
 					<Box
-						radius="sm"
 						style={{
 							backgroundColor: '#242424',
 							height: '100%',
 							display: 'flex',
 							flexDirection: 'column',
+							borderRadius: 'var(--mantine-radius-sm)'
 						}}
 					>
 						<InspectorPanel selectedAsset={selectedAsset} />

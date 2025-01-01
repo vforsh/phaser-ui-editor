@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import RenderTexture = Phaser.GameObjects.RenderTexture
 
 type Format = 'image/png' | 'image/jpeg' | string

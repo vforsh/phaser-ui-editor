@@ -1373,27 +1373,3 @@ export const mockAssets = [
 		],
 	},
 ]
-
-function addJsonPathToSpritesheetFrames<T extends any>(item: T): T {
-	if (typeof item !== 'object' || item === null) {
-		return item
-	}
-
-	if (Array.isArray(item)) {
-		return item.map((i) => addJsonPathToSpritesheetFrames(i)) as T
-	}
-
-	if (item.type === 'spritesheet-frame') {
-		const { imagePath } = item
-		return {
-			...item,
-			jsonPath: imagePath.replace(/\.png$/, '.json'),
-		} as T
-	}
-
-	const result: any = {}
-	for (const key in item) {
-		result[key] = addJsonPathToSpritesheetFrames(item[key])
-	}
-	return result
-}

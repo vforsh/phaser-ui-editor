@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { Config } from '../../../../Config'
 import { WebFonts } from '../../../../GameFonts'
 

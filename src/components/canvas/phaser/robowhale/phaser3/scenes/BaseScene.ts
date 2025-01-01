@@ -5,15 +5,15 @@ import { IScaleable, ScaleOptions, Scaler, ScaleType } from './Scaler'
 
 export type Key = keyof typeof Phaser.Input.Keyboard.KeyCodes
 
-export class BaseScene extends Phaser.Scene {
+export abstract class BaseScene extends Phaser.Scene {
 	// TODO use generic type for initData
 	public initData: any
-	public pinner: Pinner
-	public sizer: Scaler
-	public fastForward: FastForward
-	public shiftKey: Phaser.Input.Keyboard.Key
-	public ctrlKey: Phaser.Input.Keyboard.Key
-	private shutdownController: AbortController
+	public pinner!: Pinner
+	public sizer!: Scaler
+	public fastForward!: FastForward
+	public shiftKey!: Phaser.Input.Keyboard.Key
+	public ctrlKey!: Phaser.Input.Keyboard.Key
+	private shutdownController!: AbortController
 
 	public get keyboard(): (Phaser.Input.Keyboard.KeyboardPlugin & Phaser.Events.EventEmitter) | null {
 		return this.input.keyboard
@@ -29,7 +29,7 @@ export class BaseScene extends Phaser.Scene {
 		this.shutdownController = new AbortController()
 
 		this.events.once('shutdown', this.onShutdown, this)
-
+		
 		this.pinner = new Pinner()
 
 		this.sizer = new Scaler(this)
@@ -61,10 +61,8 @@ export class BaseScene extends Phaser.Scene {
 		this.pinner.onResize(Config.GAME_WIDTH, Config.GAME_HEIGHT, Config.ASSETS_SCALE)
 	}
 
-	public restart(data?: object): void {
-		this.game.restartScene(this.scene.key, data ?? this.initData)
-	}
-
+	public abstract restart(data?: object): void;
+	
 	public onKeyDown(key: Key, callback: (e: KeyboardEvent) => void, context?: any, signal?: AbortSignal): void {
 		this.keyboard?.on(`keydown-${key}`, callback, context, signal || this.shutdownSignal)
 	}
@@ -73,21 +71,14 @@ export class BaseScene extends Phaser.Scene {
 		this.keyboard?.once(`keydown-${key}`, callback, context, signal || this.shutdownSignal)
 	}
 
-	public changeScene(newScene: SceneKey, data?: any): void {
-		this.game.changeScene(this.scene.key, newScene, data)
-	}
-
 	public onShutdown(): void {
 		this.shutdownController.abort()
 
 		this.pinner.destroy()
-		this.pinner = null
 
 		this.sizer.destroy()
-		this.sizer = null
 
 		this.fastForward.destroy()
-		this.fastForward = null
 	}
 
 	/**

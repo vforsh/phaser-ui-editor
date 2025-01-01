@@ -21,14 +21,14 @@ export function TransformSection({
           label="X"
           value={x}
           onChange={(val) => console.log('x changed:', val)}
-          precision={2}
+          decimalScale={2}
           size="xs"
         />
         <NumberInput
           label="Y"
           value={y}
           onChange={(val) => console.log('y changed:', val)}
-          precision={2}
+          decimalScale={2}
           size="xs"
         />
       </Group>
@@ -36,7 +36,7 @@ export function TransformSection({
         label="Rotation"
         value={rotation}
         onChange={(val) => console.log('rotation changed:', val)}
-        precision={2}
+        decimalScale={2}
         size="xs"
       />
       <Group grow>
@@ -44,14 +44,14 @@ export function TransformSection({
           label="Scale X"
           value={scale.x}
           onChange={(val) => console.log('scale.x changed:', val)}
-          precision={2}
+          decimalScale={2}
           size="xs"
         />
         <NumberInput
           label="Scale Y"
           value={scale.y}
           onChange={(val) => console.log('scale.y changed:', val)}
-          precision={2}
+          decimalScale={2}
           size="xs"
         />
       </Group>

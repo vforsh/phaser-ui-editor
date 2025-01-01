@@ -78,7 +78,7 @@ export function createBmfontData(
 	glyphs: Phaser.GameObjects.Text[],
 	texture: BitmapFontTexture,
 	font: Font
-): BmFontData {
+): BmFontData | null {
 	if (glyphs.length === 0) {
 		return null
 	}
@@ -178,15 +178,23 @@ function createKernings(glyphs: Phaser.GameObjects.Text[], font: Font, fontSize:
 	})
 
 	let fontScale = (1 / font.unitsPerEm) * fontSize
-
+	
+	// @ts-expect-error
 	let list: BmFontKerning[] = pairs
 		.map(([left, right]) => {
+			const leftChar = glyphIndexToCharMap.get(left)
+			const rightChar = glyphIndexToCharMap.get(right)
+
+			if (!leftChar || !rightChar) {
+				throw new Error(`glyph index to char map is missing glyphs: ${left} and ${right}`)
+			}
+
 			let kerning = font.getKerningValue(left, right)
 			let amount = Math.round(kerning * fontScale)
 			if (amount) {
 				return {
-					first: glyphIndexToCharMap.get(left).charCodeAt(0),
-					second: glyphIndexToCharMap.get(right).charCodeAt(0),
+					first: leftChar.charCodeAt(0),
+					second: rightChar.charCodeAt(0),
 					amount,
 				}
 			}

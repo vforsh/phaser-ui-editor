@@ -32,6 +32,6 @@ export class Pool<T extends PoolItem> {
 	}
 
 	public destroy(): void {
-		this.items = null
+		this.items.length = 0
 	}
 }

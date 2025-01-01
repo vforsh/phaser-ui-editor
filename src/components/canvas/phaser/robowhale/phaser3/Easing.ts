@@ -38,10 +38,10 @@ export enum Ease {
 
 export const CustomEase = {
 	// https://stackoverflow.com/questions/13097005/easing-functions-for-bell-curves
-	Bell: (t, a = 1) => Math.pow(4, a) * Math.pow(t * (1 - t), a),
-	BellCbrt: (t) => Math.cbrt(4) * Math.cbrt(t * (1 - t)),
-	BellSqrt: (t) => Math.sqrt(4) * Math.sqrt(t * (1 - t)),
-	BellBasic: (t) => 4 * (t * (1 - t)),
-	BellQuad: (t) => 4 * 4 * (t * (1 - t) * (t * (1 - t))),
-	BellCubic: (t) => 4 * 4 * 4 * (t * (1 - t) * (t * (1 - t)) * (t * (1 - t))),
+	Bell: (t: number, a = 1) => Math.pow(4, a) * Math.pow(t * (1 - t), a),
+	BellCbrt: (t: number) => Math.cbrt(4) * Math.cbrt(t * (1 - t)),
+	BellSqrt: (t: number) => Math.sqrt(4) * Math.sqrt(t * (1 - t)),
+	BellBasic: (t: number) => 4 * (t * (1 - t)),
+	BellQuad: (t: number) => 4 * 4 * (t * (1 - t) * (t * (1 - t))),
+	BellCubic: (t: number) => 4 * 4 * 4 * (t * (1 - t) * (t * (1 - t)) * (t * (1 - t))),
 }

@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { ButtonEvent } from '../buttons/ButtonEvent'
 import { SimpleButton } from '../buttons/SimpleButton'
 

@@ -79,6 +79,5 @@ export class Scaler {
 
 	public destroy(): void {
 		this.items.clear()
-		this.items = null
 	}
 }
