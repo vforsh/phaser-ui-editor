@@ -18,6 +18,7 @@ import { rectIntersect } from '../../robowhale/phaser3/geom/rect-intersect'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { signalFromEvent } from '../../robowhale/utils/events/create-abort-signal-from-event'
 import { CanvasClipboard } from './CanvasClipboard'
+import { EditContext } from './EditContext'
 import { isSerializableGameObject, ObjectsFactory, SerializableGameObject } from './factory/ObjectsFactory'
 import { Grid } from './Grid'
 import { Rulers } from './Rulers'
@@ -49,19 +50,21 @@ type SelectionDragData = {
 
 export class MainScene extends BaseScene {
 	public declare initData: MainSceneInitData
+	private logger!: Logger<{}>
 	private cameraDrag = false
 	private cameraDragStart: { x: number; y: number } | undefined
 	private selectionDrag: SelectionDragData | undefined
 	private grid!: Grid
 	private rulers!: Rulers
-	private container!: Phaser.GameObjects.Container
-	private selectionManager!: SelectionManager
+	private root!: Phaser.GameObjects.Container
+	private projectSizeFrame!: Phaser.GameObjects.Graphics
 	public objectsFactory!: ObjectsFactory
 	private clipboard!: CanvasClipboard
-	private projectSizeFrame!: Phaser.GameObjects.Graphics
-	private logger!: Logger<{}>
+	private editContexts!: Map<Phaser.GameObjects.Container, EditContext>
+	private editContextCurrent: EditContext | undefined
+	private selectionManager!: SelectionManager
 
-	init(data: MainSceneInitData) {
+	public init(data: MainSceneInitData) {
 		super.init(data)
 
 		this.logger = logs.getOrCreate('canvas')
@@ -69,7 +72,7 @@ export class MainScene extends BaseScene {
 		this.logger.info('MainScene init', data)
 	}
 
-	create() {
+	public create() {
 		if (!this.initData) {
 			throw new Error('MainScene.initData is not set')
 		}
@@ -82,11 +85,14 @@ export class MainScene extends BaseScene {
 		this.rulers.name = 'rulers'
 		this.add.existing(this.rulers)
 
-		this.container = this.add.container(0, 0)
+		this.root = this.add.container(0, 0)
+		this.root.name = 'root' // TODO use the current prefab name (from the assets tree)
 
 		this.initObjectsFactory()
 
 		this.initClipboard()
+
+		this.initEditContexts()
 
 		this.initSelectionManager()
 
@@ -98,7 +104,7 @@ export class MainScene extends BaseScene {
 
 		this.scale.on('resize', this.resize, this, this.shutdownSignal)
 
-		this.onResize(this.scale.gameSize)
+		this.onResizeOrCameraChange(this.scale.gameSize)
 
 		this.alignCameraToProjectFrame()
 
@@ -124,6 +130,62 @@ export class MainScene extends BaseScene {
 			logger: this.logger.getSubLogger({ name: ':clipboard' }),
 			factory: this.objectsFactory,
 		})
+	}
+
+	private initEditContexts() {
+		this.editContexts = new Map()
+	
+		this.addEditContext(this.root, true)
+	}
+
+	private addEditContext(container: Phaser.GameObjects.Container, switchTo = false) {
+		if (this.editContexts.has(container)) {
+			throw new Error(`Edit context for '${container.name}' already exists`)
+		}
+		
+		const editContext = new EditContext({
+			scene: this,
+			target: container,
+		})
+		
+		editContext.once('pre-destroy', () => this.removeEditContext(container), this, this.shutdownSignal)
+		
+		this.editContexts.set(container, editContext)
+		
+		this.logger.debug(`added edit context for '${container.name}'`)
+		
+		if (switchTo) {
+			this.switchEditContext(container)
+		}
+		
+		return editContext
+	}
+	
+	private removeEditContext(container: Phaser.GameObjects.Container) {
+		if (!this.editContexts.has(container)) {
+			throw new Error(`Edit context for '${container.name}' does not exist`)
+		}
+
+		this.logger.debug(`removed edit context for '${container.name}'`)
+		
+		this.editContexts.delete(container)
+	}
+
+	public switchEditContext(container: Phaser.GameObjects.Container): EditContext {
+		if (this.editContextCurrent?.target === container) {
+			return this.editContextCurrent
+		}
+
+		const editContext = this.editContexts.get(container)
+		if (!editContext) {
+			throw new Error(`Edit context for '${container.name}' does not exist`)
+		}
+		
+		this.editContextCurrent = editContext
+
+		this.logger.info(`switched to '${container.name}' context`)
+
+		return editContext
 	}
 
 	private initSelectionManager() {
@@ -162,8 +224,8 @@ export class MainScene extends BaseScene {
 		chefCherry_2?.setAngle(45)
 		chefCherry_2?.setName('chefCherry_2')
 
-		// const selection = this.selectionManager.createSelection([chefCherry_1!, chefCherry_2!])
-		// this.group(selection)
+		const selection = this.selectionManager.createSelection([chefCherry_1!, chefCherry_2!])
+		this.group(selection)
 	}
 
 	private async addTestImage(asset: GraphicAssetData, offsetX: number, offsetY: number, angle = 0) {
@@ -202,7 +264,7 @@ export class MainScene extends BaseScene {
 		gameObject.setOrigin(0.5, 0.5)
 		gameObject.setPosition(data.position.x, data.position.y)
 
-		this.container.add(gameObject)
+		this.root.add(gameObject)
 
 		return gameObject
 	}
@@ -314,14 +376,14 @@ export class MainScene extends BaseScene {
 					return
 				}
 
-				if (!this.selectionManager.selection || this.selectionManager.selection.isEmpty) {
+				if (!this.selectionManager.selected || this.selectionManager.selected.isEmpty) {
 					return
 				}
 
 				if (event.shiftKey) {
-					this.ungroup(this.selectionManager.selection)
+					this.ungroup(this.selectionManager.selected)
 				} else {
-					this.group(this.selectionManager.selection)
+					this.group(this.selectionManager.selected)
 				}
 
 				event.preventDefault()
@@ -344,7 +406,7 @@ export class MainScene extends BaseScene {
 		group.name = this.getNewGroupName()
 		group.setPosition(selection.x + selection.width / 2, selection.y + selection.height / 2)
 		group.setSize(selection.width, selection.height)
-		this.container.add(group)
+		this.root.add(group)
 
 		const grouped = selection.objects.map((obj) => obj.name || 'item').join(', ')
 		this.logger.debug(`grouped [${grouped}] (${selection.objects.length}) -> '${group.name}'`)
@@ -359,14 +421,14 @@ export class MainScene extends BaseScene {
 		selection.destroy()
 
 		this.selectionManager.addSelectable(group)
-		this.selectionManager.selection = this.selectionManager.createSelection([group])
-		this.selectionManager.transformControls.startFollow(this.selectionManager.selection)
+		this.selectionManager.selected = this.selectionManager.createSelection([group])
+		this.selectionManager.transformControls.startFollow(this.selectionManager.selected)
 
 		return group
 	}
 
 	private getNewGroupName(): string {
-		const existingGroups = this.container.list.filter((child) => child.name.startsWith('group_'))
+		const existingGroups = this.root.list.filter((child) => child.name.startsWith('group_'))
 		return `group_${existingGroups.length + 1}`
 	}
 
@@ -384,7 +446,7 @@ export class MainScene extends BaseScene {
 
 				child.x += group.x
 				child.y += group.y
-				this.container.add(child)
+				this.root.add(child)
 				this.selectionManager.addSelectable(child)
 				return child
 			})
@@ -398,8 +460,8 @@ export class MainScene extends BaseScene {
 			return ungrouped
 		})
 
-		this.selectionManager.selection = this.selectionManager.createSelection(ungrouped)
-		this.selectionManager.transformControls.startFollow(this.selectionManager.selection)
+		this.selectionManager.selected = this.selectionManager.createSelection(ungrouped)
+		this.selectionManager.transformControls.startFollow(this.selectionManager.selected)
 
 		return ungrouped
 	}
@@ -409,11 +471,11 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		if (!this.selectionManager.selection) {
+		if (!this.selectionManager.selected) {
 			return
 		}
 
-		const hasNonSerializableObjects = this.selectionManager.selection.objects.filter(
+		const hasNonSerializableObjects = this.selectionManager.selected.objects.filter(
 			(obj) => !isSerializableGameObject(obj)
 		)
 		if (hasNonSerializableObjects.length > 0) {
@@ -422,7 +484,7 @@ export class MainScene extends BaseScene {
 			)
 		}
 
-		this.clipboard.copy(this.selectionManager.selection.objects as SerializableGameObject[])
+		this.clipboard.copy(this.selectionManager.selected.objects as SerializableGameObject[])
 
 		event.preventDefault()
 	}
@@ -437,20 +499,27 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		const createdFromClipboard = this.clipboard.paste()
-		if (!createdFromClipboard) {
+		const copiedObjs = this.clipboard.paste()
+		if (!copiedObjs) {
 			return
 		}
 
-		this.container.add(createdFromClipboard)
+		// TODO it should be added to the current edit context and it is not always the main scene
+		this.root.add(copiedObjs)
 
-		createdFromClipboard.forEach((obj) => {
+		copiedObjs.forEach((obj) => {
+			obj.x += 30
+			obj.y += 30
+			// TODO get names for the objects
+		})
+
+		copiedObjs.forEach((obj) => {
 			this.selectionManager.addSelectable(obj)
 		})
 
-		this.selectionManager.selection?.destroy()
-		this.selectionManager.selection = this.selectionManager.createSelection(createdFromClipboard)
-		this.selectionManager.transformControls.startFollow(this.selectionManager.selection)
+		this.selectionManager.selected?.destroy()
+		this.selectionManager.selected = this.selectionManager.createSelection(copiedObjs)
+		this.selectionManager.transformControls.startFollow(this.selectionManager.selected)
 
 		event.preventDefault()
 	}
@@ -460,7 +529,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private removeSelection(): void {
-		const selection = this.selectionManager.selection
+		const selection = this.selectionManager.selected
 		if (!selection) {
 			return
 		}
@@ -472,7 +541,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private moveSelection(dx: number, dy: number = 0, event: KeyboardEvent): void {
-		const selected = this.selectionManager.selection
+		const selected = this.selectionManager.selected
 		if (!selected) {
 			return
 		}
@@ -483,7 +552,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private moveSelectionDownInHierarchy(event: KeyboardEvent) {
-		const selection = this.selectionManager.selection
+		const selection = this.selectionManager.selected
 		if (!selection) {
 			return
 		}
@@ -498,7 +567,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private moveSelectionUpInHierarchy(event: KeyboardEvent) {
-		const selection = this.selectionManager.selection
+		const selection = this.selectionManager.selected
 		if (!selection) {
 			return
 		}
@@ -525,14 +594,14 @@ export class MainScene extends BaseScene {
 
 		match(buttonType)
 			.with('left', () => {
-				if (this.selectionManager.selection?.bounds.contains(pointer.worldX, pointer.worldY)) {
-					this.startSelectionDrag(this.selectionManager.selection, pointer)
+				if (this.selectionManager.selected?.bounds.contains(pointer.worldX, pointer.worldY)) {
+					this.startSelectionDrag(this.selectionManager.selected, pointer)
 					return
 				}
 
 				objects.some((obj) => {
-					if (this.selectionManager.isSelectable(obj) && this.selectionManager.selection?.includes(obj)) {
-						this.startSelectionDrag(this.selectionManager.selection, pointer)
+					if (this.selectionManager.isSelectable(obj) && this.selectionManager.selected?.includes(obj)) {
+						this.startSelectionDrag(this.selectionManager.selected, pointer)
 						return true
 					}
 				})
@@ -598,11 +667,11 @@ export class MainScene extends BaseScene {
 					return rectIntersect(selectionRect.bounds, obj.getBounds(), false)
 				})
 
-				this.selectionManager.selection?.destroy()
+				this.selectionManager.selected?.destroy()
 
 				if (objectsUnderSelectionRect.length > 0) {
-					this.selectionManager.selection = this.selectionManager.createSelection(objectsUnderSelectionRect)
-					this.selectionManager.transformControls.startFollow(this.selectionManager.selection)
+					this.selectionManager.selected = this.selectionManager.createSelection(objectsUnderSelectionRect)
+					this.selectionManager.transformControls.startFollow(this.selectionManager.selected)
 				}
 
 				selectionRect.kill()
@@ -685,7 +754,7 @@ export class MainScene extends BaseScene {
 			camera.scrollX -= dx / camera.zoom
 			camera.scrollY -= dy / camera.zoom
 			this.cameraDragStart = { x: pointer.x, y: pointer.y }
-			this.onCameraChange()
+			this.onResizeOrCameraChange()
 		}
 
 		if (this.selectionDrag) {
@@ -737,7 +806,7 @@ export class MainScene extends BaseScene {
 
 		this.zoomToPointer(newZoom, pointer)
 
-		this.onResize(this.scale.gameSize)
+		this.onResizeOrCameraChange(this.scale.gameSize)
 	}
 
 	private zoomToPointer(newZoom: number, pointer: Phaser.Input.Pointer): void {
@@ -761,13 +830,7 @@ export class MainScene extends BaseScene {
 
 	private setCameraZoom(zoom: number): void {
 		this.cameras.main.zoom = zoom
-		this.onResize(this.scale.gameSize)
-	}
-
-	private onCameraChange() {
-		let camera = this.cameras.main
-		this.grid.redraw(this.scale.gameSize, camera)
-		this.rulers.redraw(this.scale.gameSize, camera.zoom, camera.scrollX, camera.scrollY)
+		this.onResizeOrCameraChange(this.scale.gameSize)
 	}
 
 	private onPointerGameOut(): void {}
@@ -775,10 +838,10 @@ export class MainScene extends BaseScene {
 	public resize(): void {
 		super.resize()
 
-		this.onResize(this.scale.gameSize)
+		this.onResizeOrCameraChange(this.scale.gameSize)
 	}
 
-	onResize(gameSize?: Phaser.Structs.Size) {
+	private onResizeOrCameraChange(gameSize?: Phaser.Structs.Size) {
 		gameSize ??= this.scale.gameSize
 
 		let camera = this.cameras.main
@@ -800,13 +863,21 @@ export class MainScene extends BaseScene {
 			camera.height / (projectSize.height + zoomPaddingY)
 		)
 
-		this.onResize()
+		this.onResizeOrCameraChange()
 	}
 
 	public onShutdown(): void {
 		super.onShutdown()
+		
+		this.editContexts.forEach((editContext) => editContext.destroy())
+		this.editContexts.clear()
 
 		this.selectionManager?.destroy()
+		// @ts-expect-error
 		this.selectionManager = undefined
+
+		this.clipboard?.destroy()
+		// @ts-expect-error
+		this.clipboard = undefined
 	}
 }

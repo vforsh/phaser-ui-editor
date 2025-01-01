@@ -29,7 +29,7 @@ export class SelectionManager {
 	private scene: MainScene
 	private logger: Logger<{}>
 	public selectables: Selectable[] = []
-	public selection: Selection | null = null
+	public selected: Selection | null = null
 
 	/**
 	 * Hover rects are used to visualize the hover state of selectables.
@@ -126,7 +126,7 @@ export class SelectionManager {
 
 		const objectsUnderPointer = this.scene.input.hitTestPointer(pointer).reverse()
 		const selectableUnderPointer = objectsUnderPointer.find(
-			(object) => this.selectables.includes(object as any) && !this.selection?.includes(object as any)
+			(object) => this.selectables.includes(object as any) && !this.selected?.includes(object as any)
 		) as Selectable | undefined
 		if (!selectableUnderPointer) {
 			return
@@ -343,29 +343,99 @@ export class SelectionManager {
 		this.debugGraphics.kill()
 	}
 
-	public addSelectable(go: Selectable): void {
-		if (this.selectables.includes(go)) {
+	public addSelectable(gameObject: Selectable): void {
+		if (this.selectables.includes(gameObject)) {
+			this.logger.warn(`object ${gameObject.name} is already in the selection manager`)
 			return
 		}
 
 		const signal = this.scene.shutdownSignal
 
-		go.setInteractive()
-		go.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.onSelectablePointerDown.bind(this, go), this, signal)
-		go.once(Phaser.GameObjects.Events.DESTROY, () => this.removeSelectable(go), this, signal)
+		gameObject.setInteractive()
+		gameObject.on(
+			Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN,
+			this.onSelectablePointerDown.bind(this, gameObject),
+			this,
+			signal
+		)
+		gameObject.once(Phaser.GameObjects.Events.DESTROY, () => this.removeSelectable(gameObject), this, signal)
 
-		this.selectables.push(go)
+		this.selectables.push(gameObject)
 	}
 
 	public removeSelectable(gameObject: Selectable): void {
+		if (!this.selectables.includes(gameObject)) {
+			this.logger.warn(`object ${gameObject.name} is not in the selection manager`)
+			return
+		}
+
 		gameObject.offByContext(this)
 		gameObject.removeInteractive()
 
 		this.selectables = this.selectables.filter((selectable) => selectable !== gameObject)
 
-		if (this.selection?.includes(gameObject)) {
-			this.selection.remove(gameObject)
+		// should this side effect be handled here?
+		if (this.selected?.includes(gameObject)) {
+			this.selected.remove(gameObject)
 		}
+	}
+
+	public isSelectable(gameObject: Phaser.GameObjects.GameObject): gameObject is Selectable {
+		return this.selectables.includes(gameObject as Selectable)
+	}
+
+	private onSelectablePointerDown(gameObject: Selectable, pointer: Phaser.Input.Pointer, x: number, y: number): void {
+		if (pointer.event.shiftKey) {
+			// deselect the clicked object if it was selected
+			if (this.selected && this.selected.includes(gameObject)) {
+				this.selected.remove(gameObject)
+				return
+			}
+
+			// add the clicked object to the selection (create a new selection if it doesn't exist)
+			this.selected ? this.selected.add(gameObject) : (this.selected = this.createSelection([gameObject]))
+		} else if (pointer.event.ctrlKey || pointer.event.metaKey) {
+			if (!this.selected) {
+				return
+			}
+
+			// if the clicked object is not in the selection, do nothing
+			if (!this.selected.includes(gameObject)) {
+				return
+			}
+
+			const serializableObjects = this.selected.objects.every((obj) => isSerializableGameObject(obj))
+			if (!serializableObjects) {
+				throw new Error(
+					`copy failed: ${this.selected.objects.map((obj) => obj.name).join(', ')} are not serializable`
+				)
+			}
+
+			const cloneOptions: CloneOptions = { addToScene: true }
+			const clonedObjects = this.selected.objects.map((obj) => {
+				const clone = this.scene.objectsFactory.clone(obj as SerializableGameObject, cloneOptions)
+				this.addSelectable(clone)
+				return clone
+			})
+
+			this.selected.destroy()
+			this.selected = this.createSelection(clonedObjects)
+		} else {
+			// if the clicked object is already in the selection, do nothing
+			if (this.selected?.includes(gameObject)) {
+				return
+			}
+
+			if (this.selected) {
+				this.selected.destroy()
+			}
+
+			// create a new selection with the clicked object
+			this.selected = this.createSelection([gameObject])
+		}
+
+		this.transformControls.startFollow(this.selected)
+		this.transformControls.revive()
 	}
 
 	public createSelection(selectables: Selectable[]): Selection {
@@ -405,70 +475,12 @@ export class SelectionManager {
 	}
 
 	private onSelectionDestroyed(): void {
-		this.selection = null
+		this.selected = null
 		this.transformControls.stopFollow()
 		this.subSelectionRects.forEach((rect) => {
 			rect.kill()
 			rect.setData('object', null)
 		})
-	}
-
-	private onSelectablePointerDown(gameObject: Selectable, pointer: Phaser.Input.Pointer, x: number, y: number): void {
-		if (pointer.event.shiftKey) {
-			// deselect the clicked object if it was selected
-			if (this.selection && this.selection.includes(gameObject)) {
-				this.selection.remove(gameObject)
-				return
-			}
-			
-			// add the clicked object to the selection (create a new selection if it doesn't exist)
-			this.selection ? this.selection.add(gameObject) : (this.selection = this.createSelection([gameObject]))
-		} else if (pointer.event.ctrlKey || pointer.event.metaKey) {
-			if (!this.selection) {
-				return
-			}
-
-			// if the clicked object is not in the selection, do nothing
-			if (!this.selection.includes(gameObject)) {
-				return
-			}
-
-			const serializableObjects = this.selection.objects.every((obj) => isSerializableGameObject(obj))
-			if (!serializableObjects) {
-				throw new Error(
-					`copy failed: ${this.selection.objects.map((obj) => obj.name).join(', ')} are not serializable`
-				)
-			}
-
-			const cloneOptions: CloneOptions = { addToScene: true }
-			const clonedObjects = this.selection.objects.map((obj) => {
-				const clone = this.scene.objectsFactory.clone(obj as SerializableGameObject, cloneOptions)
-				this.addSelectable(clone)
-				return clone
-			})
-
-			this.selection.destroy()
-			this.selection = this.createSelection(clonedObjects)
-		} else {
-			// if the clicked object is already in the selection, do nothing
-			if (this.selection?.includes(gameObject)) {
-				return
-			}
-
-			if (this.selection) {
-				this.selection.destroy()
-			}
-
-			// create a new selection with the clicked object
-			this.selection = this.createSelection([gameObject])
-		}
-
-		this.transformControls.startFollow(this.selection)
-		this.transformControls.revive()
-	}
-
-	public isSelectable(gameObject: Phaser.GameObjects.GameObject): gameObject is Selectable {
-		return this.selectables.includes(gameObject as Selectable)
 	}
 
 	public onDragStart(selection: Selection) {
@@ -480,9 +492,9 @@ export class SelectionManager {
 	}
 
 	public cancelSelection() {
-		if (this.selection) {
-			this.selection.destroy()
-			this.selection = null
+		if (this.selected) {
+			this.selected.destroy()
+			this.selected = null
 		}
 
 		this.transformControls.stopFollow()
@@ -490,15 +502,17 @@ export class SelectionManager {
 
 	public destroy(): void {
 		this.destroyController.abort()
-
+		
 		this.hoverRects.length = 0
-
-		if (this.selection) {
-			this.selection.destroy()
-			this.selection = null
+		
+		this.subSelectionRects.length = 0
+		
+		if (this.selected) {
+			this.selected.destroy()
+			this.selected = null
 		}
 	}
-
+	
 	public get destroySignal(): AbortSignal {
 		return this.destroyController.signal
 	}

@@ -55,7 +55,7 @@ export class ObjectsFactory {
 	}
 
 	/**
-	 * Creates an object but it doesn't add it to the scene
+	 * Creates an object but it **doesn't add it to the scene**
 	 */
 	public fromJson(json: JSONGameObject): SerializableGameObject {
 		return match(json)
@@ -71,6 +71,7 @@ export class ObjectsFactory {
 						rotation: containerJson.rotation,
 						alpha: containerJson.alpha,
 						visible: containerJson.visible,
+						scaleMode: containerJson.scaleMode,
 					},
 					false
 				)
@@ -100,6 +101,7 @@ export class ObjectsFactory {
 						flipX: imageJson.flipX,
 						flipY: imageJson.flipY,
 						origin: imageJson.origin,
+						scaleMode: imageJson.scaleMode,
 					},
 					false
 				)
