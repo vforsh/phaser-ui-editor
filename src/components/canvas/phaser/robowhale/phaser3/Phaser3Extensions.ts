@@ -7,6 +7,7 @@ import { ComplexButton } from './gameObjects/buttons/ComplexButton'
 import { SimpleButton } from './gameObjects/buttons/SimpleButton'
 import { ToggleButton } from './gameObjects/buttons/ToggleButton'
 import { AutoSizeText } from './gameObjects/text/AutoSizeText'
+import { EventfulContainer } from './gameObjects/container/EventfulContainer'
 import { rectIntersect } from './geom/rect-intersect'
 
 type CircleTweenConfig = Phaser.Tweens.CircleTweenConfig
@@ -390,6 +391,12 @@ export class Phaser3Extensions {
 			parent ? parent.add(text) : this.scene.add.existing(text)
 
 			return text
+		}
+
+		factory.eventfulContainer = function (x: number = 0, y: number = 0, children: Phaser.GameObjects.GameObject[] = []) {
+			const container = new EventfulContainer(this.scene, x, y, children)
+			this.existing(container)
+			return container
 		}
 	}
 

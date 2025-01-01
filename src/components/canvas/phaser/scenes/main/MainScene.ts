@@ -14,11 +14,12 @@ import {
 	fetchImageUrl,
 	GraphicAssetData,
 } from '../../../../../types/assets'
+import { EventfulContainer } from '../../robowhale/phaser3/gameObjects/container/EventfulContainer'
 import { rectIntersect } from '../../robowhale/phaser3/geom/rect-intersect'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { signalFromEvent } from '../../robowhale/utils/events/create-abort-signal-from-event'
 import { CanvasClipboard } from './CanvasClipboard'
-import { EditContext } from './EditContext'
+import { EditContextsManager } from './EditContextsManager'
 import { isSerializableGameObject, ObjectsFactory, SerializableGameObject } from './factory/ObjectsFactory'
 import { Grid } from './Grid'
 import { Rulers } from './Rulers'
@@ -56,13 +57,12 @@ export class MainScene extends BaseScene {
 	private selectionDrag: SelectionDragData | undefined
 	private grid!: Grid
 	private rulers!: Rulers
-	private root!: Phaser.GameObjects.Container
+	private root!: EventfulContainer
 	private projectSizeFrame!: Phaser.GameObjects.Graphics
 	public objectsFactory!: ObjectsFactory
 	private clipboard!: CanvasClipboard
-	private editContexts!: Map<Phaser.GameObjects.Container, EditContext>
-	private editContextCurrent: EditContext | undefined
-	private selectionManager!: SelectionManager
+	private editContexts!: EditContextsManager
+	private selection!: SelectionManager
 
 	public init(data: MainSceneInitData) {
 		super.init(data)
@@ -85,9 +85,9 @@ export class MainScene extends BaseScene {
 		this.rulers.name = 'rulers'
 		this.add.existing(this.rulers)
 
-		this.root = this.add.container(0, 0)
+		this.root = this.add.eventfulContainer()
 		this.root.name = 'root' // TODO use the current prefab name (from the assets tree)
-
+		
 		this.initObjectsFactory()
 
 		this.initClipboard()
@@ -133,63 +133,19 @@ export class MainScene extends BaseScene {
 	}
 
 	private initEditContexts() {
-		this.editContexts = new Map()
-	
-		this.addEditContext(this.root, true)
-	}
-
-	private addEditContext(container: Phaser.GameObjects.Container, switchTo = false) {
-		if (this.editContexts.has(container)) {
-			throw new Error(`Edit context for '${container.name}' already exists`)
-		}
-		
-		const editContext = new EditContext({
+		this.editContexts = new EditContextsManager({
 			scene: this,
-			target: container,
+			logger: this.logger,
 		})
-		
-		editContext.once('pre-destroy', () => this.removeEditContext(container), this, this.shutdownSignal)
-		
-		this.editContexts.set(container, editContext)
-		
-		this.logger.debug(`added edit context for '${container.name}'`)
-		
-		if (switchTo) {
-			this.switchEditContext(container)
-		}
-		
-		return editContext
-	}
-	
-	private removeEditContext(container: Phaser.GameObjects.Container) {
-		if (!this.editContexts.has(container)) {
-			throw new Error(`Edit context for '${container.name}' does not exist`)
-		}
 
-		this.logger.debug(`removed edit context for '${container.name}'`)
-		
-		this.editContexts.delete(container)
-	}
-
-	public switchEditContext(container: Phaser.GameObjects.Container): EditContext {
-		if (this.editContextCurrent?.target === container) {
-			return this.editContextCurrent
-		}
-
-		const editContext = this.editContexts.get(container)
-		if (!editContext) {
-			throw new Error(`Edit context for '${container.name}' does not exist`)
-		}
-		
-		this.editContextCurrent = editContext
-
-		this.logger.info(`switched to '${container.name}' edit context`)
-
-		return editContext
+		this.editContexts.add(this.root, {
+			switchTo: true,
+			autoManageSelectables: true,
+		})
 	}
 
 	private initSelectionManager() {
-		this.selectionManager = new SelectionManager({
+		this.selection = new SelectionManager({
 			scene: this,
 			logger: this.logger.getSubLogger({ name: ':selection' }),
 		})
@@ -224,7 +180,7 @@ export class MainScene extends BaseScene {
 		chefCherry_2?.setAngle(45)
 		chefCherry_2?.setName('chefCherry_2')
 
-		const selection = this.selectionManager.createSelection([chefCherry_1!, chefCherry_2!])
+		const selection = this.editContexts.current!.selection.createSelection([chefCherry_1!, chefCherry_2!])
 		this.group(selection)
 	}
 
@@ -259,7 +215,7 @@ export class MainScene extends BaseScene {
 			return null
 		}
 
-		this.selectionManager.addSelectable(gameObject)
+		this.selection.addSelectable(gameObject)
 
 		gameObject.setOrigin(0.5, 0.5)
 		gameObject.setPosition(data.position.x, data.position.y)
@@ -376,14 +332,14 @@ export class MainScene extends BaseScene {
 					return
 				}
 
-				if (!this.selectionManager.selected || this.selectionManager.selected.isEmpty) {
+				if (!this.selection.selected || this.selection.selected.isEmpty) {
 					return
 				}
 
 				if (event.shiftKey) {
-					this.ungroup(this.selectionManager.selected)
+					this.ungroup(this.selection.selected)
 				} else {
-					this.group(this.selectionManager.selected)
+					this.group(this.selection.selected)
 				}
 
 				event.preventDefault()
@@ -416,13 +372,13 @@ export class MainScene extends BaseScene {
 			obj.x -= group.x
 			obj.y -= group.y
 
-			this.selectionManager.removeSelectable(obj)
+			this.selection.removeSelectable(obj)
 		})
 		selection.destroy()
 
-		this.selectionManager.addSelectable(group)
-		this.selectionManager.selected = this.selectionManager.createSelection([group])
-		this.selectionManager.transformControls.startFollow(this.selectionManager.selected)
+		this.selection.addSelectable(group)
+		this.selection.selected = this.selection.createSelection([group])
+		this.selection.transformControls.startFollow(this.selection.selected)
 
 		return group
 	}
@@ -447,7 +403,7 @@ export class MainScene extends BaseScene {
 				child.x += group.x
 				child.y += group.y
 				this.root.add(child)
-				this.selectionManager.addSelectable(child)
+				this.selection.addSelectable(child)
 				return child
 			})
 
@@ -460,8 +416,8 @@ export class MainScene extends BaseScene {
 			return ungrouped
 		})
 
-		this.selectionManager.selected = this.selectionManager.createSelection(ungrouped)
-		this.selectionManager.transformControls.startFollow(this.selectionManager.selected)
+		this.selection.selected = this.selection.createSelection(ungrouped)
+		this.selection.transformControls.startFollow(this.selection.selected)
 
 		return ungrouped
 	}
@@ -471,11 +427,11 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		if (!this.selectionManager.selected) {
+		if (!this.selection.selected) {
 			return
 		}
 
-		const hasNonSerializableObjects = this.selectionManager.selected.objects.filter(
+		const hasNonSerializableObjects = this.selection.selected.objects.filter(
 			(obj) => !isSerializableGameObject(obj)
 		)
 		if (hasNonSerializableObjects.length > 0) {
@@ -484,7 +440,7 @@ export class MainScene extends BaseScene {
 			)
 		}
 
-		this.clipboard.copy(this.selectionManager.selected.objects as SerializableGameObject[])
+		this.clipboard.copy(this.selection.selected.objects as SerializableGameObject[])
 
 		event.preventDefault()
 	}
@@ -514,22 +470,22 @@ export class MainScene extends BaseScene {
 		})
 
 		copiedObjs.forEach((obj) => {
-			this.selectionManager.addSelectable(obj)
+			this.selection.addSelectable(obj)
 		})
 
-		this.selectionManager.selected?.destroy()
-		this.selectionManager.selected = this.selectionManager.createSelection(copiedObjs)
-		this.selectionManager.transformControls.startFollow(this.selectionManager.selected)
+		this.selection.selected?.destroy()
+		this.selection.selected = this.selection.createSelection(copiedObjs)
+		this.selection.transformControls.startFollow(this.selection.selected)
 
 		event.preventDefault()
 	}
-	
+
 	public restart() {
 		this.scene.restart(this.initData)
 	}
 
 	private removeSelection(): void {
-		const selection = this.selectionManager.selected
+		const selection = this.selection.selected
 		if (!selection) {
 			return
 		}
@@ -541,7 +497,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private moveSelection(dx: number, dy: number = 0, event: KeyboardEvent): void {
-		const selected = this.selectionManager.selected
+		const selected = this.selection.selected
 		if (!selected) {
 			return
 		}
@@ -552,7 +508,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private moveSelectionDownInHierarchy(event: KeyboardEvent) {
-		const selection = this.selectionManager.selected
+		const selection = this.selection.selected
 		if (!selection) {
 			return
 		}
@@ -567,7 +523,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private moveSelectionUpInHierarchy(event: KeyboardEvent) {
-		const selection = this.selectionManager.selected
+		const selection = this.selection.selected
 		if (!selection) {
 			return
 		}
@@ -594,34 +550,34 @@ export class MainScene extends BaseScene {
 
 		match(buttonType)
 			.with('left', () => {
-				if (this.selectionManager.selected?.bounds.contains(pointer.worldX, pointer.worldY)) {
-					this.startSelectionDrag(this.selectionManager.selected, pointer)
+				if (this.selection.selected?.bounds.contains(pointer.worldX, pointer.worldY)) {
+					this.startSelectionDrag(this.selection.selected, pointer)
 					return
 				}
 
 				objects.some((obj) => {
-					if (this.selectionManager.isSelectable(obj) && this.selectionManager.selected?.includes(obj)) {
-						this.startSelectionDrag(this.selectionManager.selected, pointer)
+					if (this.selection.isSelectable(obj) && this.selection.selected?.includes(obj)) {
+						this.startSelectionDrag(this.selection.selected, pointer)
 						return true
 					}
 				})
 
 				const wasProcessedBySelection = objects.some((obj) => {
-					if (this.selectionManager.isSelectable(obj)) {
+					if (this.selection.isSelectable(obj)) {
 						return true
 					}
 				})
 
 				const clickedOnTransformControls = objects.some(
 					// TODO find a better way to check if the click was on the transform controls
-					(obj) => obj.parentContainer.parentContainer === this.selectionManager!.transformControls
+					(obj) => obj.parentContainer.parentContainer === this.selection!.transformControls
 				)
 				if (clickedOnTransformControls) {
 					return
 				}
 
 				if (!wasProcessedBySelection) {
-					this.selectionManager!.cancelSelection()
+					this.selection!.cancelSelection()
 				}
 
 				this.startDrawingSelectionRect(pointer)
@@ -634,7 +590,7 @@ export class MainScene extends BaseScene {
 	private startDrawingSelectionRect(pointer: Phaser.Input.Pointer) {
 		const pointerUpSignal = signalFromEvent(this.input, Phaser.Input.Events.POINTER_UP)
 
-		const selectionRect = this.selectionManager!.selectionRect
+		const selectionRect = this.selection!.selectionRect
 
 		const drawFrom = { x: pointer.worldX, y: pointer.worldY }
 
@@ -642,7 +598,7 @@ export class MainScene extends BaseScene {
 		const setup = once(() => {
 			selectionRect.revive()
 			selectionRect.resetBounds()
-			this.selectionManager!.setHoverMode('selection-rect')
+			this.selection!.setHoverMode('selection-rect')
 			setupWasCalled = true
 		})
 
@@ -663,20 +619,20 @@ export class MainScene extends BaseScene {
 					return
 				}
 
-				const objectsUnderSelectionRect = this.selectionManager.selectables.filter((obj) => {
+				const objectsUnderSelectionRect = this.selection.selectables.filter((obj) => {
 					return rectIntersect(selectionRect.bounds, obj.getBounds(), false)
 				})
 
-				this.selectionManager.selected?.destroy()
+				this.selection.selected?.destroy()
 
 				if (objectsUnderSelectionRect.length > 0) {
-					this.selectionManager.selected = this.selectionManager.createSelection(objectsUnderSelectionRect)
-					this.selectionManager.transformControls.startFollow(this.selectionManager.selected)
+					this.selection.selected = this.selection.createSelection(objectsUnderSelectionRect)
+					this.selection.transformControls.startFollow(this.selection.selected)
 				}
 
 				selectionRect.kill()
 
-				this.selectionManager!.setHoverMode('normal')
+				this.selection!.setHoverMode('normal')
 			},
 			this,
 			this.shutdownSignal
@@ -732,7 +688,7 @@ export class MainScene extends BaseScene {
 			lockAxis: 'none',
 		}
 
-		this.selectionManager!.onDragStart(selection)
+		this.selection!.onDragStart(selection)
 	}
 
 	private stopSelectionDrag() {
@@ -740,7 +696,7 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		this.selectionManager!.onDragEnd(this.selectionDrag.obj)
+		this.selection!.onDragEnd(this.selectionDrag.obj)
 
 		this.selectionDrag = undefined
 	}
@@ -868,22 +824,19 @@ export class MainScene extends BaseScene {
 
 	public onShutdown(): void {
 		this.logger.debug(`${this.scene.key} shutdown - start`)
-		
+
 		super.onShutdown()
-		
-		this.editContexts.forEach((editContext) => editContext.destroy())
-		this.editContexts.clear()
-		
-		this.editContextCurrent = undefined
-		
-		this.selectionManager?.destroy()
+
+		this.editContexts.destroy()
+
+		this.selection?.destroy()
 		// @ts-expect-error
-		this.selectionManager = undefined
-		
+		this.selection = undefined
+
 		this.clipboard?.destroy()
 		// @ts-expect-error
 		this.clipboard = undefined
-		
+
 		this.logger.debug(`${this.scene.key} shutdown - complete`)
 	}
 }

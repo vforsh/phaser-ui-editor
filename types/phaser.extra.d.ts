@@ -159,10 +159,12 @@ declare module Phaser {
 		type SoundButton = import("../robowhale/phaser3/gameObjects/buttons/SoundButton").SoundButton
 		type MusicButton = import("../robowhale/phaser3/gameObjects/buttons/MusicButton").MusicButton
 		type ComplexButton = import("../robowhale/phaser3/gameObjects/buttons/ComplexButton").ComplexButton
+		type EventfulContainer = import("../robowhale/phaser3/gameObjects/container/EventfulContainer").EventfulContainer
 		
 		interface GameObjectFactory {
 			existingMultiple<GO extends Phaser.GameObjects.GameObject>(children: GO[]): GO[]
 			autoSizeText(text: string | string[], style?: Phaser.Types.GameObjects.Text.TextStyle, options?: AutoSizeTextOptions, parent?: Container): AutoSizeText
+			eventfulContainer(x?: number, y?: number, children?: Phaser.GameObjects.GameObject[]): EventfulContainer
 			button(texture: string, frame?: string, parent?: Container): SimpleButton
 			toggleButton(texture: string, frame_1: string, frame_2: string, parent?: Container): ToggleButton
 			soundButton(texture: string, frame_1: string, frame_2: string, parent?: Container): SoundButton
@@ -172,6 +174,8 @@ declare module Phaser {
 		
 		interface Container extends IKillable, IDisplayObject {
 			gridAlign(options: Phaser.Types.Actions.GridAlignConfig, startIndex?: integer, endIndex?: integer): Phaser.GameObjects.Container
+			addHandler(gameObject: Phaser.GameObjects.GameObject): void
+			removeHandler(gameObject: Phaser.GameObjects.GameObject): void
 		}
 		
 		interface Sprite extends IKillable, IDisplayObject {
