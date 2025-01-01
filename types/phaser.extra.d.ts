@@ -146,12 +146,6 @@ declare module Phaser {
 			createItems(quantity: number)
 		}
 		
-		interface GameObjectCreator {
-			graphics(config?: object, addToScene?: boolean): Phaser.GameObjects.Graphics
-			image(config: Phaser.Types.GameObjects.GameObjectConfig & { key: string; frame: string }, addToScene?: boolean): Phaser.GameObjects.Image
-			text(config: Phaser.Types.GameObjects.GameObjectConfig & { text?: string; style?: Phaser.Types.GameObjects.Text.TextStyle }, addToScene?: boolean): Phaser.GameObjects.Text
-		}
-		
 		type AutoSizeText = import("../robowhale/phaser3/gameObjects/text/AutoSizeText").AutoSizeText
 		type AutoSizeTextOptions = import("../robowhale/phaser3/gameObjects/text/AutoSizeText").AutoSizeTextOptions
 		type SimpleButton = import("../robowhale/phaser3/gameObjects/buttons/SimpleButton").SimpleButton
@@ -160,6 +154,13 @@ declare module Phaser {
 		type MusicButton = import("../robowhale/phaser3/gameObjects/buttons/MusicButton").MusicButton
 		type ComplexButton = import("../robowhale/phaser3/gameObjects/buttons/ComplexButton").ComplexButton
 		type EventfulContainer = import("../robowhale/phaser3/gameObjects/container/EventfulContainer").EventfulContainer
+		
+		interface GameObjectCreator {
+			graphics(config?: object, addToScene?: boolean): Phaser.GameObjects.Graphics
+			image(config: Phaser.Types.GameObjects.GameObjectConfig & { key: string; frame: string }, addToScene?: boolean): Phaser.GameObjects.Image
+			text(config: Phaser.Types.GameObjects.GameObjectConfig & { text?: string; style?: Phaser.Types.GameObjects.Text.TextStyle }, addToScene?: boolean): Phaser.GameObjects.Text
+			eventfulContainer(x?: number, y?: number, children?: Phaser.GameObjects.GameObject[]): EventfulContainer
+		}
 		
 		interface GameObjectFactory {
 			existingMultiple<GO extends Phaser.GameObjects.GameObject>(children: GO[]): GO[]

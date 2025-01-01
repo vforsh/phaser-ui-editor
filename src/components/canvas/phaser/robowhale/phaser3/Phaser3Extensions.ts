@@ -6,8 +6,8 @@ import { parseJsonBitmapFont } from './gameObjects/bitmap-text/parse-json-bitmap
 import { ComplexButton } from './gameObjects/buttons/ComplexButton'
 import { SimpleButton } from './gameObjects/buttons/SimpleButton'
 import { ToggleButton } from './gameObjects/buttons/ToggleButton'
-import { AutoSizeText } from './gameObjects/text/AutoSizeText'
 import { EventfulContainer } from './gameObjects/container/EventfulContainer'
+import { AutoSizeText } from './gameObjects/text/AutoSizeText'
 import { rectIntersect } from './geom/rect-intersect'
 
 type CircleTweenConfig = Phaser.Tweens.CircleTweenConfig
@@ -338,6 +338,14 @@ export class Phaser3Extensions {
 		}
 	}
 
+	public static extendCreator(): void {
+		let creator: Phaser.GameObjects.GameObjectCreator = Phaser.GameObjects.GameObjectCreator.prototype
+
+		creator.eventfulContainer = function (x = 0, y = 0, children: Phaser.GameObjects.GameObject[] = []) {
+			return new EventfulContainer(this.scene, x, y, children)
+		}
+	}
+
 	public static extendFactory(): void {
 		let factory: Phaser.GameObjects.GameObjectFactory = Phaser.GameObjects.GameObjectFactory.prototype
 
@@ -393,7 +401,11 @@ export class Phaser3Extensions {
 			return text
 		}
 
-		factory.eventfulContainer = function (x: number = 0, y: number = 0, children: Phaser.GameObjects.GameObject[] = []) {
+		factory.eventfulContainer = function (
+			x: number = 0,
+			y: number = 0,
+			children: Phaser.GameObjects.GameObject[] = []
+		) {
 			const container = new EventfulContainer(this.scene, x, y, children)
 			this.existing(container)
 			return container

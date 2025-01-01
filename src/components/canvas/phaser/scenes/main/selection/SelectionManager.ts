@@ -23,12 +23,14 @@ type HoverMode = 'disabled' | 'normal' | 'selection-rect'
 export type SelectionManagerOptions = {
 	scene: MainScene
 	logger: Logger<{}>
+	context: EventfulContainer
 }
 
 export class SelectionManager {
 	private options: SelectionManagerOptions
 	private scene: MainScene
 	private logger: Logger<{}>
+	private context: EventfulContainer
 	public selectables: Selectable[] = []
 	public selected: Selection | null = null
 
@@ -66,6 +68,7 @@ export class SelectionManager {
 	constructor(options: SelectionManagerOptions) {
 		this.options = options
 		this.scene = options.scene
+		this.context = options.context
 		this.logger = options.logger
 
 		this.addHoverRects()
@@ -487,7 +490,7 @@ export class SelectionManager {
 			rect.setData('object', null)
 		})
 	}
-
+	
 	public onDragStart(selection: Selection) {
 		this.setHoverMode('disabled')
 	}

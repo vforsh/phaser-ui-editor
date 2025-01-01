@@ -36,6 +36,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 
 		this.selection = new SelectionManager({
 			scene: this.scene,
+			context: this.target,
 			logger: logger.getOrCreate('canvas').getSubLogger({ name: ':selection' }),
 		})
 	}
