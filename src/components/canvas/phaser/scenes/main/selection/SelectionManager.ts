@@ -1,4 +1,5 @@
 import { Logger } from 'tslog'
+import { CloneOptions, isSerializableGameObject, SerializableGameObject } from '../factory/ObjectsFactory'
 import { MainScene } from '../MainScene'
 import { AdjustableRect } from './AdjustableRect'
 import { Selection } from './Selection'
@@ -352,7 +353,7 @@ export class SelectionManager {
 		go.setInteractive()
 		go.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.onSelectablePointerDown.bind(this, go), this, signal)
 		go.once(Phaser.GameObjects.Events.DESTROY, () => this.removeSelectable(go), this, signal)
-		
+
 		this.selectables.push(go)
 	}
 
@@ -368,6 +369,12 @@ export class SelectionManager {
 	}
 
 	public createSelection(selectables: Selectable[]): Selection {
+		selectables.forEach((selectable) => {
+			if (!this.isSelectable(selectable)) {
+				throw new Error(`object should be added to selection manager before creating a selection`)
+			}
+		})
+
 		const selection = new Selection(selectables)
 		selection.on('changed', this.onSelectionChanged, this, this.destroySignal)
 		selection.once('destroyed', this.onSelectionDestroyed, this, this.destroySignal)
@@ -416,6 +423,32 @@ export class SelectionManager {
 
 			// add the clicked object to the selection (create a new selection if it doesn't exist)
 			this.selection ? this.selection.add(gameObject) : (this.selection = this.createSelection([gameObject]))
+		} else if (pointer.event.ctrlKey || pointer.event.metaKey) {
+			if (!this.selection) {
+				return
+			}
+			
+			// if the clicked object is not in the selection, do nothing
+			if (!this.selection.includes(gameObject)) {
+				return
+			}
+
+			const serializableObjects = this.selection.objects.every((obj) => isSerializableGameObject(obj))
+			if (!serializableObjects) {
+				throw new Error(
+					`copy failed: ${this.selection.objects.map((obj) => obj.name).join(', ')} are not serializable`
+				)
+			}
+
+			const cloneOptions: CloneOptions = { addToScene: true }
+			const clonedObjects = this.selection.objects.map((obj) => {
+				const clone = this.scene.objectsFactory.clone(obj as SerializableGameObject, cloneOptions)
+				this.addSelectable(clone)
+				return clone
+			})
+
+			this.selection.destroy()
+			this.selection = this.createSelection(clonedObjects)
 		} else {
 			// if the clicked object is already in the selection, do nothing
 			if (this.selection?.includes(gameObject)) {

@@ -1,6 +1,10 @@
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 
+export interface CloneOptions {
+	addToScene?: boolean
+}
+
 export interface ObjectsFactoryOptions {
 	scene: Phaser.Scene
 	logger: Logger<{}>
@@ -106,9 +110,15 @@ export class ObjectsFactory {
 			.exhaustive()
 	}
 
-	public clone(obj: SerializableGameObject): SerializableGameObject {
+	public clone(obj: SerializableGameObject, options?: CloneOptions): SerializableGameObject {
 		const json = this.toJson(obj)
-		return this.fromJson(json)
+		const cloned = this.fromJson(json)
+		
+		if (options?.addToScene) {
+			this.scene.add.existing(cloned)
+		}
+
+		return cloned
 	}
 }
 

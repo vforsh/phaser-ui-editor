@@ -55,7 +55,7 @@ export class MainScene extends BaseScene {
 	private rulers!: Rulers
 	private container!: Phaser.GameObjects.Container
 	private selectionManager!: SelectionManager
-	private objectsFactory!: ObjectsFactory
+	public objectsFactory!: ObjectsFactory
 	private clipboard!: CanvasClipboard
 	private projectSizeFrame!: Phaser.GameObjects.Graphics
 	private logger!: Logger<{}>
@@ -420,12 +420,12 @@ export class MainScene extends BaseScene {
 
 		event.preventDefault()
 	}
-
+	
 	private cut(event: KeyboardEvent): void {
 		this.copy(event)
 		this.removeSelection()
 	}
-
+	
 	private paste(event: KeyboardEvent): void {
 		if (!event.ctrlKey && !event.metaKey) {
 			return
@@ -448,7 +448,7 @@ export class MainScene extends BaseScene {
 
 		event.preventDefault()
 	}
-
+	
 	public restart() {
 		this.scene.restart(this.initData)
 	}
