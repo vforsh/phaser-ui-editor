@@ -6,6 +6,7 @@ import { Selection } from './Selection'
 import { SelectionRect } from './SelectionRect'
 import { Transformable } from './Transformable'
 import { TransformControls } from './TransformControls'
+import { EventfulContainer } from '@components/canvas/phaser/robowhale/phaser3/gameObjects/container/EventfulContainer'
 
 export type Selectable = Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | Phaser.GameObjects.Container
 
@@ -360,6 +361,10 @@ export class SelectionManager {
 		)
 		gameObject.once(Phaser.GameObjects.Events.DESTROY, () => this.removeSelectable(gameObject), this, signal)
 
+		if (gameObject instanceof EventfulContainer	) {
+			// TODO enter into container edit context on double click
+		}
+
 		this.selectables.push(gameObject)
 	}
 
@@ -425,7 +430,7 @@ export class SelectionManager {
 			if (this.selected?.includes(gameObject)) {
 				return
 			}
-
+			
 			if (this.selected) {
 				this.selected.destroy()
 			}

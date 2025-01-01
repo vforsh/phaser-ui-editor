@@ -605,7 +605,10 @@ export class MainScene extends BaseScene {
 		this.input.on(
 			Phaser.Input.Events.POINTER_MOVE,
 			(pointer: Phaser.Input.Pointer) => {
+				// setup will be called only on the first pointer move
 				setup()
+
+				// the rest will be called on every pointer move
 				selectionRect.draw(drawFrom, { x: pointer.worldX, y: pointer.worldY })
 			},
 			this,
