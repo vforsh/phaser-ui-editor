@@ -1,9 +1,12 @@
+import { match } from 'ts-pattern'
+import { Logger } from 'tslog'
 import { ReadonlyDeep } from 'type-fest'
 import { CssCursor } from '../../../../../../utils/CssCursor'
 import { signalFromEvent } from '../../../robowhale/utils/events/create-abort-signal-from-event'
 import { Selection } from './Selection'
 
 export interface TransformControlOptions {
+	logger: Logger<{}>
 	resizeBorders: {
 		thickness: number
 		color: number
@@ -24,7 +27,11 @@ export interface TransformControlOptions {
  * Controls that allows to adjust scale, angle and origin of a transformable object.
  */
 export class TransformControls extends Phaser.GameObjects.Container {
+	public static readonly TAG = 'transform-control'
+
 	private readonly options: ReadonlyDeep<TransformControlOptions>
+	private readonly logger: Logger<{}>
+	private destroySignal: AbortSignal
 
 	private innerContainer: Phaser.GameObjects.Container
 
@@ -52,8 +59,9 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		super(scene)
 
 		this.options = options
+		this.logger = options.logger
 
-		const destroySignal = signalFromEvent(this, Phaser.GameObjects.Events.DESTROY)
+		this.destroySignal = signalFromEvent(this, Phaser.GameObjects.Events.DESTROY)
 
 		this.innerContainer = this.scene.add.container(0, 0)
 		this.add(this.innerContainer)
@@ -67,10 +75,30 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		// Setup the borders interactivity
 		const borders = [this.topBorder, this.bottomBorder, this.leftBorder, this.rightBorder]
 		borders.forEach((border) => {
+			const isHorizontal = border === this.topBorder || border === this.bottomBorder
+			const hitAreaPadding = isHorizontal
+				? { x: 0, y: this.options.resizeBorders.hitAreaPadding }
+				: { x: this.options.resizeBorders.hitAreaPadding, y: 0 }
+			const cursor: CssCursor = isHorizontal ? 'ns-resize' : 'ew-resize'
+
+			border.setInteractive()
+			Phaser.Geom.Rectangle.Inflate(border.input!.hitArea, hitAreaPadding.x, hitAreaPadding.y)
+			border.input!.cursor = cursor
+
 			border.setTint(this.options.resizeBorders.color)
-			border.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => border.setTint(0xcee9fd), this, destroySignal)
-			border.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => border.setTint(this.options.resizeBorders.color), this, destroySignal)
-			border.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.onBorderPointerDown, this, destroySignal)
+			border.on(
+				Phaser.Input.Events.GAMEOBJECT_POINTER_OVER,
+				() => border.setTint(0xcee9fd),
+				this,
+				this.destroySignal
+			)
+			border.on(
+				Phaser.Input.Events.GAMEOBJECT_POINTER_OUT,
+				() => border.setTint(this.options.resizeBorders.color),
+				this,
+				this.destroySignal
+			)
+			border.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.onBorderPointerDown, this, this.destroySignal)
 		})
 
 		// Add the ROTATE knobs
@@ -81,7 +109,12 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.addBottomRightRotateKnob()
 
 		// Setup the rotate knobs interactivity
-		const rotateKnobs = [this.topLeftRotateKnob, this.topRightRotateKnob, this.bottomLeftRotateKnob, this.bottomRightRotateKnob]
+		const rotateKnobs = [
+			this.topLeftRotateKnob,
+			this.topRightRotateKnob,
+			this.bottomLeftRotateKnob,
+			this.bottomRightRotateKnob,
+		]
 		rotateKnobs.forEach((knob) => {
 			knob.alpha = 0.001
 			knob.setInteractive()
@@ -89,7 +122,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			knob.input!.cursor = 'grab' satisfies CssCursor
 			// knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => knob.setAlpha(0.1), this, destroySignal)
 			// knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => knob.setAlpha(0.001), this, destroySignal)
-			knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.onRotateKnobPointerDown, this, destroySignal)
+			knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.onRotateKnobPointerDown, this, this.destroySignal)
 		})
 
 		// Add the RESIZE knobs
@@ -104,15 +137,34 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		resizeKnobs.forEach((knob) => {
 			knob.setInteractive()
 			this.setKnobRectHitArea(knob.input!, this.options.resizeKnobs.fillSize * 2)
-			knob.input!.cursor = knob === this.topLeftKnob || knob === this.bottomRightKnob ? 'nwse-resize' : 'nesw-resize'
-			knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => knob.setTintFill(0xcee9fd), this, destroySignal)
-			knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => knob.setTintFill(this.options.resizeKnobs.fillColor), this, destroySignal)
-			knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.onResizeKnobPointerDown, this, destroySignal)
+			knob.input!.cursor =
+				knob === this.topLeftKnob || knob === this.bottomRightKnob ? 'nwse-resize' : 'nesw-resize'
+			knob.on(
+				Phaser.Input.Events.GAMEOBJECT_POINTER_OVER,
+				() => knob.setTintFill(0xcee9fd),
+				this,
+				this.destroySignal
+			)
+			knob.on(
+				Phaser.Input.Events.GAMEOBJECT_POINTER_OUT,
+				() => knob.setTintFill(this.options.resizeKnobs.fillColor),
+				this,
+				this.destroySignal
+			)
+			knob.on(
+				Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN,
+				this.onResizeKnobPointerDown.bind(this, knob),
+				this,
+				this.destroySignal
+			)
 			knob.setScale(1 / this.options.resizeKnobs.resolution)
 			knob.setTintFill(this.options.resizeKnobs.fillColor)
 		})
+		;[...borders, ...rotateKnobs, ...resizeKnobs].forEach((child) => {
+			child.setData(TransformControls.TAG, true)
+		})
 
-		this.scene.events.on(Phaser.Scenes.Events.UPDATE, this.onUpdate, this, destroySignal)
+		this.scene.events.on(Phaser.Scenes.Events.UPDATE, this.onUpdate, this, this.destroySignal)
 	}
 
 	private setKnobRectHitArea(knobInput: Phaser.Types.Input.InteractiveObject, size: number) {
@@ -133,8 +185,104 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		console.log('ROTATE KNOB CLICK', pointer, x, y)
 	}
 
-	private onResizeKnobPointerDown(pointer: Phaser.Input.Pointer, x: number, y: number) {
-		console.log('RESIZE KNOB CLICK', pointer, x, y)
+	private onResizeKnobPointerDown(
+		knob: Phaser.GameObjects.Image,
+		pointer: Phaser.Input.Pointer,
+		x: number,
+		y: number
+	) {
+		const selection = this.targetSelection
+		if (!selection) {
+			return
+		}
+
+		const knobType = match(knob.name)
+			.with('top-left-resize-knob', () => 'top-left')
+			.with('top-right-resize-knob', () => 'top-right')
+			.with('bottom-left-resize-knob', () => 'bottom-left')
+			.with('bottom-right-resize-knob', () => 'bottom-right')
+			.run()
+
+		const knobIsLeft = knobType.includes('left')
+		const knobIsTop = knobType.includes('top')
+
+		this.logger.info('resize start', knobType)
+
+		const pointerUpSignal = signalFromEvent(this.scene.input, Phaser.Input.Events.POINTER_UP)
+
+		const pointerPos = { x: pointer.worldX, y: pointer.worldY }
+
+		const selectedTransforms = new Map<
+			Phaser.GameObjects.Image,
+			{ width: number; height: number; originX: number; originY: number }
+		>()
+
+		selection.objects.forEach((obj) => {
+			if (!(obj instanceof Phaser.GameObjects.Image)) {
+				return
+			}
+
+			const currentOrigin = [obj.originX, obj.originY]
+
+			const newOrigin = match(knobType)
+				.with('top-left', () => [1, 1])
+				.with('top-right', () => [0, 1])
+				.with('bottom-left', () => [1, 0])
+				.with('bottom-right', () => [0, 0])
+				.run()
+
+			const offsetX = obj.displayWidth * (newOrigin[0] - currentOrigin[0])
+			const offsetY = obj.displayHeight * (newOrigin[1] - currentOrigin[1])
+
+			obj.setOrigin(...newOrigin)
+			obj.x += offsetX
+			obj.y += offsetY
+
+			selectedTransforms.set(obj, {
+				width: obj.displayWidth,
+				height: obj.displayHeight,
+				originX: currentOrigin[0],
+				originY: currentOrigin[1],
+			})
+		})
+
+		this.scene.input.on(
+			Phaser.Input.Events.POINTER_MOVE,
+			(pointer: Phaser.Input.Pointer) => {
+				const kx = knobIsLeft ? -1 : 1
+				const dx = (pointer.worldX - pointerPos.x) * kx
+				const ky = knobIsTop ? -1 : 1
+				const dy = (pointer.worldY - pointerPos.y) * ky
+
+				this.logger.info('selection size before', selection.bounds.width, selection.bounds.height)
+
+				selectedTransforms.forEach((transform, obj) => {
+					obj.displayWidth = transform.width + dx
+					obj.displayHeight = transform.height + dy
+				})
+				
+				// TODO fix bounds update
+				selection.calculateBounds()
+
+				this.logger.info('selection size after', selection.bounds.width, selection.bounds.height)
+			},
+			this,
+			AbortSignal.any([pointerUpSignal, this.destroySignal])
+		)
+
+		this.scene.input.once(
+			Phaser.Input.Events.POINTER_UP,
+			() => {
+				this.logger.info('resize end')
+
+				// restore the origins
+				// selectedTransforms.forEach((transform, obj) => {
+				// 	obj.setOrigin(transform.originX, transform.originY)
+				// })
+			},
+			this,
+			this.destroySignal
+		)
 	}
 
 	private addTopBorder() {
@@ -142,9 +290,6 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.topBorder.name = 'top-border'
 		this.topBorder.displayHeight = this.options.resizeBorders.thickness
 		this.topBorder.setOrigin(0, 0.5)
-		this.topBorder.setInteractive()
-		Phaser.Geom.Rectangle.Inflate(this.topBorder.input!.hitArea, 0, this.options.resizeBorders.hitAreaPadding)
-		this.topBorder.input!.cursor = 'ns-resize' satisfies CssCursor
 		this.innerContainer.add(this.topBorder)
 	}
 
@@ -153,9 +298,6 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.bottomBorder.name = 'bottom-border'
 		this.bottomBorder.displayHeight = this.options.resizeBorders.thickness
 		this.bottomBorder.setOrigin(0, 0.5)
-		this.bottomBorder.setInteractive()
-		Phaser.Geom.Rectangle.Inflate(this.bottomBorder.input!.hitArea, 0, this.options.resizeBorders.hitAreaPadding)
-		this.bottomBorder.input!.cursor = 'ns-resize' satisfies CssCursor
 		this.innerContainer.add(this.bottomBorder)
 	}
 
@@ -164,9 +306,6 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.leftBorder.name = 'left-border'
 		this.leftBorder.displayWidth = this.options.resizeBorders.thickness
 		this.leftBorder.setOrigin(0.5, 0)
-		this.leftBorder.setInteractive()
-		Phaser.Geom.Rectangle.Inflate(this.leftBorder.input!.hitArea, this.options.resizeBorders.hitAreaPadding, 0)
-		this.leftBorder.input!.cursor = 'ew-resize' satisfies CssCursor
 		this.innerContainer.add(this.leftBorder)
 	}
 
@@ -175,9 +314,6 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.rightBorder.name = 'right-border'
 		this.rightBorder.displayWidth = this.options.resizeBorders.thickness
 		this.rightBorder.setOrigin(0.5, 0)
-		this.rightBorder.setInteractive()
-		Phaser.Geom.Rectangle.Inflate(this.rightBorder.input!.hitArea, this.options.resizeBorders.hitAreaPadding, 0)
-		this.rightBorder.input!.cursor = 'ew-resize' satisfies CssCursor
 		this.innerContainer.add(this.rightBorder)
 	}
 
@@ -233,7 +369,12 @@ export class TransformControls extends Phaser.GameObjects.Container {
 
 		const graphics = this.scene.make.graphics()
 		graphics.fillStyle(0xffffff, 1)
-		graphics.fillRect(0, 0, this.options.resizeKnobs.fillSize * resolution, this.options.resizeKnobs.fillSize * resolution)
+		graphics.fillRect(
+			0,
+			0,
+			this.options.resizeKnobs.fillSize * resolution,
+			this.options.resizeKnobs.fillSize * resolution
+		)
 
 		const width = this.options.resizeKnobs.fillSize * resolution
 		const height = width

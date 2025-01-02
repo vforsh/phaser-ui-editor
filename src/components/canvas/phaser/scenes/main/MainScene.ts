@@ -26,6 +26,7 @@ import { calculateBounds } from './editContext/Transformable'
 import { isSerializableGameObject, ObjectsFactory, SerializableGameObject } from './factory/ObjectsFactory'
 import { Grid } from './Grid'
 import { Rulers } from './Rulers'
+import { TransformControls } from './editContext/TransformControls'
 
 export type MainSceneInitData = {
 	project: Project
@@ -173,16 +174,16 @@ export class MainScene extends BaseScene {
 		chefCherry_2?.setAngle(45)
 		chefCherry_2?.setName(this.getNewObjectName(this.editContexts.current!, chefCherry_2!, 'chefCherry'))
 
-		const selection = this.editContexts.current!.createSelection([chefCherry_1!, chefCherry_2!])
-		const group_1 = this.group(selection, this.editContexts.current!)
-
-		if (isSerializableGameObject(group_1)) {
-			const group_2 = this.objectsFactory.clone(group_1)
-			group_2.setPosition(group_1.x + 0, group_1.y + 500)
-			group_2.setName(this.getNewObjectName(this.editContexts.current!, group_2))
-			this.root.add(group_2)
-			this.editContexts.current!.setSelection([group_2])
-		}
+		// const selection = this.editContexts.current!.createSelection([chefCherry_1!, chefCherry_2!])
+		// const group_1 = this.group(selection, this.editContexts.current!)
+		
+		// if (isSerializableGameObject(group_1)) {
+		// 	const group_2 = this.objectsFactory.clone(group_1)
+		// 	group_2.setPosition(group_1.x + 0, group_1.y + 500)
+		// 	group_2.setName(this.getNewObjectName(this.editContexts.current!, group_2))
+		// 	this.root.add(group_2)
+		// 	this.editContexts.current!.setSelection([group_2])
+		// }
 	}
 
 	private getNewObjectName(context: EditContext, obj: Phaser.GameObjects.GameObject, prefix?: string): string {
@@ -574,6 +575,12 @@ export class MainScene extends BaseScene {
 
 		match(buttonType)
 			.with('left', () => {
+				const clickedOnTransformControl = objects.some((obj) => obj.getData(TransformControls.TAG))
+				if (clickedOnTransformControl) {
+					// this.logger.debug('clicked on transform control')
+					return
+				}
+				
 				const context = this.editContexts.current!
 				if (!context) {
 					return
@@ -601,7 +608,7 @@ export class MainScene extends BaseScene {
 				if (!wasProcessedBySelection) {
 					context.cancelSelection()
 				}
-
+				
 				const msSinceLastClick = Date.now() - (this.sceneClickedAt ?? 0)
 				if (msSinceLastClick < 200) {
 					this.editContexts.switchTo(this.root)
@@ -629,7 +636,7 @@ export class MainScene extends BaseScene {
 			selection.setHoverMode('selection-rect')
 			setupWasCalled = true
 		})
-
+		
 		this.input.on(
 			Phaser.Input.Events.POINTER_MOVE,
 			(pointer: Phaser.Input.Pointer) => {
