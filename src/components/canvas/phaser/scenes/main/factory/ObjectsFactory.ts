@@ -1,7 +1,7 @@
 import { EventfulContainer } from '@components/canvas/phaser/robowhale/phaser3/gameObjects/container/EventfulContainer'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
-import { shouldIgnoreObject } from '../selection/SelectionManager'
+import { shouldIgnoreObject } from '../editContext/EditContext'
 
 export interface CloneOptions {
 	addToScene?: boolean

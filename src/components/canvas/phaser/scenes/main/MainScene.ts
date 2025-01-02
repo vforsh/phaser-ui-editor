@@ -19,13 +19,12 @@ import { rectIntersect } from '../../robowhale/phaser3/geom/rect-intersect'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { signalFromEvent } from '../../robowhale/utils/events/create-abort-signal-from-event'
 import { CanvasClipboard } from './CanvasClipboard'
-import { EditContext } from './EditContext'
-import { EditContextsManager } from './EditContextsManager'
+import { EditContextsManager } from './editContext/EditContextsManager'
 import { isSerializableGameObject, ObjectsFactory, SerializableGameObject } from './factory/ObjectsFactory'
 import { Grid } from './Grid'
 import { Rulers } from './Rulers'
-import { Selection } from './selection/Selection'
-import { isSelectable, SelectionManager, shouldIgnoreObject } from './selection/SelectionManager'
+import { EditContext, isSelectable, shouldIgnoreObject } from './editContext/EditContext'
+import { Selection } from './editContext/Selection'
 
 export type MainSceneInitData = {
 	project: Project
@@ -174,7 +173,7 @@ export class MainScene extends BaseScene {
 		chefCherry_2?.setAngle(45)
 		chefCherry_2?.setName(this.getNewObjectName(this.editContexts.current!, chefCherry_2!, 'chefCherry'))
 
-		const selection = this.editContexts.current!.selection.createSelection([chefCherry_1!, chefCherry_2!])
+		const selection = this.editContexts.current!.createSelection([chefCherry_1!, chefCherry_2!])
 		const group = this.group(selection, this.editContexts.current!)
 		// this.editContexts.switchTo(group)
 	}
@@ -339,7 +338,7 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		const selected = editContext.selection.selected
+		const selected = editContext.selected
 		if (!selected || selected.isEmpty) {
 			return
 		}
@@ -370,9 +369,9 @@ export class MainScene extends BaseScene {
 			obj.y -= group.y
 		})
 		selection.destroy()
-		
-		editContext.selection.selected = editContext.selection.createSelection([group])
-		editContext.selection.transformControls.startFollow(editContext.selection.selected)
+
+		editContext.selected = editContext.createSelection([group])
+		editContext.transformControls.startFollow(editContext.selected)
 
 		return group
 	}
@@ -411,8 +410,8 @@ export class MainScene extends BaseScene {
 			return ungrouped
 		})
 
-		editContext.selection.selected = editContext.selection.createSelection(ungrouped)
-		editContext.selection.transformControls.startFollow(editContext.selection.selected)
+		editContext.selected = editContext.createSelection(ungrouped)
+		editContext.transformControls.startFollow(editContext.selected)
 
 		return ungrouped
 	}
@@ -449,7 +448,7 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		const selected = this.editContexts.current?.selection.selected
+		const selected = this.editContexts.current?.selected
 		if (!selected) {
 			return
 		}
@@ -497,9 +496,9 @@ export class MainScene extends BaseScene {
 			}
 		})
 
-		editContext.selection.selected?.destroy()
-		editContext.selection.selected = editContext.selection.createSelection(copiedObjs)
-		editContext.selection.transformControls.startFollow(editContext.selection.selected)
+		editContext.selected?.destroy()
+		editContext.selected = editContext.createSelection(copiedObjs)
+		editContext.transformControls.startFollow(editContext.selected)
 
 		event.preventDefault()
 	}
@@ -509,7 +508,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private removeSelection(): void {
-		const selection = this.editContexts.current?.selection.selected
+		const selection = this.editContexts.current?.selected
 		if (!selection) {
 			return
 		}
@@ -521,7 +520,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private moveSelection(dx: number, dy: number = 0, event: KeyboardEvent): void {
-		const selected = this.editContexts.current?.selection.selected
+		const selected = this.editContexts.current?.selected
 		if (!selected) {
 			return
 		}
@@ -532,7 +531,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private moveSelectionDownInHierarchy(event: KeyboardEvent) {
-		const selected = this.editContexts.current?.selection.selected
+		const selected = this.editContexts.current?.selected
 		if (!selected) {
 			return
 		}
@@ -547,7 +546,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private moveSelectionUpInHierarchy(event: KeyboardEvent) {
-		const selected = this.editContexts.current?.selection.selected
+		const selected = this.editContexts.current?.selected
 		if (!selected) {
 			return
 		}
@@ -574,32 +573,32 @@ export class MainScene extends BaseScene {
 
 		match(buttonType)
 			.with('left', () => {
-				const selection = this.editContexts.current!.selection
-				if (!selection) {
+				const context = this.editContexts.current!
+				if (!context) {
 					return
 				}
 
-				const selected = selection.selected
+				const selected = context.selected
 				if (selected && selected.bounds.contains(pointer.worldX, pointer.worldY)) {
-					this.startSelectionDrag(selected, pointer, selection)
+					this.startSelectionDrag(selected, pointer, context)
 					return
 				}
 
 				objects.some((obj) => {
-					if (selection.isRegistered(obj) && selection.selected?.includes(obj)) {
-						this.startSelectionDrag(selection.selected, pointer, selection)
+					if (context.isRegistered(obj) && context.selected?.includes(obj)) {
+						this.startSelectionDrag(context.selected, pointer, context)
 						return true
 					}
 				})
 
 				const wasProcessedBySelection = objects.some((obj) => {
-					if (selection.isRegistered(obj)) {
+					if (context.isRegistered(obj)) {
 						return true
 					}
 				})
 
 				if (!wasProcessedBySelection) {
-					selection.cancelSelection()
+					context.cancelSelection()
 				}
 
 				const msSinceLastClick = Date.now() - (this.sceneClickedAt ?? 0)
@@ -608,14 +607,14 @@ export class MainScene extends BaseScene {
 				}
 				this.sceneClickedAt = Date.now()
 
-				this.startDrawingSelectionRect(selection, pointer)
+				this.startDrawingSelectionRect(context, pointer)
 			})
 			.with('middle', () => this.startCameraDrag(pointer))
 			.with('right', () => console.log('right button click'))
 			.otherwise(() => console.warn('unknown button', buttonType))
 	}
 
-	private startDrawingSelectionRect(selection: SelectionManager, pointer: Phaser.Input.Pointer) {
+	private startDrawingSelectionRect(selection: EditContext, pointer: Phaser.Input.Pointer) {
 		const pointerUpSignal = signalFromEvent(this.input, Phaser.Input.Events.POINTER_UP)
 
 		const selectionRect = selection.selectionRect
@@ -677,7 +676,7 @@ export class MainScene extends BaseScene {
 		}
 
 		if (this.getButtonType(pointer) === 'left') {
-			this.stopSelectionDrag(this.editContexts.current!.selection)
+			this.stopSelectionDrag(this.editContexts.current!)
 		}
 	}
 
@@ -703,7 +702,7 @@ export class MainScene extends BaseScene {
 		this.game.canvas.style.cursor = 'default'
 	}
 
-	private startSelectionDrag(selected: Selection, pointer: Phaser.Input.Pointer, selection: SelectionManager) {
+	private startSelectionDrag(selected: Selection, pointer: Phaser.Input.Pointer, selection: EditContext) {
 		if (this.selectionDrag) {
 			return
 		}
@@ -722,7 +721,7 @@ export class MainScene extends BaseScene {
 		selection.onDragStart(selected)
 	}
 
-	private stopSelectionDrag(selection: SelectionManager) {
+	private stopSelectionDrag(selection: EditContext) {
 		if (!this.selectionDrag) {
 			return
 		}

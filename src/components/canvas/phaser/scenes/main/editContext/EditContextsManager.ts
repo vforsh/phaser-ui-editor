@@ -1,25 +1,24 @@
 import { Logger } from 'tslog'
-import { EventfulContainer } from '../../robowhale/phaser3/gameObjects/container/EventfulContainer'
-import { TypedEventEmitter } from '../../robowhale/phaser3/TypedEventEmitter'
-import { EditContext } from './EditContext'
-import { MainScene } from './MainScene'
-import { isSelectable } from './selection/SelectionManager'
+import { EventfulContainer } from '../../../robowhale/phaser3/gameObjects/container/EventfulContainer'
+import { TypedEventEmitter } from '../../../robowhale/phaser3/TypedEventEmitter'
+import { MainScene } from '../MainScene'
+import { EditContext, isSelectable } from './EditContext'
 
 interface AddContextOptions {
-    /**
-     * If true, the context will be switched to immediately after being added.
-     * @default false
-     */
+	/**
+	 * If true, the context will be switched to immediately after being added.
+	 * @default false
+	 */
 	switchTo?: boolean
-    /**
-     * If true, the selection manager will automatically manage the selectables.
-     * @default true
-     */
+	/**
+	 * If true, the context will automatically manage the selectables.
+	 * @default true
+	 */
 	autoManageSelectables?: boolean
 }
 
 type EditContextsManagerEvents = {
-	'switch-to': (context: EditContext) => void
+	'context-switched': (context: EditContext) => void
 }
 
 export interface EditContextsManagerOptions {
@@ -33,7 +32,6 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 	private logger: Logger<{}>
 	private destroyController: AbortController
 	private contexts: Map<EventfulContainer, EditContext> = new Map()
-	private _current: EditContext | undefined
 
 	constructor(options: EditContextsManagerOptions) {
 		super()
@@ -48,31 +46,35 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		if (this.contexts.has(container)) {
 			throw new Error(`Edit context for '${container.name}' already exists`)
 		}
-		
+
 		const editContext = new EditContext({
 			scene: this.scene,
 			target: container,
+			logger: this.logger.getSubLogger({ name: `:selection` }),
 		})
-		
-		editContext.selection.on('container-double-clicked', (container) => this.switchTo(container))
-		
+
+		editContext.on('container-double-clicked', (container) => this.switchTo(container))
+
 		editContext.once('pre-destroy', () => this.remove(container), this, this.scene.shutdownSignal)
-		
+
 		this.contexts.set(container, editContext)
-		
+
 		this.logger.debug(`added edit context for '${container.name}'`)
-		
-		const _options = Object.assign({
-			autoManageSelectables: true,
-            switchTo: false,
-		}, options)
+
+		const _options = Object.assign(
+			{
+				autoManageSelectables: true,
+				switchTo: false,
+			},
+			options
+		)
 
 		if (_options.autoManageSelectables) {
 			container.on(
 				'child-added',
 				(child: Phaser.GameObjects.GameObject) => {
 					if (isSelectable(child)) {
-						editContext.selection.register(child)
+						editContext.register(child)
 					}
 				},
 				this,
@@ -83,7 +85,7 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 				'child-removed',
 				(child: Phaser.GameObjects.GameObject) => {
 					if (isSelectable(child)) {
-						editContext.selection.unregister(child)
+						editContext.unregister(child)
 					}
 				},
 				this,
@@ -92,7 +94,7 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 
 			container.list.forEach((child) => {
 				if (isSelectable(child)) {
-					editContext.selection.register(child)
+					editContext.register(child)
 				}
 			})
 		}
@@ -104,10 +106,14 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		return editContext
 	}
 
-	public remove(container: Phaser.GameObjects.Container) {
+	public remove(container: EventfulContainer) {
 		if (!this.contexts.has(container)) {
 			throw new Error(`Edit context for '${container.name}' does not exist`)
 		}
+		
+		// TODO handle removal of active context
+
+		container.removeByContext(this)
 
 		this.logger.debug(`removed edit context for '${container.name}'`)
 
@@ -118,34 +124,37 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		if (this.current?.target === container) {
 			return this.current
 		}
-		
+
 		const editContext = this.contexts.get(container)
 		if (!editContext) {
 			throw new Error(`Edit context for '${container.name}' does not exist`)
 		}
 
-        this.current?.selection.onContextExit()
-		
-		this._current = editContext
-		
-		this._current.selection.onEnter()
+		this.current?.onExit()
 
-		this.logger.info(`switched to '${container.name}' edit context`)
+		editContext.onEnter()
 
-		this.emit('switch-to', editContext)
+		this.logger.info(`switched to '${editContext.name}' edit context`)
+
+		this.emit('context-switched', editContext)
 
 		return editContext
 	}
 
 	public destroy(): void {
+		super.destroy()
+
 		this.destroyController.abort()
 		this.contexts.forEach((context) => context.destroy())
 		this.contexts.clear()
-		this._current = undefined
 	}
 
 	public get current(): EditContext | undefined {
-		return this._current
+		for (const context of this.contexts.values()) {
+			if (context.active) {
+				return context
+			}
+		}
 	}
 
 	public get destroySignal(): AbortSignal {

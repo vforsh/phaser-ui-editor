@@ -23,19 +23,25 @@ type HoverMode = 'disabled' | 'normal' | 'selection-rect'
 
 type Events = {
 	'container-double-clicked': (container: EventfulContainer) => void
+	'pre-destroy': () => void
 }
 
-export type SelectionManagerOptions = {
+export type EditContextOptions = {
 	scene: MainScene
 	logger: Logger<{}>
-	context: EventfulContainer
+	target: EventfulContainer
 }
 
-export class SelectionManager extends TypedEventEmitter<Events> {
-	private options: SelectionManagerOptions
-	private scene: MainScene
-	private logger: Logger<{}>
-	private context: EventfulContainer
+/**
+ * It auto-destroys itself when the target container is destroyed.
+ * 
+ * DO NOT instantiate this class directly, use `EditContextsManager.add()` instead.
+ */
+export class EditContext extends TypedEventEmitter<Events> {
+	private readonly options: EditContextOptions
+	public readonly logger: Logger<{}>
+	private readonly scene: MainScene
+	public readonly target: EventfulContainer
 	public selectables: Selectable[] = []
 	public selected: Selection | null = null
 
@@ -73,17 +79,21 @@ export class SelectionManager extends TypedEventEmitter<Events> {
 	 * Transform controls are used to transform the selection (scale, rotate, etc.)
 	 */
 	public transformControls!: TransformControls
+
+	private _active = false
+
 	private destroyController = new AbortController()
 	private debugGraphics: Phaser.GameObjects.Graphics | null = null
-	private _enabled: boolean = false
-
-	constructor(options: SelectionManagerOptions) {
+	
+	constructor(options: EditContextOptions) {
 		super()
 
 		this.options = options
-		this.scene = options.scene
-		this.context = options.context
 		this.logger = options.logger
+		this.scene = options.scene
+
+		this.target = options.target
+		this.target.once('destroy', () => this.destroy(), this, this.destroySignal)
 
 		this.addHoverRects()
 		this.addSubSelectionRects()
@@ -108,7 +118,7 @@ export class SelectionManager extends TypedEventEmitter<Events> {
 	}
 
 	private onSceneUpdate() {
-		if (!this._enabled) {
+		if (!this._active) {
 			return
 		}
 
@@ -284,7 +294,7 @@ export class SelectionManager extends TypedEventEmitter<Events> {
 		hoverRect.kill()
 
 		this.hoverRects.push(hoverRect)
-		this.context.add(hoverRect)
+		this.target.add(hoverRect)
 
 		return hoverRect
 	}
@@ -315,7 +325,7 @@ export class SelectionManager extends TypedEventEmitter<Events> {
 		subSelectionRect.kill()
 
 		this.subSelectionRects.push(subSelectionRect)
-		this.context.add(subSelectionRect)
+		this.target.add(subSelectionRect)
 
 		return subSelectionRect
 	}
@@ -355,14 +365,14 @@ export class SelectionManager extends TypedEventEmitter<Events> {
 		this.transformControls.kill()
 		this.transformControls.on(
 			'start-follow',
-			() => this.context.bringToTop(this.transformControls),
+			() => this.target.bringToTop(this.transformControls),
 			this,
 			this.destroySignal
 		)
-		
-		this.context.add(this.transformControls)
+
+		this.target.add(this.transformControls)
 	}
-	
+
 	private addDebugGraphics() {
 		// TODO remove later
 		this.debugGraphics = this.scene.add.graphics()
@@ -394,7 +404,7 @@ export class SelectionManager extends TypedEventEmitter<Events> {
 
 		this.selectables.push(gameObject)
 
-		if (!this._enabled) {
+		if (!this._active) {
 			gameObject.disableInteractive()
 		}
 
@@ -439,7 +449,7 @@ export class SelectionManager extends TypedEventEmitter<Events> {
 		y: number
 	): void {
 		// this.logger.debug(`container '${container.name}' clicked`)
-		
+
 		const now = Date.now()
 		const lastClick = this.containerClicks.get(container)
 		const msSinceLastClick = lastClick ? now - lastClick : Number.MAX_SAFE_INTEGER
@@ -567,14 +577,14 @@ export class SelectionManager extends TypedEventEmitter<Events> {
 	}
 
 	/**
-	 * Called when the selection manager is switched to the current edit context.
+	 * Called when switched to this edit context.
 	 */
 	public onEnter(): void {
-		if (this._enabled) {
+		if (this._active) {
 			return
 		}
 
-		this._enabled = true
+		this._active = true
 
 		this.selectables.forEach((selectable) => {
 			selectable.setInteractive()
@@ -582,14 +592,14 @@ export class SelectionManager extends TypedEventEmitter<Events> {
 	}
 
 	/**
-	 * Called when the selection manager is switched to a different edit context.
+	 * Called when switched to a different edit context.
 	 */
-	public onContextExit(): void {
-		if (!this._enabled) {
+	public onExit(): void {
+		if (!this._active) {
 			return
 		}
 
-		this._enabled = false
+		this._active = false
 
 		this.cancelSelection()
 
@@ -599,6 +609,8 @@ export class SelectionManager extends TypedEventEmitter<Events> {
 	}
 
 	public destroy(): void {
+		this.emit('pre-destroy')
+
 		super.destroy()
 
 		this.destroyController.abort()
@@ -617,6 +629,14 @@ export class SelectionManager extends TypedEventEmitter<Events> {
 
 	public get destroySignal(): AbortSignal {
 		return this.destroyController.signal
+	}
+
+	public get active(): boolean {
+		return this._active
+	}
+
+	public get name(): string {
+		return this.target.name
 	}
 }
 
