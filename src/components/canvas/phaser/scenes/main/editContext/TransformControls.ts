@@ -1,9 +1,16 @@
+import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import { ReadonlyDeep } from 'type-fest'
 import { CssCursor } from '../../../../../../utils/CssCursor'
 import { signalFromEvent } from '../../../robowhale/utils/events/create-abort-signal-from-event'
 import { Selection } from './Selection'
+import { Transformable } from './Transformable'
+
+type Events = {
+	'transform-start': (type: 'rotate' | 'resize' | 'origin') => void
+	'transform-end': (type: 'rotate' | 'resize' | 'origin') => void
+}
 
 export interface TransformControlOptions {
 	logger: Logger<{}>
@@ -54,6 +61,8 @@ export class TransformControls extends Phaser.GameObjects.Container {
 
 	// selection that this transform controls follows
 	private targetSelection: Selection | null = null
+
+	private __events: TypedEventEmitter<Events> = new TypedEventEmitter()
 
 	constructor(scene: Phaser.Scene, options: TransformControlOptions) {
 		super(scene)
@@ -122,7 +131,12 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			knob.input!.cursor = 'grab' satisfies CssCursor
 			// knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => knob.setAlpha(0.1), this, destroySignal)
 			// knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => knob.setAlpha(0.001), this, destroySignal)
-			knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.onRotateKnobPointerDown, this, this.destroySignal)
+			knob.on(
+				Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN,
+				this.onRotateKnobPointerDown.bind(this, knob),
+				this,
+				this.destroySignal
+			)
 		})
 
 		// Add the RESIZE knobs
@@ -183,8 +197,80 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		console.log('BORDER CLICK', pointer, x, y)
 	}
 
-	private onRotateKnobPointerDown(pointer: Phaser.Input.Pointer, x: number, y: number) {
-		console.log('ROTATE KNOB CLICK', pointer, x, y)
+	private onRotateKnobPointerDown(
+		knob: Phaser.GameObjects.Image,
+		pointer: Phaser.Input.Pointer,
+		x: number,
+		y: number
+	) {
+		const selection = this.targetSelection
+		if (!selection) {
+			return
+		}
+
+		this.logger.debug(
+			`rotate start [${selection.objects.map((obj) => obj.name).join(', ')}] (${selection.size})`
+		)
+
+		const originalCursor = document.body.style.cursor
+		document.body.style.cursor = 'grabbing' satisfies CssCursor
+		knob.input!.cursor = 'grabbing' satisfies CssCursor
+
+		const pointerUpSignal = signalFromEvent(this.scene.input, Phaser.Input.Events.POINTER_UP)
+
+		const pointerPos = { x: pointer.worldX, y: pointer.worldY }
+
+		const selectionCenter = {
+			x: selection.bounds.left + selection.bounds.width / 2,
+			y: selection.bounds.top + selection.bounds.height / 2,
+		}
+
+		const pointerAngleRad = Math.atan2(selectionCenter.y - pointerPos.y, selectionCenter.x - pointerPos.x)
+
+		const selectedTransforms = new Map<Transformable, { angleDeg: number }>()
+
+		selection.objects.forEach((obj) => {
+			selectedTransforms.set(obj, {
+				angleDeg: obj.angle,
+			})
+		})
+
+		this.events.emit('transform-start', 'rotate')
+
+		this.scene.input.on(
+			Phaser.Input.Events.POINTER_MOVE,
+			(pointer: Phaser.Input.Pointer) => {
+				const dx = selectionCenter.x - pointer.worldX
+				const dy = selectionCenter.y - pointer.worldY
+				const angleRad = Math.atan2(dy, dx)
+
+				selectedTransforms.forEach((transform, obj) => {
+					let newAngle = transform.angleDeg + (angleRad - pointerAngleRad) * Phaser.Math.RAD_TO_DEG
+
+					if (pointer.event.shiftKey) {
+						newAngle = Phaser.Math.Snap.To(newAngle, 15)
+					}
+
+					obj.setAngle(newAngle)
+				})
+
+				selection.updateBounds()
+			},
+			this,
+			AbortSignal.any([pointerUpSignal, this.destroySignal])
+		)
+
+		this.scene.input.once(
+			Phaser.Input.Events.POINTER_UP,
+			() => {
+				this.logger.debug('rotate end')
+				document.body.style.cursor = originalCursor
+				knob.input!.cursor = 'grab' satisfies CssCursor
+				this.events.emit('transform-end', 'rotate')
+			},
+			this,
+			this.destroySignal
+		)
 	}
 
 	private onResizeKnobPointerDown(
@@ -208,7 +294,9 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		const knobIsLeft = knobType.includes('left')
 		const knobIsTop = knobType.includes('top')
 
-		// this.logger.debug('resize start', knobType)
+		this.logger.debug(
+			`resize '${knobType}' start [${selection.objects.map((obj) => obj.name).join(', ')}] (${selection.size})`
+		)
 
 		const pointerUpSignal = signalFromEvent(this.scene.input, Phaser.Input.Events.POINTER_UP)
 
@@ -250,6 +338,8 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			})
 		})
 
+		this.events.emit('transform-start', 'resize')
+
 		this.scene.input.on(
 			Phaser.Input.Events.POINTER_MOVE,
 			(pointer: Phaser.Input.Pointer) => {
@@ -289,6 +379,8 @@ export class TransformControls extends Phaser.GameObjects.Container {
 					obj.x += offsetX
 					obj.y += offsetY
 				})
+
+				this.events.emit('transform-end', 'resize')
 			},
 			this,
 			this.destroySignal
@@ -504,6 +596,12 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	private adjustToSelectionAngle(selection: Selection): void {
+		if (selection.objects.length === 1) {
+			const angle = selection.objects[0].angle
+			this.setAngle(angle)
+			return
+		}
+
 		this.setAngle(0)
 	}
 
@@ -527,5 +625,15 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		}
 
 		this.adjustToSelection(this.targetSelection)
+	}
+
+	public destroy(): void {
+		super.destroy()
+
+		this.__events.destroy()
+	}
+
+	public get events(): TypedEventEmitter<Events> {
+		return this.__events
 	}
 }

@@ -376,7 +376,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 
 	private addTransformControls() {
 		this.transformControls = new TransformControls(this.scene, {
-			logger: this.logger.getSubLogger({ name: 'transform' }),
+			logger: this.logger.getSubLogger({ name: ':transform' }),
 			resizeBorders: {
 				thickness: 2,
 				color: 0x0c8ce8,
@@ -392,14 +392,33 @@ export class EditContext extends TypedEventEmitter<Events> {
 			},
 		})
 
-		this.transformControls.name = 'transform-controls'
-		this.transformControls.kill()
 		this.transformControls.on(
 			'start-follow',
 			() => this.target.bringToTop(this.transformControls),
 			this,
 			this.destroySignal
 		)
+
+		this.transformControls.events.on(
+			'transform-start',
+			(type) => {
+				this.setHoverMode('disabled')
+			},
+			this,
+			this.destroySignal
+		)
+
+		this.transformControls.events.on(
+			'transform-end',
+			(type) => {
+				this.setHoverMode('normal')
+			},
+			this,
+			this.destroySignal
+		)
+
+		this.transformControls.name = 'transform-controls'
+		this.transformControls.kill()
 
 		this.target.add(this.transformControls)
 	}
@@ -647,7 +666,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 
 		// this.updateTargetBounds()
 	}
-	
+
 	public updateTargetBounds(): void {
 		if (this.target.name === 'root') {
 			return
@@ -657,7 +676,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.target.setSize(bounds.width, bounds.height)
 		// TODO update input hit area
 		this.logger.debug(`updated bounds for '${this.name}': ${bounds.width}x${bounds.height}`)
-		
+
 		// TODO update target bounds on
 		// - children list change
 		// - children transform change (position, scale, rotation)
