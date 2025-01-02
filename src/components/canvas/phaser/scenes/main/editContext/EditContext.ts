@@ -6,7 +6,7 @@ import { MainScene } from '../MainScene'
 import { AdjustableRect } from './AdjustableRect'
 import { Selection } from './Selection'
 import { SelectionRect } from './SelectionRect'
-import { Transformable } from './Transformable'
+import { calculateBounds, Transformable } from './Transformable'
 import { TransformControls } from './TransformControls'
 
 export type Selectable = Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | Phaser.GameObjects.Container
@@ -643,6 +643,23 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.selectables.forEach((selectable) => {
 			selectable.disableInteractive()
 		})
+
+		// this.updateTargetBounds()
+	}
+	
+	public updateTargetBounds(): void {
+		if (this.target.name === 'root') {
+			return
+		}
+
+		const bounds = calculateBounds(this.selectables)
+		this.target.setSize(bounds.width, bounds.height)
+		// TODO update input hit area
+		this.logger.debug(`updated bounds for '${this.name}': ${bounds.width}x${bounds.height}`)
+		
+		// TODO update target bounds on
+		// - children list change
+		// - children transform change (position, scale, rotation)
 	}
 
 	public destroy(): void {
