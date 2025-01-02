@@ -23,7 +23,7 @@ export class Selection extends TypedEventEmitter<Events> {
 
 		this.objects = objects
 
-		this._bounds = this.calculateBounds()
+		this._bounds = this.updateBounds()
 	}
 
 	public add(object: Transformable): void {
@@ -32,7 +32,7 @@ export class Selection extends TypedEventEmitter<Events> {
 		}
 
 		this.objects.push(object)
-		this._bounds = this.calculateBounds()
+		this._bounds = this.updateBounds()
 
 		this.emit('changed', 'add', object)
 	}
@@ -48,7 +48,7 @@ export class Selection extends TypedEventEmitter<Events> {
 		}
 
 		this.objects = this.objects.filter((o) => o !== object)
-		this._bounds = this.calculateBounds()
+		this._bounds = this.updateBounds()
 
 		this.emit('changed', 'remove', object)
 
@@ -59,12 +59,12 @@ export class Selection extends TypedEventEmitter<Events> {
 
 		return false
 	}
-	
+
 	public includes(object: Transformable): boolean {
 		return this.objects.includes(object)
 	}
 
-	public calculateBounds(): Phaser.Geom.Rectangle {
+	public updateBounds(): Phaser.Geom.Rectangle {
 		this._bounds = calculateBounds(this.objects)
 		return this._bounds
 	}
@@ -79,7 +79,7 @@ export class Selection extends TypedEventEmitter<Events> {
 			obj.y += dy
 		})
 
-		this._bounds = this.calculateBounds()
+		this._bounds = this.updateBounds()
 
 		return this
 	}

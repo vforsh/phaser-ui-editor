@@ -9,10 +9,25 @@ export function isTransformable(go: Phaser.GameObjects.GameObject): go is Transf
 }
 
 export function calculateBounds(objects: Transformable[], rect?: Phaser.Geom.Rectangle): Phaser.Geom.Rectangle {
-	const left = objects.reduce((min, obj) => Math.min(min, obj.left), Infinity)
-	const right = objects.reduce((max, obj) => Math.max(max, obj.right), -Infinity)
-	const top = objects.reduce((min, obj) => Math.min(min, obj.top), Infinity)
-	const bottom = objects.reduce((max, obj) => Math.max(max, obj.bottom), -Infinity)
+	const left = objects.reduce((min, obj) => {
+		const left = obj.x - obj.originX * obj.displayWidth
+		return Math.min(min, left)
+	}, Infinity)
+
+	const right = objects.reduce((max, obj) => {
+		const right = obj.x + (1 - obj.originX) * obj.displayWidth
+		return Math.max(max, right)
+	}, -Infinity)
+
+	const top = objects.reduce((min, obj) => {
+		const top = obj.y - obj.originY * obj.displayHeight
+		return Math.min(min, top)
+	}, Infinity)
+
+	const bottom = objects.reduce((max, obj) => {
+		const bottom = obj.y + (1 - obj.originY) * obj.displayHeight
+		return Math.max(max, bottom)
+	}, -Infinity)
 
 	if (rect) {
 		rect.setTo(left, top, right - left, bottom - top)
