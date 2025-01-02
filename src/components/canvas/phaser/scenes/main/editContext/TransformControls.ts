@@ -75,30 +75,30 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		// Setup the borders interactivity
 		const borders = [this.topBorder, this.bottomBorder, this.leftBorder, this.rightBorder]
 		borders.forEach((border) => {
-			const isHorizontal = border === this.topBorder || border === this.bottomBorder
-			const hitAreaPadding = isHorizontal
-				? { x: 0, y: this.options.resizeBorders.hitAreaPadding }
-				: { x: this.options.resizeBorders.hitAreaPadding, y: 0 }
-			const cursor: CssCursor = isHorizontal ? 'ns-resize' : 'ew-resize'
+			// const isHorizontal = border === this.topBorder || border === this.bottomBorder
+			// const hitAreaPadding = isHorizontal
+			// 	? { x: 0, y: this.options.resizeBorders.hitAreaPadding }
+			// 	: { x: this.options.resizeBorders.hitAreaPadding, y: 0 }
+			// const cursor: CssCursor = isHorizontal ? 'ns-resize' : 'ew-resize'
 
-			border.setInteractive()
-			Phaser.Geom.Rectangle.Inflate(border.input!.hitArea, hitAreaPadding.x, hitAreaPadding.y)
-			border.input!.cursor = cursor
+			// border.setInteractive()
+			// Phaser.Geom.Rectangle.Inflate(border.input!.hitArea, hitAreaPadding.x, hitAreaPadding.y)
+			// border.input!.cursor = cursor
 
 			border.setTint(this.options.resizeBorders.color)
-			border.on(
-				Phaser.Input.Events.GAMEOBJECT_POINTER_OVER,
-				() => border.setTint(0xcee9fd),
-				this,
-				this.destroySignal
-			)
-			border.on(
-				Phaser.Input.Events.GAMEOBJECT_POINTER_OUT,
-				() => border.setTint(this.options.resizeBorders.color),
-				this,
-				this.destroySignal
-			)
-			border.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.onBorderPointerDown, this, this.destroySignal)
+			// border.on(
+			// 	Phaser.Input.Events.GAMEOBJECT_POINTER_OVER,
+			// 	() => border.setTint(0xcee9fd),
+			// 	this,
+			// 	this.destroySignal
+			// )
+			// border.on(
+			// 	Phaser.Input.Events.GAMEOBJECT_POINTER_OUT,
+			// 	() => border.setTint(this.options.resizeBorders.color),
+			// 	this,
+			// 	this.destroySignal
+			// )
+			// border.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.onBorderPointerDown, this, this.destroySignal)
 		})
 
 		// Add the ROTATE knobs
@@ -160,6 +160,8 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			knob.setScale(1 / this.options.resizeKnobs.resolution)
 			knob.setTintFill(this.options.resizeKnobs.fillColor)
 		})
+
+		// prettier-ignore
 		;[...borders, ...rotateKnobs, ...resizeKnobs].forEach((child) => {
 			child.setData(TransformControls.TAG, true)
 		})
@@ -206,7 +208,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		const knobIsLeft = knobType.includes('left')
 		const knobIsTop = knobType.includes('top')
 
-		this.logger.info('resize start', knobType)
+		// this.logger.debug('resize start', knobType)
 
 		const pointerUpSignal = signalFromEvent(this.scene.input, Phaser.Input.Events.POINTER_UP)
 
@@ -214,10 +216,11 @@ export class TransformControls extends Phaser.GameObjects.Container {
 
 		const selectedTransforms = new Map<
 			Phaser.GameObjects.Image,
-			{ width: number; height: number; originX: number; originY: number }
+			{ width: number; height: number; originX: number; originY: number; aspectRatio: number }
 		>()
 
 		selection.objects.forEach((obj) => {
+			// TODO handle non-image objects
 			if (!(obj instanceof Phaser.GameObjects.Image)) {
 				return
 			}
@@ -243,6 +246,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 				height: obj.displayHeight,
 				originX: currentOrigin[0],
 				originY: currentOrigin[1],
+				aspectRatio: obj.displayWidth / obj.displayHeight,
 			})
 		})
 
@@ -254,17 +258,15 @@ export class TransformControls extends Phaser.GameObjects.Container {
 				const ky = knobIsTop ? -1 : 1
 				const dy = (pointer.worldY - pointerPos.y) * ky
 
-				this.logger.info('selection size before', selection.bounds.width, selection.bounds.height)
-
 				selectedTransforms.forEach((transform, obj) => {
-					obj.displayWidth = transform.width + dx
-					obj.displayHeight = transform.height + dy
-				})
-				
-				// TODO fix bounds update
-				selection.calculateBounds()
+					// keep the aspect ratio if shift is pressed
+					const _dy = pointer.event.shiftKey ? dx / transform.aspectRatio : dy
 
-				this.logger.info('selection size after', selection.bounds.width, selection.bounds.height)
+					obj.displayWidth = Math.max(transform.width + dx, 16)
+					obj.displayHeight = Math.max(transform.height + _dy, 16)
+				})
+
+				selection.updateBounds()
 			},
 			this,
 			AbortSignal.any([pointerUpSignal, this.destroySignal])
@@ -273,12 +275,20 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.scene.input.once(
 			Phaser.Input.Events.POINTER_UP,
 			() => {
-				this.logger.info('resize end')
+				// this.logger.debug('resize end')
 
 				// restore the origins
-				// selectedTransforms.forEach((transform, obj) => {
-				// 	obj.setOrigin(transform.originX, transform.originY)
-				// })
+				selectedTransforms.forEach((transform, obj) => {
+					const newOriginX = transform.originX
+					const newOriginY = transform.originY
+					const currentOriginX = obj.originX
+					const currentOriginY = obj.originY
+					const offsetX = obj.displayWidth * (newOriginX - currentOriginX)
+					const offsetY = obj.displayHeight * (newOriginY - currentOriginY)
+					obj.setOrigin(newOriginX, newOriginY)
+					obj.x += offsetX
+					obj.y += offsetY
+				})
 			},
 			this,
 			this.destroySignal
@@ -485,14 +495,6 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	private adjustToSelectionOrigin(selection: Selection): void {
-		if (selection.size === 1) {
-			const first = selection.at(0)!
-			const offsetX = -first.displayWidth * first.originX
-			const offsetY = -first.displayHeight * first.originY
-			this.innerContainer.setPosition(offsetX, offsetY)
-			return
-		}
-
 		const { left, right, top, bottom } = selection.bounds
 		const width = right - left
 		const height = bottom - top
@@ -502,20 +504,10 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	private adjustToSelectionAngle(selection: Selection): void {
-		if (selection.size === 1) {
-			this.setAngle(selection.at(0)!.angle)
-			return
-		}
-
 		this.setAngle(0)
 	}
 
 	private adjustToSelectionPosition(selection: Selection): void {
-		if (selection.size === 1) {
-			this.setPosition(selection.at(0)!.x, selection.at(0)!.y)
-			return
-		}
-
 		const { left, right, top, bottom } = selection.bounds
 		const width = right - left
 		const height = bottom - top
