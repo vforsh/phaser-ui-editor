@@ -16,6 +16,7 @@ import { CommandEmitter } from './robowhale/utils/events/CommandEmitter'
 import { Logger } from 'tslog'
 import { logger } from '@logs/logs'
 import { BaseScene } from './robowhale/phaser3/scenes/BaseScene'
+import { urlParams } from '@url-params'
 
 export type Vector2Like = Phaser.Types.Math.Vector2Like
 /**
@@ -58,6 +59,10 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 		Phaser3Extensions.extend()
 
 		super(phaserConfig)
+		
+		if (urlParams.get('clearConsole') === 'phaser') {
+			console.clear()
+		}
 
 		this.logger = logger.getOrCreate('canvas')
 		this.logger.info('PhaserApp created')

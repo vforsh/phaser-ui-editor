@@ -1,5 +1,6 @@
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
+import { shouldIgnoreObject } from '../selection/SelectionManager'
 
 export interface CloneOptions {
 	addToScene?: boolean
@@ -24,6 +25,10 @@ export class ObjectsFactory {
 			.returnType<JSONGameObject>()
 			.with({ type: 'Container' }, (container) => {
 				const children = container.list.map((child) => {
+					if (shouldIgnoreObject(child)) {
+						return null
+					}
+
 					if (isSerializableGameObject(child)) {
 						return this.toJson(child)
 					}
@@ -31,7 +36,7 @@ export class ObjectsFactory {
 					this.logger.error('container child is not serializable', { child })
 					// TODO throw custom error
 					throw new Error('container child is not serializable')
-				})
+				}).filter((child) => child !== null)
 
 				return {
 					...container.toJSON(),

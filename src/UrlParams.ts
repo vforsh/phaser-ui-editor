@@ -3,7 +3,7 @@ import { logger } from './logs/logs'
 
 export type UrlParam = GenericUrlParam
 
-export type GenericUrlParam = 'zoom' | 'stateDevTools' | 'inspector'
+export type GenericUrlParam = 'zoom' | 'stateDevTools' | 'inspector' | 'clearConsole'
 
 export type UrlParamsOptions = {
 	logger: Logger<{}>

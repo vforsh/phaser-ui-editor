@@ -146,14 +146,14 @@ declare module Phaser {
 			createItems(quantity: number)
 		}
 		
-		type AutoSizeText = import("../robowhale/phaser3/gameObjects/text/AutoSizeText").AutoSizeText
-		type AutoSizeTextOptions = import("../robowhale/phaser3/gameObjects/text/AutoSizeText").AutoSizeTextOptions
-		type SimpleButton = import("../robowhale/phaser3/gameObjects/buttons/SimpleButton").SimpleButton
-		type ToggleButton = import("../robowhale/phaser3/gameObjects/buttons/ToggleButton").ToggleButton
-		type SoundButton = import("../robowhale/phaser3/gameObjects/buttons/SoundButton").SoundButton
-		type MusicButton = import("../robowhale/phaser3/gameObjects/buttons/MusicButton").MusicButton
-		type ComplexButton = import("../robowhale/phaser3/gameObjects/buttons/ComplexButton").ComplexButton
-		type EventfulContainer = import("../robowhale/phaser3/gameObjects/container/EventfulContainer").EventfulContainer
+		type AutoSizeText = import("../src/components/canvas/phaser/robowhale/phaser3/gameObjects/text/AutoSizeText").AutoSizeText
+		type AutoSizeTextOptions = import("../src/components/canvas/phaser/robowhale/phaser3/gameObjects/text/AutoSizeText").AutoSizeTextOptions
+		type SimpleButton = import("../src/components/canvas/phaser/robowhale/phaser3/gameObjects/buttons/SimpleButton").SimpleButton
+		type ToggleButton = import("../src/components/canvas/phaser/robowhale/phaser3/gameObjects/buttons/ToggleButton").ToggleButton
+		type SoundButton = import("../src/components/canvas/phaser/robowhale/phaser3/gameObjects/buttons/SoundButton").SoundButton
+		type MusicButton = import("../src/components/canvas/phaser/robowhale/phaser3/gameObjects/buttons/MusicButton").MusicButton
+		type ComplexButton = import("../src/components/canvas/phaser/robowhale/phaser3/gameObjects/buttons/ComplexButton").ComplexButton
+		type EventfulContainer = import("../src/components/canvas/phaser/robowhale/phaser3/gameObjects/container/EventfulContainer").EventfulContainer
 		
 		interface GameObjectCreator {
 			graphics(config?: object, addToScene?: boolean): Phaser.GameObjects.Graphics

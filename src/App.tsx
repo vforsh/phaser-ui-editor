@@ -7,6 +7,7 @@ import { TypedEventEmitter } from './components/canvas/phaser/robowhale/phaser3/
 import { CommandEmitter } from './components/canvas/phaser/robowhale/utils/events/CommandEmitter'
 import EditorLayout from './components/EditorLayout'
 import { state } from './state/State'
+import { urlParams } from '@url-params'
 
 const theme = createTheme({
 	primaryColor: 'blue',
@@ -19,6 +20,10 @@ const theme = createTheme({
 })
 
 function App() {
+	if (urlParams.get('clearConsole') === 'app' || urlParams.getBool('clearConsole')) {
+		console.clear()
+	}
+
 	if (!state.app) {
 		state.app = ref({
 			// to pass events from main React app to Phaser app

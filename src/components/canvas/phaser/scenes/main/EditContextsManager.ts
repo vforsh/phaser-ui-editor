@@ -44,7 +44,7 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		this.destroyController = new AbortController()
 	}
 
-	public add(container: Phaser.GameObjects.Container, options: AddContextOptions = {}) {
+	public add(container: EventfulContainer, options: AddContextOptions = {}) {
 		if (this.contexts.has(container)) {
 			throw new Error(`Edit context for '${container.name}' already exists`)
 		}
@@ -70,7 +70,7 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 				'child-added',
 				(child: Phaser.GameObjects.GameObject) => {
 					if (isSelectable(child)) {
-						editContext.selection.addSelectable(child)
+						editContext.selection.register(child)
 					}
 				},
 				this,
@@ -81,7 +81,7 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 				'child-removed',
 				(child: Phaser.GameObjects.GameObject) => {
 					if (isSelectable(child)) {
-						editContext.selection.removeSelectable(child)
+						editContext.selection.unregister(child)
 					}
 				},
 				this,
@@ -90,7 +90,7 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 
 			container.list.forEach((child) => {
 				if (isSelectable(child)) {
-					editContext.selection.addSelectable(child)
+					editContext.selection.register(child)
 				}
 			})
 		}
@@ -116,13 +116,17 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		if (this.current?.target === container) {
 			return this.current
 		}
-
+		
 		const editContext = this.contexts.get(container)
 		if (!editContext) {
 			throw new Error(`Edit context for '${container.name}' does not exist`)
 		}
 
+        this.current?.selection.disable()
+
 		this._current = editContext
+		
+		this._current.selection.enable()
 
 		this.logger.info(`switched to '${container.name}' edit context`)
 

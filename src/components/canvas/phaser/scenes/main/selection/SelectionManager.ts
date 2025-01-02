@@ -1,3 +1,4 @@
+import { EventfulContainer } from '@components/canvas/phaser/robowhale/phaser3/gameObjects/container/EventfulContainer'
 import { Logger } from 'tslog'
 import { CloneOptions, isSerializableGameObject, SerializableGameObject } from '../factory/ObjectsFactory'
 import { MainScene } from '../MainScene'
@@ -6,7 +7,6 @@ import { Selection } from './Selection'
 import { SelectionRect } from './SelectionRect'
 import { Transformable } from './Transformable'
 import { TransformControls } from './TransformControls'
-import { EventfulContainer } from '@components/canvas/phaser/robowhale/phaser3/gameObjects/container/EventfulContainer'
 
 export type Selectable = Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | Phaser.GameObjects.Container
 
@@ -64,6 +64,7 @@ export class SelectionManager {
 	public transformControls!: TransformControls
 	private destroyController = new AbortController()
 	private debugGraphics: Phaser.GameObjects.Graphics | null = null
+	private _enabled: boolean = false
 
 	constructor(options: SelectionManagerOptions) {
 		this.options = options
@@ -94,6 +95,10 @@ export class SelectionManager {
 	}
 
 	private onSceneUpdate() {
+		if (!this._enabled) {
+			return
+		}
+
 		this.updateSubSelectionRects()
 		this.processHover()
 	}
@@ -266,7 +271,7 @@ export class SelectionManager {
 		hoverRect.kill()
 
 		this.hoverRects.push(hoverRect)
-		this.scene.add.existing(hoverRect)
+		this.context.add(hoverRect)
 
 		return hoverRect
 	}
@@ -297,7 +302,7 @@ export class SelectionManager {
 		subSelectionRect.kill()
 
 		this.subSelectionRects.push(subSelectionRect)
-		this.scene.add.existing(subSelectionRect)
+		this.context.add(subSelectionRect)
 
 		return subSelectionRect
 	}
@@ -336,7 +341,7 @@ export class SelectionManager {
 		this.transformControls.name = 'transform-controls'
 		this.transformControls.kill()
 
-		this.scene.add.existing(this.transformControls)
+		this.context.add(this.transformControls)
 	}
 
 	private addDebugGraphics() {
@@ -347,9 +352,13 @@ export class SelectionManager {
 		this.debugGraphics.kill()
 	}
 
-	public addSelectable(gameObject: Selectable): void {
+	public register(gameObject: Selectable): void {
+		if (shouldIgnoreObject(gameObject)) {
+			return
+		}
+
 		if (this.selectables.includes(gameObject)) {
-			this.logger.warn(`object ${gameObject.name} is already in the selection manager`)
+			this.logger.warn(`'${gameObject.name}' is already in the selection manager`)
 			return
 		}
 
@@ -362,23 +371,33 @@ export class SelectionManager {
 			this,
 			signal
 		)
-		gameObject.once(Phaser.GameObjects.Events.DESTROY, () => this.removeSelectable(gameObject), this, signal)
+		gameObject.once(Phaser.GameObjects.Events.DESTROY, () => this.unregister(gameObject), this, signal)
 
-		if (gameObject instanceof EventfulContainer	) {
+		if (gameObject instanceof EventfulContainer) {
 			// TODO enter into container edit context on double click
 		}
 
 		this.selectables.push(gameObject)
+
+		if (!this._enabled) {
+			gameObject.disableInteractive()
+		}
+
+		// this.logger.debug(`registered '${gameObject.name}' in '${this.context.name}' selection manager`)
 	}
 
-	public removeSelectable(gameObject: Selectable): void {
+	public unregister(gameObject: Selectable): void {
+		if (shouldIgnoreObject(gameObject)) {
+			return
+		}
+
 		if (!this.selectables.includes(gameObject)) {
-			this.logger.warn(`object ${gameObject.name} is not in the selection manager`)
+			this.logger.warn(`'${gameObject.name}' is not in the selection manager`)
 			return
 		}
 
 		gameObject.offByContext(this)
-		gameObject.removeInteractive()
+		gameObject.disableInteractive()
 
 		this.selectables = this.selectables.filter((selectable) => selectable !== gameObject)
 
@@ -386,9 +405,11 @@ export class SelectionManager {
 		if (this.selected?.includes(gameObject)) {
 			this.selected.remove(gameObject)
 		}
+
+		// this.logger.debug(`unregistered '${gameObject.name}' from '${this.context.name}' selection manager`)
 	}
 
-	public isSelectable(gameObject: Phaser.GameObjects.GameObject): gameObject is Selectable {
+	public isRegistered(gameObject: Phaser.GameObjects.GameObject): gameObject is Selectable {
 		return this.selectables.includes(gameObject as Selectable)
 	}
 
@@ -422,7 +443,7 @@ export class SelectionManager {
 			const cloneOptions: CloneOptions = { addToScene: true }
 			const clonedObjects = this.selected.objects.map((obj) => {
 				const clone = this.scene.objectsFactory.clone(obj as SerializableGameObject, cloneOptions)
-				this.addSelectable(clone)
+				this.register(clone)
 				return clone
 			})
 
@@ -433,7 +454,7 @@ export class SelectionManager {
 			if (this.selected?.includes(gameObject)) {
 				return
 			}
-			
+
 			if (this.selected) {
 				this.selected.destroy()
 			}
@@ -448,7 +469,7 @@ export class SelectionManager {
 
 	public createSelection(selectables: Selectable[]): Selection {
 		selectables.forEach((selectable) => {
-			if (!this.isSelectable(selectable)) {
+			if (!this.isRegistered(selectable)) {
 				throw new Error(`object should be added to selection manager before creating a selection`)
 			}
 		})
@@ -490,7 +511,7 @@ export class SelectionManager {
 			rect.setData('object', null)
 		})
 	}
-	
+
 	public onDragStart(selection: Selection) {
 		this.setHoverMode('disabled')
 	}
@@ -508,20 +529,48 @@ export class SelectionManager {
 		this.transformControls.stopFollow()
 	}
 
+	public enable(): void {
+		if (this._enabled) {
+			return
+		}
+
+		this._enabled = true
+
+		this.selectables.forEach((selectable) => {
+			selectable.setInteractive()
+		})
+	}
+
+	public disable(): void {
+		if (!this._enabled) {
+			return
+		}
+
+		this._enabled = false
+
+		this.selectables.forEach((selectable) => {
+			selectable.disableInteractive()
+		})
+	}
+
 	public destroy(): void {
 		this.destroyController.abort()
-		
+
 		this.hoverRects.length = 0
-		
+
 		this.subSelectionRects.length = 0
-		
+
 		if (this.selected) {
 			this.selected.destroy()
 			this.selected = null
 		}
 	}
-	
+
 	public get destroySignal(): AbortSignal {
 		return this.destroyController.signal
 	}
+}
+
+export function shouldIgnoreObject(gameObject: Phaser.GameObjects.GameObject): boolean {
+	return gameObject instanceof AdjustableRect || gameObject instanceof TransformControls
 }
