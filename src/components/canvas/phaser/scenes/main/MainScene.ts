@@ -22,6 +22,7 @@ import { CanvasClipboard } from './CanvasClipboard'
 import { EditContext, isSelectable, shouldIgnoreObject } from './editContext/EditContext'
 import { EditContextsManager } from './editContext/EditContextsManager'
 import { Selection } from './editContext/Selection'
+import { calculateBounds } from './editContext/Transformable'
 import { isSerializableGameObject, ObjectsFactory, SerializableGameObject } from './factory/ObjectsFactory'
 import { Grid } from './Grid'
 import { Rulers } from './Rulers'
@@ -650,9 +651,10 @@ export class MainScene extends BaseScene {
 				}
 
 				const objectsUnderSelectionRect = selection.selectables.filter((obj) => {
-					return rectIntersect(selectionRect.bounds, obj.getBounds(), false)
+					const bounds = calculateBounds([obj])
+					return rectIntersect(selectionRect.bounds, bounds, false)
 				})
-
+				
 				selection.cancelSelection()
 
 				if (objectsUnderSelectionRect.length > 0) {
@@ -661,7 +663,7 @@ export class MainScene extends BaseScene {
 				}
 
 				selectionRect.kill()
-
+				
 				selection.setHoverMode('normal')
 			},
 			this,

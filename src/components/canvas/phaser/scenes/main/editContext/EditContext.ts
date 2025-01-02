@@ -36,7 +36,7 @@ export type EditContextOptions = {
 
 /**
  * It auto-destroys itself when the target container is destroyed.
- * 
+ *
  * DO NOT instantiate this class directly, use `EditContextsManager.add()` instead.
  */
 export class EditContext extends TypedEventEmitter<Events> {
@@ -86,7 +86,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 
 	private destroyController = new AbortController()
 	private debugGraphics: Phaser.GameObjects.Graphics | null = null
-	
+
 	constructor(options: EditContextOptions) {
 		super()
 
@@ -104,13 +104,13 @@ export class EditContext extends TypedEventEmitter<Events> {
 				this.register(child)
 			}
 		})
-		
+
 		this.addHoverRects()
 		this.addSubSelectionRects()
 		this.addSelectionRect()
 		this.addTransformControls()
 		this.addDebugGraphics()
-		
+
 		this.scene.events.on(
 			Phaser.Scenes.Events.UPDATE,
 			this.onSceneUpdate,
@@ -420,7 +420,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 			this.logger.warn(`'${gameObject.name}' is already in the selection manager`)
 			return
 		}
-		
+
 		const signal = this.destroySignal
 
 		gameObject.setInteractive()
@@ -438,7 +438,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 			gameObject.disableInteractive()
 		}
 
-		// this.logger.debug(`registered '${gameObject.name}' in '${this.context.name}' selection manager`)
+		// this.logger.debug(`registered '${gameObject.name}' in '${this.name}' edit context`)
 	}
 
 	public unregister(gameObject: Selectable): void {
@@ -465,7 +465,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 			this.selected.remove(gameObject)
 		}
 
-		// this.logger.debug(`unregistered '${gameObject.name}' from '${this.context.name}' selection manager`)
+		// this.logger.debug(`unregistered '${gameObject.name}' from '${this.name}' edit context`)
 	}
 
 	public isRegistered(gameObject: Phaser.GameObjects.GameObject): gameObject is Selectable {
@@ -550,7 +550,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.transformControls.startFollow(this.selected)
 		return this.selected
 	}
-	
+
 	public createSelection(selectables: Selectable[]): Selection {
 		selectables.forEach((selectable) => {
 			if (!this.isRegistered(selectable)) {
