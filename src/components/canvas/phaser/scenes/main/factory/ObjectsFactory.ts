@@ -1,3 +1,4 @@
+import { EventfulContainer } from '@components/canvas/phaser/robowhale/phaser3/gameObjects/container/EventfulContainer'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import { shouldIgnoreObject } from '../selection/SelectionManager'
@@ -24,19 +25,21 @@ export class ObjectsFactory {
 		return match(obj)
 			.returnType<JSONGameObject>()
 			.with({ type: 'Container' }, (container) => {
-				const children = container.list.map((child) => {
-					if (shouldIgnoreObject(child)) {
-						return null
-					}
+				const children = container.list
+					.map((child) => {
+						if (shouldIgnoreObject(child)) {
+							return null
+						}
 
-					if (isSerializableGameObject(child)) {
-						return this.toJson(child)
-					}
+						if (isSerializableGameObject(child)) {
+							return this.toJson(child)
+						}
 
-					this.logger.error('container child is not serializable', { child })
-					// TODO throw custom error
-					throw new Error('container child is not serializable')
-				}).filter((child) => child !== null)
+						this.logger.error('container child is not serializable', { child })
+						// TODO throw custom error
+						throw new Error('container child is not serializable')
+					})
+					.filter((child) => child !== null)
 
 				return {
 					...container.toJSON(),
@@ -46,6 +49,7 @@ export class ObjectsFactory {
 					blendMode: container.blendMode,
 					name: container.name,
 					children,
+					scale: { x: container.scaleX, y: container.scaleY },
 					type: 'Container',
 				}
 			})
@@ -66,29 +70,17 @@ export class ObjectsFactory {
 		return match(json)
 			.returnType<SerializableGameObject>()
 			.with({ type: 'Container' }, (containerJson) => {
-				const container = this.scene.make.container(
-					{
-						x: containerJson.x,
-						y: containerJson.y,
-						scale: containerJson.scale,
-						flipX: containerJson.flipX,
-						flipY: containerJson.flipY,
-						rotation: containerJson.rotation,
-						alpha: containerJson.alpha,
-						visible: containerJson.visible,
-						scaleMode: containerJson.scaleMode,
-					},
-					false
-				)
+				const children = containerJson.children.map((childJson) => this.fromJson(childJson))
+				const container = new EventfulContainer(this.scene, containerJson.x, containerJson.y, children)
 
+				container.setScale(containerJson.scale.x, containerJson.scale.y)
+				container.setRotation(containerJson.rotation)
+				container.setAlpha(containerJson.alpha)
+				container.setVisible(containerJson.visible)
 				container.setName(containerJson.name)
 				container.setDepth(containerJson.depth)
 				container.setBlendMode(containerJson.blendMode)
 				container.setSize(containerJson.width, containerJson.height)
-
-				containerJson.children.forEach((childJson) => {
-					container.add(this.fromJson(childJson))
-				})
 
 				return container as SerializableGameObjectOfType<'Container'>
 			})
@@ -156,6 +148,7 @@ export type JSONGameObject =
 			name: string
 			depth: number
 			blendMode: string | Phaser.BlendModes | number
+			scale: { x: number; y: number }
 	  } & Phaser.Types.GameObjects.JSONGameObject)
 	| ({
 			type: 'Image'

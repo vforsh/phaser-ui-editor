@@ -279,6 +279,8 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.targetSelection.once('destroyed', this.stopFollow, this)
 
 		this.revive()
+
+		this.emit('start-follow', selection)
 	}
 
 	private adjustToSelection(selection: Selection): void {

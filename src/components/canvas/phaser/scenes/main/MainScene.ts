@@ -53,6 +53,7 @@ type SelectionDragData = {
 export class MainScene extends BaseScene {
 	public declare initData: MainSceneInitData
 	private logger!: Logger<{}>
+	private sceneClickedAt: number | undefined
 	private cameraDrag = false
 	private cameraDragStart: { x: number; y: number } | undefined
 	private selectionDrag: SelectionDragData | undefined
@@ -70,6 +71,8 @@ export class MainScene extends BaseScene {
 		this.logger = logger.getOrCreate('canvas')
 
 		this.logger.info('MainScene init', data)
+
+		this.sceneClickedAt = 0
 	}
 
 	public create() {
@@ -165,11 +168,11 @@ export class MainScene extends BaseScene {
 		} as AssetTreeSpritesheetFrameData
 
 		const chefCherry_1 = await this.addTestImage(chefCherryFrame, -200, 0)
-		chefCherry_1?.setName('chefCherry_1')
+		chefCherry_1?.setName(this.getNewObjectName(this.editContexts.current!, chefCherry_1!, 'chefCherry'))
 
 		const chefCherry_2 = await this.addTestImage(chefCherryFrame, 200, 0)
 		chefCherry_2?.setAngle(45)
-		chefCherry_2?.setName('chefCherry_2')
+		chefCherry_2?.setName(this.getNewObjectName(this.editContexts.current!, chefCherry_2!, 'chefCherry'))
 
 		const selection = this.editContexts.current!.selection.createSelection([chefCherry_1!, chefCherry_2!])
 		const group = this.group(selection, this.editContexts.current!)
@@ -349,15 +352,15 @@ export class MainScene extends BaseScene {
 
 		event.preventDefault()
 	}
-	
+
 	private group(selection: Selection, editContext: EditContext): EventfulContainer {
 		const group = this.make.eventfulContainer()
-		group.name = this.getNewGroupName()
+		group.name = this.getNewObjectName(editContext, group)
 		group.setPosition(selection.x + selection.width / 2, selection.y + selection.height / 2)
 		group.setSize(selection.width, selection.height)
 		this.root.add(group)
 		this.editContexts.add(group)
-		
+
 		const grouped = selection.objects.map((obj) => obj.name || 'item').join(', ')
 		this.logger.debug(`grouped [${grouped}] (${selection.objects.length}) -> '${group.name}'`)
 
@@ -367,7 +370,7 @@ export class MainScene extends BaseScene {
 			obj.y -= group.y
 		})
 		selection.destroy()
-
+		
 		editContext.selection.selected = editContext.selection.createSelection([group])
 		editContext.selection.transformControls.startFollow(editContext.selection.selected)
 
@@ -381,23 +384,26 @@ export class MainScene extends BaseScene {
 		}
 
 		const ungrouped = groups.flatMap((group) => {
-			const ungrouped = group.list.slice(0).map((child) => {
-				if (shouldIgnoreObject(child)) {
-					return null
-				}
+			const ungrouped = group.list
+				.slice(0)
+				.map((child) => {
+					if (shouldIgnoreObject(child)) {
+						return null
+					}
 
-				if (!isSelectable(child)) {
-					throw new Error(`Ungrouping failed: ${child.name} is not selectable`)
-				}
-				
-				child.x += group.x
-				child.y += group.y
-				editContext.target.add(child)
-				return child
-			}).filter((child) => child !== null)
+					if (!isSelectable(child)) {
+						throw new Error(`Ungrouping failed: ${child.name} is not selectable`)
+					}
+
+					child.x += group.x
+					child.y += group.y
+					editContext.target.add(child)
+					return child
+				})
+				.filter((child) => child !== null)
 
 			group.destroy()
-			
+
 			this.logger.debug(
 				`ungrouped '${group.name}' -> [${ungrouped.map((obj) => obj.name || 'item').join(', ')}] (${ungrouped.length})`
 			)
@@ -411,9 +417,31 @@ export class MainScene extends BaseScene {
 		return ungrouped
 	}
 
-	private getNewGroupName(): string {
-		const existingGroups = this.root.list.filter((child) => child.name.startsWith('group_'))
-		return `group_${existingGroups.length + 1}`
+	private getNewObjectName(context: EditContext, obj: Phaser.GameObjects.GameObject, prefix?: string): string {
+		const _prefix = prefix ?? this.extractNamePrefix(obj.name) ?? this.createNamePrefix(obj)
+		const uid = Phaser.Math.RND.uuid().slice(0, 4)
+
+		return `${_prefix}__${uid}`
+	}
+
+	private createNamePrefix(obj: Phaser.GameObjects.GameObject): string {
+		return match(obj)
+			.with({ type: 'Container' }, () => 'group')
+			.with({ type: 'Image' }, () => {
+				const image = obj as Phaser.GameObjects.Image
+				const textureKey = image.texture.key
+				const frameKey = image.frame.name
+				return `${textureKey}_${frameKey}`
+			})
+			.otherwise(() => 'item')
+	}
+
+	private extractNamePrefix(name: string): string | undefined {
+		if (!name || !name.includes('__')) {
+			return undefined
+		}
+
+		return name.split('__')[0]
 	}
 
 	private copy(event: KeyboardEvent): void {
@@ -460,7 +488,13 @@ export class MainScene extends BaseScene {
 		copiedObjs.forEach((obj) => {
 			obj.x += 30
 			obj.y += 30
-			// TODO get names for the objects
+			obj.name = this.getNewObjectName(editContext, obj)
+
+			this.logger.debug(`pasted '${obj.name}'`)
+
+			if (obj instanceof EventfulContainer) {
+				this.editContexts.add(obj)
+			}
 		})
 
 		editContext.selection.selected?.destroy()
@@ -567,6 +601,12 @@ export class MainScene extends BaseScene {
 				if (!wasProcessedBySelection) {
 					selection.cancelSelection()
 				}
+
+				const msSinceLastClick = Date.now() - (this.sceneClickedAt ?? 0)
+				if (msSinceLastClick < 200) {
+					this.editContexts.switchTo(this.root)
+				}
+				this.sceneClickedAt = Date.now()
 
 				this.startDrawingSelectionRect(selection, pointer)
 			})

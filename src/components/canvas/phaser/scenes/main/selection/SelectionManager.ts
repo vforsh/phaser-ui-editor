@@ -1,4 +1,5 @@
 import { EventfulContainer } from '@components/canvas/phaser/robowhale/phaser3/gameObjects/container/EventfulContainer'
+import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { Logger } from 'tslog'
 import { CloneOptions, isSerializableGameObject, SerializableGameObject } from '../factory/ObjectsFactory'
 import { MainScene } from '../MainScene'
@@ -20,19 +21,29 @@ export function isSelectable(gameObject: Phaser.GameObjects.GameObject): gameObj
 
 type HoverMode = 'disabled' | 'normal' | 'selection-rect'
 
+type Events = {
+	'container-double-clicked': (container: EventfulContainer) => void
+}
+
 export type SelectionManagerOptions = {
 	scene: MainScene
 	logger: Logger<{}>
 	context: EventfulContainer
 }
 
-export class SelectionManager {
+export class SelectionManager extends TypedEventEmitter<Events> {
 	private options: SelectionManagerOptions
 	private scene: MainScene
 	private logger: Logger<{}>
 	private context: EventfulContainer
 	public selectables: Selectable[] = []
 	public selected: Selection | null = null
+
+	/**
+	 * A map of container clicks.
+	 * The key is the container, the value is the timestamp of the last click.
+	 */
+	private containerClicks = new Map<EventfulContainer, number>()
 
 	/**
 	 * Hover rects are used to visualize the hover state of selectables.
@@ -67,6 +78,8 @@ export class SelectionManager {
 	private _enabled: boolean = false
 
 	constructor(options: SelectionManagerOptions) {
+		super()
+
 		this.options = options
 		this.scene = options.scene
 		this.context = options.context
@@ -340,10 +353,16 @@ export class SelectionManager {
 
 		this.transformControls.name = 'transform-controls'
 		this.transformControls.kill()
-
+		this.transformControls.on(
+			'start-follow',
+			() => this.context.bringToTop(this.transformControls),
+			this,
+			this.destroySignal
+		)
+		
 		this.context.add(this.transformControls)
 	}
-
+	
 	private addDebugGraphics() {
 		// TODO remove later
 		this.debugGraphics = this.scene.add.graphics()
@@ -365,16 +384,12 @@ export class SelectionManager {
 		const signal = this.scene.shutdownSignal
 
 		gameObject.setInteractive()
-		gameObject.on(
-			Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN,
-			this.onSelectablePointerDown.bind(this, gameObject),
-			this,
-			signal
-		)
-		gameObject.once(Phaser.GameObjects.Events.DESTROY, () => this.unregister(gameObject), this, signal)
+		gameObject.on('pointerdown', this.onSelectablePointerDown.bind(this, gameObject), this, signal)
+		gameObject.once('destroy', () => this.unregister(gameObject), this, signal)
 
 		if (gameObject instanceof EventfulContainer) {
-			// TODO enter into container edit context on double click
+			this.containerClicks.set(gameObject, 0)
+			gameObject.on('pointerdown', this.onContainerPointerDown.bind(this, gameObject), this, signal)
 		}
 
 		this.selectables.push(gameObject)
@@ -399,6 +414,10 @@ export class SelectionManager {
 		gameObject.offByContext(this)
 		gameObject.disableInteractive()
 
+		if (gameObject instanceof EventfulContainer) {
+			this.containerClicks.delete(gameObject)
+		}
+
 		this.selectables = this.selectables.filter((selectable) => selectable !== gameObject)
 
 		// should this side effect be handled here?
@@ -411,6 +430,25 @@ export class SelectionManager {
 
 	public isRegistered(gameObject: Phaser.GameObjects.GameObject): gameObject is Selectable {
 		return this.selectables.includes(gameObject as Selectable)
+	}
+
+	private onContainerPointerDown(
+		container: EventfulContainer,
+		pointer: Phaser.Input.Pointer,
+		x: number,
+		y: number
+	): void {
+		// this.logger.debug(`container '${container.name}' clicked`)
+		
+		const now = Date.now()
+		const lastClick = this.containerClicks.get(container)
+		const msSinceLastClick = lastClick ? now - lastClick : Number.MAX_SAFE_INTEGER
+		if (msSinceLastClick < 200) {
+			this.logger.debug(`container '${container.name}' double clicked`)
+			this.emit('container-double-clicked', container)
+		}
+
+		this.containerClicks.set(container, now)
 	}
 
 	private onSelectablePointerDown(gameObject: Selectable, pointer: Phaser.Input.Pointer, x: number, y: number): void {
@@ -464,7 +502,6 @@ export class SelectionManager {
 		}
 
 		this.transformControls.startFollow(this.selected)
-		this.transformControls.revive()
 	}
 
 	public createSelection(selectables: Selectable[]): Selection {
@@ -529,7 +566,10 @@ export class SelectionManager {
 		this.transformControls.stopFollow()
 	}
 
-	public enable(): void {
+	/**
+	 * Called when the selection manager is switched to the current edit context.
+	 */
+	public onEnter(): void {
 		if (this._enabled) {
 			return
 		}
@@ -541,12 +581,17 @@ export class SelectionManager {
 		})
 	}
 
-	public disable(): void {
+	/**
+	 * Called when the selection manager is switched to a different edit context.
+	 */
+	public onContextExit(): void {
 		if (!this._enabled) {
 			return
 		}
 
 		this._enabled = false
+
+		this.cancelSelection()
 
 		this.selectables.forEach((selectable) => {
 			selectable.disableInteractive()
@@ -554,6 +599,8 @@ export class SelectionManager {
 	}
 
 	public destroy(): void {
+		super.destroy()
+
 		this.destroyController.abort()
 
 		this.hoverRects.length = 0
@@ -564,6 +611,8 @@ export class SelectionManager {
 			this.selected.destroy()
 			this.selected = null
 		}
+
+		this.containerClicks.clear()
 	}
 
 	public get destroySignal(): AbortSignal {

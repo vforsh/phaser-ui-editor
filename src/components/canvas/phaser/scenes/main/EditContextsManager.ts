@@ -54,6 +54,8 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 			target: container,
 		})
 		
+		editContext.selection.on('container-double-clicked', (container) => this.switchTo(container))
+		
 		editContext.once('pre-destroy', () => this.remove(container), this, this.scene.shutdownSignal)
 		
 		this.contexts.set(container, editContext)
@@ -112,7 +114,7 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		this.contexts.delete(container)
 	}
 
-	public switchTo(container: Phaser.GameObjects.Container): EditContext {
+	public switchTo(container: EventfulContainer): EditContext {
 		if (this.current?.target === container) {
 			return this.current
 		}
@@ -122,11 +124,11 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 			throw new Error(`Edit context for '${container.name}' does not exist`)
 		}
 
-        this.current?.selection.disable()
-
+        this.current?.selection.onContextExit()
+		
 		this._current = editContext
 		
-		this._current.selection.enable()
+		this._current.selection.onEnter()
 
 		this.logger.info(`switched to '${container.name}' edit context`)
 
