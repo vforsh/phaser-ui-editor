@@ -19,12 +19,12 @@ import { rectIntersect } from '../../robowhale/phaser3/geom/rect-intersect'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { signalFromEvent } from '../../robowhale/utils/events/create-abort-signal-from-event'
 import { CanvasClipboard } from './CanvasClipboard'
+import { EditContext, isSelectable, shouldIgnoreObject } from './editContext/EditContext'
 import { EditContextsManager } from './editContext/EditContextsManager'
+import { Selection } from './editContext/Selection'
 import { isSerializableGameObject, ObjectsFactory, SerializableGameObject } from './factory/ObjectsFactory'
 import { Grid } from './Grid'
 import { Rulers } from './Rulers'
-import { EditContext, isSelectable, shouldIgnoreObject } from './editContext/EditContext'
-import { Selection } from './editContext/Selection'
 
 export type MainSceneInitData = {
 	project: Project
@@ -140,7 +140,6 @@ export class MainScene extends BaseScene {
 
 		this.editContexts.add(this.root, {
 			switchTo: true,
-			autoManageSelectables: true,
 		})
 	}
 
@@ -174,8 +173,42 @@ export class MainScene extends BaseScene {
 		chefCherry_2?.setName(this.getNewObjectName(this.editContexts.current!, chefCherry_2!, 'chefCherry'))
 
 		const selection = this.editContexts.current!.createSelection([chefCherry_1!, chefCherry_2!])
-		const group = this.group(selection, this.editContexts.current!)
-		// this.editContexts.switchTo(group)
+		const group_1 = this.group(selection, this.editContexts.current!)
+
+		if (isSerializableGameObject(group_1)) {
+			const group_2 = this.objectsFactory.clone(group_1)
+			group_2.setPosition(group_1.x + 0, group_1.y + 500)
+			group_2.setName(this.getNewObjectName(this.editContexts.current!, group_2))
+			this.root.add(group_2)
+			this.editContexts.current!.setSelection([group_2])
+		}
+	}
+
+	private getNewObjectName(context: EditContext, obj: Phaser.GameObjects.GameObject, prefix?: string): string {
+		const _prefix = prefix ?? this.extractNamePrefix(obj.name) ?? this.createNamePrefix(obj)
+		const uid = Phaser.Math.RND.uuid().slice(0, 4)
+
+		return `${_prefix}__${uid}`
+	}
+
+	private createNamePrefix(obj: Phaser.GameObjects.GameObject): string {
+		return match(obj)
+			.with({ type: 'Container' }, () => 'group')
+			.with({ type: 'Image' }, () => {
+				const image = obj as Phaser.GameObjects.Image
+				const textureKey = image.texture.key
+				const frameKey = image.frame.name
+				return `${textureKey}_${frameKey}`
+			})
+			.otherwise(() => 'item')
+	}
+
+	private extractNamePrefix(name: string): string | undefined {
+		if (!name || !name.includes('__')) {
+			return undefined
+		}
+
+		return name.split('__')[0]
 	}
 
 	private async addTestImage(asset: GraphicAssetData, offsetX: number, offsetY: number, angle = 0) {
@@ -358,7 +391,6 @@ export class MainScene extends BaseScene {
 		group.setPosition(selection.x + selection.width / 2, selection.y + selection.height / 2)
 		group.setSize(selection.width, selection.height)
 		this.root.add(group)
-		this.editContexts.add(group)
 
 		const grouped = selection.objects.map((obj) => obj.name || 'item').join(', ')
 		this.logger.debug(`grouped [${grouped}] (${selection.objects.length}) -> '${group.name}'`)
@@ -416,33 +448,6 @@ export class MainScene extends BaseScene {
 		return ungrouped
 	}
 
-	private getNewObjectName(context: EditContext, obj: Phaser.GameObjects.GameObject, prefix?: string): string {
-		const _prefix = prefix ?? this.extractNamePrefix(obj.name) ?? this.createNamePrefix(obj)
-		const uid = Phaser.Math.RND.uuid().slice(0, 4)
-
-		return `${_prefix}__${uid}`
-	}
-
-	private createNamePrefix(obj: Phaser.GameObjects.GameObject): string {
-		return match(obj)
-			.with({ type: 'Container' }, () => 'group')
-			.with({ type: 'Image' }, () => {
-				const image = obj as Phaser.GameObjects.Image
-				const textureKey = image.texture.key
-				const frameKey = image.frame.name
-				return `${textureKey}_${frameKey}`
-			})
-			.otherwise(() => 'item')
-	}
-
-	private extractNamePrefix(name: string): string | undefined {
-		if (!name || !name.includes('__')) {
-			return undefined
-		}
-
-		return name.split('__')[0]
-	}
-
 	private copy(event: KeyboardEvent): void {
 		if (!event.ctrlKey && !event.metaKey) {
 			return
@@ -488,12 +493,7 @@ export class MainScene extends BaseScene {
 			obj.x += 30
 			obj.y += 30
 			obj.name = this.getNewObjectName(editContext, obj)
-
 			this.logger.debug(`pasted '${obj.name}'`)
-
-			if (obj instanceof EventfulContainer) {
-				this.editContexts.add(obj)
-			}
 		})
 
 		editContext.selected?.destroy()

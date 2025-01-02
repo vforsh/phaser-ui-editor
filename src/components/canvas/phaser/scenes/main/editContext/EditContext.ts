@@ -22,6 +22,8 @@ export function isSelectable(gameObject: Phaser.GameObjects.GameObject): gameObj
 type HoverMode = 'disabled' | 'normal' | 'selection-rect'
 
 type Events = {
+	'container-added': (container: EventfulContainer) => void
+	'container-removed': (container: EventfulContainer) => void
 	'container-double-clicked': (container: EventfulContainer) => void
 	'pre-destroy': () => void
 }
@@ -93,20 +95,48 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.scene = options.scene
 
 		this.target = options.target
-		this.target.once('destroy', () => this.destroy(), this, this.destroySignal)
+		this.target.on('child-added', this.onChildAdded, this, this.destroySignal)
+		this.target.on('child-removed', this.onChildRemoved, this, this.destroySignal)
+		this.target.once('destroy', this.destroy, this, this.destroySignal)
 
+		this.target.list.forEach((child) => {
+			if (isSelectable(child)) {
+				this.register(child)
+			}
+		})
+		
 		this.addHoverRects()
 		this.addSubSelectionRects()
 		this.addSelectionRect()
 		this.addTransformControls()
 		this.addDebugGraphics()
-
+		
 		this.scene.events.on(
 			Phaser.Scenes.Events.UPDATE,
 			this.onSceneUpdate,
 			this,
 			AbortSignal.any([this.destroySignal])
 		)
+	}
+
+	private onChildAdded(child: Phaser.GameObjects.GameObject) {
+		if (isSelectable(child)) {
+			this.register(child)
+		}
+
+		if (child instanceof EventfulContainer) {
+			this.emit('container-added', child)
+		}
+	}
+
+	private onChildRemoved(child: Phaser.GameObjects.GameObject) {
+		if (isSelectable(child)) {
+			this.unregister(child)
+		}
+
+		if (child instanceof EventfulContainer) {
+			this.emit('container-removed', child)
+		}
 	}
 
 	public setHoverMode(mode: HoverMode) {
@@ -390,8 +420,8 @@ export class EditContext extends TypedEventEmitter<Events> {
 			this.logger.warn(`'${gameObject.name}' is already in the selection manager`)
 			return
 		}
-
-		const signal = this.scene.shutdownSignal
+		
+		const signal = this.destroySignal
 
 		gameObject.setInteractive()
 		gameObject.on('pointerdown', this.onSelectablePointerDown.bind(this, gameObject), this, signal)
@@ -514,6 +544,13 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.transformControls.startFollow(this.selected)
 	}
 
+	public setSelection(selectables: Selectable[]): Selection {
+		this.cancelSelection()
+		this.selected = this.createSelection(selectables)
+		this.transformControls.startFollow(this.selected)
+		return this.selected
+	}
+	
 	public createSelection(selectables: Selectable[]): Selection {
 		selectables.forEach((selectable) => {
 			if (!this.isRegistered(selectable)) {

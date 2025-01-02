@@ -10,11 +10,6 @@ interface AddContextOptions {
 	 * @default false
 	 */
 	switchTo?: boolean
-	/**
-	 * If true, the context will automatically manage the selectables.
-	 * @default true
-	 */
-	autoManageSelectables?: boolean
 }
 
 type EditContextsManagerEvents = {
@@ -47,15 +42,18 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 			throw new Error(`Edit context for '${container.name}' already exists`)
 		}
 
+		const signal = this.destroySignal
+
 		const editContext = new EditContext({
 			scene: this.scene,
 			target: container,
 			logger: this.logger.getSubLogger({ name: `:selection` }),
 		})
 
-		editContext.on('container-double-clicked', (container) => this.switchTo(container))
-
-		editContext.once('pre-destroy', () => this.remove(container), this, this.scene.shutdownSignal)
+		editContext.on('container-added', (container) => this.add(container), this, signal)
+		editContext.on('container-removed', (container) => this.remove(container), this, signal)
+		editContext.on('container-double-clicked', (container) => this.switchTo(container), this, signal)
+		editContext.once('pre-destroy', () => this.remove(container), this, signal)
 
 		this.contexts.set(container, editContext)
 
@@ -63,41 +61,10 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 
 		const _options = Object.assign(
 			{
-				autoManageSelectables: true,
 				switchTo: false,
-			},
+			} satisfies AddContextOptions,
 			options
 		)
-
-		if (_options.autoManageSelectables) {
-			container.on(
-				'child-added',
-				(child: Phaser.GameObjects.GameObject) => {
-					if (isSelectable(child)) {
-						editContext.register(child)
-					}
-				},
-				this,
-				editContext.destroySignal
-			)
-
-			container.on(
-				'child-removed',
-				(child: Phaser.GameObjects.GameObject) => {
-					if (isSelectable(child)) {
-						editContext.unregister(child)
-					}
-				},
-				this,
-				editContext.destroySignal
-			)
-
-			container.list.forEach((child) => {
-				if (isSelectable(child)) {
-					editContext.register(child)
-				}
-			})
-		}
 
 		if (_options.switchTo) {
 			this.switchTo(container)
