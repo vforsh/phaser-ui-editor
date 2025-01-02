@@ -410,7 +410,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private ungroup(selection: Selection, editContext: EditContext) {
-		const groups = selection.objects.filter((obj) => obj instanceof Phaser.GameObjects.Container)
+		const groups = selection.objects.filter((obj) => obj instanceof EventfulContainer)
 		if (groups.length === 0) {
 			return
 		}
@@ -654,7 +654,7 @@ export class MainScene extends BaseScene {
 					const bounds = calculateBounds([obj])
 					return rectIntersect(selectionRect.bounds, bounds, false)
 				})
-				
+
 				selection.cancelSelection()
 
 				if (objectsUnderSelectionRect.length > 0) {
@@ -663,7 +663,7 @@ export class MainScene extends BaseScene {
 				}
 
 				selectionRect.kill()
-				
+
 				selection.setHoverMode('normal')
 			},
 			this,

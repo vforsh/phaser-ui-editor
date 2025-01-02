@@ -2,7 +2,7 @@ import { Logger } from 'tslog'
 import { EventfulContainer } from '../../../robowhale/phaser3/gameObjects/container/EventfulContainer'
 import { TypedEventEmitter } from '../../../robowhale/phaser3/TypedEventEmitter'
 import { MainScene } from '../MainScene'
-import { EditContext, isSelectable } from './EditContext'
+import { EditContext, shouldIgnoreObject } from './EditContext'
 
 interface AddContextOptions {
 	/**
@@ -70,14 +70,16 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 			this.switchTo(container)
 		}
 
+		// this.logger.debug(`contexts(${this.contexts.size}): ${this.getState()}`)
+
 		return editContext
 	}
 
 	public remove(container: EventfulContainer) {
 		if (!this.contexts.has(container)) {
-			throw new Error(`Edit context for '${container.name}' does not exist`)
+			return
 		}
-		
+
 		// TODO handle removal of active context
 
 		container.removeByContext(this)
@@ -85,6 +87,22 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		this.logger.debug(`removed edit context for '${container.name}'`)
 
 		this.contexts.delete(container)
+
+		// this.logger.debug(`contexts(${this.contexts.size}): ${this.getState()}`)
+	}
+
+	private getState(): string {
+		return Array.from(this.contexts.values())
+			.map((context) => {
+				const childrenCount = context.target.list.reduce((acc, child) => {
+					if (shouldIgnoreObject(child)) {
+						return acc
+					}
+					return acc + 1
+				}, 0)
+				return `${context.name}(${childrenCount})`
+			})
+			.join(', ')
 	}
 
 	public switchTo(container: EventfulContainer): EditContext {
