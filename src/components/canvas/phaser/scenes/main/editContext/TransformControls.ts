@@ -305,6 +305,13 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			.with('bottom-right-resize-knob', () => 'bottom-right')
 			.run()
 
+		const newOrigin = match(knobType)
+			.with('top-left', () => [1, 1])
+			.with('top-right', () => [0, 1])
+			.with('bottom-left', () => [1, 0])
+			.with('bottom-right', () => [0, 0])
+			.run()
+
 		const knobIsLeft = knobType.includes('left')
 		const knobIsTop = knobType.includes('top')
 
@@ -316,20 +323,21 @@ export class TransformControls extends Phaser.GameObjects.Container {
 
 		const pointerPos = { x: pointer.worldX, y: pointer.worldY }
 
+		const selectionOrigin = { x: selection.originX, y: selection.originY }
+
 		const selectedTransforms = new Map<
 			Transformable,
-			{ width: number; height: number; originX: number; originY: number; aspectRatio: number }
+			{
+				width: number
+				height: number
+				originX: number
+				originY: number
+				aspectRatio: number
+			}
 		>()
 
 		selection.objects.forEach((obj) => {
 			const currentOrigin = [obj.originX, obj.originY]
-
-			const newOrigin = match(knobType)
-				.with('top-left', () => [1, 1])
-				.with('top-right', () => [0, 1])
-				.with('bottom-left', () => [1, 0])
-				.with('bottom-right', () => [0, 0])
-				.run()
 
 			const offsetX = obj.displayWidth * (newOrigin[0] - currentOrigin[0])
 			const offsetY = obj.displayHeight * (newOrigin[1] - currentOrigin[1])
@@ -338,6 +346,33 @@ export class TransformControls extends Phaser.GameObjects.Container {
 				obj.setOrigin(newOrigin[0], newOrigin[1])
 				obj.x += offsetX
 				obj.y += offsetY
+			}
+
+			// TODO move to EditableContainer
+			if (obj instanceof Phaser.GameObjects.Container) {
+				// manually set container origin to the new origin
+				const w = obj.displayWidth
+				const h = obj.displayHeight
+				const childOffsetX = -w * (newOrigin[0] - 0.5)
+				const childOffsetY = -h * (newOrigin[1] - 0.5)
+				obj.list.forEach((child) => {
+					if ('setPosition' in child && typeof child.setPosition === 'function') {
+						// @ts-expect-error
+						child.setData('originalPosition', { x: child.x, y: child.y })
+						// @ts-expect-error
+						child.setPosition(child.x + childOffsetX / obj.scaleX, child.y + childOffsetY / obj.scaleY)
+					}
+				})
+
+				// account for container angle
+				const offsetX = obj.displayWidth * (newOrigin[0] - 0.5)
+				const offsetY = obj.displayHeight * (newOrigin[1] - 0.5)
+				const angleRad = obj.angle * Phaser.Math.DEG_TO_RAD
+				obj.x += offsetX * Math.cos(angleRad) - offsetY * Math.sin(angleRad)
+				obj.y += offsetX * Math.sin(angleRad) + offsetY * Math.cos(angleRad)
+
+				obj.setData('originX', newOrigin[0])
+				obj.setData('originY', newOrigin[1])
 			}
 
 			selectedTransforms.set(obj, {
@@ -349,6 +384,10 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			})
 		})
 
+		selection.setOrigin(newOrigin[0], newOrigin[1])
+
+		selection.updateBounds()
+
 		this.events.emit('transform-start', 'resize')
 
 		this.scene.input.on(
@@ -359,10 +398,10 @@ export class TransformControls extends Phaser.GameObjects.Container {
 				const ky = knobIsTop ? -1 : 1
 				const dy = (pointer.worldY - pointerPos.y) * ky
 
+				// resize selected objects separately
 				selectedTransforms.forEach((transform, obj) => {
 					// keep the aspect ratio if shift is pressed
 					const _dy = pointer.event.shiftKey ? dx / transform.aspectRatio : dy
-
 					obj.displayWidth = Math.max(transform.width + dx, 16)
 					obj.displayHeight = Math.max(transform.height + _dy, 16)
 				})
@@ -392,7 +431,29 @@ export class TransformControls extends Phaser.GameObjects.Container {
 						obj.x += offsetX
 						obj.y += offsetY
 					}
+
+					// TODO move to EditableContainer
+					if (obj instanceof Phaser.GameObjects.Container) {
+						obj.list.forEach((child) => {
+							const originalPosition = child.getData('originalPosition')
+							// @ts-expect-error
+							child.setPosition(originalPosition.x, originalPosition.y)
+						})
+
+						const offsetX = obj.displayWidth * (0.5 - newOrigin[0])
+						const offsetY = obj.displayHeight * (0.5 - newOrigin[1])
+						const angleRad = obj.angle * Phaser.Math.DEG_TO_RAD
+						obj.x += offsetX * Math.cos(angleRad) - offsetY * Math.sin(angleRad)
+						obj.y += offsetX * Math.sin(angleRad) + offsetY * Math.cos(angleRad)
+
+						obj.setData('originX', 0.5)
+						obj.setData('originY', 0.5)
+					}
 				})
+
+				selection.setOrigin(selectionOrigin.x, selectionOrigin.y)
+
+				selection.updateBounds()
 
 				this.events.emit('transform-end', 'resize')
 			},
@@ -655,18 +716,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	private adjustToSelectionPosition(selection: Selection): void {
-		if (selection.objects.length === 1) {
-			const obj = selection.objects[0]
-			this.setPosition(obj.x, obj.y)
-			return
-		}
-
-		const { left, right, top, bottom } = selection.bounds
-		const width = right - left
-		const height = bottom - top
-		const centerX = width / 2
-		const centerY = height / 2
-		this.setPosition(left + centerX, top + centerY)
+		this.setPosition(selection.x, selection.y)
 	}
 
 	public stopFollow() {

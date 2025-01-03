@@ -30,8 +30,8 @@ export class AdjustableRect extends Phaser.GameObjects.Container {
 		this.graphics.strokeRect(0, 0, go.displayWidth, go.displayHeight)
 
 		// adjust to object position (account for origin)
-		const offsetX = -go.displayWidth * go.originX
-		const offsetY = -go.displayHeight * go.originY
+		const offsetX = -go.displayWidth * (go.getData('originX') ?? go.originX)
+		const offsetY = -go.displayHeight * (go.getData('originY') ?? go.originY)
 		this.graphics.setPosition(offsetX, offsetY)
 		this.setPosition(go.x, go.y)
 

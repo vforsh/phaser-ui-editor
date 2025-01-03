@@ -68,8 +68,8 @@ export class Selection extends TypedEventEmitter<Events> {
 	private onObjectsChanged(): void {
 		if (this.objects.length === 1) {
 			const obj = this.objects[0]
-			this._originX = obj.originX
-			this._originY = obj.originY
+			this._originX = obj.getData('originX') ?? obj.originX
+			this._originY = obj.getData('originY') ?? obj.originY
 		} else {
 			this._originX = 0.5
 			this._originY = 0.5
@@ -114,7 +114,7 @@ export class Selection extends TypedEventEmitter<Events> {
 	public get x(): number {
 		return this._bounds.left + this._originX * this._bounds.width
 	}
-	
+
 	/**
 	 * The y-coordinate of the selection with respect to the origin.
 	 */
@@ -157,15 +157,12 @@ export class Selection extends TypedEventEmitter<Events> {
 		return this._originX
 	}
 
-	// public set originX(value: number) {
-	// this._originX = value
-	// }
-
 	public get originY(): number {
 		return this._originY
 	}
 
-	// public set originY(value: number) {
-	// this._originY = value
-	// }
+	public setOrigin(x: number, y: number): void {
+		this._originX = x
+		this._originY = y
+	}
 }
