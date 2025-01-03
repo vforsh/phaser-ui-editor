@@ -204,9 +204,9 @@ export class EditContext extends TypedEventEmitter<Events> {
 		const selectablesUnderSelectionRect = this.selectables.filter((selectable) => {
 			const globalOrigin = selectable.getWorldPosition()
 			const left = globalOrigin.x - selectable.displayWidth * selectable.originX
-			const right = globalOrigin.x + selectable.displayWidth * selectable.originX
+			const right = globalOrigin.x + selectable.displayWidth * (1 - selectable.originX)
 			const top = globalOrigin.y - selectable.displayHeight * selectable.originY
-			const bottom = globalOrigin.y + selectable.displayHeight * selectable.originY
+			const bottom = globalOrigin.y + selectable.displayHeight * (1 - selectable.originY)
 
 			const topLeft = new Phaser.Math.Vector2(left, top)
 			const topRight = new Phaser.Math.Vector2(right, top)
@@ -214,7 +214,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 			const bottomRight = new Phaser.Math.Vector2(right, bottom)
 			const points = [topLeft, topRight, bottomLeft, bottomRight]
 
-			// check if aabb intersects at first
+			// TODO check if aabb intersects at first
 			// if not, return false
 			// if yes, continue with polygon intersection check
 
