@@ -45,7 +45,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 	private readonly scene: MainScene
 	public readonly target: EventfulContainer
 	public selectables: Selectable[] = []
-	public selected: Selection | null = null
+	public selection: Selection | null = null
 
 	/**
 	 * A map of container clicks.
@@ -189,7 +189,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 
 		const objectsUnderPointer = this.scene.input.hitTestPointer(pointer).reverse()
 		const selectableUnderPointer = objectsUnderPointer.find(
-			(object) => this.selectables.includes(object as any) && !this.selected?.includes(object as any)
+			(object) => this.selectables.includes(object as any) && !this.selection?.includes(object as any)
 		) as Selectable | undefined
 		if (!selectableUnderPointer) {
 			return
@@ -488,8 +488,8 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.selectables = this.selectables.filter((selectable) => selectable !== gameObject)
 
 		// should this side effect be handled here?
-		if (this.selected?.includes(gameObject)) {
-			this.selected.remove(gameObject)
+		if (this.selection?.includes(gameObject)) {
+			this.selection.remove(gameObject)
 		}
 
 		// this.logger.debug(`unregistered '${gameObject.name}' from '${this.name}' edit context`)
@@ -521,61 +521,61 @@ export class EditContext extends TypedEventEmitter<Events> {
 	private onSelectablePointerDown(gameObject: Selectable, pointer: Phaser.Input.Pointer, x: number, y: number): void {
 		if (pointer.event.shiftKey) {
 			// deselect the clicked object if it was selected
-			if (this.selected && this.selected.includes(gameObject)) {
-				this.selected.remove(gameObject)
+			if (this.selection && this.selection.includes(gameObject)) {
+				this.selection.remove(gameObject)
 				return
 			}
 
 			// add the clicked object to the selection (create a new selection if it doesn't exist)
-			this.selected ? this.selected.add(gameObject) : (this.selected = this.createSelection([gameObject]))
+			this.selection ? this.selection.add(gameObject) : (this.selection = this.createSelection([gameObject]))
 		} else if (pointer.event.ctrlKey || pointer.event.metaKey) {
-			if (!this.selected) {
+			if (!this.selection) {
 				return
 			}
 
 			// if the clicked object is not in the selection, do nothing
-			if (!this.selected.includes(gameObject)) {
+			if (!this.selection.includes(gameObject)) {
 				return
 			}
 
-			const serializableObjects = this.selected.objects.every((obj) => isSerializableGameObject(obj))
+			const serializableObjects = this.selection.objects.every((obj) => isSerializableGameObject(obj))
 			if (!serializableObjects) {
 				throw new Error(
-					`copy failed: ${this.selected.objects.map((obj) => obj.name).join(', ')} are not serializable`
+					`copy failed: ${this.selection.objects.map((obj) => obj.name).join(', ')} are not serializable`
 				)
 			}
 
 			const cloneOptions: CloneOptions = { addToScene: true }
-			const clonedObjects = this.selected.objects.map((obj) => {
+			const clonedObjects = this.selection.objects.map((obj) => {
 				const clone = this.scene.objectsFactory.clone(obj as SerializableGameObject, cloneOptions)
 				this.register(clone)
 				return clone
 			})
 
-			this.selected.destroy()
-			this.selected = this.createSelection(clonedObjects)
+			this.selection.destroy()
+			this.selection = this.createSelection(clonedObjects)
 		} else {
 			// if the clicked object is already in the selection, do nothing
-			if (this.selected?.includes(gameObject)) {
+			if (this.selection?.includes(gameObject)) {
 				return
 			}
 
-			if (this.selected) {
-				this.selected.destroy()
+			if (this.selection) {
+				this.selection.destroy()
 			}
 
 			// create a new selection with the clicked object
-			this.selected = this.createSelection([gameObject])
+			this.selection = this.createSelection([gameObject])
 		}
 
-		this.transformControls.startFollow(this.selected)
+		this.transformControls.startFollow(this.selection)
 	}
 
 	public setSelection(selectables: Selectable[]): Selection {
 		this.cancelSelection()
-		this.selected = this.createSelection(selectables)
-		this.transformControls.startFollow(this.selected)
-		return this.selected
+		this.selection = this.createSelection(selectables)
+		this.transformControls.startFollow(this.selection)
+		return this.selection
 	}
 
 	public createSelection(selectables: Selectable[]): Selection {
@@ -615,7 +615,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 	}
 
 	private onSelectionDestroyed(): void {
-		this.selected = null
+		this.selection = null
 		this.transformControls.stopFollow()
 		this.subSelectionRects.forEach((rect) => {
 			rect.kill()
@@ -632,9 +632,9 @@ export class EditContext extends TypedEventEmitter<Events> {
 	}
 
 	public cancelSelection() {
-		if (this.selected) {
-			this.selected.destroy()
-			this.selected = null
+		if (this.selection) {
+			this.selection.destroy()
+			this.selection = null
 		}
 
 		this.transformControls.stopFollow()
@@ -702,9 +702,9 @@ export class EditContext extends TypedEventEmitter<Events> {
 
 		this.subSelectionRects.length = 0
 
-		if (this.selected) {
-			this.selected.destroy()
-			this.selected = null
+		if (this.selection) {
+			this.selection.destroy()
+			this.selection = null
 		}
 
 		this.containerClicks.clear()

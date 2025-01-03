@@ -390,7 +390,7 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		const selected = editContext.selected
+		const selected = editContext.selection
 		if (!selected || selected.isEmpty) {
 			return
 		}
@@ -421,8 +421,8 @@ export class MainScene extends BaseScene {
 		})
 		selection.destroy()
 
-		editContext.selected = editContext.createSelection([group])
-		editContext.transformControls.startFollow(editContext.selected)
+		editContext.selection = editContext.createSelection([group])
+		editContext.transformControls.startFollow(editContext.selection)
 
 		return group
 	}
@@ -473,8 +473,8 @@ export class MainScene extends BaseScene {
 			return ungrouped
 		})
 
-		editContext.selected = editContext.createSelection(ungrouped)
-		editContext.transformControls.startFollow(editContext.selected)
+		editContext.selection = editContext.createSelection(ungrouped)
+		editContext.transformControls.startFollow(editContext.selection)
 
 		return ungrouped
 	}
@@ -484,7 +484,7 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		const selected = this.editContexts.current?.selected
+		const selected = this.editContexts.current?.selection
 		if (!selected) {
 			return
 		}
@@ -527,9 +527,9 @@ export class MainScene extends BaseScene {
 			this.logger.debug(`pasted '${obj.name}'`)
 		})
 
-		editContext.selected?.destroy()
-		editContext.selected = editContext.createSelection(copiedObjs)
-		editContext.transformControls.startFollow(editContext.selected)
+		editContext.selection?.destroy()
+		editContext.selection = editContext.createSelection(copiedObjs)
+		editContext.transformControls.startFollow(editContext.selection)
 
 		event.preventDefault()
 	}
@@ -539,7 +539,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private removeSelection(): void {
-		const selection = this.editContexts.current?.selected
+		const selection = this.editContexts.current?.selection
 		if (!selection) {
 			return
 		}
@@ -551,7 +551,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private moveSelection(dx: number, dy: number = 0, event: KeyboardEvent): void {
-		const selected = this.editContexts.current?.selected
+		const selected = this.editContexts.current?.selection
 		if (!selected) {
 			return
 		}
@@ -562,7 +562,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private moveSelectionDownInHierarchy(event: KeyboardEvent) {
-		const selected = this.editContexts.current?.selected
+		const selected = this.editContexts.current?.selection
 		if (!selected) {
 			return
 		}
@@ -577,7 +577,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private moveSelectionUpInHierarchy(event: KeyboardEvent) {
-		const selected = this.editContexts.current?.selected
+		const selected = this.editContexts.current?.selection
 		if (!selected) {
 			return
 		}
@@ -615,15 +615,15 @@ export class MainScene extends BaseScene {
 					return
 				}
 
-				const selected = context.selected
+				const selected = context.selection
 				if (selected && selected.bounds.contains(pointer.worldX, pointer.worldY)) {
 					this.startSelectionDrag(selected, pointer, context)
 					return
 				}
 
 				objects.some((obj) => {
-					if (context.isRegistered(obj) && context.selected?.includes(obj)) {
-						this.startSelectionDrag(context.selected, pointer, context)
+					if (context.isRegistered(obj) && context.selection?.includes(obj)) {
+						this.startSelectionDrag(context.selection, pointer, context)
 						return true
 					}
 				})
@@ -693,8 +693,8 @@ export class MainScene extends BaseScene {
 				selection.cancelSelection()
 
 				if (objectsUnderSelectionRect.length > 0) {
-					selection.selected = selection.createSelection(objectsUnderSelectionRect)
-					selection.transformControls.startFollow(selection.selected)
+					selection.selection = selection.createSelection(objectsUnderSelectionRect)
+					selection.transformControls.startFollow(selection.selection)
 				}
 
 				selectionRect.kill()
