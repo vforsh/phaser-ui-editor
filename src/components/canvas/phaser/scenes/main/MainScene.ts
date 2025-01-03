@@ -167,31 +167,31 @@ export class MainScene extends BaseScene {
 			jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.json',
 		} as AssetTreeSpritesheetFrameData
 
+		const context = this.editContexts.current!
+
 		const chefCherry_1 = await this.addTestImage(chefCherryFrame, -400, -400)
-		chefCherry_1?.setName(this.getNewObjectName(this.editContexts.current!, chefCherry_1!, 'chefCherry_topLeft'))
+		chefCherry_1?.setName(this.getNewObjectName(context, chefCherry_1!, 'chefCherry_topLeft'))
 		chefCherry_1?.setOrigin(0)
 
 		const chefCherry_3 = await this.addTestImage(chefCherryFrame, 400, -400)
-		chefCherry_3?.setName(this.getNewObjectName(this.editContexts.current!, chefCherry_3!, 'chefCherry_topRight'))
+		chefCherry_3?.setName(this.getNewObjectName(context, chefCherry_3!, 'chefCherry_topRight'))
 		chefCherry_3?.setOrigin(1, 0)
 
 		const chefCherry_2 = await this.addTestImage(chefCherryFrame, 400, 500)
-		// chefCherry_2?.setAngle(45)
-		chefCherry_2?.setName(
-			this.getNewObjectName(this.editContexts.current!, chefCherry_2!, 'chefCherry_bottomRight')
-		)
+		chefCherry_2?.setName(this.getNewObjectName(context, chefCherry_2!, 'chefCherry_bottomRight'))
 		chefCherry_2?.setOrigin(1)
 
 		const chefCherry_4 = await this.addTestImage(chefCherryFrame, -400, 500)
-		chefCherry_4?.setName(this.getNewObjectName(this.editContexts.current!, chefCherry_4!, 'chefCherry_bottomLeft'))
+		chefCherry_4?.setName(this.getNewObjectName(context, chefCherry_4!, 'chefCherry_bottomLeft'))
 		chefCherry_4?.setOrigin(0, 1)
 
 		const chefCherry_5 = await this.addTestImage(chefCherryFrame, 0, 800)
-		chefCherry_5?.setName(this.getNewObjectName(this.editContexts.current!, chefCherry_5!, 'chefCherry_center'))
+		chefCherry_5?.setName(this.getNewObjectName(context, chefCherry_5!, 'chefCherry_center'))
 		chefCherry_5?.setOrigin(0.5)
 
-		// const selection = this.editContexts.current!.createSelection([chefCherry_1!, chefCherry_2!])
-		// const group_1 = this.group(selection, this.editContexts.current!)
+		const selection = this.editContexts.current!.createSelection([chefCherry_1!, chefCherry_3!])
+		const group_1 = this.group(selection, context)
+		group_1.setAngle(-15)
 
 		// if (isSerializableGameObject(group_1)) {
 		// 	const group_2 = this.objectsFactory.clone(group_1)
@@ -433,6 +433,9 @@ export class MainScene extends BaseScene {
 		}
 
 		const ungrouped = groups.flatMap((group) => {
+			const sin = Math.sin(group.rotation)
+			const cos = Math.cos(group.rotation)
+
 			const ungrouped = group.list
 				.slice(0)
 				.map((child) => {
@@ -444,8 +447,17 @@ export class MainScene extends BaseScene {
 						throw new Error(`Ungrouping failed: ${child.name} is not selectable`)
 					}
 
-					child.x += group.x
-					child.y += group.y
+					// Calculate new position accounting for group angle and scale
+					const dx = child.x * group.scaleX
+					const dy = child.y * group.scaleY
+					const rotatedX = dx * cos - dy * sin
+					const rotatedY = dx * sin + dy * cos
+
+					child.x = group.x + rotatedX
+					child.y = group.y + rotatedY
+					child.angle += group.angle
+					child.scaleX *= group.scaleX
+					child.scaleY *= group.scaleY
 					editContext.target.add(child)
 					return child
 				})
