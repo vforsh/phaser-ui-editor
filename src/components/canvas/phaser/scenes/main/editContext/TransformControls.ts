@@ -28,6 +28,11 @@ export interface TransformControlOptions {
 	rotateKnobs: {
 		radius: number
 	}
+	originKnob: {
+		radius: number
+		lineColor: number
+		lineThickness: number
+	}
 }
 
 /**
@@ -58,6 +63,8 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	private topRightRotateKnob!: Phaser.GameObjects.Image
 	private bottomLeftRotateKnob!: Phaser.GameObjects.Image
 	private bottomRightRotateKnob!: Phaser.GameObjects.Image
+
+	private originKnob!: Phaser.GameObjects.Image
 
 	// selection that this transform controls follows
 	private targetSelection: Selection | null = null
@@ -175,8 +182,23 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			knob.setTintFill(this.options.resizeKnobs.fillColor)
 		})
 
+		this.addOriginKnob()
+		const originKnob = this.originKnob
+		originKnob.setInteractive()
+		this.setKnobCircleHitArea(
+			originKnob.input!,
+			this.options.originKnob.radius + this.options.originKnob.lineThickness
+		)
+		originKnob.input!.cursor = 'move' satisfies CssCursor
+		originKnob.on(
+			Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN,
+			this.onOriginKnobPointerDown,
+			this,
+			this.destroySignal
+		)
+
 		// prettier-ignore
-		;[...borders, ...rotateKnobs, ...resizeKnobs].forEach((child) => {
+		;[...borders, ...rotateKnobs, ...resizeKnobs, this.originKnob].forEach((child) => {
 			child.setData(TransformControls.TAG, true)
 		})
 
@@ -197,6 +219,12 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		console.log('BORDER CLICK', pointer, x, y)
 	}
 
+	private onOriginKnobPointerDown(pointer: Phaser.Input.Pointer, x: number, y: number) {
+		console.log('ORIGIN CLICK', pointer, x, y)
+
+		// TODO allow to move the origin knob and change the origin of the selection
+	}
+
 	private onRotateKnobPointerDown(
 		knob: Phaser.GameObjects.Image,
 		pointer: Phaser.Input.Pointer,
@@ -208,9 +236,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			return
 		}
 
-		this.logger.debug(
-			`rotate start [${selection.objects.map((obj) => obj.name).join(', ')}] (${selection.size})`
-		)
+		this.logger.debug(`rotate start [${selection.objects.map((obj) => obj.name).join(', ')}] (${selection.size})`)
 
 		const originalCursor = document.body.style.cursor
 		document.body.style.cursor = 'grabbing' satisfies CssCursor
@@ -417,6 +443,43 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.rightBorder.displayWidth = this.options.resizeBorders.thickness
 		this.rightBorder.setOrigin(0.5, 0)
 		this.innerContainer.add(this.rightBorder)
+	}
+
+	private addOriginKnob() {
+		const textureKey = this.createOriginKnobTexture('origin-knob')
+		
+		this.originKnob = this.scene.add.image(0, 0, textureKey)
+		this.originKnob.name = 'origin-knob'
+		this.originKnob.setOrigin(0.5, 0.5)
+		this.innerContainer.add(this.originKnob)
+	}
+	
+	private createOriginKnobTexture(textureKey: string) {
+		// TODO use x2 resolution for the knob texture bc it looks blurry with the default resolution
+
+		const { radius, lineThickness, lineColor } = this.options.originKnob
+		const centerX = radius + lineThickness
+		const centerY = centerX
+		
+		const graphics = this.scene.make.graphics()
+		graphics.fillStyle(0xffffff, 1)
+		graphics.fillCircle(centerX, centerY, radius)
+		
+		graphics.lineStyle(lineThickness, lineColor, 1)
+		graphics.strokeCircle(centerX, centerY, radius)
+		
+		// draw cross in the center of the knob
+		// graphics.lineStyle(lineThickness * 0.75, lineColor, 1)
+		// graphics.lineBetween(centerX, centerY - radius, centerX, centerY + radius)
+		// graphics.lineBetween(centerX - radius, centerY, centerX + radius, centerY)
+		
+		const width = (radius + lineThickness) * 2
+		const height = width
+		graphics.generateTexture(textureKey, width, height)
+
+		graphics.destroy()
+
+		return textureKey
 	}
 
 	private createRotateKnobTexture(textureKey: string) {

@@ -111,7 +111,7 @@ export class MainScene extends BaseScene {
 		this.alignCameraToProjectFrame()
 
 		this.setupAppCommands()
-
+		
 		this.addTestImages()
 
 		const zoom = urlParams.getNumber('zoom')
@@ -152,7 +152,7 @@ export class MainScene extends BaseScene {
 		// this.projectSizeFrame.fillStyle(0x2f0559, 0.25)
 		// this.projectSizeFrame.fillRect(0, 0, size.width, size.height)
 	}
-
+	
 	private async addTestImages(): Promise<void> {
 		const chefCherryFrame = {
 			type: 'spritesheet-frame',
@@ -167,13 +167,27 @@ export class MainScene extends BaseScene {
 			jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.json',
 		} as AssetTreeSpritesheetFrameData
 
-		const chefCherry_1 = await this.addTestImage(chefCherryFrame, -200, 0)
-		chefCherry_1?.setName(this.getNewObjectName(this.editContexts.current!, chefCherry_1!, 'chefCherry'))
+		const chefCherry_1 = await this.addTestImage(chefCherryFrame, -400, -400)
+		chefCherry_1?.setName(this.getNewObjectName(this.editContexts.current!, chefCherry_1!, 'chefCherry_topLeft'))
+		chefCherry_1?.setOrigin(0)
+		
+		const chefCherry_3 = await this.addTestImage(chefCherryFrame, 400, -400)
+		chefCherry_3?.setName(this.getNewObjectName(this.editContexts.current!, chefCherry_3!, 'chefCherry_topRight'))
+		chefCherry_3?.setOrigin(1, 0)
+		
+		const chefCherry_2 = await this.addTestImage(chefCherryFrame, 400, 500)
+		// chefCherry_2?.setAngle(45)
+		chefCherry_2?.setName(this.getNewObjectName(this.editContexts.current!, chefCherry_2!, 'chefCherry_bottomRight'))
+		chefCherry_2?.setOrigin(1)
+		
+		const chefCherry_4 = await this.addTestImage(chefCherryFrame, -400, 500)
+		chefCherry_4?.setName(this.getNewObjectName(this.editContexts.current!, chefCherry_4!, 'chefCherry_bottomLeft'))
+		chefCherry_4?.setOrigin(0, 1)
 
-		const chefCherry_2 = await this.addTestImage(chefCherryFrame, 200, 0)
-		chefCherry_2?.setAngle(45)
-		chefCherry_2?.setName(this.getNewObjectName(this.editContexts.current!, chefCherry_2!, 'chefCherry'))
-
+		const chefCherry_5 = await this.addTestImage(chefCherryFrame, 0, 800)
+		chefCherry_5?.setName(this.getNewObjectName(this.editContexts.current!, chefCherry_5!, 'chefCherry_center'))
+		chefCherry_5?.setOrigin(0.5)
+		
 		// const selection = this.editContexts.current!.createSelection([chefCherry_1!, chefCherry_2!])
 		// const group_1 = this.group(selection, this.editContexts.current!)
 		

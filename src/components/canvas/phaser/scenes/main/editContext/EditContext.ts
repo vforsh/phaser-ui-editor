@@ -377,6 +377,11 @@ export class EditContext extends TypedEventEmitter<Events> {
 	private addTransformControls() {
 		this.transformControls = new TransformControls(this.scene, {
 			logger: this.logger.getSubLogger({ name: ':transform' }),
+			originKnob: {
+				radius: 8,
+				lineThickness: 4,
+				lineColor: 0x0c8ce8,
+			},
 			resizeBorders: {
 				thickness: 2,
 				color: 0x0c8ce8,
