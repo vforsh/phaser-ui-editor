@@ -86,6 +86,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 
 	private destroyController = new AbortController()
 	private debugGraphics: Phaser.GameObjects.Graphics | null = null
+	public objectsUnderSelectionRect: Selectable[] = []
 
 	constructor(options: EditContextOptions) {
 		super()
@@ -201,7 +202,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 
 	private processSelectionRectHover(): void {
 		// TODO there are way too much allocations here, need to find a better solution
-		const selectablesUnderSelectionRect = this.selectables.filter((selectable) => {
+		this.objectsUnderSelectionRect = this.selectables.filter((selectable) => {
 			const globalOrigin = selectable.getWorldPosition()
 			const left = globalOrigin.x - selectable.displayWidth * selectable.originX
 			const right = globalOrigin.x + selectable.displayWidth * (1 - selectable.originX)
@@ -212,19 +213,19 @@ export class EditContext extends TypedEventEmitter<Events> {
 			const topRight = new Phaser.Math.Vector2(right, top)
 			const bottomLeft = new Phaser.Math.Vector2(left, bottom)
 			const bottomRight = new Phaser.Math.Vector2(right, bottom)
-			const points = [topLeft, topRight, bottomLeft, bottomRight]
+			const points = [topLeft, topRight, bottomRight, bottomLeft]
 
 			// TODO check if aabb intersects at first
 			// if not, return false
 			// if yes, continue with polygon intersection check
 
 			// account for rotation
-			const angle = Phaser.Math.DegToRad(selectable.angle)
+			const angleRad = selectable.rotation
 			points.forEach((point) => {
 				const dx = point.x - globalOrigin.x
 				const dy = point.y - globalOrigin.y
-				point.x = globalOrigin.x + (dx * Math.cos(angle) - dy * Math.sin(angle))
-				point.y = globalOrigin.y + (dx * Math.sin(angle) + dy * Math.cos(angle))
+				point.x = globalOrigin.x + (dx * Math.cos(angleRad) - dy * Math.sin(angleRad))
+				point.y = globalOrigin.y + (dx * Math.sin(angleRad) + dy * Math.cos(angleRad))
 			})
 
 			// create a polygon from the points
@@ -236,7 +237,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.hoverRects.forEach((rect) => rect.kill())
 
 		// display hover rects for selectables under selection rect
-		selectablesUnderSelectionRect.forEach((selectable) => {
+		this.objectsUnderSelectionRect.forEach((selectable) => {
 			const hoverRect = this.getOrCreateHoverRect()
 			hoverRect.adjustTo(selectable)
 			hoverRect.revive()
@@ -431,6 +432,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 	private addDebugGraphics() {
 		// TODO remove later
 		this.debugGraphics = this.scene.add.graphics()
+		this.debugGraphics.setName('debug-graphics')
 		this.debugGraphics.fillStyle(0xff0000, 0.5)
 		this.debugGraphics.fillRect(0, 0, 100, 100)
 		this.debugGraphics.kill()
@@ -693,6 +695,8 @@ export class EditContext extends TypedEventEmitter<Events> {
 		super.destroy()
 
 		this.destroyController.abort()
+
+		this.objectsUnderSelectionRect.length = 0
 
 		this.hoverRects.length = 0
 
