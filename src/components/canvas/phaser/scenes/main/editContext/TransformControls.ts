@@ -5,7 +5,7 @@ import { ReadonlyDeep } from 'type-fest'
 import { CssCursor } from '../../../../../../utils/CssCursor'
 import { signalFromEvent } from '../../../robowhale/utils/events/create-abort-signal-from-event'
 import { Selection } from './Selection'
-import { Transformable } from './Transformable'
+import { canChangeOrigin, Transformable } from './Transformable'
 
 type Events = {
 	'transform-start': (type: 'rotate' | 'resize' | 'origin') => void
@@ -57,7 +57,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	private topRightKnob!: Phaser.GameObjects.Image
 	private bottomLeftKnob!: Phaser.GameObjects.Image
 	private bottomRightKnob!: Phaser.GameObjects.Image
-	
+
 	private readonly rotateKnobTexture = 'rotate-knob'
 	private topLeftRotateKnob!: Phaser.GameObjects.Image
 	private topRightRotateKnob!: Phaser.GameObjects.Image
@@ -317,16 +317,11 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		const pointerPos = { x: pointer.worldX, y: pointer.worldY }
 
 		const selectedTransforms = new Map<
-			Phaser.GameObjects.Image,
+			Transformable,
 			{ width: number; height: number; originX: number; originY: number; aspectRatio: number }
 		>()
 
 		selection.objects.forEach((obj) => {
-			// TODO handle non-image objects
-			if (!(obj instanceof Phaser.GameObjects.Image)) {
-				return
-			}
-
 			const currentOrigin = [obj.originX, obj.originY]
 
 			const newOrigin = match(knobType)
@@ -339,9 +334,11 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			const offsetX = obj.displayWidth * (newOrigin[0] - currentOrigin[0])
 			const offsetY = obj.displayHeight * (newOrigin[1] - currentOrigin[1])
 
-			obj.setOrigin(...newOrigin)
-			obj.x += offsetX
-			obj.y += offsetY
+			if (canChangeOrigin(obj)) {
+				obj.setOrigin(newOrigin[0], newOrigin[1])
+				obj.x += offsetX
+				obj.y += offsetY
+			}
 
 			selectedTransforms.set(obj, {
 				width: obj.displayWidth,
@@ -389,9 +386,12 @@ export class TransformControls extends Phaser.GameObjects.Container {
 					const currentOriginY = obj.originY
 					const offsetX = obj.displayWidth * (newOriginX - currentOriginX)
 					const offsetY = obj.displayHeight * (newOriginY - currentOriginY)
-					obj.setOrigin(newOriginX, newOriginY)
-					obj.x += offsetX
-					obj.y += offsetY
+
+					if (canChangeOrigin(obj)) {
+						obj.setOrigin(newOriginX, newOriginY)
+						obj.x += offsetX
+						obj.y += offsetY
+					}
 				})
 
 				this.events.emit('transform-end', 'resize')

@@ -23,10 +23,10 @@ import { EditContext, isSelectable, shouldIgnoreObject } from './editContext/Edi
 import { EditContextsManager } from './editContext/EditContextsManager'
 import { Selection } from './editContext/Selection'
 import { calculateBounds } from './editContext/Transformable'
+import { TransformControls } from './editContext/TransformControls'
 import { isSerializableGameObject, ObjectsFactory, SerializableGameObject } from './factory/ObjectsFactory'
 import { Grid } from './Grid'
 import { Rulers } from './Rulers'
-import { TransformControls } from './editContext/TransformControls'
 
 export type MainSceneInitData = {
 	project: Project
@@ -111,7 +111,7 @@ export class MainScene extends BaseScene {
 		this.alignCameraToProjectFrame()
 
 		this.setupAppCommands()
-		
+
 		this.addTestImages()
 
 		const zoom = urlParams.getNumber('zoom')
@@ -152,7 +152,7 @@ export class MainScene extends BaseScene {
 		// this.projectSizeFrame.fillStyle(0x2f0559, 0.25)
 		// this.projectSizeFrame.fillRect(0, 0, size.width, size.height)
 	}
-	
+
 	private async addTestImages(): Promise<void> {
 		const chefCherryFrame = {
 			type: 'spritesheet-frame',
@@ -170,16 +170,18 @@ export class MainScene extends BaseScene {
 		const chefCherry_1 = await this.addTestImage(chefCherryFrame, -400, -400)
 		chefCherry_1?.setName(this.getNewObjectName(this.editContexts.current!, chefCherry_1!, 'chefCherry_topLeft'))
 		chefCherry_1?.setOrigin(0)
-		
+
 		const chefCherry_3 = await this.addTestImage(chefCherryFrame, 400, -400)
 		chefCherry_3?.setName(this.getNewObjectName(this.editContexts.current!, chefCherry_3!, 'chefCherry_topRight'))
 		chefCherry_3?.setOrigin(1, 0)
-		
+
 		const chefCherry_2 = await this.addTestImage(chefCherryFrame, 400, 500)
 		// chefCherry_2?.setAngle(45)
-		chefCherry_2?.setName(this.getNewObjectName(this.editContexts.current!, chefCherry_2!, 'chefCherry_bottomRight'))
+		chefCherry_2?.setName(
+			this.getNewObjectName(this.editContexts.current!, chefCherry_2!, 'chefCherry_bottomRight')
+		)
 		chefCherry_2?.setOrigin(1)
-		
+
 		const chefCherry_4 = await this.addTestImage(chefCherryFrame, -400, 500)
 		chefCherry_4?.setName(this.getNewObjectName(this.editContexts.current!, chefCherry_4!, 'chefCherry_bottomLeft'))
 		chefCherry_4?.setOrigin(0, 1)
@@ -187,10 +189,10 @@ export class MainScene extends BaseScene {
 		const chefCherry_5 = await this.addTestImage(chefCherryFrame, 0, 800)
 		chefCherry_5?.setName(this.getNewObjectName(this.editContexts.current!, chefCherry_5!, 'chefCherry_center'))
 		chefCherry_5?.setOrigin(0.5)
-		
+
 		// const selection = this.editContexts.current!.createSelection([chefCherry_1!, chefCherry_2!])
 		// const group_1 = this.group(selection, this.editContexts.current!)
-		
+
 		// if (isSerializableGameObject(group_1)) {
 		// 	const group_2 = this.objectsFactory.clone(group_1)
 		// 	group_2.setPosition(group_1.x + 0, group_1.y + 500)
@@ -404,7 +406,7 @@ export class MainScene extends BaseScene {
 	private group(selection: Selection, editContext: EditContext): EventfulContainer {
 		const group = this.make.eventfulContainer()
 		group.name = this.getNewObjectName(editContext, group)
-		group.setPosition(selection.x + selection.width / 2, selection.y + selection.height / 2)
+		group.setPosition(selection.x, selection.y)
 		group.setSize(selection.width, selection.height)
 		this.root.add(group)
 
@@ -594,7 +596,7 @@ export class MainScene extends BaseScene {
 					// this.logger.debug('clicked on transform control')
 					return
 				}
-				
+
 				const context = this.editContexts.current!
 				if (!context) {
 					return
@@ -622,7 +624,7 @@ export class MainScene extends BaseScene {
 				if (!wasProcessedBySelection) {
 					context.cancelSelection()
 				}
-				
+
 				const msSinceLastClick = Date.now() - (this.sceneClickedAt ?? 0)
 				if (msSinceLastClick < 200) {
 					this.editContexts.switchTo(this.root)
@@ -650,7 +652,7 @@ export class MainScene extends BaseScene {
 			selection.setHoverMode('selection-rect')
 			setupWasCalled = true
 		})
-		
+
 		this.input.on(
 			Phaser.Input.Events.POINTER_MOVE,
 			(pointer: Phaser.Input.Pointer) => {

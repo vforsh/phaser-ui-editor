@@ -36,3 +36,11 @@ export function calculateBounds(objects: Transformable[], rect?: Phaser.Geom.Rec
 
 	return new Phaser.Geom.Rectangle(left, top, right - left, bottom - top)
 }
+
+export type TransformableOrigin = Transformable & {
+	setOrigin: (x: number, y: number) => void
+}
+
+export function canChangeOrigin(obj: Transformable): obj is TransformableOrigin {
+	return 'setOrigin' in obj && typeof obj.setOrigin === 'function'
+}
