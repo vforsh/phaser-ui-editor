@@ -447,32 +447,31 @@ export class TransformControls extends Phaser.GameObjects.Container {
 
 	private addOriginKnob() {
 		const textureKey = this.createOriginKnobTexture('origin-knob')
-		
 		this.originKnob = this.scene.add.image(0, 0, textureKey)
 		this.originKnob.name = 'origin-knob'
 		this.originKnob.setOrigin(0.5, 0.5)
 		this.innerContainer.add(this.originKnob)
 	}
-	
+
 	private createOriginKnobTexture(textureKey: string) {
 		// TODO use x2 resolution for the knob texture bc it looks blurry with the default resolution
 
 		const { radius, lineThickness, lineColor } = this.options.originKnob
 		const centerX = radius + lineThickness
 		const centerY = centerX
-		
+
 		const graphics = this.scene.make.graphics()
 		graphics.fillStyle(0xffffff, 1)
 		graphics.fillCircle(centerX, centerY, radius)
-		
+
 		graphics.lineStyle(lineThickness, lineColor, 1)
 		graphics.strokeCircle(centerX, centerY, radius)
-		
+
 		// draw cross in the center of the knob
 		// graphics.lineStyle(lineThickness * 0.75, lineColor, 1)
 		// graphics.lineBetween(centerX, centerY - radius, centerX, centerY + radius)
 		// graphics.lineBetween(centerX - radius, centerY, centerX + radius, centerY)
-		
+
 		const width = (radius + lineThickness) * 2
 		const height = width
 		graphics.generateTexture(textureKey, width, height)
