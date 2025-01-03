@@ -590,6 +590,13 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	private adjustToSelection(selection: Selection): void {
+		this.originKnob.visible = selection.objects.length === 1
+		if (this.originKnob.visible) {
+			const obj = selection.objects[0]
+			const { originX, originY } = obj
+			this.originKnob.setPosition(obj.displayWidth * originX, obj.displayHeight * originY)
+		}
+
 		this.adjustToSelectionSize(selection)
 		this.adjustToSelectionOrigin(selection)
 		this.adjustToSelectionAngle(selection)
