@@ -30,8 +30,7 @@ export function calculateBounds(objects: Transformable[], rect?: Phaser.Geom.Rec
 	}, -Infinity)
 
 	if (rect) {
-		rect.setTo(left, top, right - left, bottom - top)
-		return rect
+		return rect.setTo(left, top, right - left, bottom - top)
 	}
 
 	return new Phaser.Geom.Rectangle(left, top, right - left, bottom - top)

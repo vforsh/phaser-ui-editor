@@ -339,22 +339,20 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		selection.objects.forEach((obj) => {
 			const currentOrigin = [obj.originX, obj.originY]
 
-			const offsetX = obj.displayWidth * (newOrigin[0] - currentOrigin[0])
-			const offsetY = obj.displayHeight * (newOrigin[1] - currentOrigin[1])
-
 			if (canChangeOrigin(obj)) {
+				const offsetX = obj.displayWidth * (newOrigin[0] - currentOrigin[0])
+				const offsetY = obj.displayHeight * (newOrigin[1] - currentOrigin[1])
+				const angleRad = obj.angle * Phaser.Math.DEG_TO_RAD
 				obj.setOrigin(newOrigin[0], newOrigin[1])
-				obj.x += offsetX
-				obj.y += offsetY
+				obj.x += offsetX * Math.cos(angleRad) - offsetY * Math.sin(angleRad)
+				obj.y += offsetX * Math.sin(angleRad) + offsetY * Math.cos(angleRad)
 			}
 
 			// TODO move to EditableContainer
 			if (obj instanceof Phaser.GameObjects.Container) {
-				// manually set container origin to the new origin
-				const w = obj.displayWidth
-				const h = obj.displayHeight
-				const childOffsetX = -w * (newOrigin[0] - 0.5)
-				const childOffsetY = -h * (newOrigin[1] - 0.5)
+				// manually set container origin by moving its children
+				const childOffsetX = -obj.displayWidth * (newOrigin[0] - 0.5)
+				const childOffsetY = -obj.displayHeight * (newOrigin[1] - 0.5)
 				obj.list.forEach((child) => {
 					if ('setPosition' in child && typeof child.setPosition === 'function') {
 						// @ts-expect-error
@@ -419,35 +417,36 @@ export class TransformControls extends Phaser.GameObjects.Container {
 
 				// restore the origins
 				selectedTransforms.forEach((transform, obj) => {
-					const newOriginX = transform.originX
-					const newOriginY = transform.originY
-					const currentOriginX = obj.originX
-					const currentOriginY = obj.originY
-					const offsetX = obj.displayWidth * (newOriginX - currentOriginX)
-					const offsetY = obj.displayHeight * (newOriginY - currentOriginY)
-
 					if (canChangeOrigin(obj)) {
-						obj.setOrigin(newOriginX, newOriginY)
-						obj.x += offsetX
-						obj.y += offsetY
+						const originalOriginX = transform.originX
+						const originalOriginY = transform.originY
+						const offsetX = obj.displayWidth * (originalOriginX - obj.originX)
+						const offsetY = obj.displayHeight * (originalOriginY - obj.originY)
+						const angleRad = obj.angle * Phaser.Math.DEG_TO_RAD
+						obj.setOrigin(originalOriginX, originalOriginY)
+						obj.x += offsetX * Math.cos(angleRad) - offsetY * Math.sin(angleRad)
+						obj.y += offsetX * Math.sin(angleRad) + offsetY * Math.cos(angleRad)
 					}
 
 					// TODO move to EditableContainer
 					if (obj instanceof Phaser.GameObjects.Container) {
+						// manually restore container origin by moving children back to their original positions
 						obj.list.forEach((child) => {
 							const originalPosition = child.getData('originalPosition')
 							// @ts-expect-error
 							child.setPosition(originalPosition.x, originalPosition.y)
 						})
 
-						const offsetX = obj.displayWidth * (0.5 - newOrigin[0])
-						const offsetY = obj.displayHeight * (0.5 - newOrigin[1])
+						const originalOriginX = 0.5
+						const originalOriginY = 0.5
+						const offsetX = obj.displayWidth * (originalOriginX - obj.getData('originX'))
+						const offsetY = obj.displayHeight * (originalOriginY - obj.getData('originY'))
 						const angleRad = obj.angle * Phaser.Math.DEG_TO_RAD
 						obj.x += offsetX * Math.cos(angleRad) - offsetY * Math.sin(angleRad)
 						obj.y += offsetX * Math.sin(angleRad) + offsetY * Math.cos(angleRad)
 
-						obj.setData('originX', 0.5)
-						obj.setData('originY', 0.5)
+						obj.setData('originX', originalOriginX)
+						obj.setData('originY', originalOriginY)
 					}
 				})
 
