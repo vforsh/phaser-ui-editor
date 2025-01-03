@@ -31,7 +31,7 @@ export type MainSceneInitData = {
 }
 
 type SelectionDragData = {
-	obj: Selection
+	target: Selection
 	// initial position of the selection
 	currentX: number
 	currentY: number
@@ -175,10 +175,10 @@ export class MainScene extends BaseScene {
 		// chefCherry_2?.setName(this.getNewObjectName(context, chefCherry_2!, 'chefCherry_topRight'))
 		// chefCherry_2?.setOrigin(1, 0)
 
-		const chefCherry_3 = await this.addTestImage(chefCherryFrame, 400, 200)
+		const chefCherry_3 = await this.addTestImage(chefCherryFrame, -100, -100)
 		chefCherry_3?.setName(this.getNewObjectName(context, chefCherry_3!, 'chefCherry_bottomRight'))
 		chefCherry_3?.setOrigin(1)
-		chefCherry_3?.setAngle(-135)
+		chefCherry_3?.setAngle(-180)
 
 		// const chefCherry_4 = await this.addTestImage(chefCherryFrame, -400, 500)
 		// chefCherry_4?.setName(this.getNewObjectName(context, chefCherry_4!, 'chefCherry_bottomLeft'))
@@ -599,44 +599,46 @@ export class MainScene extends BaseScene {
 		this.input.on(Phaser.Input.Events.GAME_OUT, this.onPointerGameOut, this, this.shutdownSignal)
 	}
 
-	private onPointerDown(pointer: Phaser.Input.Pointer, objects: Phaser.GameObjects.GameObject[]): void {
+	private onPointerDown(pointer: Phaser.Input.Pointer, objectsUnderPointer: Phaser.GameObjects.GameObject[]): void {
 		const buttonType = this.getButtonType(pointer)
-
+		
 		match(buttonType)
 			.with('left', () => {
-				const clickedOnTransformControl = objects.some((obj) => obj.getData(TransformControls.TAG))
+				const clickedOnTransformControl = objectsUnderPointer.some((obj) => obj.getData(TransformControls.TAG))
 				if (clickedOnTransformControl) {
 					// this.logger.debug('clicked on transform control')
 					return
 				}
-
+				
 				const context = this.editContexts.current!
 				if (!context) {
 					return
 				}
-
-				const selected = context.selection
-				if (selected && selected.bounds.contains(pointer.worldX, pointer.worldY)) {
-					this.startSelectionDrag(selected, pointer, context)
+				
+				const selection = context.selection
+				if (selection && selection.bounds.contains(pointer.worldX, pointer.worldY)) {
+					this.startSelectionDrag(selection, pointer, context)
 					return
 				}
 
-				objects.some((obj) => {
+				objectsUnderPointer.some((obj) => {
 					if (context.isRegistered(obj) && context.selection?.includes(obj)) {
 						this.startSelectionDrag(context.selection, pointer, context)
 						return true
 					}
 				})
 
-				const wasProcessedBySelection = objects.some((obj) => {
+				const wasProcessedByContext = objectsUnderPointer.some((obj) => {
 					if (context.isRegistered(obj)) {
 						return true
 					}
 				})
-
-				if (!wasProcessedBySelection) {
-					context.cancelSelection()
+				
+				if (wasProcessedByContext) {
+					return
 				}
+
+				context.cancelSelection()
 
 				const msSinceLastClick = Date.now() - (this.sceneClickedAt ?? 0)
 				if (msSinceLastClick < 200) {
@@ -747,7 +749,7 @@ export class MainScene extends BaseScene {
 		const camera = this.cameras.main
 		const { x, y } = pointer.positionToCamera(camera) as Phaser.Math.Vector2
 		this.selectionDrag = {
-			obj: selected,
+			target: selected,
 			currentX: selected.x,
 			currentY: selected.y,
 			offsetX: selected.x - x,
@@ -763,7 +765,7 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		selection.onDragEnd(this.selectionDrag.obj)
+		selection.onDragEnd(this.selectionDrag.target)
 
 		this.selectionDrag = undefined
 	}
@@ -785,18 +787,18 @@ export class MainScene extends BaseScene {
 			const { x, y } = pointer.positionToCamera(camera) as Phaser.Math.Vector2
 
 			if (this.selectionDrag.lockAxis === 'x') {
-				this.selectionDrag.obj.move(x + this.selectionDrag.offsetX - this.selectionDrag.currentX, 0)
+				this.selectionDrag.target.move(x + this.selectionDrag.offsetX - this.selectionDrag.currentX, 0)
 			} else if (this.selectionDrag.lockAxis === 'y') {
-				this.selectionDrag.obj.move(0, y + this.selectionDrag.offsetY - this.selectionDrag.currentY)
+				this.selectionDrag.target.move(0, y + this.selectionDrag.offsetY - this.selectionDrag.currentY)
 			} else {
-				this.selectionDrag.obj.move(
+				this.selectionDrag.target.move(
 					x + this.selectionDrag.offsetX - this.selectionDrag.currentX,
 					y + this.selectionDrag.offsetY - this.selectionDrag.currentY
 				)
 			}
 
-			this.selectionDrag.currentX = this.selectionDrag.obj.x
-			this.selectionDrag.currentY = this.selectionDrag.obj.y
+			this.selectionDrag.currentX = this.selectionDrag.target.x
+			this.selectionDrag.currentY = this.selectionDrag.target.y
 		}
 	}
 
