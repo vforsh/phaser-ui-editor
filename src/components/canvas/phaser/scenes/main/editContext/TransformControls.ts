@@ -57,7 +57,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	private topRightKnob!: Phaser.GameObjects.Image
 	private bottomLeftKnob!: Phaser.GameObjects.Image
 	private bottomRightKnob!: Phaser.GameObjects.Image
-
+	
 	private readonly rotateKnobTexture = 'rotate-knob'
 	private topLeftRotateKnob!: Phaser.GameObjects.Image
 	private topRightRotateKnob!: Phaser.GameObjects.Image
@@ -138,12 +138,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			knob.input!.cursor = 'grab' satisfies CssCursor
 			// knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => knob.setAlpha(0.1), this, destroySignal)
 			// knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => knob.setAlpha(0.001), this, destroySignal)
-			knob.on(
-				Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN,
-				this.onRotateKnobPointerDown.bind(this, knob),
-				this,
-				this.destroySignal
-			)
+			knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.rotate.bind(this, knob), this, this.destroySignal)
 		})
 
 		// Add the RESIZE knobs
@@ -172,12 +167,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 				this,
 				this.destroySignal
 			)
-			knob.on(
-				Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN,
-				this.onResizeKnobPointerDown.bind(this, knob),
-				this,
-				this.destroySignal
-			)
+			knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.resize.bind(this, knob), this, this.destroySignal)
 			knob.setScale(1 / this.options.resizeKnobs.resolution)
 			knob.setTintFill(this.options.resizeKnobs.fillColor)
 		})
@@ -192,7 +182,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		originKnob.input!.cursor = 'move' satisfies CssCursor
 		originKnob.on(
 			Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN,
-			this.onOriginKnobPointerDown,
+			this.changeOrigin,
 			this,
 			this.destroySignal
 		)
@@ -219,18 +209,17 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		console.log('BORDER CLICK', pointer, x, y)
 	}
 
-	private onOriginKnobPointerDown(pointer: Phaser.Input.Pointer, x: number, y: number) {
+	private changeOrigin(pointer: Phaser.Input.Pointer, x: number, y: number) {
 		console.log('ORIGIN CLICK', pointer, x, y)
 
 		// TODO allow to move the origin knob and change the origin of the selection
 	}
 
-	private onRotateKnobPointerDown(
-		knob: Phaser.GameObjects.Image,
-		pointer: Phaser.Input.Pointer,
-		x: number,
-		y: number
-	) {
+	/**
+	 * As of now rotation is done separately for each object in the selection.
+	 * @note Hold SHIFT to change rotation in 15 degrees increments.
+	 */
+	private rotate(knob: Phaser.GameObjects.Image, pointer: Phaser.Input.Pointer, x: number, y: number) {
 		const selection = this.targetSelection
 		if (!selection) {
 			return
@@ -299,12 +288,11 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		)
 	}
 
-	private onResizeKnobPointerDown(
-		knob: Phaser.GameObjects.Image,
-		pointer: Phaser.Input.Pointer,
-		x: number,
-		y: number
-	) {
+	/**
+	 * As of now resizing is done separately for each object in the selection.
+	 * @note Hold SHIFT to keep the aspect ratio.
+	 */
+	private resize(knob: Phaser.GameObjects.Image, pointer: Phaser.Input.Pointer, x: number, y: number) {
 		const selection = this.targetSelection
 		if (!selection) {
 			return
@@ -589,13 +577,6 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	private adjustToSelection(selection: Selection): void {
-		this.originKnob.visible = selection.objects.length === 1
-		if (this.originKnob.visible) {
-			const obj = selection.objects[0]
-			const { originX, originY } = obj
-			this.originKnob.setPosition(obj.displayWidth * originX, obj.displayHeight * originY)
-		}
-
 		this.adjustToSelectionSize(selection)
 		this.adjustToSelectionOrigin(selection)
 		this.adjustToSelectionAngle(selection)
@@ -656,12 +637,11 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	private adjustToSelectionOrigin(selection: Selection): void {
-		const { left, right, top, bottom } = selection.bounds
-		const width = right - left
-		const height = bottom - top
-		const centerX = width / 2
-		const centerY = height / 2
-		this.innerContainer.setPosition(-centerX, -centerY)
+		const { originX, originY, width, height } = selection
+		const offsetX = -width * originX
+		const offsetY = -height * originY
+		this.innerContainer.setPosition(offsetX, offsetY)
+		this.originKnob.setPosition(width * originX, height * originY)
 	}
 
 	private adjustToSelectionAngle(selection: Selection): void {
@@ -675,6 +655,12 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	private adjustToSelectionPosition(selection: Selection): void {
+		if (selection.objects.length === 1) {
+			const obj = selection.objects[0]
+			this.setPosition(obj.x, obj.y)
+			return
+		}
+
 		const { left, right, top, bottom } = selection.bounds
 		const width = right - left
 		const height = bottom - top

@@ -17,6 +17,8 @@ type Events = {
 export class Selection extends TypedEventEmitter<Events> {
 	public objects: Transformable[]
 	private _bounds: Phaser.Geom.Rectangle
+	private _originX = 0.5
+	private _originY = 0.5
 
 	constructor(objects: Transformable[]) {
 		super()
@@ -24,6 +26,8 @@ export class Selection extends TypedEventEmitter<Events> {
 		this.objects = objects
 
 		this._bounds = this.updateBounds()
+
+		this.onObjectsChanged()
 	}
 
 	public add(object: Transformable): void {
@@ -33,6 +37,7 @@ export class Selection extends TypedEventEmitter<Events> {
 
 		this.objects.push(object)
 		this._bounds = this.updateBounds()
+		this.onObjectsChanged()
 
 		this.emit('changed', 'add', object)
 	}
@@ -49,7 +54,7 @@ export class Selection extends TypedEventEmitter<Events> {
 
 		this.objects = this.objects.filter((o) => o !== object)
 		this._bounds = this.updateBounds()
-
+		this.onObjectsChanged()
 		this.emit('changed', 'remove', object)
 
 		if (this.isEmpty) {
@@ -58,6 +63,17 @@ export class Selection extends TypedEventEmitter<Events> {
 		}
 
 		return false
+	}
+
+	private onObjectsChanged(): void {
+		if (this.objects.length === 1) {
+			const obj = this.objects[0]
+			this._originX = obj.originX
+			this._originY = obj.originY
+		} else {
+			this._originX = 0.5
+			this._originY = 0.5
+		}
 	}
 
 	public includes(object: Transformable): boolean {
@@ -92,12 +108,26 @@ export class Selection extends TypedEventEmitter<Events> {
 		this.objects.length = 0
 	}
 
+	/**
+	 * The x-coordinate of the selection with respect to the origin.
+	 */
 	public get x(): number {
-		return this._bounds.x
+		return this._bounds.left + this._originX * this._bounds.width
+	}
+	
+	/**
+	 * The y-coordinate of the selection with respect to the origin.
+	 */
+	public get y(): number {
+		return this._bounds.top + this._originY * this._bounds.height
 	}
 
-	public get y(): number {
-		return this._bounds.y
+	public get centerX(): number {
+		return this._bounds.centerX
+	}
+
+	public get centerY(): number {
+		return this._bounds.centerY
 	}
 
 	public get width(): number {
@@ -112,6 +142,9 @@ export class Selection extends TypedEventEmitter<Events> {
 		return this.size === 0
 	}
 
+	/**
+	 * The number of objects in the selection.
+	 */
 	public get size(): number {
 		return this.objects.length
 	}
@@ -119,4 +152,20 @@ export class Selection extends TypedEventEmitter<Events> {
 	public get bounds(): ReadonlyDeep<Phaser.Geom.Rectangle> {
 		return this._bounds
 	}
+
+	public get originX(): number {
+		return this._originX
+	}
+
+	// public set originX(value: number) {
+	// this._originX = value
+	// }
+
+	public get originY(): number {
+		return this._originY
+	}
+
+	// public set originY(value: number) {
+	// this._originY = value
+	// }
 }
