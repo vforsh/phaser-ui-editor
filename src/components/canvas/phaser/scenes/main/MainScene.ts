@@ -175,19 +175,22 @@ export class MainScene extends BaseScene {
 		chefCherry_2?.setName(this.getNewObjectName(context, chefCherry_2!, 'chefCherry_topRight'))
 		chefCherry_2?.setOrigin(1, 0)
 
-		// const chefCherry_3 = await this.addTestImage(chefCherryFrame, 400, 500)
-		// chefCherry_3?.setName(this.getNewObjectName(context, chefCherry_3!, 'chefCherry_bottomRight'))
-		// chefCherry_3?.setOrigin(1)
-
-		// const chefCherry_4 = await this.addTestImage(chefCherryFrame, -400, 500)
-		// chefCherry_4?.setName(this.getNewObjectName(context, chefCherry_4!, 'chefCherry_bottomLeft'))
-		// chefCherry_4?.setOrigin(0, 1)
-
+		const chefCherry_3 = await this.addTestImage(chefCherryFrame, 400, 500)
+		chefCherry_3?.setName(this.getNewObjectName(context, chefCherry_3!, 'chefCherry_bottomRight'))
+		chefCherry_3?.setOrigin(1)
+		
+		const chefCherry_4 = await this.addTestImage(chefCherryFrame, -400, 500)
+		chefCherry_4?.setName(this.getNewObjectName(context, chefCherry_4!, 'chefCherry_bottomLeft'))
+		chefCherry_4?.setOrigin(0, 1)
+		
 		const selection_1 = context.createSelection([chefCherry_1!, chefCherry_2!])
 		const group_1 = this.group(selection_1, context)
+		
+		const selection_2 = context.createSelection([chefCherry_3!, chefCherry_4!])
+		const group_2 = this.group(selection_2, context)
 
-		// const selection_2 = context.createSelection([chefCherry_3!, chefCherry_4!])
-		// this.group(selection_2, context)
+		const selection_3 = context.createSelection([group_1, group_2])
+		const group_3 = this.group(selection_3, context)
 
 		// const chefCherry_5 = await this.addTestImage(chefCherryFrame, 0, 800)
 		// chefCherry_5?.setName(this.getNewObjectName(context, chefCherry_5!, 'chefCherry_center'))
