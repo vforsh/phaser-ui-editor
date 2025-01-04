@@ -76,13 +76,16 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 	}
 
 	public remove(container: EventfulContainer) {
-		if (!this.contexts.has(container)) {
+		const editContext = this.contexts.get(container)
+		if (!editContext) {
 			return
 		}
 
 		// TODO handle removal of active context
 
 		container.removeByContext(this)
+		
+		editContext.onRemove()
 
 		this.logger.debug(`removed edit context for '${container.name}'`)
 

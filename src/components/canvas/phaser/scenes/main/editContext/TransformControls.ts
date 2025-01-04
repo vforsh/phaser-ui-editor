@@ -8,6 +8,8 @@ import { Selection } from './Selection'
 import { canChangeOrigin, Transformable } from './Transformable'
 
 type Events = {
+	'start-follow': (selection: Selection) => void
+	'stop-follow': (selectionContent: string) => void
 	'transform-start': (type: 'rotate' | 'resize' | 'origin') => void
 	'transform-end': (type: 'rotate' | 'resize' | 'origin') => void
 }
@@ -627,6 +629,10 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	public startFollow(selection: Selection) {
+		if (this.targetSelection === selection) {
+			return
+		}
+
 		this.adjustToSelection(selection)
 
 		this.targetSelection = selection
@@ -634,7 +640,20 @@ export class TransformControls extends Phaser.GameObjects.Container {
 
 		this.revive()
 
-		this.emit('start-follow', selection)
+		this.events.emit('start-follow', selection)
+	}
+
+	public stopFollow() {
+		if (!this.targetSelection) {
+			return
+		}
+
+		const selectionContent = this.targetSelection.contentAsString
+		this.targetSelection = null
+
+		this.kill()
+
+		this.events.emit('stop-follow', selectionContent)
 	}
 
 	private adjustToSelection(selection: Selection): void {
@@ -717,11 +736,6 @@ export class TransformControls extends Phaser.GameObjects.Container {
 
 	private adjustToSelectionPosition(selection: Selection): void {
 		this.setPosition(selection.x, selection.y)
-	}
-
-	public stopFollow() {
-		this.targetSelection = null
-		this.kill()
 	}
 
 	private onUpdate(time: number, deltaMs: number): void {

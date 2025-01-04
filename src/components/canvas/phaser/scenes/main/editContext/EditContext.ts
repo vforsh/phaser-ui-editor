@@ -403,9 +403,21 @@ export class EditContext extends TypedEventEmitter<Events> {
 			},
 		})
 
-		this.transformControls.on(
+		this.transformControls.events.on(
 			'start-follow',
-			() => this.target.bringToTop(this.transformControls),
+			(selection: Selection) => {
+				this.target.bringToTop(this.transformControls)
+				this.logger.debug(`transform controls started following '${selection.contentAsString}'`)
+			},
+			this,
+			this.destroySignal
+		)
+
+		this.transformControls.events.on(
+			'stop-follow',
+			(selectionContent: string) => {
+				this.logger.debug(`transform controls stopped following '${selectionContent}'`)
+			},
 			this,
 			this.destroySignal
 		)
@@ -681,6 +693,11 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.updateTargetBounds(this.savedBounds!)
 		this.savedBounds = undefined
 	}
+
+	/**
+	 * Called when the edit context is removed from the contexts manager.
+	 */
+	public onRemove() {}
 
 	public updateTargetBounds(savedBounds: Phaser.Geom.Rectangle): void {
 		if (this.target.name === 'root') {
