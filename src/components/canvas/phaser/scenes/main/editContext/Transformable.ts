@@ -71,10 +71,15 @@ export function calculateBounds(objects: Transformable[], rect?: Phaser.Geom.Rec
 }
 
 function calculateBoundsSingle(obj: Transformable, rect?: Phaser.Geom.Rectangle): Phaser.Geom.Rectangle {
-	const left = obj.x - (obj.getData('originX') ?? obj.originX) * obj.displayWidth
-	const right = obj.x + (1 - (obj.getData('originX') ?? obj.originX)) * obj.displayWidth
-	const top = obj.y - (obj.getData('originY') ?? obj.originY) * obj.displayHeight
-	const bottom = obj.y + (1 - (obj.getData('originY') ?? obj.originY)) * obj.displayHeight
+	const originX = obj.getData('originX') ?? obj.originX
+	const originY = obj.getData('originY') ?? obj.originY
+	const w = obj.displayWidth
+	const h = obj.displayHeight
+
+	const left = obj.x - originX * w
+	const right = obj.x + (1 - originX) * w
+	const top = obj.y - originY * h
+	const bottom = obj.y + (1 - originY) * h
 
 	if (rect) {
 		return rect.setTo(left, top, right - left, bottom - top)

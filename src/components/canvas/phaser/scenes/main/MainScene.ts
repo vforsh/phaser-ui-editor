@@ -601,7 +601,7 @@ export class MainScene extends BaseScene {
 
 	private onPointerDown(pointer: Phaser.Input.Pointer, objectsUnderPointer: Phaser.GameObjects.GameObject[]): void {
 		const buttonType = this.getButtonType(pointer)
-		
+
 		match(buttonType)
 			.with('left', () => {
 				const clickedOnTransformControl = objectsUnderPointer.some((obj) => obj.getData(TransformControls.TAG))
@@ -609,16 +609,23 @@ export class MainScene extends BaseScene {
 					// this.logger.debug('clicked on transform control')
 					return
 				}
-				
+
 				const context = this.editContexts.current!
 				if (!context) {
 					return
 				}
-				
+
 				const selection = context.selection
-				if (selection && selection.bounds.contains(pointer.worldX, pointer.worldY)) {
-					this.startSelectionDrag(selection, pointer, context)
-					return
+				if (selection) {
+					const startDrag =
+						selection.objects.length === 1
+							? objectsUnderPointer.some((obj) => obj === selection.objects[0])
+							: selection.bounds.contains(pointer.worldX, pointer.worldY)
+
+					if (startDrag) {
+						this.startSelectionDrag(selection, pointer, context)
+						return
+					}
 				}
 
 				objectsUnderPointer.some((obj) => {
@@ -633,7 +640,7 @@ export class MainScene extends BaseScene {
 						return true
 					}
 				})
-				
+
 				if (wasProcessedByContext) {
 					return
 				}
