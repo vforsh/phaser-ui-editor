@@ -167,22 +167,27 @@ export class MainScene extends BaseScene {
 
 		const context = this.editContexts.current!
 
-		// const chefCherry_1 = await this.addTestImage(chefCherryFrame, -400, -400)
-		// chefCherry_1?.setName(this.getNewObjectName(context, chefCherry_1!, 'chefCherry_topLeft'))
-		// chefCherry_1?.setOrigin(0)
+		const chefCherry_1 = await this.addTestImage(chefCherryFrame, -400, -400)
+		chefCherry_1?.setName(this.getNewObjectName(context, chefCherry_1!, 'chefCherry_topLeft'))
+		chefCherry_1?.setOrigin(0)
 
-		// const chefCherry_2 = await this.addTestImage(chefCherryFrame, 400, -400)
-		// chefCherry_2?.setName(this.getNewObjectName(context, chefCherry_2!, 'chefCherry_topRight'))
-		// chefCherry_2?.setOrigin(1, 0)
+		const chefCherry_2 = await this.addTestImage(chefCherryFrame, 400, -400)
+		chefCherry_2?.setName(this.getNewObjectName(context, chefCherry_2!, 'chefCherry_topRight'))
+		chefCherry_2?.setOrigin(1, 0)
 
-		const chefCherry_3 = await this.addTestImage(chefCherryFrame, -100, -100)
-		chefCherry_3?.setName(this.getNewObjectName(context, chefCherry_3!, 'chefCherry_bottomRight'))
-		chefCherry_3?.setOrigin(1)
-		chefCherry_3?.setAngle(-180)
+		// const chefCherry_3 = await this.addTestImage(chefCherryFrame, 400, 500)
+		// chefCherry_3?.setName(this.getNewObjectName(context, chefCherry_3!, 'chefCherry_bottomRight'))
+		// chefCherry_3?.setOrigin(1)
 
 		// const chefCherry_4 = await this.addTestImage(chefCherryFrame, -400, 500)
 		// chefCherry_4?.setName(this.getNewObjectName(context, chefCherry_4!, 'chefCherry_bottomLeft'))
 		// chefCherry_4?.setOrigin(0, 1)
+
+		const selection_1 = context.createSelection([chefCherry_1!, chefCherry_2!])
+		const group_1 = this.group(selection_1, context)
+
+		// const selection_2 = context.createSelection([chefCherry_3!, chefCherry_4!])
+		// this.group(selection_2, context)
 
 		// const chefCherry_5 = await this.addTestImage(chefCherryFrame, 0, 800)
 		// chefCherry_5?.setName(this.getNewObjectName(context, chefCherry_5!, 'chefCherry_center'))
@@ -769,12 +774,12 @@ export class MainScene extends BaseScene {
 		selection.onDragStart(selected)
 	}
 
-	private stopSelectionDrag(selection: EditContext) {
+	private stopSelectionDrag(editContext: EditContext) {
 		if (!this.selectionDrag) {
 			return
 		}
 
-		selection.onDragEnd(this.selectionDrag.target)
+		editContext.onDragEnd(this.selectionDrag.target)
 
 		this.selectionDrag = undefined
 	}

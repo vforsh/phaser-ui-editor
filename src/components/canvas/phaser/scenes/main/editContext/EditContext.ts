@@ -88,6 +88,11 @@ export class EditContext extends TypedEventEmitter<Events> {
 	private debugGraphics: Phaser.GameObjects.Graphics | null = null
 	public objectsUnderSelectionRect: Selectable[] = []
 
+	/**
+	 * Target bounds saved before the edit context was activated.
+	 */
+	private savedBounds: Phaser.Geom.Rectangle | undefined
+
 	constructor(options: EditContextOptions) {
 		super()
 
@@ -653,6 +658,8 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.selectables.forEach((selectable) => {
 			selectable.setInteractive()
 		})
+
+		this.savedBounds = calculateBounds(this.selectables)
 	}
 
 	/**
@@ -671,22 +678,41 @@ export class EditContext extends TypedEventEmitter<Events> {
 			selectable.disableInteractive()
 		})
 
-		// this.updateTargetBounds()
+		this.updateTargetBounds(this.savedBounds!)
+		this.savedBounds = undefined
 	}
 
-	public updateTargetBounds(): void {
+	public updateTargetBounds(savedBounds: Phaser.Geom.Rectangle): void {
 		if (this.target.name === 'root') {
 			return
 		}
 
 		const bounds = calculateBounds(this.selectables)
-		this.target.setSize(bounds.width, bounds.height)
-		// TODO update input hit area
-		this.logger.debug(`updated bounds for '${this.name}': ${bounds.width}x${bounds.height}`)
 
-		// TODO update target bounds on
-		// - children list change
-		// - children transform change (position, scale, rotation)
+		// Calculate the change in center position between old and new bounds
+		const prevCenterX = savedBounds.centerX
+		const prevCenterY = savedBounds.centerY
+		const newCenterX = bounds.centerX
+		const newCenterY = bounds.centerY
+
+		// Calculate the offset needed to maintain positions relative to center
+		const dx = newCenterX - prevCenterX
+		const dy = newCenterY - prevCenterY
+
+		// Adjust all selectables to maintain their positions relative to the new center
+		this.selectables.forEach((child) => {
+			child.x -= dx
+			child.y -= dy
+		})
+
+		// Update the container size and position
+		this.target.input?.hitArea?.setSize(bounds.width, bounds.height)
+		this.target.setSize(bounds.width, bounds.height)
+		this.target.setPosition(this.target.x + dx, this.target.y + dy)
+
+		this.logger.debug(
+			`updated bounds for '${this.name}': ${savedBounds.width}x${savedBounds.height} -> ${bounds.width}x${bounds.height}`
+		)
 	}
 
 	public destroy(): void {
