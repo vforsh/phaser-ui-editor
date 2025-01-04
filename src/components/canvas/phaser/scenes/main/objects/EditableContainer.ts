@@ -1,11 +1,13 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
+import { match } from 'ts-pattern'
+import { EditableImage } from './EditableImage'
 import {
 	CreateEditableObjectJson,
 	EditableObject,
+	EditableObjectClass,
 	EditableObjectJson,
-	getEditableObjectClass,
+	EditableObjectJsonType,
 	IEditableObject,
-	isEditable,
 } from './EditableObject'
 
 type Events = {
@@ -24,7 +26,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		super.addHandler(gameObject)
 
 		if (isEditable(gameObject)) {
-			this.emit('editable-added', gameObject)
+			this.events.emit('editable-added', gameObject)
 		}
 	}
 
@@ -32,7 +34,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		super.removeHandler(gameObject)
 
 		if (isEditable(gameObject)) {
-			this.emit('editable-removed', gameObject)
+			this.events.emit('editable-removed', gameObject)
 		}
 	}
 
@@ -102,3 +104,16 @@ export type EditableContainerJson = CreateEditableObjectJson<{
 	blendMode: string | Phaser.BlendModes | number
 	scale: { x: number; y: number }
 }>
+
+export function isEditable(obj: Phaser.GameObjects.GameObject): obj is EditableObject {
+	// return EDITABLE_CLASSES.some((cls) => obj instanceof cls)
+	return obj instanceof EditableContainer || obj instanceof EditableImage
+}
+
+export function getEditableObjectClass(jsonType: EditableObjectJsonType): EditableObjectClass {
+	return match(jsonType)
+		.returnType<EditableObjectClass>()
+		.with('Container', () => EditableContainer)
+		.with('Image', () => EditableImage)
+		.exhaustive()
+}

@@ -153,19 +153,16 @@ declare module Phaser {
 		type SoundButton = import("../src/components/canvas/phaser/robowhale/phaser3/gameObjects/buttons/SoundButton").SoundButton
 		type MusicButton = import("../src/components/canvas/phaser/robowhale/phaser3/gameObjects/buttons/MusicButton").MusicButton
 		type ComplexButton = import("../src/components/canvas/phaser/robowhale/phaser3/gameObjects/buttons/ComplexButton").ComplexButton
-		type EventfulContainer = import("../src/components/canvas/phaser/robowhale/phaser3/gameObjects/container/EventfulContainer").EventfulContainer
 		
 		interface GameObjectCreator {
 			graphics(config?: object, addToScene?: boolean): Phaser.GameObjects.Graphics
 			image(config: Phaser.Types.GameObjects.GameObjectConfig & { key: string; frame: string }, addToScene?: boolean): Phaser.GameObjects.Image
 			text(config: Phaser.Types.GameObjects.GameObjectConfig & { text?: string; style?: Phaser.Types.GameObjects.Text.TextStyle }, addToScene?: boolean): Phaser.GameObjects.Text
-			eventfulContainer(x?: number, y?: number, children?: Phaser.GameObjects.GameObject[]): EventfulContainer
 		}
 		
 		interface GameObjectFactory {
 			existingMultiple<GO extends Phaser.GameObjects.GameObject>(children: GO[]): GO[]
 			autoSizeText(text: string | string[], style?: Phaser.Types.GameObjects.Text.TextStyle, options?: AutoSizeTextOptions, parent?: Container): AutoSizeText
-			eventfulContainer(x?: number, y?: number, children?: Phaser.GameObjects.GameObject[]): EventfulContainer
 			button(texture: string, frame?: string, parent?: Container): SimpleButton
 			toggleButton(texture: string, frame_1: string, frame_2: string, parent?: Container): ToggleButton
 			soundButton(texture: string, frame_1: string, frame_2: string, parent?: Container): SoundButton

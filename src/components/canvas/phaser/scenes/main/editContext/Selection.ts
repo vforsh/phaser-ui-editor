@@ -1,9 +1,10 @@
 import { ReadonlyDeep } from 'type-fest'
 import { TypedEventEmitter } from '../../../robowhale/phaser3/TypedEventEmitter'
-import { calculateBounds, Transformable } from './Transformable'
+import { EditableObject } from '../objects/EditableObject'
+import { calculateBounds } from './Transformable'
 
 type Events = {
-	changed: (type: 'add' | 'remove', object: Transformable) => void
+	changed: (type: 'add' | 'remove', object: EditableObject) => void
 	destroyed: () => void
 }
 
@@ -15,12 +16,12 @@ type Events = {
  * **DO NOT instantiate this class directly, use `SelectionManager.createSelection()` instead.**
  */
 export class Selection extends TypedEventEmitter<Events> {
-	public objects: Transformable[]
+	public objects: EditableObject[]
 	private _bounds: Phaser.Geom.Rectangle
 	private _originX = 0.5
 	private _originY = 0.5
 
-	constructor(objects: Transformable[]) {
+	constructor(objects: EditableObject[]) {
 		super()
 
 		this.objects = objects
@@ -30,7 +31,7 @@ export class Selection extends TypedEventEmitter<Events> {
 		this.onObjectsChanged()
 	}
 
-	public add(object: Transformable): void {
+	public add(object: EditableObject): void {
 		if (this.objects.includes(object)) {
 			return
 		}
@@ -47,7 +48,7 @@ export class Selection extends TypedEventEmitter<Events> {
 	 * It will **auto-destroy** the selection if it becomes empty.
 	 * @returns `true` if the selection became empty after the removal and was destroyed, `false` otherwise.
 	 */
-	public remove(object: Transformable): boolean {
+	public remove(object: EditableObject): boolean {
 		if (!this.objects.includes(object)) {
 			return false
 		}
@@ -76,7 +77,7 @@ export class Selection extends TypedEventEmitter<Events> {
 		}
 	}
 
-	public includes(object: Transformable): boolean {
+	public includes(object: EditableObject): boolean {
 		return this.objects.includes(object)
 	}
 
@@ -85,7 +86,7 @@ export class Selection extends TypedEventEmitter<Events> {
 		return this._bounds
 	}
 
-	public at(index: number): Transformable | undefined {
+	public at(index: number): EditableObject | undefined {
 		return this.objects[index]
 	}
 

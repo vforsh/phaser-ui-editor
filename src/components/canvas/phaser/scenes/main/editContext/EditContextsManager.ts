@@ -1,7 +1,7 @@
 import { Logger } from 'tslog'
-import { EventfulContainer } from '../../../robowhale/phaser3/gameObjects/container/EventfulContainer'
 import { TypedEventEmitter } from '../../../robowhale/phaser3/TypedEventEmitter'
 import { MainScene } from '../MainScene'
+import { EditableContainer } from '../objects/EditableContainer'
 import { EditContext } from './EditContext'
 
 interface AddContextOptions {
@@ -26,7 +26,7 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 	private scene: MainScene
 	private logger: Logger<{}>
 	private destroyController: AbortController
-	private contexts: Map<EventfulContainer, EditContext> = new Map()
+	private contexts: Map<EditableContainer, EditContext> = new Map()
 	private savedBounds: Map<EditContext, Phaser.Geom.Rectangle> = new Map()
 
 	constructor(options: EditContextsManagerOptions) {
@@ -38,7 +38,7 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		this.destroyController = new AbortController()
 	}
 
-	public add(container: EventfulContainer, options: AddContextOptions = {}): EditContext {
+	public add(container: EditableContainer, options: AddContextOptions = {}): EditContext {
 		if (this.contexts.has(container)) {
 			throw new Error(`Edit context for '${container.name}' already exists`)
 		}
@@ -79,7 +79,7 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		return context
 	}
 
-	public remove(container: EventfulContainer) {
+	public remove(container: EditableContainer) {
 		const editContext = this.contexts.get(container)
 		if (!editContext) {
 			return
@@ -90,7 +90,7 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		container.removeByContext(this)
 
 		editContext.onRemove()
-		
+
 		this.logger.debug(`removed context '${container.name}'`)
 
 		this.contexts.delete(container)
@@ -98,7 +98,7 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		// this.logger.debug(`contexts(${this.contexts.size}): ${this.getState()}`)
 	}
 
-	public switchTo(container: EventfulContainer): EditContext {
+	public switchTo(container: EditableContainer): EditContext {
 		if (this.current?.target === container) {
 			return this.current
 		}
@@ -124,14 +124,14 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 	private getParentContextsBounds(context: EditContext): Map<EditContext, Phaser.Geom.Rectangle> {
 		let boundsMap = new Map<EditContext, Phaser.Geom.Rectangle>()
 
-		let parent = context.target.parentContainer
+		let parent = context.target.parentContainer as EditableContainer
 		while (parent && this.contexts.has(parent)) {
 			const parentContext = this.contexts.get(parent)
 			if (!parentContext) {
 				break
 			}
 			boundsMap.set(parentContext, parentContext.getBounds())
-			parent = parent.parentContainer
+			parent = parent.parentContainer as EditableContainer
 		}
 
 		return boundsMap
@@ -139,7 +139,7 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 
 	private onContextBoundsChanged(context: EditContext, bounds: Phaser.Geom.Rectangle) {
 		// propagate bounds change to parent context
-		const parentContext = this.contexts.get(context.target.parentContainer)
+		const parentContext = this.contexts.get(context.target.parentContainer as EditableContainer)
 		if (parentContext) {
 			const savedBounds = this.savedBounds.get(parentContext)
 			if (savedBounds) {

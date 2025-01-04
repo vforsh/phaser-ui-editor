@@ -1,7 +1,8 @@
 import { Logger } from 'tslog'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { TypedEventEmitter } from '../../robowhale/phaser3/TypedEventEmitter'
-import { JSONGameObject, ObjectsFactory, SerializableGameObject } from './factory/ObjectsFactory'
+import { ObjectsFactory } from './factory/ObjectsFactory'
+import { EditableObject, EditableObjectJson } from './objects/EditableObject'
 
 type Events = {
 	// "copy": (data: string) => void
@@ -16,7 +17,7 @@ export type ClipboardOptions = {
 export class CanvasClipboard extends TypedEventEmitter<Events> {
 	public readonly logger: ClipboardOptions['logger']
 	private readonly factory: ClipboardOptions['factory']
-	private content: JSONGameObject[] | undefined
+	private content: EditableObjectJson[] | undefined
 
 	constructor(
 		private readonly scene: BaseScene,
@@ -28,11 +29,11 @@ export class CanvasClipboard extends TypedEventEmitter<Events> {
 		this.factory = options.factory
 	}
 
-	public copy(content: SerializableGameObject[]): void {
+	public copy(content: EditableObject[]): void {
 		this.content = content.map((item) => this.factory.toJson(item))
 	}
 
-	public paste(): SerializableGameObject[] | null {
+	public paste(): EditableObject[] | null {
 		if (this.content === undefined) {
 			return null
 		}

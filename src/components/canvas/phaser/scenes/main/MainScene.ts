@@ -14,16 +14,17 @@ import {
 	fetchImageUrl,
 	GraphicAssetData,
 } from '../../../../../types/assets'
-import { EventfulContainer } from '../../robowhale/phaser3/gameObjects/container/EventfulContainer'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { signalFromEvent } from '../../robowhale/utils/events/create-abort-signal-from-event'
 import { CanvasClipboard } from './CanvasClipboard'
-import { EditContext, isSelectable, shouldIgnoreObject } from './editContext/EditContext'
+import { EditContext } from './editContext/EditContext'
 import { EditContextsManager } from './editContext/EditContextsManager'
 import { Selection } from './editContext/Selection'
 import { TransformControls } from './editContext/TransformControls'
-import { isSerializableGameObject, ObjectsFactory, SerializableGameObject } from './factory/ObjectsFactory'
+import { ObjectsFactory } from './factory/ObjectsFactory'
 import { Grid } from './Grid'
+import { EditableContainer } from './objects/EditableContainer'
+import { EditableImage } from './objects/EditableImage'
 import { Rulers } from './Rulers'
 
 export type MainSceneInitData = {
@@ -58,7 +59,7 @@ export class MainScene extends BaseScene {
 	private selectionDrag: SelectionDragData | undefined
 	private grid!: Grid
 	private rulers!: Rulers
-	private root!: EventfulContainer
+	private root!: EditableContainer
 	private projectSizeFrame!: Phaser.GameObjects.Graphics
 	public objectsFactory!: ObjectsFactory
 	private clipboard!: CanvasClipboard
@@ -92,8 +93,9 @@ export class MainScene extends BaseScene {
 		this.rulers.name = 'rulers'
 		this.add.existing(this.rulers)
 
-		this.root = this.add.eventfulContainer()
+		this.root = new EditableContainer(this, 0, 0)
 		this.root.name = 'root' // TODO use the current prefab name (from the assets tree)
+		this.add.existing(this.root)
 
 		this.initObjectsFactory()
 
@@ -196,7 +198,7 @@ export class MainScene extends BaseScene {
 
 		const selection_3 = context.createSelection([group_1, group_2])
 		const group_3 = this.group(selection_3, context)
-
+		
 		// const chefCherry_5 = await this.addTestImage(chefCherryFrame, 0, 800)
 		// chefCherry_5?.setName(this.getNewObjectName(context, chefCherry_5!, 'chefCherry_center'))
 		// chefCherry_5?.setOrigin(0.5)
@@ -269,7 +271,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private async handleAssetDrop(data: { asset: AssetTreeItemData; position: { x: number; y: number } }) {
-		const gameObject = await this.createGameObjectFromAsset(data.asset)
+		const gameObject = await this.createEditableFromAsset(data.asset)
 		if (!gameObject) {
 			return null
 		}
@@ -283,7 +285,7 @@ export class MainScene extends BaseScene {
 	}
 
 	// TODO return Result
-	private createGameObjectFromAsset(asset: AssetTreeItemData) {
+	private createEditableFromAsset(asset: AssetTreeItemData) {
 		return (
 			match(asset)
 				.with({ type: 'image' }, async (image) => {
@@ -296,7 +298,7 @@ export class MainScene extends BaseScene {
 						return null
 					}
 
-					return this.make.image({ key: texture.key }, false)
+					return new EditableImage(this, 0, 0, texture.key)
 				})
 				.with({ type: 'spritesheet-frame' }, async (spritesheetFrame) => {
 					let texture: Phaser.Textures.Texture | null = this.textures.get(spritesheetFrame.imagePath)
@@ -308,7 +310,7 @@ export class MainScene extends BaseScene {
 						return null
 					}
 
-					return this.make.image({ key: texture.key, frame: spritesheetFrame.pathInHierarchy }, false)
+					return new EditableImage(this, 0, 0, texture.key, spritesheetFrame.pathInHierarchy)
 				})
 				// TODO handle fonts drop - create a new Phaser.GameObjects.BitmapText or Phaser.GameObjects.Text
 				.otherwise(() => null)
@@ -419,8 +421,8 @@ export class MainScene extends BaseScene {
 		event.preventDefault()
 	}
 
-	private group(selection: Selection, editContext: EditContext): EventfulContainer {
-		const group = this.make.eventfulContainer()
+	private group(selection: Selection, editContext: EditContext): EditableContainer {
+		const group = new EditableContainer(this, 0, 0)
 		group.name = this.getNewObjectName(editContext, group)
 		group.setPosition(selection.x, selection.y)
 		group.setSize(selection.width, selection.height)
@@ -443,7 +445,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private ungroup(selection: Selection, editContext: EditContext) {
-		const groups = selection.objects.filter((obj) => obj instanceof EventfulContainer)
+		const groups = selection.objects.filter((obj) => obj instanceof EditableContainer)
 		if (groups.length === 0) {
 			return
 		}
@@ -452,32 +454,21 @@ export class MainScene extends BaseScene {
 			const sin = Math.sin(group.rotation)
 			const cos = Math.cos(group.rotation)
 
-			const ungrouped = group.list
-				.slice(0)
-				.map((child) => {
-					if (shouldIgnoreObject(child)) {
-						return null
-					}
+			const ungrouped = group.editables.map((child) => {
+				// Calculate new position accounting for group angle and scale
+				const dx = child.x * group.scaleX
+				const dy = child.y * group.scaleY
+				const rotatedX = dx * cos - dy * sin
+				const rotatedY = dx * sin + dy * cos
 
-					if (!isSelectable(child)) {
-						throw new Error(`Ungrouping failed: ${child.name} is not selectable`)
-					}
-
-					// Calculate new position accounting for group angle and scale
-					const dx = child.x * group.scaleX
-					const dy = child.y * group.scaleY
-					const rotatedX = dx * cos - dy * sin
-					const rotatedY = dx * sin + dy * cos
-
-					child.x = group.x + rotatedX
-					child.y = group.y + rotatedY
-					child.angle += group.angle
-					child.scaleX *= group.scaleX
-					child.scaleY *= group.scaleY
-					editContext.target.add(child)
-					return child
-				})
-				.filter((child) => child !== null)
+				child.x = group.x + rotatedX
+				child.y = group.y + rotatedY
+				child.angle += group.angle
+				child.scaleX *= group.scaleX
+				child.scaleY *= group.scaleY
+				editContext.target.add(child)
+				return child
+			})
 
 			group.destroy()
 
@@ -499,19 +490,12 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		const selected = this.editContexts.current?.selection
-		if (!selected) {
+		const selection = this.editContexts.current?.selection
+		if (!selection) {
 			return
 		}
 
-		const hasNonSerializableObjects = selected.objects.filter((obj) => !isSerializableGameObject(obj))
-		if (hasNonSerializableObjects.length > 0) {
-			throw new Error(
-				`copy failed: ${hasNonSerializableObjects.map((obj) => obj.name).join(', ')} are not serializable`
-			)
-		}
-
-		this.clipboard.copy(selected.objects as SerializableGameObject[])
+		this.clipboard.copy(selection.objects)
 
 		event.preventDefault()
 	}
@@ -713,7 +697,7 @@ export class MainScene extends BaseScene {
 				// it is a hacky way to get the objects under selection rect but it works
 				const objectsUnderSelectionRect = selection.objectsUnderSelectionRect.slice()
 				selection.objectsUnderSelectionRect.length = 0
-
+				
 				selection.cancelSelection()
 
 				if (objectsUnderSelectionRect.length > 0) {

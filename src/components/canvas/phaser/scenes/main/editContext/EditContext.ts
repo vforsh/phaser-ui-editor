@@ -1,30 +1,21 @@
-import { EventfulContainer } from '@components/canvas/phaser/robowhale/phaser3/gameObjects/container/EventfulContainer'
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { Logger } from 'tslog'
-import { CloneOptions, isSerializableGameObject, SerializableGameObject } from '../factory/ObjectsFactory'
+import { CloneOptions } from '../factory/ObjectsFactory'
 import { MainScene } from '../MainScene'
+import { EditableContainer } from '../objects/EditableContainer'
+import { EditableObject } from '../objects/EditableObject'
 import { AdjustableRect } from './AdjustableRect'
 import { Selection } from './Selection'
 import { SelectionRect } from './SelectionRect'
 import { calculateBounds, Transformable } from './Transformable'
 import { TransformControls } from './TransformControls'
 
-export type Selectable = Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | Phaser.GameObjects.Container
-
-export function isSelectable(gameObject: Phaser.GameObjects.GameObject): gameObject is Selectable {
-	return (
-		gameObject instanceof Phaser.GameObjects.Image ||
-		gameObject instanceof Phaser.GameObjects.Sprite ||
-		gameObject instanceof Phaser.GameObjects.Container
-	)
-}
-
 type HoverMode = 'disabled' | 'normal' | 'selection-rect'
 
 type Events = {
-	'container-added': (container: EventfulContainer) => void
-	'container-removed': (container: EventfulContainer) => void
-	'container-double-clicked': (container: EventfulContainer) => void
+	'container-added': (container: EditableContainer) => void
+	'container-removed': (container: EditableContainer) => void
+	'container-double-clicked': (container: EditableContainer) => void
 	'bounds-changed': (bounds: Phaser.Geom.Rectangle) => void
 	'pre-destroy': () => void
 }
@@ -32,7 +23,7 @@ type Events = {
 export type EditContextOptions = {
 	scene: MainScene
 	logger: Logger<{}>
-	target: EventfulContainer
+	target: EditableContainer
 }
 
 /**
@@ -44,15 +35,15 @@ export class EditContext extends TypedEventEmitter<Events> {
 	private readonly options: EditContextOptions
 	public readonly logger: Logger<{}>
 	private readonly scene: MainScene
-	public readonly target: EventfulContainer
-	public selectables: Selectable[] = []
+	public readonly target: EditableContainer
+	public selectables: EditableObject[] = []
 	public selection: Selection | null = null
 
 	/**
 	 * A map of container clicks.
 	 * The key is the container, the value is the timestamp of the last click.
 	 */
-	private containerClicks = new Map<EventfulContainer, number>()
+	private containerClicks = new Map<EditableContainer, number>()
 
 	/**
 	 * Hover rects are used to visualize the hover state of selectables.
@@ -87,7 +78,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 
 	private destroyController = new AbortController()
 	private debugGraphics: Phaser.GameObjects.Graphics | null = null
-	public objectsUnderSelectionRect: Selectable[] = []
+	public objectsUnderSelectionRect: EditableObject[] = []
 
 	/**
 	 * Target bounds saved before the edit context was activated.
@@ -106,16 +97,14 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.scene = options.scene
 
 		this.target = options.target
-		this.target.on('child-added', this.onChildAdded, this, this.destroySignal)
-		this.target.on('child-removed', this.onChildRemoved, this, this.destroySignal)
+		this.target.events.on('editable-added', this.onChildAdded, this, this.destroySignal)
+		this.target.events.on('editable-removed', this.onChildRemoved, this, this.destroySignal)
 		this.target.once('destroy', this.destroy, this, this.destroySignal)
 
 		this.logger.debug(`created ${this.target.listAsString()}`)
 
-		this.target.list.forEach((child) => {
-			if (isSelectable(child)) {
-				this.register(child)
-			}
+		this.target.editables.forEach((child) => {
+			this.register(child)
 		})
 
 		this.addHoverRects(1)
@@ -132,24 +121,21 @@ export class EditContext extends TypedEventEmitter<Events> {
 		)
 	}
 
-	private onChildAdded(child: Phaser.GameObjects.GameObject) {
-		if (isSelectable(child)) {
-			this.register(child)
-		}
+	private onChildAdded(child: EditableObject) {
+		this.register(child)
 
-		if (child instanceof EventfulContainer) {
+		if (child instanceof EditableContainer) {
 			// emit event so context manager will create a new edit context for the container
 			this.emit('container-added', child)
 		}
 	}
 
-	private onChildRemoved(child: Phaser.GameObjects.GameObject) {
-		if (isSelectable(child)) {
-			this.unregister(child)
-			// TODO prune sub-selection rects
-		}
+	private onChildRemoved(child: EditableObject) {
+		this.unregister(child)
 
-		if (child instanceof EventfulContainer) {
+		// TODO prune sub-selection rects
+
+		if (child instanceof EditableContainer) {
 			// emit event so context manager will remove the edit context for the container
 			this.emit('container-removed', child)
 		}
@@ -203,9 +189,11 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.hoverRects.forEach((hoverRect) => hoverRect.kill())
 
 		const objectsUnderPointer = this.scene.input.hitTestPointer(pointer).reverse()
+
+		// TODO get rid of the type assertion
 		const selectableUnderPointer = objectsUnderPointer.find(
 			(object) => this.selectables.includes(object as any) && !this.selection?.includes(object as any)
-		) as Selectable | undefined
+		) as EditableObject | undefined
 		if (!selectableUnderPointer) {
 			return
 		}
@@ -465,13 +453,9 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.debugGraphics.kill()
 	}
 
-	public register(gameObject: Selectable): void {
+	public register(gameObject: EditableObject): void {
 		if (gameObject.parentContainer !== this.target) {
 			throw new Error(`'${gameObject.name}' must be a child of '${this.target.name}'`)
-		}
-
-		if (shouldIgnoreObject(gameObject)) {
-			return
 		}
 
 		if (this.selectables.includes(gameObject)) {
@@ -485,7 +469,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 		gameObject.on('pointerdown', this.onSelectablePointerDown.bind(this, gameObject), this, signal)
 		gameObject.once('destroy', () => this.unregister(gameObject), this, signal)
 
-		if (gameObject instanceof EventfulContainer) {
+		if (gameObject instanceof EditableContainer) {
 			this.containerClicks.set(gameObject, 0)
 			gameObject.on('pointerdown', this.onContainerPointerDown.bind(this, gameObject), this, signal)
 		}
@@ -499,11 +483,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.logger.debug(`registered item '${gameObject.name}'`)
 	}
 
-	public unregister(gameObject: Selectable): void {
-		if (shouldIgnoreObject(gameObject)) {
-			return
-		}
-
+	public unregister(gameObject: EditableObject): void {
 		if (!this.selectables.includes(gameObject)) {
 			this.logger.warn(`'${gameObject.name}' is not registered in this context`)
 			return
@@ -512,7 +492,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 		gameObject.offByContext(this)
 		gameObject.disableInteractive()
 
-		if (gameObject instanceof EventfulContainer) {
+		if (gameObject instanceof EditableContainer) {
 			this.containerClicks.delete(gameObject)
 		}
 
@@ -526,12 +506,12 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.logger.debug(`unregistered item '${gameObject.name}'`)
 	}
 
-	public isRegistered(gameObject: Phaser.GameObjects.GameObject): gameObject is Selectable {
-		return this.selectables.includes(gameObject as Selectable)
+	public isRegistered(gameObject: Phaser.GameObjects.GameObject): gameObject is EditableObject {
+		return this.selectables.includes(gameObject as EditableObject)
 	}
 
 	private onContainerPointerDown(
-		container: EventfulContainer,
+		container: EditableContainer,
 		pointer: Phaser.Input.Pointer,
 		x: number,
 		y: number
@@ -549,7 +529,12 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.containerClicks.set(container, now)
 	}
 
-	private onSelectablePointerDown(gameObject: Selectable, pointer: Phaser.Input.Pointer, x: number, y: number): void {
+	private onSelectablePointerDown(
+		gameObject: EditableObject,
+		pointer: Phaser.Input.Pointer,
+		x: number,
+		y: number
+	): void {
 		if (pointer.event.shiftKey) {
 			// deselect the clicked object if it was selected
 			if (this.selection && this.selection.includes(gameObject)) {
@@ -569,16 +554,9 @@ export class EditContext extends TypedEventEmitter<Events> {
 				return
 			}
 
-			const serializableObjects = this.selection.objects.every((obj) => isSerializableGameObject(obj))
-			if (!serializableObjects) {
-				throw new Error(
-					`copy failed: ${this.selection.objects.map((obj) => obj.name).join(', ')} are not serializable`
-				)
-			}
-
 			const cloneOptions: CloneOptions = { addToScene: true }
 			const clonedObjects = this.selection.objects.map((obj) => {
-				const clone = this.scene.objectsFactory.clone(obj as SerializableGameObject, cloneOptions)
+				const clone = this.scene.objectsFactory.clone(obj, cloneOptions)
 				this.register(clone)
 				return clone
 			})
@@ -602,14 +580,14 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.transformControls.startFollow(this.selection)
 	}
 
-	public setSelection(selectables: Selectable[]): Selection {
+	public setSelection(selectables: EditableObject[]): Selection {
 		this.cancelSelection()
 		this.selection = this.createSelection(selectables)
 		this.transformControls.startFollow(this.selection)
 		return this.selection
 	}
 
-	public createSelection(selectables: Selectable[]): Selection {
+	public createSelection(selectables: EditableObject[]): Selection {
 		selectables.forEach((selectable) => {
 			if (!this.isRegistered(selectable)) {
 				throw new Error(`object should be added to selection manager before creating a selection`)
@@ -817,8 +795,4 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.logger.settings.name = `:${name}`
 		this.logger.debug(`name changed '${previousName}' -> '${name}'`)
 	}
-}
-
-export function shouldIgnoreObject(gameObject: Phaser.GameObjects.GameObject): boolean {
-	return gameObject instanceof AdjustableRect || gameObject instanceof TransformControls
 }
