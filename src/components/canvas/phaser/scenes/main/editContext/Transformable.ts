@@ -1,12 +1,5 @@
+// TODO replace with EditableObject
 export type Transformable = Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | Phaser.GameObjects.Container
-
-export function isTransformable(go: Phaser.GameObjects.GameObject): go is Transformable {
-	return (
-		go instanceof Phaser.GameObjects.Image ||
-		go instanceof Phaser.GameObjects.Sprite ||
-		go instanceof Phaser.GameObjects.Container
-	)
-}
 
 export function calculateBounds(objects: Transformable[], rect?: Phaser.Geom.Rectangle): Phaser.Geom.Rectangle {
 	if (objects.length === 1) {
