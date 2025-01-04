@@ -67,6 +67,11 @@ export class MainScene extends BaseScene {
 	public init(data: MainSceneInitData) {
 		super.init(data)
 
+		const clearConsole = urlParams.get('clearConsole') === 'scene'
+		if (clearConsole) {
+			console.clear()
+		}
+
 		this.logger = logger.getOrCreate('canvas')
 
 		this.logger.info('MainScene init', data)
@@ -135,7 +140,7 @@ export class MainScene extends BaseScene {
 	private initEditContexts() {
 		this.editContexts = new EditContextsManager({
 			scene: this,
-			logger: this.logger,
+			logger: this.logger.getSubLogger({ name: ':contexts' }),
 		})
 
 		this.editContexts.add(this.root, {
@@ -178,14 +183,14 @@ export class MainScene extends BaseScene {
 		const chefCherry_3 = await this.addTestImage(chefCherryFrame, 400, 500)
 		chefCherry_3?.setName(this.getNewObjectName(context, chefCherry_3!, 'chefCherry_bottomRight'))
 		chefCherry_3?.setOrigin(1)
-		
+
 		const chefCherry_4 = await this.addTestImage(chefCherryFrame, -400, 500)
 		chefCherry_4?.setName(this.getNewObjectName(context, chefCherry_4!, 'chefCherry_bottomLeft'))
 		chefCherry_4?.setOrigin(0, 1)
-		
+
 		const selection_1 = context.createSelection([chefCherry_1!, chefCherry_2!])
 		const group_1 = this.group(selection_1, context)
-		
+
 		const selection_2 = context.createSelection([chefCherry_3!, chefCherry_4!])
 		const group_2 = this.group(selection_2, context)
 

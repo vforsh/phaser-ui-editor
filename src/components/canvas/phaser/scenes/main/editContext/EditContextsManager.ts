@@ -48,7 +48,7 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		const context = new EditContext({
 			scene: this.scene,
 			target: container,
-			logger: this.logger.getSubLogger({ name: `:selection` }),
+			logger: this.logger.getSubLogger({ name: `:${container.name}` }),
 		})
 
 		context.on('container-added', (container) => this.add(container), this, signal)
@@ -57,9 +57,11 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		context.on('bounds-changed', (bounds) => this.onContextBoundsChanged(context, bounds), this, signal)
 		context.once('pre-destroy', () => this.remove(container), this, signal)
 
+		context.onAdd()
+
 		this.contexts.set(container, context)
 
-		this.logger.debug(`added edit context for '${container.name}'`)
+		this.logger.debug(`added context '${container.name}'`)
 
 		const _options = Object.assign(
 			{
@@ -88,8 +90,8 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		container.removeByContext(this)
 
 		editContext.onRemove()
-
-		this.logger.debug(`removed edit context for '${container.name}'`)
+		
+		this.logger.debug(`removed context '${container.name}'`)
 
 		this.contexts.delete(container)
 

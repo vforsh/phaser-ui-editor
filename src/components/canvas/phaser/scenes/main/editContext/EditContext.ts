@@ -97,6 +97,10 @@ export class EditContext extends TypedEventEmitter<Events> {
 	constructor(options: EditContextOptions) {
 		super()
 
+		if (!options.target.name) {
+			throw new Error(`target container must have a name`)
+		}
+
 		this.options = options
 		this.logger = options.logger
 		this.scene = options.scene
@@ -329,7 +333,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 			thickness: 3,
 			color: 0x0e99ff,
 		})
-		hoverRect.name = 'hover-rect'
+		hoverRect.name = 'hover-rect_' + (this.hoverRects.length + 1)
 		hoverRect.kill()
 
 		this.hoverRects.push(hoverRect)
@@ -464,7 +468,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 		}
 
 		if (this.selectables.includes(gameObject)) {
-			this.logger.warn(`'${gameObject.name}' is already in the selection manager`)
+			this.logger.warn(`'${gameObject.name}' is already registered in this context`)
 			return
 		}
 
@@ -485,7 +489,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 			gameObject.disableInteractive()
 		}
 
-		this.logger.debug(`registered '${gameObject.name}' in '${this.name}' edit context`)
+		this.logger.debug(`registered item '${gameObject.name}'`)
 	}
 
 	public unregister(gameObject: Selectable): void {
@@ -494,7 +498,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 		}
 
 		if (!this.selectables.includes(gameObject)) {
-			this.logger.warn(`'${gameObject.name}' is not in the selection manager`)
+			this.logger.warn(`'${gameObject.name}' is not registered in this context`)
 			return
 		}
 
@@ -512,9 +516,9 @@ export class EditContext extends TypedEventEmitter<Events> {
 			this.selection.remove(gameObject)
 		}
 
-		this.logger.debug(`unregistered '${gameObject.name}' from '${this.name}' edit context`)
+		this.logger.debug(`unregistered item '${gameObject.name}'`)
 	}
-	
+
 	public isRegistered(gameObject: Phaser.GameObjects.GameObject): gameObject is Selectable {
 		return this.selectables.includes(gameObject as Selectable)
 	}
@@ -698,6 +702,11 @@ export class EditContext extends TypedEventEmitter<Events> {
 	}
 
 	/**
+	 * Called when the edit context is added to the contexts manager.
+	 */
+	public onAdd(): void {}
+
+	/**
 	 * Called when the edit context is removed from the contexts manager.
 	 */
 	public onRemove() {}
@@ -793,6 +802,13 @@ export class EditContext extends TypedEventEmitter<Events> {
 
 	public get name(): string {
 		return this.target.name
+	}
+
+	public set name(name: string) {
+		const previousName = this.name
+		this.target.name = name
+		this.logger.settings.name = `:${name}`
+		this.logger.debug(`name changed '${previousName}' -> '${name}'`)
 	}
 }
 
