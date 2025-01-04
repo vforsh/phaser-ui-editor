@@ -375,6 +375,8 @@ export class MainScene extends BaseScene {
 		this.onKeyDown('C', (event) => this.copy(event), this, this.shutdownSignal)
 		this.onKeyDown('V', (event) => this.paste(event), this, this.shutdownSignal)
 
+		this.onKeyDown('ZERO', this.resetSelectionTransform, this, this.shutdownSignal)
+
 		this.onKeyDown('ONE', () => this.setCameraZoom(1), this, this.shutdownSignal)
 		this.onKeyDown('TWO', ({ shiftKey }) => this.setCameraZoom(shiftKey ? 0.5 : 2), this, this.shutdownSignal)
 		this.onKeyDown('THREE', ({ shiftKey }) => this.setCameraZoom(shiftKey ? 0.25 : 4), this, this.shutdownSignal)
@@ -858,6 +860,20 @@ export class MainScene extends BaseScene {
 		// Adjust camera position to keep the pointer in the same world position
 		camera.scrollX -= pointerPosAfterZoom.x - pointerPosBeforeZoom.x
 		camera.scrollY -= pointerPosAfterZoom.y - pointerPosBeforeZoom.y
+	}
+
+	private resetSelectionTransform(): void {
+		const selection = this.editContexts.current?.selection
+		if (!selection) {
+			return
+		}
+
+		selection.objects.forEach((obj) => {
+			obj.setRotation(0)
+			obj.setScale(1)
+		})
+
+		selection.updateBounds()
 	}
 
 	private setCameraZoom(zoom: number): void {

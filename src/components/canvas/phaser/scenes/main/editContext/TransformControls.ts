@@ -298,6 +298,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			return
 		}
 
+		// it doesn't work correctly with objects that rotated by 90 and more degrees
 		const knobType = match(knob.name)
 			.with('top-left-resize-knob', () => 'top-left')
 			.with('top-right-resize-knob', () => 'top-right')
