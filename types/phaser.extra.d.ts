@@ -175,6 +175,7 @@ declare module Phaser {
 		
 		interface Container extends IKillable, IDisplayObject {
 			gridAlign(options: Phaser.Types.Actions.GridAlignConfig, startIndex?: integer, endIndex?: integer): Phaser.GameObjects.Container
+			listAsString(predicate?: (item: Phaser.GameObjects.GameObject) => boolean): string
 			addHandler(gameObject: Phaser.GameObjects.GameObject): void
 			removeHandler(gameObject: Phaser.GameObjects.GameObject): void
 		}

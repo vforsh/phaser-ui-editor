@@ -230,6 +230,15 @@ export class Phaser3Extensions {
 
 			return this
 		}
+		
+		Phaser.GameObjects.Container.prototype.listAsString = function (
+			predicate: (item: Phaser.GameObjects.GameObject) => boolean = () => true
+		) {
+			return `[${this.list
+				.filter(predicate)
+				.map((item) => item.name)
+				.join(', ')}] (${this.list.length})`
+		}
 	}
 
 	public static extendAnimationManager(): void {

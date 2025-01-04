@@ -110,14 +110,16 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.target.on('child-removed', this.onChildRemoved, this, this.destroySignal)
 		this.target.once('destroy', this.destroy, this, this.destroySignal)
 
+		this.logger.debug(`created ${this.target.listAsString()}`)
+
 		this.target.list.forEach((child) => {
 			if (isSelectable(child)) {
 				this.register(child)
 			}
 		})
 
-		this.addHoverRects()
-		this.addSubSelectionRects()
+		this.addHoverRects(1)
+		this.addSubSelectionRects(1)
 		this.addSelectionRect()
 		this.addTransformControls()
 		this.addDebugGraphics()
@@ -144,6 +146,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 	private onChildRemoved(child: Phaser.GameObjects.GameObject) {
 		if (isSelectable(child)) {
 			this.unregister(child)
+			// TODO prune sub-selection rects
 		}
 
 		if (child instanceof EventfulContainer) {
@@ -463,6 +466,10 @@ export class EditContext extends TypedEventEmitter<Events> {
 	}
 
 	public register(gameObject: Selectable): void {
+		if (gameObject.parentContainer !== this.target) {
+			throw new Error(`'${gameObject.name}' must be a child of '${this.target.name}'`)
+		}
+
 		if (shouldIgnoreObject(gameObject)) {
 			return
 		}
