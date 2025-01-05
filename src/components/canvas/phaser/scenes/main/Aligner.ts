@@ -51,7 +51,9 @@ export class Aligner extends TypedEventEmitter<Events> {
 				const top = isOne ? contextBounds.top : calculateBounds(objs).top
 
 				objs.forEach((obj) => {
-					obj.y = top + obj.displayHeight * obj.originY
+					const bounds = this.getRotatedBounds(obj)
+					const offset = bounds.top - obj.y
+					obj.y = top - offset
 				})
 
 				return true
@@ -60,7 +62,9 @@ export class Aligner extends TypedEventEmitter<Events> {
 				const center = isOne ? contextBounds.centerY : calculateBounds(objs).centerY
 
 				objs.forEach((obj) => {
-					obj.y = center - obj.displayHeight * (0.5 - obj.originY)
+					const bounds = this.getRotatedBounds(obj)
+					const offset = bounds.centerY - obj.y
+					obj.y = center - offset
 				})
 
 				return true
@@ -69,7 +73,9 @@ export class Aligner extends TypedEventEmitter<Events> {
 				const bottom = isOne ? contextBounds.bottom : calculateBounds(objs).bottom
 
 				objs.forEach((obj) => {
-					obj.y = bottom - obj.displayHeight * (1 - obj.originY)
+					const bounds = this.getRotatedBounds(obj)
+					const offset = bounds.bottom - obj.y
+					obj.y = bottom - offset
 				})
 
 				return true
@@ -104,7 +110,9 @@ export class Aligner extends TypedEventEmitter<Events> {
 				const left = isOne ? contextBounds.left : calculateBounds(objs).left
 
 				objs.forEach((obj) => {
-					obj.x = left + obj.displayWidth * obj.originX
+					const bounds = this.getRotatedBounds(obj)
+					const offset = bounds.left - obj.x
+					obj.x = left - offset
 				})
 
 				return true
@@ -113,7 +121,9 @@ export class Aligner extends TypedEventEmitter<Events> {
 				const center = isOne ? contextBounds.centerX : calculateBounds(objs).centerX
 
 				objs.forEach((obj) => {
-					obj.x = center - obj.displayWidth * (0.5 - obj.originX)
+					const bounds = this.getRotatedBounds(obj)
+					const offset = bounds.centerX - obj.x
+					obj.x = center - offset
 				})
 
 				return true
@@ -122,7 +132,9 @@ export class Aligner extends TypedEventEmitter<Events> {
 				const right = isOne ? contextBounds.right : calculateBounds(objs).right
 
 				objs.forEach((obj) => {
-					obj.x = right - obj.displayWidth * (1 - obj.originX)
+					const bounds = this.getRotatedBounds(obj)
+					const offset = bounds.right - obj.x
+					obj.x = right - offset
 				})
 
 				return true
@@ -162,15 +174,40 @@ export class Aligner extends TypedEventEmitter<Events> {
 			: context.target.getBounds()
 	}
 
-	private alignVertically(objs: EditableObject[], y: number): void {
-		objs.forEach((obj) => {
-			obj.setY(y)
-		})
-	}
+	private getRotatedBounds(obj: EditableObject) {
+		const width = obj.displayWidth
+		const height = obj.displayHeight
+		const rotation = obj.rotation // in radians
 
-	private alignHorizontally(objs: EditableObject[], x: number): void {
-		objs.forEach((obj) => {
-			obj.setX(x)
-		})
+		// Calculate the corners of the rectangle
+		const cos = Math.cos(rotation)
+		const sin = Math.sin(rotation)
+
+		// Calculate relative corners (relative to object's position)
+		const dx = width * (0.5 - obj.originX)
+		const dy = height * (0.5 - obj.originY)
+
+		const corners = [
+			{ x: -width * obj.originX, y: -height * obj.originY },
+			{ x: width * (1 - obj.originX), y: -height * obj.originY },
+			{ x: width * (1 - obj.originX), y: height * (1 - obj.originY) },
+			{ x: -width * obj.originX, y: height * (1 - obj.originY) },
+		].map((point) => ({
+			x: obj.x + (point.x * cos - point.y * sin),
+			y: obj.y + (point.x * sin + point.y * cos),
+		}))
+
+		// Find the bounds
+		const xs = corners.map((c) => c.x)
+		const ys = corners.map((c) => c.y)
+
+		return {
+			top: Math.min(...ys),
+			bottom: Math.max(...ys),
+			left: Math.min(...xs),
+			right: Math.max(...xs),
+			centerX: obj.x + dx * cos - dy * sin,
+			centerY: obj.y + dx * sin + dy * cos,
+		}
 	}
 }
