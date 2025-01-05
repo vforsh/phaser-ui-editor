@@ -85,8 +85,12 @@ export class Aligner extends TypedEventEmitter<Events> {
 					return false
 				}
 
-				// Sort objects by their y position
-				const sortedObjs = [...objs].sort((a, b) => a.y - b.y)
+				// Sort objects by their visual centers
+				const sortedObjs = [...objs].sort((a, b) => {
+					const aCenterY = a.y + a.displayHeight * (0.5 - a.originY)
+					const bCenterY = b.y + b.displayHeight * (0.5 - b.originY)
+					return aCenterY - bCenterY
+				})
 
 				// Get topmost and bottommost object centers
 				const firstObj = sortedObjs[0]
@@ -144,8 +148,12 @@ export class Aligner extends TypedEventEmitter<Events> {
 					return false
 				}
 
-				// Sort objects by their x position
-				const sortedObjs = [...objs].sort((a, b) => a.x - b.x)
+				// Sort objects by their visual centers
+				const sortedObjs = [...objs].sort((a, b) => {
+					const aCenterX = a.x + a.displayWidth * (0.5 - a.originX)
+					const bCenterX = b.x + b.displayWidth * (0.5 - b.originX)
+					return aCenterX - bCenterX
+				})
 
 				// Get leftmost and rightmost object centers
 				const firstObj = sortedObjs[0]
