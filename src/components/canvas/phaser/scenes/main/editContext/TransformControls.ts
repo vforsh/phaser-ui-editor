@@ -779,10 +779,8 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	private resizeBorders(selection: Selection) {
-		const { left, right, top, bottom } = selection.bounds
-
-		const width = right - left
-		const height = bottom - top
+		const width = selection.width
+		const height = selection.height
 
 		this.topBorder.displayWidth = width
 
@@ -834,13 +832,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	private adjustToSelectionAngle(selection: Selection): void {
-		if (selection.objects.length === 1) {
-			const angle = selection.objects[0].angle
-			this.setAngle(angle)
-			return
-		}
-
-		this.setAngle(0)
+		this.setAngle(selection.angle)
 	}
 
 	private adjustToSelectionPosition(selection: Selection): void {
