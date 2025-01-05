@@ -34,6 +34,7 @@ export interface TransformControlOptions {
 		radius: number
 		lineColor: number
 		lineThickness: number
+		resolution: number
 	}
 }
 
@@ -176,12 +177,12 @@ export class TransformControls extends Phaser.GameObjects.Container {
 
 		this.addOriginKnob()
 		const originKnob = this.originKnob
-		originKnob.setInteractive()
-		this.setKnobCircleHitArea(
-			originKnob.input!,
-			this.options.originKnob.radius + this.options.originKnob.lineThickness
-		)
-		originKnob.input!.cursor = 'move' satisfies CssCursor
+		// originKnob.setInteractive()
+		// this.setKnobCircleHitArea(
+		// 	originKnob.input!,
+		// 	this.options.originKnob.radius + this.options.originKnob.lineThickness
+		// )
+		// originKnob.input!.cursor = 'move' satisfies CssCursor
 		originKnob.on(
 			Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN,
 			this.changeOrigin,
@@ -338,7 +339,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 				aspectRatio: number
 			}
 		>()
-		
+
 		selection.objects.forEach((obj) => {
 			const currentOrigin = [obj.originX, obj.originY]
 
@@ -501,13 +502,16 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.originKnob = this.scene.add.image(0, 0, textureKey)
 		this.originKnob.name = 'origin-knob'
 		this.originKnob.setOrigin(0.5, 0.5)
+		this.originKnob.setScale(1 / this.options.originKnob.resolution)
 		this.innerContainer.add(this.originKnob)
 	}
 
 	private createOriginKnobTexture(textureKey: string) {
-		// TODO use x2 resolution for the knob texture bc it looks blurry with the default resolution
+		const resolution = this.options.originKnob.resolution
+		let { radius, lineThickness, lineColor } = this.options.originKnob
+		radius *= resolution
+		lineThickness *= resolution
 
-		const { radius, lineThickness, lineColor } = this.options.originKnob
 		const centerX = radius + lineThickness
 		const centerY = centerX
 

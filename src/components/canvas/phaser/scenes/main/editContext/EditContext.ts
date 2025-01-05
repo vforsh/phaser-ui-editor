@@ -387,6 +387,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 				radius: 8,
 				lineThickness: 4,
 				lineColor: 0x0c8ce8,
+				resolution: 1,
 			},
 			resizeBorders: {
 				thickness: 2,
