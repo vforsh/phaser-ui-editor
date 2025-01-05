@@ -1,6 +1,5 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { Logger } from 'tslog'
-import { CloneOptions } from '../factory/ObjectsFactory'
 import { MainScene } from '../MainScene'
 import { EditableContainer, isEditable } from '../objects/EditableContainer'
 import { EditableObject } from '../objects/EditableObject'
@@ -540,25 +539,15 @@ export class EditContext extends TypedEventEmitter<Events> {
 			// add the clicked object to the selection (create a new selection if it doesn't exist)
 			this.selection ? this.selection.add(gameObject) : (this.selection = this.createSelection([gameObject]))
 		} else if (pointer.event.ctrlKey || pointer.event.metaKey) {
-			if (!this.selection) {
-				return
-			}
-
-			// if the clicked object is not in the selection, do nothing
-			if (!this.selection.includes(gameObject)) {
-				return
-			}
-
-			const cloneOptions: CloneOptions = { addToScene: false }
-			const clonedObjects = this.selection.objects.map((obj) => {
-				const clone = this.scene.objectsFactory.clone(obj, cloneOptions)
+			const toClone = this.selection?.includes(gameObject) ? this.selection.objects : [gameObject]
+			const clonedObjects = toClone.map((obj) => {
+				const clone = this.scene.objectsFactory.clone(obj, { addToScene: false })
 				this.target.add(clone)
 				this.register(clone)
 				return clone
 			})
 
-			this.selection.destroy()
-			this.selection = this.createSelection(clonedObjects)
+			this.selection = this.setSelection(clonedObjects)
 			this.scene.startSelectionDrag(this.selection, pointer, this)
 		} else {
 			// if the clicked object is already in the selection, do nothing
