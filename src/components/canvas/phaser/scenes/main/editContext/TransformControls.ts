@@ -51,6 +51,9 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	private readonly logger: Logger<{}>
 	private destroySignal: AbortSignal
 
+	/**
+	 * Container that holds all the transform handles.
+	 */
 	private innerContainer: Phaser.GameObjects.Container
 
 	private topBorder!: Phaser.GameObjects.Image
@@ -90,30 +93,8 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.destroySignal = signalFromEvent(this, Phaser.GameObjects.Events.DESTROY)
 
 		this.innerContainer = this.scene.add.container(0, 0)
+		this.innerContainer.setName('handles-container')
 		this.add(this.innerContainer)
-
-		// Add the RESIZE borders
-		this.addTopBorder()
-		this.addBottomBorder()
-		this.addLeftBorder()
-		this.addRightBorder()
-
-		// Setup the borders interactivity
-		const borders = [this.topBorder, this.bottomBorder, this.leftBorder, this.rightBorder]
-		borders.forEach((border) => {
-			border.setTint(this.options.resizeBorders.color)
-
-			const isHorizontal = border === this.topBorder || border === this.bottomBorder
-			const hitAreaPadding = isHorizontal
-				? { x: 0, y: this.options.resizeBorders.hitAreaPadding }
-				: { x: this.options.resizeBorders.hitAreaPadding, y: 0 }
-			border.setInteractive()
-			Phaser.Geom.Rectangle.Inflate(border.input!.hitArea, hitAreaPadding.x, hitAreaPadding.y)
-
-			border.on('pointerover', this.onBorderPointerOver.bind(this, border), this, this.destroySignal)
-			border.on('pointerout', this.onBorderPointerOut.bind(this, border), this, this.destroySignal)
-			// border.on('pointerdown', this.onBorderPointerDown.bind(this, border), this, this.destroySignal)
-		})
 
 		// Add the ROTATE knobs
 		this.createRotateKnobTexture(this.rotateKnobTexture)
@@ -138,6 +119,29 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			knob.on('pointerdown', this.rotate.bind(this, knob), this, this.destroySignal)
 		})
 
+		// Add the RESIZE borders
+		this.addTopBorder()
+		this.addBottomBorder()
+		this.addLeftBorder()
+		this.addRightBorder()
+
+		// Setup the borders interactivity
+		const borders = [this.topBorder, this.bottomBorder, this.leftBorder, this.rightBorder]
+		borders.forEach((border) => {
+			border.setTint(this.options.resizeBorders.color)
+
+			const isHorizontal = border === this.topBorder || border === this.bottomBorder
+			const hitAreaPadding = isHorizontal
+				? { x: 0, y: this.options.resizeBorders.hitAreaPadding }
+				: { x: this.options.resizeBorders.hitAreaPadding, y: 0 }
+			border.setInteractive()
+			Phaser.Geom.Rectangle.Inflate(border.input!.hitArea, hitAreaPadding.x, hitAreaPadding.y)
+
+			border.on('pointerover', this.onBorderPointerOver.bind(this, border), this, this.destroySignal)
+			border.on('pointerout', this.onBorderPointerOut.bind(this, border), this, this.destroySignal)
+			// border.on('pointerdown', this.onBorderPointerDown.bind(this, border), this, this.destroySignal)
+		})
+
 		// Add the RESIZE knobs
 		this.createResizeKnobTexture(this.resizeKnobTexture)
 		this.addTopLeftKnob()
@@ -150,8 +154,8 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		resizeKnobs.forEach((knob) => {
 			knob.setInteractive()
 			this.setKnobRectHitArea(knob.input!, this.options.resizeKnobs.fillSize * 2)
-			knob.on('pointerover', this.onResizeKnowPointerOver.bind(this, knob), this, this.destroySignal)
-			knob.on('pointerout', this.onResizeKnowPointerOut.bind(this, knob), this, this.destroySignal)
+			knob.on('pointerover', this.onResizeKnobPointerOver.bind(this, knob), this, this.destroySignal)
+			knob.on('pointerout', this.onResizeKnobPointerOut.bind(this, knob), this, this.destroySignal)
 			knob.on('pointerdown', this.resize.bind(this, knob), this, this.destroySignal)
 			knob.setScale(1 / this.options.resizeKnobs.resolution)
 			knob.setTintFill(this.options.resizeKnobs.fillColor)
@@ -257,8 +261,8 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			return
 		}
 
-		const angleOffset = this.getRotateKnowAngleOffet(knob)
-		const cursorAngle = this.angle + angleOffset
+		const cursorAngleOffset = this.getRotateCursorAngleOffset(knob)
+		const cursorAngle = this.angle + cursorAngleOffset
 		const cursor = this.getRotateCursor(cursorAngle)
 		document.body.style.cursor = cursor
 	}
@@ -279,7 +283,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 
 		this.logger.debug(`rotate start [${selection.objects.map((obj) => obj.name).join(', ')}] (${selection.size})`)
 
-		const cursorAngleOffset = this.getRotateKnowAngleOffet(knob)
+		const cursorAngleOffset = this.getRotateCursorAngleOffset(knob)
 
 		const pointerUpSignal = signalFromEvent(this.scene.input, Phaser.Input.Events.POINTER_UP)
 
@@ -337,7 +341,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		)
 	}
 
-	private getRotateKnowAngleOffet(knob: Phaser.GameObjects.Image): number {
+	private getRotateCursorAngleOffset(knob: Phaser.GameObjects.Image): number {
 		return match(knob.name)
 			.with('top-right-rotate-knob', () => 0)
 			.with('bottom-right-rotate-knob', () => 90)
@@ -346,15 +350,16 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			.run()
 	}
 
-	private onResizeKnowPointerOver(knob: Phaser.GameObjects.Image) {
+	private onResizeKnobPointerOver(knob: Phaser.GameObjects.Image) {
 		knob.setTintFill(0xcee9fd)
 
-		const cursorAngle = knob.name.includes('left') ? 90 : 0
+		const cursorAngleOffset = this.getResizeCursorAngleOffset(knob) + 45
+		const cursorAngle = this.angle + cursorAngleOffset
 		const cursor = this.getResizeCursor(cursorAngle)
 		document.body.style.cursor = cursor
 	}
 
-	private onResizeKnowPointerOut(knob: Phaser.GameObjects.Image) {
+	private onResizeKnobPointerOut(knob: Phaser.GameObjects.Image) {
 		knob.setTintFill(this.options.resizeKnobs.fillColor)
 
 		document.body.style.cursor = 'default'
@@ -532,6 +537,15 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			this,
 			this.destroySignal
 		)
+	}
+
+	private getResizeCursorAngleOffset(knob: Phaser.GameObjects.Image): number {
+		return match(knob.name)
+			.with('top-left-resize-knob', () => 0)
+			.with('top-right-resize-knob', () => 90)
+			.with('bottom-left-resize-knob', () => 270)
+			.with('bottom-right-resize-knob', () => 180)
+			.run()
 	}
 
 	private addTopBorder() {
