@@ -72,6 +72,10 @@ export class TransformControls extends Phaser.GameObjects.Container {
 
 	private originKnob!: Phaser.GameObjects.Image
 
+	private handles: Phaser.GameObjects.Image[]
+
+	private handlesState: Map<Phaser.GameObjects.Image, { interactive: boolean }> = new Map()
+
 	// selection that this transform controls follows
 	private target: Selection | null = null
 
@@ -154,19 +158,44 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		})
 
 		this.addOriginKnob()
-		const originKnob = this.originKnob
-		// originKnob.setInteractive()
 		// this.setKnobCircleHitArea(
 		// 	originKnob.input!,
 		// 	this.options.originKnob.radius + this.options.originKnob.lineThickness
 		// )
 		// originKnob.input!.cursor = 'move' satisfies CssCursor
-		originKnob.on('pointerdown', this.changeOrigin, this, this.destroySignal)
+		// originKnob.on('pointerdown', this.changeOrigin, this, this.destroySignal)
 
-		// prettier-ignore
-		;[...borders, ...rotateKnobs, ...resizeKnobs, this.originKnob].forEach((child) => {
-			child.setData(TransformControls.TAG, true)
+		this.handles = [...borders, ...rotateKnobs, ...resizeKnobs, this.originKnob]
+		this.handles.forEach((handle) => {
+			handle.setData(TransformControls.TAG, true)
 		})
+
+		this.events.on(
+			'transform-start',
+			() => {
+				this.handles.forEach((item) => {
+					this.handlesState.set(item, { interactive: Boolean(item.input?.enabled) })
+					item.disableInteractive()
+				})
+			},
+			this,
+			this.destroySignal
+		)
+
+		this.events.on(
+			'transform-end',
+			() => {
+				this.handles.forEach((item) => {
+					if (this.handlesState.get(item)?.interactive) {
+						item.setInteractive()
+					}
+				})
+
+				this.handlesState.clear()
+			},
+			this,
+			this.destroySignal
+		)
 
 		this.scene.events.on(Phaser.Scenes.Events.UPDATE, this.onUpdate, this, this.destroySignal)
 	}
@@ -794,6 +823,10 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		super.destroy()
 
 		this.__events.destroy()
+
+		this.handles.length = 0
+
+		this.handlesState.clear()
 	}
 
 	public get events(): TypedEventEmitter<Events> {
