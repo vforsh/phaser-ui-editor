@@ -782,7 +782,7 @@ export class MainScene extends BaseScene {
 		this.game.canvas.style.cursor = 'default'
 	}
 
-	private startSelectionDrag(selected: Selection, pointer: Phaser.Input.Pointer, selection: EditContext) {
+	public startSelectionDrag(selection: Selection, pointer: Phaser.Input.Pointer, context: EditContext) {
 		if (this.selectionDrag) {
 			return
 		}
@@ -790,15 +790,15 @@ export class MainScene extends BaseScene {
 		const camera = this.cameras.main
 		const { x, y } = pointer.positionToCamera(camera) as Phaser.Math.Vector2
 		this.selectionDrag = {
-			target: selected,
-			currentX: selected.x,
-			currentY: selected.y,
-			offsetX: selected.x - x,
-			offsetY: selected.y - y,
+			target: selection,
+			currentX: selection.x,
+			currentY: selection.y,
+			offsetX: selection.x - x,
+			offsetY: selection.y - y,
 			lockAxis: 'none',
 		}
 
-		selection.onDragStart(selected)
+		context.onDragStart(selection)
 	}
 
 	private stopSelectionDrag(editContext: EditContext) {

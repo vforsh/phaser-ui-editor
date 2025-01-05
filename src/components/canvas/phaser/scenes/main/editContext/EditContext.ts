@@ -468,7 +468,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 		const signal = this.destroySignal
 
 		obj.setInteractive()
-		obj.on('pointerdown', this.onSelectablePointerDown.bind(this, obj), this, signal)
+		obj.on('pointerdown', this.onEditableClick.bind(this, obj), this, signal)
 		obj.once('destroy', () => this.unregister(obj), this, signal)
 
 		if (obj instanceof EditableContainer) {
@@ -529,12 +529,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.containerClicks.set(container, now)
 	}
 
-	private onSelectablePointerDown(
-		gameObject: EditableObject,
-		pointer: Phaser.Input.Pointer,
-		x: number,
-		y: number
-	): void {
+	private onEditableClick(gameObject: EditableObject, pointer: Phaser.Input.Pointer, x: number, y: number): void {
 		if (pointer.event.shiftKey) {
 			// deselect the clicked object if it was selected
 			if (this.selection && this.selection.includes(gameObject)) {
@@ -554,15 +549,17 @@ export class EditContext extends TypedEventEmitter<Events> {
 				return
 			}
 
-			const cloneOptions: CloneOptions = { addToScene: true }
+			const cloneOptions: CloneOptions = { addToScene: false }
 			const clonedObjects = this.selection.objects.map((obj) => {
 				const clone = this.scene.objectsFactory.clone(obj, cloneOptions)
+				this.target.add(clone)
 				this.register(clone)
 				return clone
 			})
 
 			this.selection.destroy()
 			this.selection = this.createSelection(clonedObjects)
+			this.scene.startSelectionDrag(this.selection, pointer, this)
 		} else {
 			// if the clicked object is already in the selection, do nothing
 			if (this.selection?.includes(gameObject)) {
