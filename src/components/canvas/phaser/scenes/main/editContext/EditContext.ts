@@ -392,7 +392,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 			resizeBorders: {
 				thickness: 2,
 				color: 0x0c8ce8,
-				hitAreaPadding: 10,
+				hitAreaPadding: 16,
 			},
 			resizeKnobs: {
 				fillSize: 16,

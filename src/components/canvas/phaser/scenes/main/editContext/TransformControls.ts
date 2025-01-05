@@ -2,10 +2,13 @@ import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/T
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import { ReadonlyDeep } from 'type-fest'
-import { CssCursor } from '../../../../../../utils/CssCursor'
 import { signalFromEvent } from '../../../robowhale/utils/events/create-abort-signal-from-event'
 import { Selection } from './Selection'
 import { canChangeOrigin, Transformable } from './Transformable'
+
+// custom cursors
+import arrowsHorizontalCursor from './cursors/arrows-horizontal.svg?raw'
+import arrowsLeftDownCursor from './cursors/arrows-left-down.svg?raw'
 
 type Events = {
 	'start-follow': (selection: Selection) => void
@@ -70,7 +73,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	private originKnob!: Phaser.GameObjects.Image
 
 	// selection that this transform controls follows
-	private targetSelection: Selection | null = null
+	private target: Selection | null = null
 
 	private __events: TypedEventEmitter<Events> = new TypedEventEmitter()
 
@@ -85,7 +88,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.innerContainer = this.scene.add.container(0, 0)
 		this.add(this.innerContainer)
 
-		// Add the borders
+		// Add the RESIZE borders
 		this.addTopBorder()
 		this.addBottomBorder()
 		this.addLeftBorder()
@@ -94,30 +97,18 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		// Setup the borders interactivity
 		const borders = [this.topBorder, this.bottomBorder, this.leftBorder, this.rightBorder]
 		borders.forEach((border) => {
-			// const isHorizontal = border === this.topBorder || border === this.bottomBorder
-			// const hitAreaPadding = isHorizontal
-			// 	? { x: 0, y: this.options.resizeBorders.hitAreaPadding }
-			// 	: { x: this.options.resizeBorders.hitAreaPadding, y: 0 }
-			// const cursor: CssCursor = isHorizontal ? 'ns-resize' : 'ew-resize'
-
-			// border.setInteractive()
-			// Phaser.Geom.Rectangle.Inflate(border.input!.hitArea, hitAreaPadding.x, hitAreaPadding.y)
-			// border.input!.cursor = cursor
-
 			border.setTint(this.options.resizeBorders.color)
-			// border.on(
-			// 	Phaser.Input.Events.GAMEOBJECT_POINTER_OVER,
-			// 	() => border.setTint(0xcee9fd),
-			// 	this,
-			// 	this.destroySignal
-			// )
-			// border.on(
-			// 	Phaser.Input.Events.GAMEOBJECT_POINTER_OUT,
-			// 	() => border.setTint(this.options.resizeBorders.color),
-			// 	this,
-			// 	this.destroySignal
-			// )
-			// border.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.onBorderPointerDown, this, this.destroySignal)
+
+			const isHorizontal = border === this.topBorder || border === this.bottomBorder
+			const hitAreaPadding = isHorizontal
+				? { x: 0, y: this.options.resizeBorders.hitAreaPadding }
+				: { x: this.options.resizeBorders.hitAreaPadding, y: 0 }
+			border.setInteractive()
+			Phaser.Geom.Rectangle.Inflate(border.input!.hitArea, hitAreaPadding.x, hitAreaPadding.y)
+
+			border.on('pointerover', this.onBorderPointerOver.bind(this, border), this, this.destroySignal)
+			border.on('pointerout', this.onBorderPointerOut.bind(this, border), this, this.destroySignal)
+			// border.on('pointerdown', this.onBorderPointerDown.bind(this, border), this, this.destroySignal)
 		})
 
 		// Add the ROTATE knobs
@@ -138,10 +129,9 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			knob.alpha = 0.001
 			knob.setInteractive()
 			this.setKnobCircleHitArea(knob.input!, this.options.rotateKnobs.radius)
-			knob.input!.cursor = 'grab' satisfies CssCursor
-			// knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => knob.setAlpha(0.1), this, destroySignal)
-			// knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => knob.setAlpha(0.001), this, destroySignal)
-			knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.rotate.bind(this, knob), this, this.destroySignal)
+			knob.on('pointerover', this.onRotateKnobPointerOver.bind(this, knob), this, this.destroySignal)
+			knob.on('pointerout', this.onRotateKnobPointerOut.bind(this, knob), this, this.destroySignal)
+			knob.on('pointerdown', this.rotate.bind(this, knob), this, this.destroySignal)
 		})
 
 		// Add the RESIZE knobs
@@ -156,21 +146,9 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		resizeKnobs.forEach((knob) => {
 			knob.setInteractive()
 			this.setKnobRectHitArea(knob.input!, this.options.resizeKnobs.fillSize * 2)
-			knob.input!.cursor =
-				knob === this.topLeftKnob || knob === this.bottomRightKnob ? 'nwse-resize' : 'nesw-resize'
-			knob.on(
-				Phaser.Input.Events.GAMEOBJECT_POINTER_OVER,
-				() => knob.setTintFill(0xcee9fd),
-				this,
-				this.destroySignal
-			)
-			knob.on(
-				Phaser.Input.Events.GAMEOBJECT_POINTER_OUT,
-				() => knob.setTintFill(this.options.resizeKnobs.fillColor),
-				this,
-				this.destroySignal
-			)
-			knob.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.resize.bind(this, knob), this, this.destroySignal)
+			knob.on('pointerover', this.onResizeKnowPointerOver.bind(this, knob), this, this.destroySignal)
+			knob.on('pointerout', this.onResizeKnowPointerOut.bind(this, knob), this, this.destroySignal)
+			knob.on('pointerdown', this.resize.bind(this, knob), this, this.destroySignal)
 			knob.setScale(1 / this.options.resizeKnobs.resolution)
 			knob.setTintFill(this.options.resizeKnobs.fillColor)
 		})
@@ -183,12 +161,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		// 	this.options.originKnob.radius + this.options.originKnob.lineThickness
 		// )
 		// originKnob.input!.cursor = 'move' satisfies CssCursor
-		originKnob.on(
-			Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN,
-			this.changeOrigin,
-			this,
-			this.destroySignal
-		)
+		originKnob.on('pointerdown', this.changeOrigin, this, this.destroySignal)
 
 		// prettier-ignore
 		;[...borders, ...rotateKnobs, ...resizeKnobs, this.originKnob].forEach((child) => {
@@ -208,14 +181,61 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		knobInput.hitAreaCallback = Phaser.Geom.Circle.Contains
 	}
 
-	private onBorderPointerDown(pointer: Phaser.Input.Pointer, x: number, y: number) {
+	private getResizeCursor(angle: number): string {
+		const rotatedSvg = arrowsHorizontalCursor.replace('<svg', `<svg style="transform: rotate(${angle}deg)"`)
+		const dataUri = encodeURIComponent(rotatedSvg)
+		const cursor = `url("data:image/svg+xml,${dataUri}") 12 12, pointer`
+
+		return cursor
+	}
+
+	private getRotateCursor(angle: number): string {
+		const rotatedSvg = arrowsLeftDownCursor.replace('<svg', `<svg style="transform: rotate(${angle}deg)"`)
+		const dataUri = encodeURIComponent(rotatedSvg)
+		const cursor = `url("data:image/svg+xml,${dataUri}") 12 12, pointer`
+
+		return cursor
+	}
+
+	private onBorderPointerOver(border: Phaser.GameObjects.Image) {
+		border.setTint(0xcee9fd)
+
+		const isHorizontal = border === this.topBorder || border === this.bottomBorder
+		const cursorAngle = this.angle + (isHorizontal ? 90 : 0)
+		const cursor = this.getResizeCursor(cursorAngle)
+		document.body.style.cursor = cursor
+	}
+
+	private onBorderPointerOut(border: Phaser.GameObjects.Image) {
+		border.setTint(this.options.resizeBorders.color)
+
+		document.body.style.cursor = 'default'
+	}
+
+	private onBorderPointerDown(border: Phaser.GameObjects.Image, pointer: Phaser.Input.Pointer, x: number, y: number) {
+		// TODO implement resize on border drag
 		console.log('BORDER CLICK', pointer, x, y)
 	}
 
 	private changeOrigin(pointer: Phaser.Input.Pointer, x: number, y: number) {
-		console.log('ORIGIN CLICK', pointer, x, y)
-
 		// TODO allow to move the origin knob and change the origin of the selection
+		console.log('ORIGIN CLICK', pointer, x, y)
+	}
+
+	private onRotateKnobPointerOver(knob: Phaser.GameObjects.Image, pointer: Phaser.Input.Pointer) {
+		const selection = this.target
+		if (!selection) {
+			return
+		}
+
+		const angleOffset = this.getRotateKnowAngleOffet(knob)
+		const cursorAngle = this.angle + angleOffset
+		const cursor = this.getRotateCursor(cursorAngle)
+		document.body.style.cursor = cursor
+	}
+
+	private onRotateKnobPointerOut(knob: Phaser.GameObjects.Image, pointer: Phaser.Input.Pointer) {
+		document.body.style.cursor = 'default'
 	}
 
 	/**
@@ -223,16 +243,14 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	 * @note Hold SHIFT to change rotation in 15 degrees increments.
 	 */
 	private rotate(knob: Phaser.GameObjects.Image, pointer: Phaser.Input.Pointer, x: number, y: number) {
-		const selection = this.targetSelection
+		const selection = this.target
 		if (!selection) {
 			return
 		}
 
 		this.logger.debug(`rotate start [${selection.objects.map((obj) => obj.name).join(', ')}] (${selection.size})`)
 
-		const originalCursor = document.body.style.cursor
-		document.body.style.cursor = 'grabbing' satisfies CssCursor
-		knob.input!.cursor = 'grabbing' satisfies CssCursor
+		const cursorAngleOffset = this.getRotateKnowAngleOffet(knob)
 
 		const pointerUpSignal = signalFromEvent(this.scene.input, Phaser.Input.Events.POINTER_UP)
 
@@ -273,6 +291,10 @@ export class TransformControls extends Phaser.GameObjects.Container {
 				})
 
 				selection.updateBounds()
+
+				const cursorAngle = this.angle + cursorAngleOffset
+				const cursor = this.getRotateCursor(cursorAngle)
+				document.body.style.cursor = cursor
 			},
 			this,
 			AbortSignal.any([pointerUpSignal, this.destroySignal])
@@ -282,8 +304,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			Phaser.Input.Events.POINTER_UP,
 			() => {
 				this.logger.debug('rotate end')
-				document.body.style.cursor = originalCursor
-				knob.input!.cursor = 'grab' satisfies CssCursor
+				document.body.style.cursor = 'default'
 				this.events.emit('transform-end', 'rotate')
 			},
 			this,
@@ -291,12 +312,35 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		)
 	}
 
+	private getRotateKnowAngleOffet(knob: Phaser.GameObjects.Image): number {
+		return match(knob.name)
+			.with('top-right-rotate-knob', () => 0)
+			.with('bottom-right-rotate-knob', () => 90)
+			.with('bottom-left-rotate-knob', () => 180)
+			.with('top-left-rotate-knob', () => 270)
+			.run()
+	}
+
+	private onResizeKnowPointerOver(knob: Phaser.GameObjects.Image) {
+		knob.setTintFill(0xcee9fd)
+
+		const cursorAngle = knob.name.includes('left') ? 90 : 0
+		const cursor = this.getResizeCursor(cursorAngle)
+		document.body.style.cursor = cursor
+	}
+
+	private onResizeKnowPointerOut(knob: Phaser.GameObjects.Image) {
+		knob.setTintFill(this.options.resizeKnobs.fillColor)
+
+		document.body.style.cursor = 'default'
+	}
+
 	/**
 	 * As of now resizing is done separately for each object in the selection.
 	 * @note Hold SHIFT to keep the aspect ratio.
 	 */
 	private resize(knob: Phaser.GameObjects.Image, pointer: Phaser.Input.Pointer, x: number, y: number) {
-		const selection = this.targetSelection
+		const selection = this.target
 		if (!selection) {
 			return
 		}
@@ -633,14 +677,14 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	public startFollow(selection: Selection) {
-		if (this.targetSelection === selection) {
+		if (this.target === selection) {
 			return
 		}
 
 		this.adjustToSelection(selection)
 
-		this.targetSelection = selection
-		this.targetSelection.once('destroyed', this.stopFollow, this)
+		this.target = selection
+		this.target.once('destroyed', this.stopFollow, this)
 
 		this.revive()
 
@@ -648,12 +692,12 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	public stopFollow() {
-		if (!this.targetSelection) {
+		if (!this.target) {
 			return
 		}
 
-		const selectionContent = this.targetSelection.objectsAsString
-		this.targetSelection = null
+		const selectionContent = this.target.objectsAsString
+		this.target = null
 
 		this.kill()
 
@@ -743,11 +787,11 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	private onUpdate(time: number, deltaMs: number): void {
-		if (!this.targetSelection) {
+		if (!this.target) {
 			return
 		}
 
-		this.adjustToSelection(this.targetSelection)
+		this.adjustToSelection(this.target)
 	}
 
 	public destroy(): void {
