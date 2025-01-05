@@ -17,6 +17,7 @@ import { Logger } from 'tslog'
 import { logger } from '@logs/logs'
 import { BaseScene } from './robowhale/phaser3/scenes/BaseScene'
 import { urlParams } from '@url-params'
+import { TestScene, TestSceneInitData } from './scenes/test/TestScene'
 
 export type Vector2Like = Phaser.Types.Math.Vector2Like
 /**
@@ -57,28 +58,35 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 		appCommands: CommandEmitter<AppCommands>
 	) {
 		Phaser3Extensions.extend()
-
+		
 		super(phaserConfig)
 		
 		if (urlParams.get('clearConsole') === 'phaser') {
 			console.clear()
 		}
-
+		
 		this.logger = logger.getOrCreate('canvas')
 		this.logger.info('PhaserApp created')
-
+		
 		this.appEvents = appEvents
-
+		
 		this.appCommands = appCommands
-
+		
 		this.resizeSensor = this.setupScaling()
-
+		
 		// TODO add Boot scene where we load editor assets
 		this.scene.add('MainScene', MainScene)
-
-		this.scene.start('MainScene', {
-			project: new Project({ config: projectConfig }),
-		} satisfies MainSceneInitData)
+		this.scene.add('TestScene', TestScene)
+		
+		if (urlParams.getBool('test')) {
+			this.scene.start('TestScene', {
+				project: new Project({ config: projectConfig }),
+			} satisfies TestSceneInitData)
+		} else {
+			this.scene.start('MainScene', {
+				project: new Project({ config: projectConfig }),
+			} satisfies MainSceneInitData)
+		}
 	}
 
 	private setupScaling() {
@@ -106,7 +114,7 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 		super.destroy(removeCanvas, noReturn)
 		
 		this.scene.scenes.forEach((scene) => {
-			if (scene instanceof BaseScene) {
+			if (scene instanceof BaseScene && scene.scene.isActive()) {
 				scene.onShutdown()
 			}
 		})
