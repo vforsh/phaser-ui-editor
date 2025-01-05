@@ -553,12 +553,11 @@ export class MainScene extends BaseScene {
 
 		const editContext = this.editContexts.current!
 
-		editContext.target.add(copiedObjs)
-
 		copiedObjs.forEach((obj) => {
 			obj.x += 30
 			obj.y += 30
 			obj.name = this.getNewObjectName(editContext, obj)
+			editContext.target.add(obj)
 			this.logger.debug(`pasted '${obj.name}'`)
 		})
 
