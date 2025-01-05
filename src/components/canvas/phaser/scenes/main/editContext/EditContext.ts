@@ -110,11 +110,11 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.target.once('destroy', this.destroy, this, this.destroySignal)
 
 		this.logger.debug(`create start ${this.target.listAsString()}`)
-		
+
 		this.target.editables.forEach((child) => {
 			this.register(child)
 		})
-		
+
 		this.addHoverRects(1)
 		this.addSubSelectionRects(1)
 		this.addSelectionRect()
@@ -151,7 +151,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 			this.hoverRects.forEach((hoverRect) => hoverRect.kill())
 		}
 	}
-	
+
 	/**
 	 * Called by the edit context manager only for active contexts.
 	 */
@@ -159,7 +159,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.updateSubSelectionRects()
 		this.processHover()
 	}
-	
+
 	private updateSubSelectionRects() {
 		this.subSelectionRects.forEach((rect) => {
 			if (rect.active === false) {
@@ -517,8 +517,6 @@ export class EditContext extends TypedEventEmitter<Events> {
 		x: number,
 		y: number
 	): void {
-		// this.logger.debug(`container '${container.name}' clicked`)
-
 		const now = Date.now()
 		const lastClick = this.containerClicks.get(container)
 		const msSinceLastClick = lastClick ? now - lastClick : Number.MAX_SAFE_INTEGER

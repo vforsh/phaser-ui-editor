@@ -46,11 +46,11 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 
 	public add(container: EditableContainer, options: AddContextOptions = {}): EditContext {
 		if (this.contexts.has(container)) {
-			throw new Error(`Edit context for '${container.name}' already exists`)
+			return this.contexts.get(container)!
 		}
 
 		const signal = this.destroySignal
-		
+
 		const _options = Object.assign(
 			{
 				switchTo: false,
@@ -65,24 +65,22 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 			logger: this.logger.getSubLogger({ name: `:${container.name}` }),
 			isRoot: _options.isRoot,
 		})
-		
+
 		context.on('container-added', (container) => this.add(container), this, signal)
-		context.on('container-removed', (container) => this.remove(container), this, signal)
+		// context.on('container-removed', (container) => this.remove(container), this, signal)
 		context.on('container-double-clicked', (container) => this.switchTo(container), this, signal)
 		context.on('bounds-changed', (bounds) => this.onContextBoundsChanged(context, bounds), this, signal)
 		context.once('pre-destroy', () => this.remove(container), this, signal)
-		
+
 		context.onAdd()
-		
+
 		this.contexts.set(container, context)
-		
+
 		this.logger.debug(`added ${_options.isRoot ? 'ROOT' : ''} context '${container.name}'`)
-		
+
 		if (_options.switchTo) {
 			this.switchTo(container)
 		}
-
-		// this.logger.debug(`contexts(${this.contexts.size}): ${this.getState()}`)
 
 		return context
 	}
@@ -102,8 +100,6 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		this.logger.debug(`removed context '${container.name}'`)
 
 		this.contexts.delete(container)
-
-		// this.logger.debug(`contexts(${this.contexts.size}): ${this.getState()}`)
 	}
 
 	public switchTo(container: EditableContainer): EditContext {
