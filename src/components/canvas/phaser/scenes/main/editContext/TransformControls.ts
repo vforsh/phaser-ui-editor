@@ -254,30 +254,26 @@ export class TransformControls extends Phaser.GameObjects.Container {
 
 		const pointerUpSignal = signalFromEvent(this.scene.input, Phaser.Input.Events.POINTER_UP)
 
-		const pointerPos = { x: pointer.worldX, y: pointer.worldY }
+		const pointerInitialPos = { x: pointer.worldX, y: pointer.worldY }
 
-		const selectionCenter = {
-			x: selection.bounds.left + selection.bounds.width / 2,
-			y: selection.bounds.top + selection.bounds.height / 2,
-		}
+		const selectionInitialPos = { x: selection.x, y: selection.y }
 
-		const pointerAngleRad = Math.atan2(selectionCenter.y - pointerPos.y, selectionCenter.x - pointerPos.x)
+		const pointerAngleRad = Math.atan2(
+			selectionInitialPos.y - pointerInitialPos.y,
+			selectionInitialPos.x - pointerInitialPos.x
+		)
 
-		const selectedTransforms = new Map<Transformable, { angleDeg: number }>()
-
-		selection.objects.forEach((obj) => {
-			selectedTransforms.set(obj, {
-				angleDeg: obj.angle,
-			})
-		})
+		const selectedTransforms = new Map<Transformable, { angleDeg: number }>(
+			selection.objects.map((obj) => [obj, { angleDeg: obj.angle }])
+		)
 
 		this.events.emit('transform-start', 'rotate')
 
 		this.scene.input.on(
 			Phaser.Input.Events.POINTER_MOVE,
 			(pointer: Phaser.Input.Pointer) => {
-				const dx = selectionCenter.x - pointer.worldX
-				const dy = selectionCenter.y - pointer.worldY
+				const dx = selectionInitialPos.x - pointer.worldX
+				const dy = selectionInitialPos.y - pointer.worldY
 				const angleRad = Math.atan2(dy, dx)
 
 				selectedTransforms.forEach((transform, obj) => {
