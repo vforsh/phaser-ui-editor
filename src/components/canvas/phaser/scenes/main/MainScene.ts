@@ -166,20 +166,26 @@ export class MainScene extends BaseScene {
 		})
 
 		const appCommands = (this.game as PhaserGameExtra).appCommands as AppCommandsEmitter
-		appCommands.on('align', (type) => {
-			const context = this.editContexts.current!
-			const selection = context.selection
-			if (!selection) {
-				return
-			}
+		appCommands.on(
+			'align',
+			(type) => {
+				const context = this.editContexts.current!
+				const selection = context.selection
+				if (!selection) {
+					return
+				}
 
-			this.aligner.logger.debug(`aligning ${selection.objectsAsString} to ${type}`)
+				this.aligner.logger.debug(`aligning ${selection.objectsAsString} to ${type}`)
 
-			const wasAligned = this.aligner.align(type, selection.objects, context)
-			if (wasAligned) {
-				selection.updateBounds()
-			}
-		})
+				const wasAligned = this.aligner.align(type, selection.objects, context)
+				if (wasAligned) {
+					selection.updateBounds()
+				}
+			},
+			this,
+			false,
+			this.shutdownSignal
+		)
 	}
 
 	private addProjectSizeFrame(size: ProjectConfig['size']) {
