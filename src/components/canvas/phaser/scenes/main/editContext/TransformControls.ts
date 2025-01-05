@@ -3,10 +3,9 @@ import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import { ReadonlyDeep } from 'type-fest'
 import { signalFromEvent } from '../../../robowhale/utils/events/create-abort-signal-from-event'
+import { EditableObject } from '../objects/EditableObject'
 import { Selection } from './Selection'
 import { canChangeOrigin, Transformable } from './Transformable'
-
-// custom cursors
 import arrowsHorizontalCursor from './cursors/arrows-horizontal.svg?raw'
 import arrowsLeftDownCursor from './cursors/arrows-left-down.svg?raw'
 
@@ -162,6 +161,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		})
 
 		this.addOriginKnob()
+		// this.originKnob.kill()
 		// this.setKnobCircleHitArea(
 		// 	originKnob.input!,
 		// 	this.options.originKnob.radius + this.options.originKnob.lineThickness
@@ -281,7 +281,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			return
 		}
 
-		this.logger.debug(`rotate start [${selection.objects.map((obj) => obj.name).join(', ')}] (${selection.size})`)
+		this.logger.debug(`rotate start [${selection.objects.map((obj) => obj.name).join(', ')}] (${selection.count})`)
 
 		const cursorAngleOffset = this.getRotateCursorAngleOffset(knob)
 
@@ -332,8 +332,8 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.scene.input.once(
 			Phaser.Input.Events.POINTER_UP,
 			() => {
-				this.logger.debug('rotate end')
 				document.body.style.cursor = 'default'
+				this.logger.debug('rotate end')
 				this.events.emit('transform-end', 'rotate')
 			},
 			this,
@@ -375,36 +375,50 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			return
 		}
 
-		// it doesn't work correctly with objects that rotated by 90 and more degrees
-		const knobType = match(knob.name)
-			.with('top-left-resize-knob', () => 'top-left')
-			.with('top-right-resize-knob', () => 'top-right')
-			.with('bottom-left-resize-knob', () => 'bottom-left')
-			.with('bottom-right-resize-knob', () => 'bottom-right')
-			.run()
+		const selectionCenter = { x: selection.centerX, y: selection.centerY }
 
-		const newOrigin = match(knobType)
+		// Convert pointer world position to selection local position
+		const pointerPos = selection.toLocal(pointer.worldX, pointer.worldY)
+
+		// Calculate relative pointer position accounting for selection rotation
+		const dx = pointerPos.x - selectionCenter.x
+		const dy = pointerPos.y - selectionCenter.y
+		const sin = Math.sin(-selection.rotation)
+		const cos = Math.cos(-selection.rotation)
+		const rotatedX = dx * cos - dy * sin
+		const rotatedY = dx * sin + dy * cos
+
+		// Determine resize direction based on where click happened relative to selection center
+		const resizeDirection = ((rotatedX: number, rotatedY: number) => {
+			if (rotatedX < 0 && rotatedY < 0) return 'top-left'
+			if (rotatedX < 0 && rotatedY > 0) return 'bottom-left'
+			if (rotatedX > 0 && rotatedY < 0) return 'top-right'
+			if (rotatedX > 0 && rotatedY > 0) return 'bottom-right'
+			throw new Error(`Invalid knob position: ${rotatedX}, ${rotatedY}`)
+		})(rotatedX, rotatedY)
+
+		const newOrigin = match(resizeDirection)
 			.with('top-left', () => [1, 1])
 			.with('top-right', () => [0, 1])
 			.with('bottom-left', () => [1, 0])
 			.with('bottom-right', () => [0, 0])
-			.run()
+			.exhaustive()
 
-		const knobIsLeft = knobType.includes('left')
-		const knobIsTop = knobType.includes('top')
+		const knobIsLeft = resizeDirection.includes('left')
+		const knobIsTop = resizeDirection.includes('top')
 
 		this.logger.debug(
-			`resize '${knobType}' start [${selection.objects.map((obj) => obj.name).join(', ')}] (${selection.size})`
+			`resize '${resizeDirection}' start [${selection.objects.map((obj) => obj.name).join(', ')}] (${selection.count})`
 		)
 
 		const pointerUpSignal = signalFromEvent(this.scene.input, Phaser.Input.Events.POINTER_UP)
 
-		const pointerPos = { x: pointer.worldX, y: pointer.worldY }
+		const pointerPosInitial = { x: pointer.worldX, y: pointer.worldY }
 
-		const selectionOrigin = { x: selection.originX, y: selection.originY }
+		const selectionOriginInitial = { x: selection.originX, y: selection.originY }
 
 		const selectedTransforms = new Map<
-			Transformable,
+			EditableObject,
 			{
 				width: number
 				height: number
@@ -469,10 +483,18 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.scene.input.on(
 			Phaser.Input.Events.POINTER_MOVE,
 			(pointer: Phaser.Input.Pointer) => {
+				// Calculate delta in rotated coordinate system
+				const worldDx = pointer.worldX - pointerPosInitial.x
+				const worldDy = pointer.worldY - pointerPosInitial.y
+
+				// Rotate the delta to match selection's coordinate system
+				const rotatedDx = worldDx * cos - worldDy * sin
+				const rotatedDy = worldDx * sin + worldDy * cos
+
 				const kx = knobIsLeft ? -1 : 1
-				const dx = (pointer.worldX - pointerPos.x) * kx
 				const ky = knobIsTop ? -1 : 1
-				const dy = (pointer.worldY - pointerPos.y) * ky
+				const dx = rotatedDx * kx
+				const dy = rotatedDy * ky
 
 				// resize selected objects separately
 				selectedTransforms.forEach((transform, obj) => {
@@ -491,8 +513,6 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.scene.input.once(
 			Phaser.Input.Events.POINTER_UP,
 			() => {
-				// this.logger.debug('resize end')
-
 				// restore the origins
 				selectedTransforms.forEach((transform, obj) => {
 					if (canChangeOrigin(obj)) {
@@ -528,9 +548,11 @@ export class TransformControls extends Phaser.GameObjects.Container {
 					}
 				})
 
-				selection.setOrigin(selectionOrigin.x, selectionOrigin.y)
+				selection.setOrigin(selectionOriginInitial.x, selectionOriginInitial.y)
 
 				selection.updateBounds()
+
+				this.logger.debug(`resize '${resizeDirection}' end`)
 
 				this.events.emit('transform-end', 'resize')
 			},
@@ -841,6 +863,8 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.handles.length = 0
 
 		this.handlesState.clear()
+
+		document.body.style.cursor = 'default'
 	}
 
 	public get events(): TypedEventEmitter<Events> {

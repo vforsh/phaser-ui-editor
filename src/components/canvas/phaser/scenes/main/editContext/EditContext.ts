@@ -595,7 +595,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 			}
 		})
 
-		const selection = new Selection(objs)
+		const selection = new Selection(this.target, objs)
 		selection.on('changed', this.onSelectionChanged, this, this.destroySignal)
 		selection.once('destroyed', this.onSelectionDestroyed, this, this.destroySignal)
 

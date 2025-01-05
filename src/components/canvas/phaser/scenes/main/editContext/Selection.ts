@@ -17,12 +17,15 @@ type Events = {
  */
 export class Selection extends TypedEventEmitter<Events> {
 	public objects: EditableObject[]
+	private readonly _parent: Phaser.GameObjects.Container
 	private _bounds: Phaser.Geom.Rectangle
 	private _originX = 0.5
 	private _originY = 0.5
 
-	constructor(objects: EditableObject[]) {
+	constructor(parent: Phaser.GameObjects.Container, objects: EditableObject[]) {
 		super()
+
+		this._parent = parent
 
 		this.objects = objects
 
@@ -101,6 +104,10 @@ export class Selection extends TypedEventEmitter<Events> {
 		return this
 	}
 
+	public toLocal(worldX: number, worldY: number): Phaser.Types.Math.Vector2Like {
+		return this._parent.localTransform.transformPoint(worldX, worldY)
+	}
+
 	public destroy(): void {
 		this.emit('destroyed')
 
@@ -140,16 +147,24 @@ export class Selection extends TypedEventEmitter<Events> {
 	}
 
 	public get isEmpty(): boolean {
-		return this.size === 0
+		return this.count === 0
 	}
 
 	/**
 	 * The number of objects in the selection.
 	 */
-	public get size(): number {
+	public get count(): number {
 		return this.objects.length
 	}
 
+	public get angle(): number {
+		return this.objects.length === 1 ? this.objects[0].angle : 0
+	}
+
+	public get rotation(): number {
+		return this.objects.length === 1 ? this.objects[0].rotation : 0
+	}
+	
 	public get bounds(): ReadonlyDeep<Phaser.Geom.Rectangle> {
 		return this._bounds
 	}
@@ -168,6 +183,10 @@ export class Selection extends TypedEventEmitter<Events> {
 	}
 
 	public get objectsAsString(): string {
-		return `[${this.objects.map((obj) => obj.name).join(', ')}] (${this.size})`
+		return `[${this.objects.map((obj) => obj.name).join(', ')}] (${this.count})`
+	}
+
+	public get parent(): Phaser.GameObjects.Container {
+		return this._parent
 	}
 }
