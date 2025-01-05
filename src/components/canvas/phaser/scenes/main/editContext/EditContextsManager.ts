@@ -26,7 +26,7 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 	private scene: MainScene
 	private logger: Logger<{}>
 	private destroyController: AbortController
-	private contexts: Map<EditableContainer, EditContext> = new Map()
+	private contexts: Map<Phaser.GameObjects.Container, EditContext> = new Map()
 	private savedBounds: Map<EditContext, Phaser.Geom.Rectangle> = new Map()
 
 	constructor(options: EditContextsManagerOptions) {
@@ -108,13 +108,19 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 			throw new Error(`Edit context for '${container.name}' does not exist`)
 		}
 
+		const exitedContextName = this.current?.name
+
 		this.current?.onExit()
+
+		if (exitedContextName) {
+			this.logger.info(`exited '${exitedContextName}' context`)
+		}
 
 		this.savedBounds = this.getParentContextsBounds(editContext)
 
 		editContext.onEnter()
 
-		this.logger.info(`switched to '${editContext.name}' edit context`)
+		this.logger.info(`entered '${editContext.name}' context`)
 
 		this.emit('context-switched', editContext)
 
@@ -124,14 +130,14 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 	private getParentContextsBounds(context: EditContext): Map<EditContext, Phaser.Geom.Rectangle> {
 		let boundsMap = new Map<EditContext, Phaser.Geom.Rectangle>()
 
-		let parent = context.target.parentContainer as EditableContainer
+		let parent = context.target.parentContainer
 		while (parent && this.contexts.has(parent)) {
 			const parentContext = this.contexts.get(parent)
 			if (!parentContext) {
 				break
 			}
 			boundsMap.set(parentContext, parentContext.getBounds())
-			parent = parent.parentContainer as EditableContainer
+			parent = parent.parentContainer
 		}
 
 		return boundsMap
@@ -139,11 +145,24 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 
 	private onContextBoundsChanged(context: EditContext, bounds: Phaser.Geom.Rectangle) {
 		// propagate bounds change to parent context
-		const parentContext = this.contexts.get(context.target.parentContainer as EditableContainer)
+		const parentContext = this.contexts.get(context.target.parentContainer)
 		if (parentContext) {
 			const savedBounds = this.savedBounds.get(parentContext)
 			if (savedBounds) {
 				parentContext.updateBounds(savedBounds)
+			}
+		}
+	}
+
+	/**
+	 * Finds the edit context that contains the given object.
+	 * @returns the edit context that contains the object, or undefined if no context is found
+	 */
+	public findContext(obj: Phaser.GameObjects.GameObject): EditContext | undefined {
+		const container = obj instanceof Phaser.GameObjects.Container ? obj : obj.parentContainer
+		for (const context of this.contexts.values()) {
+			if (context.target === container) {
+				return context
 			}
 		}
 	}

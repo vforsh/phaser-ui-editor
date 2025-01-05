@@ -167,7 +167,7 @@ export class Selection extends TypedEventEmitter<Events> {
 		this._originY = y
 	}
 
-	public get contentAsString(): string {
+	public get objectsAsString(): string {
 		return `[${this.objects.map((obj) => obj.name).join(', ')}] (${this.size})`
 	}
 }

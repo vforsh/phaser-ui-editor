@@ -12,6 +12,7 @@ export type EditableObjectJson = EditableContainerJson | EditableImageJson
 
 export type EditableObjectJsonType = EditableObjectJson['type']
 
+// TODO fix imports order so we can use this
 // const EDITABLE_CLASSES = [EditableContainer, EditableImage]
 
 // export type EditableObjectClass = (typeof EDITABLE_CLASSES)[number]

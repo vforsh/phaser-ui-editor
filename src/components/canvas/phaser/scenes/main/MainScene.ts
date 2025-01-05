@@ -426,10 +426,9 @@ export class MainScene extends BaseScene {
 		group.name = this.getNewObjectName(editContext, group)
 		group.setPosition(selection.x, selection.y)
 		group.setSize(selection.width, selection.height)
-		this.root.add(group)
-
-		const grouped = selection.objects.map((obj) => obj.name || 'item').join(', ')
-		this.logger.debug(`grouped [${grouped}] (${selection.objects.length}) -> '${group.name}'`)
+		editContext.target.add(group)
+		
+		this.logger.debug(`grouped ${selection.objectsAsString} -> '${group.name}'`)
 
 		selection.objects.forEach((obj) => {
 			group.add(obj)

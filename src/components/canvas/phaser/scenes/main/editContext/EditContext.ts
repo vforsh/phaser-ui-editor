@@ -2,7 +2,7 @@ import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/T
 import { Logger } from 'tslog'
 import { CloneOptions } from '../factory/ObjectsFactory'
 import { MainScene } from '../MainScene'
-import { EditableContainer } from '../objects/EditableContainer'
+import { EditableContainer, isEditable } from '../objects/EditableContainer'
 import { EditableObject } from '../objects/EditableObject'
 import { AdjustableRect } from './AdjustableRect'
 import { Selection } from './Selection'
@@ -40,7 +40,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 	public selection: Selection | null = null
 
 	/**
-	 * A map of container clicks.
+	 * A map of container click timestamps.
 	 * The key is the container, the value is the timestamp of the last click.
 	 */
 	private containerClicks = new Map<EditableContainer, number>()
@@ -111,7 +111,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.addSubSelectionRects(1)
 		this.addSelectionRect()
 		this.addTransformControls()
-		this.addDebugGraphics()
+		// this.addDebugGraphics()
 
 		this.scene.events.on(
 			Phaser.Scenes.Events.UPDATE,
@@ -405,16 +405,16 @@ export class EditContext extends TypedEventEmitter<Events> {
 			'start-follow',
 			(selection: Selection) => {
 				this.target.bringToTop(this.transformControls)
-				this.logger.debug(`transform controls started following '${selection.contentAsString}'`)
+				// this.logger.debug(`transform controls started following '${selection.objectsAsString}'`)
 			},
 			this,
 			this.destroySignal
 		)
-
+		
 		this.transformControls.events.on(
 			'stop-follow',
 			(selectionContent: string) => {
-				this.logger.debug(`transform controls stopped following '${selectionContent}'`)
+				// this.logger.debug(`transform controls stopped following '${selectionContent}'`)
 			},
 			this,
 			this.destroySignal
@@ -445,7 +445,6 @@ export class EditContext extends TypedEventEmitter<Events> {
 	}
 
 	private addDebugGraphics() {
-		// TODO remove later
 		this.debugGraphics = this.scene.add.graphics()
 		this.debugGraphics.setName('debug-graphics')
 		this.debugGraphics.fillStyle(0xff0000, 0.5)
@@ -453,61 +452,61 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.debugGraphics.kill()
 	}
 
-	public register(gameObject: EditableObject): void {
-		if (gameObject.parentContainer !== this.target) {
-			throw new Error(`'${gameObject.name}' must be a child of '${this.target.name}'`)
+	private register(obj: EditableObject): void {
+		if (obj.parentContainer !== this.target) {
+			throw new Error(`'${obj.name}' must be a child of '${this.target.name}'`)
 		}
 
-		if (this.selectables.includes(gameObject)) {
-			this.logger.warn(`'${gameObject.name}' is already registered in this context`)
+		if (this.selectables.includes(obj)) {
+			this.logger.warn(`'${obj.name}' is already registered in this context`)
 			return
 		}
 
 		const signal = this.destroySignal
 
-		gameObject.setInteractive()
-		gameObject.on('pointerdown', this.onSelectablePointerDown.bind(this, gameObject), this, signal)
-		gameObject.once('destroy', () => this.unregister(gameObject), this, signal)
+		obj.setInteractive()
+		obj.on('pointerdown', this.onSelectablePointerDown.bind(this, obj), this, signal)
+		obj.once('destroy', () => this.unregister(obj), this, signal)
 
-		if (gameObject instanceof EditableContainer) {
-			this.containerClicks.set(gameObject, 0)
-			gameObject.on('pointerdown', this.onContainerPointerDown.bind(this, gameObject), this, signal)
+		if (obj instanceof EditableContainer) {
+			this.containerClicks.set(obj, 0)
+			obj.on('pointerdown', this.onContainerPointerDown.bind(this, obj), this, signal)
 		}
 
-		this.selectables.push(gameObject)
+		this.selectables.push(obj)
 
 		if (!this._active) {
-			gameObject.disableInteractive()
+			obj.disableInteractive()
 		}
 
-		this.logger.debug(`registered item '${gameObject.name}'`)
+		this.logger.debug(`registered item '${obj.name}'`)
 	}
 
-	public unregister(gameObject: EditableObject): void {
-		if (!this.selectables.includes(gameObject)) {
-			this.logger.warn(`'${gameObject.name}' is not registered in this context`)
+	private unregister(obj: EditableObject): void {
+		if (!this.selectables.includes(obj)) {
+			this.logger.warn(`'${obj.name}' is not registered in this context`)
 			return
 		}
 
-		gameObject.offByContext(this)
-		gameObject.disableInteractive()
+		obj.offByContext(this)
+		obj.disableInteractive()
 
-		if (gameObject instanceof EditableContainer) {
-			this.containerClicks.delete(gameObject)
+		if (obj instanceof EditableContainer) {
+			this.containerClicks.delete(obj)
 		}
 
-		this.selectables = this.selectables.filter((selectable) => selectable !== gameObject)
+		this.selectables = this.selectables.filter((selectable) => selectable !== obj)
 
 		// should this side effect be handled here?
-		if (this.selection?.includes(gameObject)) {
-			this.selection.remove(gameObject)
+		if (this.selection?.includes(obj)) {
+			this.selection.remove(obj)
 		}
 
-		this.logger.debug(`unregistered item '${gameObject.name}'`)
+		this.logger.debug(`unregistered item '${obj.name}'`)
 	}
 
 	public isRegistered(gameObject: Phaser.GameObjects.GameObject): gameObject is EditableObject {
-		return this.selectables.includes(gameObject as EditableObject)
+		return isEditable(gameObject) && this.selectables.includes(gameObject)
 	}
 
 	private onContainerPointerDown(
@@ -587,14 +586,15 @@ export class EditContext extends TypedEventEmitter<Events> {
 		return this.selection
 	}
 
-	public createSelection(selectables: EditableObject[]): Selection {
-		selectables.forEach((selectable) => {
-			if (!this.isRegistered(selectable)) {
-				throw new Error(`object should be added to selection manager before creating a selection`)
+	public createSelection(objs: EditableObject[]): Selection {
+		objs.forEach((obj) => {
+			const objName = obj.name
+			if (!this.isRegistered(obj)) {
+				throw new Error(`object '${objName}' is not registered in this context`)
 			}
 		})
 
-		const selection = new Selection(selectables)
+		const selection = new Selection(objs)
 		selection.on('changed', this.onSelectionChanged, this, this.destroySignal)
 		selection.once('destroyed', this.onSelectionDestroyed, this, this.destroySignal)
 

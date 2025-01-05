@@ -338,7 +338,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 				aspectRatio: number
 			}
 		>()
-
+		
 		selection.objects.forEach((obj) => {
 			const currentOrigin = [obj.originX, obj.originY]
 
@@ -648,7 +648,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			return
 		}
 
-		const selectionContent = this.targetSelection.contentAsString
+		const selectionContent = this.targetSelection.objectsAsString
 		this.targetSelection = null
 
 		this.kill()
