@@ -915,6 +915,10 @@ export class MainScene extends BaseScene {
 		this.onResizeOrCameraChange()
 	}
 
+	public update(time: number, deltaMs: number): void {
+		this.editContexts.update(deltaMs)
+	}
+
 	public onShutdown(): void {
 		this.logger.debug(`${this.scene.key} shutdown - start`)
 

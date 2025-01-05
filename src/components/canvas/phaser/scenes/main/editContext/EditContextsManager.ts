@@ -175,6 +175,10 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		}
 	}
 
+	public update(deltaMs: number): void {
+		this.contexts.forEach((context) => context.active && context.update(deltaMs))
+	}
+
 	public destroy(): void {
 		super.destroy()
 

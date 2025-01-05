@@ -120,13 +120,6 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.addSelectionRect()
 		this.addTransformControls()
 		// this.addDebugGraphics()
-		
-		this.scene.events.on(
-			Phaser.Scenes.Events.UPDATE,
-			this.onSceneUpdate,
-			this,
-			AbortSignal.any([this.destroySignal])
-		)
 
 		this.logger.debug(`create complete ${this.target.listAsString()}`)
 	}
@@ -158,16 +151,15 @@ export class EditContext extends TypedEventEmitter<Events> {
 			this.hoverRects.forEach((hoverRect) => hoverRect.kill())
 		}
 	}
-
-	private onSceneUpdate() {
-		if (!this._active) {
-			return
-		}
-
+	
+	/**
+	 * Called by the edit context manager only for active contexts.
+	 */
+	public update(deltaMs: number): void {
 		this.updateSubSelectionRects()
 		this.processHover()
 	}
-
+	
 	private updateSubSelectionRects() {
 		this.subSelectionRects.forEach((rect) => {
 			if (rect.active === false) {
