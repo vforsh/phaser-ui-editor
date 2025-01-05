@@ -16,6 +16,7 @@ import {
 } from '../../../../../types/assets'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { signalFromEvent } from '../../robowhale/utils/events/create-abort-signal-from-event'
+import { Aligner } from './Aligner'
 import { CanvasClipboard } from './CanvasClipboard'
 import { EditContext } from './editContext/EditContext'
 import { EditContextsManager } from './editContext/EditContextsManager'
@@ -61,9 +62,11 @@ export class MainScene extends BaseScene {
 	private rulers!: Rulers
 	private editContexts!: EditContextsManager
 	private root!: EditableContainer
-	private projectSizeFrame!: Phaser.GameObjects.Graphics
+	// TODO move to a separate class, it should emit events on resize
+	public projectSizeFrame!: Phaser.GameObjects.Graphics & { width: number; height: number }
 	public objectsFactory!: ObjectsFactory
 	private clipboard!: CanvasClipboard
+	private aligner!: Aligner
 
 	public init(data: MainSceneInitData) {
 		super.init(data)
@@ -101,6 +104,8 @@ export class MainScene extends BaseScene {
 
 		this.initRoot()
 
+		this.initAligner()
+
 		this.addProjectSizeFrame(this.initData.project.config.size)
 
 		this.addKeyboadCallbacks()
@@ -122,7 +127,6 @@ export class MainScene extends BaseScene {
 			this.setCameraZoom(zoom)
 		}
 	}
-
 	private initObjectsFactory() {
 		this.objectsFactory = new ObjectsFactory({
 			scene: this,
@@ -155,12 +159,37 @@ export class MainScene extends BaseScene {
 		})
 	}
 
+	private initAligner() {
+		this.aligner = new Aligner({
+			scene: this,
+			logger: this.logger.getSubLogger({ name: ':align' }),
+		})
+
+		const appCommands = (this.game as PhaserGameExtra).appCommands as AppCommandsEmitter
+		appCommands.on('align', (type) => {
+			const context = this.editContexts.current!
+			const selection = context.selection
+			if (!selection) {
+				return
+			}
+
+			this.aligner.logger.debug(`aligning ${selection.objectsAsString} to ${type}`)
+
+			const wasAligned = this.aligner.align(type, selection.objects, context)
+			if (wasAligned) {
+				selection.updateBounds()
+			}
+		})
+	}
+
 	private addProjectSizeFrame(size: ProjectConfig['size']) {
-		this.projectSizeFrame = this.add.graphics()
+		this.projectSizeFrame = this.add.graphics() as Phaser.GameObjects.Graphics & { width: number; height: number }
 		this.projectSizeFrame.lineStyle(1, 0xffffff, 1)
 		this.projectSizeFrame.strokeRect(0, 0, size.width, size.height)
 		// this.projectSizeFrame.fillStyle(0x2f0559, 0.25)
 		// this.projectSizeFrame.fillRect(0, 0, size.width, size.height)
+		this.projectSizeFrame.width = size.width
+		this.projectSizeFrame.height = size.height
 	}
 
 	private async addTestImages(): Promise<void> {
@@ -201,13 +230,13 @@ export class MainScene extends BaseScene {
 		chefCherry_5?.setAngle(90)
 
 		context.setSelection([chefCherry_5!])
-		
+
 		// const selection_1 = context.createSelection([chefCherry_1!, chefCherry_2!])
 		// const group_1 = this.group(selection_1, context)
 
 		// const selection_2 = context.createSelection([chefCherry_3!, chefCherry_4!])
 		// const group_2 = this.group(selection_2, context)
-		
+
 		// const selection_3 = context.createSelection([group_1, group_2])
 		// const group_3 = this.group(selection_3, context)
 

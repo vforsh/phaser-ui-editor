@@ -12,7 +12,7 @@ export function calculateBounds(objects: Transformable[], rect?: Phaser.Geom.Rec
 		right = -Infinity,
 		top = Infinity,
 		bottom = -Infinity
-
+	
 	objects.forEach((obj) => {
 		const sin = Math.sin(obj.rotation)
 		const cos = Math.cos(obj.rotation)
@@ -63,7 +63,7 @@ export function calculateBounds(objects: Transformable[], rect?: Phaser.Geom.Rec
 	return new Phaser.Geom.Rectangle(left, top, right - left, bottom - top)
 }
 
-function calculateBoundsSingle(obj: Transformable, rect?: Phaser.Geom.Rectangle): Phaser.Geom.Rectangle {
+export function calculateBoundsSingle(obj: Transformable, rect?: Phaser.Geom.Rectangle): Phaser.Geom.Rectangle {
 	const originX = obj.getData('originX') ?? obj.originX
 	const originY = obj.getData('originY') ?? obj.originY
 	const w = obj.displayWidth

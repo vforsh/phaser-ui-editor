@@ -5,6 +5,7 @@ import { AppCommands } from '../../AppCommands'
 import { AppEvents } from '../../AppEvents'
 import { state, useSnapshot } from '../../state/State'
 import type { AssetTreeItemData } from '../../types/assets'
+import AlignmentControls from './AlignmentControls'
 import { Canvas } from './Canvas'
 import { TypedEventEmitter } from './phaser/robowhale/phaser3/TypedEventEmitter'
 import { CommandEmitter } from './phaser/robowhale/utils/events/CommandEmitter'
@@ -99,32 +100,6 @@ export default function CanvasContainer() {
 		setZoom(1)
 	}
 
-	// Horizontal alignment handlers
-	const handleAlignLeft = () => {
-		console.log('Align left')
-	}
-
-	const handleAlignHorizontalCenter = () => {
-		console.log('Align horizontal center')
-	}
-
-	const handleAlignRight = () => {
-		console.log('Align right')
-	}
-
-	// Vertical alignment handlers
-	const handleAlignTop = () => {
-		console.log('Align top')
-	}
-
-	const handleAlignVerticalCenter = () => {
-		console.log('Align vertical center')
-	}
-
-	const handleAlignBottom = () => {
-		console.log('Align bottom')
-	}
-
 	// use memo to prevent re-rendering of the canvas element
 	const canvas = useMemo(() => {
 		// Only create canvas if we have all required props
@@ -181,19 +156,21 @@ export default function CanvasContainer() {
 
 			{/* <ZoomControls onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} onReset={handleZoomReset} onFit={handleZoomFit} /> */}
 
-			{/* <AlignmentControls
+			<AlignmentControls
 				orientation="horizontal"
-				onAlignStart={handleAlignLeft}
-				onAlignCenter={handleAlignHorizontalCenter}
-				onAlignEnd={handleAlignRight}
-			/> */}
+				onAlignStart={() => state.app?.commands.emit('align', 'left')}
+				onAlignCenter={() => state.app?.commands.emit('align', 'horizontal-center')}
+				onAlignEnd={() => state.app?.commands.emit('align', 'right')}
+				onDistribute={() => state.app?.commands.emit('align', 'distribute-horizontal')}
+			/>
 
-			{/* <AlignmentControls
+			<AlignmentControls
 				orientation="vertical"
-				onAlignStart={handleAlignTop}
-				onAlignCenter={handleAlignVerticalCenter}
-				onAlignEnd={handleAlignBottom}
-			/> */}
+				onAlignStart={() => state.app?.commands.emit('align', 'top')}
+				onAlignCenter={() => state.app?.commands.emit('align', 'vertical-center')}
+				onAlignEnd={() => state.app?.commands.emit('align', 'bottom')}
+				onDistribute={() => state.app?.commands.emit('align', 'distribute-vertical')}
+			/>
 
 			{isDragOver && !dropPreview && (
 				<Center h="100%" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
