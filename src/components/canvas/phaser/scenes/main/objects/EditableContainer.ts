@@ -19,7 +19,11 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 	private readonly __events = new TypedEventEmitter<Events>()
 
 	constructor(scene: Phaser.Scene, x = 0, y = 0, children: Phaser.GameObjects.GameObject[] = []) {
-		super(scene, x, y, children)
+		super(scene, x, y)
+
+		// defer adding children
+		// we do it here instead of in `super()` because `__events` is not initialized yet in `super()`
+		this.add(children)
 	}
 
 	override addHandler(gameObject: Phaser.GameObjects.GameObject): void {

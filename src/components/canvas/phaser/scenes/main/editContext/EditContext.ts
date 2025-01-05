@@ -542,8 +542,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 			const toClone = this.selection?.includes(gameObject) ? this.selection.objects : [gameObject]
 			const clonedObjects = toClone.map((obj) => {
 				const clone = this.scene.objectsFactory.clone(obj, { addToScene: false })
-				this.target.add(clone)
-				this.register(clone)
+				this.target.add(clone) // it will trigger `register()` as well
 				return clone
 			})
 
