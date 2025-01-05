@@ -10,6 +10,12 @@ interface AddContextOptions {
 	 * @default false
 	 */
 	switchTo?: boolean
+
+	/**
+	 * There can be only one root context.
+	 * @default false
+	 */
+	isRoot?: boolean
 }
 
 type EditContextsManagerEvents = {
@@ -44,32 +50,34 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		}
 
 		const signal = this.destroySignal
+		
+		const _options = Object.assign(
+			{
+				switchTo: false,
+				isRoot: false,
+			} satisfies AddContextOptions,
+			options
+		)
 
 		const context = new EditContext({
 			scene: this.scene,
 			target: container,
 			logger: this.logger.getSubLogger({ name: `:${container.name}` }),
+			isRoot: _options.isRoot,
 		})
-
+		
 		context.on('container-added', (container) => this.add(container), this, signal)
 		context.on('container-removed', (container) => this.remove(container), this, signal)
 		context.on('container-double-clicked', (container) => this.switchTo(container), this, signal)
 		context.on('bounds-changed', (bounds) => this.onContextBoundsChanged(context, bounds), this, signal)
 		context.once('pre-destroy', () => this.remove(container), this, signal)
-
+		
 		context.onAdd()
-
+		
 		this.contexts.set(container, context)
-
-		this.logger.debug(`added context '${container.name}'`)
-
-		const _options = Object.assign(
-			{
-				switchTo: false,
-			} satisfies AddContextOptions,
-			options
-		)
-
+		
+		this.logger.debug(`added ${_options.isRoot ? 'ROOT' : ''} context '${container.name}'`)
+		
 		if (_options.switchTo) {
 			this.switchTo(container)
 		}

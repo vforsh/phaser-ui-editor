@@ -59,11 +59,11 @@ export class MainScene extends BaseScene {
 	private selectionDrag: SelectionDragData | undefined
 	private grid!: Grid
 	private rulers!: Rulers
+	private editContexts!: EditContextsManager
 	private root!: EditableContainer
 	private projectSizeFrame!: Phaser.GameObjects.Graphics
 	public objectsFactory!: ObjectsFactory
 	private clipboard!: CanvasClipboard
-	private editContexts!: EditContextsManager
 
 	public init(data: MainSceneInitData) {
 		super.init(data)
@@ -93,15 +93,13 @@ export class MainScene extends BaseScene {
 		this.rulers.name = 'rulers'
 		this.add.existing(this.rulers)
 
-		this.root = new EditableContainer(this, 0, 0)
-		this.root.name = 'root' // TODO use the current prefab name (from the assets tree)
-		this.add.existing(this.root)
-
 		this.initObjectsFactory()
 
 		this.initClipboard()
 
 		this.initEditContexts()
+
+		this.initRoot()
 
 		this.addProjectSizeFrame(this.initData.project.config.size)
 
@@ -144,9 +142,16 @@ export class MainScene extends BaseScene {
 			scene: this,
 			logger: this.logger.getSubLogger({ name: ':contexts' }),
 		})
+	}
+
+	private initRoot() {
+		this.root = new EditableContainer(this)
+		this.root.name = 'root' // TODO use the current prefab name (from the assets tree)
+		this.add.existing(this.root)
 
 		this.editContexts.add(this.root, {
 			switchTo: true,
+			isRoot: true,
 		})
 	}
 
@@ -198,7 +203,7 @@ export class MainScene extends BaseScene {
 
 		const selection_3 = context.createSelection([group_1, group_2])
 		const group_3 = this.group(selection_3, context)
-		
+
 		// const chefCherry_5 = await this.addTestImage(chefCherryFrame, 0, 800)
 		// chefCherry_5?.setName(this.getNewObjectName(context, chefCherry_5!, 'chefCherry_center'))
 		// chefCherry_5?.setOrigin(0.5)
@@ -427,7 +432,7 @@ export class MainScene extends BaseScene {
 		group.setPosition(selection.x, selection.y)
 		group.setSize(selection.width, selection.height)
 		editContext.target.add(group)
-		
+
 		this.logger.debug(`grouped ${selection.objectsAsString} -> '${group.name}'`)
 
 		selection.objects.forEach((obj) => {
@@ -696,7 +701,7 @@ export class MainScene extends BaseScene {
 				// it is a hacky way to get the objects under selection rect but it works
 				const objectsUnderSelectionRect = selection.objectsUnderSelectionRect.slice()
 				selection.objectsUnderSelectionRect.length = 0
-				
+
 				selection.cancelSelection()
 
 				if (objectsUnderSelectionRect.length > 0) {

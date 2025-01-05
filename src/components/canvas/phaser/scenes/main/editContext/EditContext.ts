@@ -24,6 +24,7 @@ export type EditContextOptions = {
 	scene: MainScene
 	logger: Logger<{}>
 	target: EditableContainer
+	isRoot: boolean
 }
 
 /**
@@ -74,8 +75,6 @@ export class EditContext extends TypedEventEmitter<Events> {
 	 */
 	public transformControls!: TransformControls
 
-	private _active = false
-
 	private destroyController = new AbortController()
 	private debugGraphics: Phaser.GameObjects.Graphics | null = null
 	public objectsUnderSelectionRect: EditableObject[] = []
@@ -84,6 +83,14 @@ export class EditContext extends TypedEventEmitter<Events> {
 	 * Target bounds saved before the edit context was activated.
 	 */
 	private savedBounds: Phaser.Geom.Rectangle | undefined
+
+	/**
+	 * Whether the edit context is active.
+	 * Active means that the context is currently being used to edit the target container.
+	 */
+	private _active = false
+
+	private readonly _isRoot: boolean
 
 	constructor(options: EditContextOptions) {
 		super()
@@ -95,30 +102,33 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.options = options
 		this.logger = options.logger
 		this.scene = options.scene
+		this._isRoot = options.isRoot
 
 		this.target = options.target
 		this.target.events.on('editable-added', this.onChildAdded, this, this.destroySignal)
 		this.target.events.on('editable-removed', this.onChildRemoved, this, this.destroySignal)
 		this.target.once('destroy', this.destroy, this, this.destroySignal)
 
-		this.logger.debug(`created ${this.target.listAsString()}`)
-
+		this.logger.debug(`create start ${this.target.listAsString()}`)
+		
 		this.target.editables.forEach((child) => {
 			this.register(child)
 		})
-
+		
 		this.addHoverRects(1)
 		this.addSubSelectionRects(1)
 		this.addSelectionRect()
 		this.addTransformControls()
 		// this.addDebugGraphics()
-
+		
 		this.scene.events.on(
 			Phaser.Scenes.Events.UPDATE,
 			this.onSceneUpdate,
 			this,
 			AbortSignal.any([this.destroySignal])
 		)
+
+		this.logger.debug(`create complete ${this.target.listAsString()}`)
 	}
 
 	private onChildAdded(child: EditableObject) {
@@ -410,7 +420,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 			this,
 			this.destroySignal
 		)
-		
+
 		this.transformControls.events.on(
 			'stop-follow',
 			(selectionContent: string) => {
@@ -706,7 +716,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 	 * @emits bounds-changed
 	 */
 	public updateBounds(savedBounds: Phaser.Geom.Rectangle): boolean {
-		if (this.target.name === 'root') {
+		if (this.isRoot) {
 			return false
 		}
 
@@ -794,5 +804,9 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.target.name = name
 		this.logger.settings.name = `:${name}`
 		this.logger.debug(`name changed '${previousName}' -> '${name}'`)
+	}
+
+	public get isRoot() {
+		return this._isRoot
 	}
 }

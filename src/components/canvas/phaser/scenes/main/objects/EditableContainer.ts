@@ -18,7 +18,7 @@ type Events = {
 export class EditableContainer extends Phaser.GameObjects.Container implements IEditableObject {
 	private readonly __events = new TypedEventEmitter<Events>()
 
-	constructor(scene: Phaser.Scene, x: number, y: number, children: Phaser.GameObjects.GameObject[] = []) {
+	constructor(scene: Phaser.Scene, x = 0, y = 0, children: Phaser.GameObjects.GameObject[] = []) {
 		super(scene, x, y, children)
 	}
 

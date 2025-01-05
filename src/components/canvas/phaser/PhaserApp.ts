@@ -2,8 +2,11 @@ import { MainScene, MainSceneInitData } from './scenes/main/MainScene'
 
 import './robowhale/phaser3/Phaser3Extensions'
 
+import { logger } from '@logs/logs'
+import { urlParams } from '@url-params'
 import ResizeSensor from 'css-element-queries/src/ResizeSensor'
 import { debounce } from 'es-toolkit'
+import { Logger } from 'tslog'
 import { AppCommands, AppCommandsEmitter } from '../../../AppCommands'
 import { AppEvents, AppEventsEmitter } from '../../../AppEvents'
 import { Project } from '../../../project/Project'
@@ -11,12 +14,9 @@ import { ProjectConfig } from '../../../project/ProjectConfig'
 import { PhaserAppCommands, PhaserAppCommandsEmitter } from './PhaserAppCommands'
 import { PhaserAppEvents, PhaserAppEventsEmitter } from './PhaserAppEvents'
 import { Phaser3Extensions } from './robowhale/phaser3/Phaser3Extensions'
+import { BaseScene } from './robowhale/phaser3/scenes/BaseScene'
 import { TypedEventEmitter } from './robowhale/phaser3/TypedEventEmitter'
 import { CommandEmitter } from './robowhale/utils/events/CommandEmitter'
-import { Logger } from 'tslog'
-import { logger } from '@logs/logs'
-import { BaseScene } from './robowhale/phaser3/scenes/BaseScene'
-import { urlParams } from '@url-params'
 import { TestScene, TestSceneInitData } from './scenes/test/TestScene'
 
 export type Vector2Like = Phaser.Types.Math.Vector2Like
@@ -50,7 +50,7 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 	public appCommands: AppCommandsEmitter
 	private resizeSensor: ResizeSensor
 	private destroyController = new AbortController()
-	
+
 	constructor(
 		phaserConfig: Phaser.Types.Core.GameConfig,
 		projectConfig: ProjectConfig,
@@ -58,26 +58,26 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 		appCommands: CommandEmitter<AppCommands>
 	) {
 		Phaser3Extensions.extend()
-		
+
 		super(phaserConfig)
-		
+
 		if (urlParams.get('clearConsole') === 'phaser') {
 			console.clear()
 		}
-		
+
 		this.logger = logger.getOrCreate('canvas')
 		this.logger.info('PhaserApp created')
-		
+
 		this.appEvents = appEvents
-		
+
 		this.appCommands = appCommands
-		
+
 		this.resizeSensor = this.setupScaling()
-		
+
 		// TODO add Boot scene where we load editor assets
 		this.scene.add('MainScene', MainScene)
 		this.scene.add('TestScene', TestScene)
-		
+
 		if (urlParams.getBool('test')) {
 			this.scene.start('TestScene', {
 				project: new Project({ config: projectConfig }),
@@ -110,24 +110,24 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 
 	override destroy(removeCanvas: boolean, noReturn?: boolean): void {
 		this.logger.info('PhaserApp destroy - start')
-		
+
 		super.destroy(removeCanvas, noReturn)
-		
+
 		this.scene.scenes.forEach((scene) => {
 			if (scene instanceof BaseScene && scene.scene.isActive()) {
 				scene.onShutdown()
 			}
 		})
-		
+
 		this.destroyController.abort()
-		
+
 		if (this.resizeSensor) {
 			this.resizeSensor.detach()
 		}
-		
+
 		this.logger.info('PhaserApp destroy - complete')
 	}
-	
+
 	public get destroySignal(): AbortSignal {
 		return this.destroyController.signal
 	}
