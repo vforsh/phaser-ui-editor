@@ -1,6 +1,8 @@
 import { CreateEditableObjectJson, IEditableObject } from './EditableObject'
 
 export class EditableImage extends Phaser.GameObjects.Image implements IEditableObject {
+	private _isLocked = false
+
 	constructor(scene: Phaser.Scene, x: number, y: number, texture: string, frame?: string | number) {
 		super(scene, x, y, texture, frame)
 	}
@@ -33,6 +35,14 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 		image.setScale(json.scale.x, json.scale.y)
 		image.setOrigin(json.origin.x, json.origin.y)
 		return image
+	}
+
+	set locked(value: boolean) {
+		this._isLocked = value
+	}
+
+	get locked(): boolean {
+		return this._isLocked
 	}
 }
 

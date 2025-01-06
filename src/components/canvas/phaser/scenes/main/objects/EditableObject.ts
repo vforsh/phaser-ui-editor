@@ -2,6 +2,10 @@ import type { EditableContainer, EditableContainerJson } from './EditableContain
 import type { EditableImage, EditableImageJson } from './EditableImage'
 
 export interface IEditableObject {
+	set locked(value: boolean)
+	get locked(): boolean
+	set visible(value: boolean)
+	get visible(): boolean
 	toJson(): EditableObjectJson
 	// static fromJson(json: EditableObjectJson, scene: Phaser.Scene): EditableObject
 }

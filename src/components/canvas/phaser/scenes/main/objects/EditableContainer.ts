@@ -14,10 +14,12 @@ type Events = {
 	'editable-added': (child: EditableObject) => void
 	'editable-removed': (child: EditableObject) => void
 	'size-changed': (width: number, height: number, prevWidth: number, prevHeight: number) => void
+	'hierarchy-changed': () => void
 }
 
 export class EditableContainer extends Phaser.GameObjects.Container implements IEditableObject {
 	private readonly __events = new TypedEventEmitter<Events>()
+	private _isLocked = false
 
 	constructor(scene: Phaser.Scene, x = 0, y = 0, children: Phaser.GameObjects.GameObject[] = []) {
 		super(scene, x, y)
@@ -96,6 +98,11 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		return this
 	}
 
+	public preUpdate(time: number, deltaMs: number): void {
+		// TODO check if hierarchy has changed if so, emit 'hierarchy-changed' event
+		// check only for editables
+	}
+
 	override destroy(): void {
 		super.destroy()
 
@@ -104,6 +111,14 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 
 	get events(): TypedEventEmitter<Events> {
 		return this.__events
+	}
+
+	set locked(value: boolean) {
+		this._isLocked = value
+	}
+
+	get locked(): boolean {
+		return this._isLocked
 	}
 }
 
