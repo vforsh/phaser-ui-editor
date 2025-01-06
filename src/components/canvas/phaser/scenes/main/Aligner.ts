@@ -185,7 +185,14 @@ export class Aligner extends TypedEventEmitter<Events> {
 		return calculateBounds(context.target.editables)
 	}
 
-	private getRotatedBounds(obj: EditableObject) {
+	/**
+	 * Get the bounds of an object accounting for its rotation.
+	 * For example, object when unrotated has size 100x200 (width=100, height=200)
+	 *  - when rotated 45 degrees, its bounds will have a width of 212.13 and height of 212.13
+	 *  - when rotated 90 degrees, its bounds will have a width of 200 and height of 100 (basically swapped)
+	 *  - and so on...
+	 */
+	public getRotatedBounds(obj: EditableObject, rect?: Phaser.Geom.Rectangle): Phaser.Geom.Rectangle {
 		const width = obj.displayWidth
 		const height = obj.displayHeight
 		const rotation = obj.rotation // in radians
@@ -193,10 +200,6 @@ export class Aligner extends TypedEventEmitter<Events> {
 		// Calculate the corners of the rectangle
 		const cos = Math.cos(rotation)
 		const sin = Math.sin(rotation)
-
-		// Calculate relative corners (relative to object's position)
-		const dx = width * (0.5 - obj.originX)
-		const dy = height * (0.5 - obj.originY)
 
 		const corners = [
 			{ x: -width * obj.originX, y: -height * obj.originY },
@@ -208,17 +211,15 @@ export class Aligner extends TypedEventEmitter<Events> {
 			y: obj.y + (point.x * sin + point.y * cos),
 		}))
 
-		// Find the bounds
-		const xs = corners.map((c) => c.x)
-		const ys = corners.map((c) => c.y)
+		const left = corners.reduce((min, c) => Math.min(min, c.x), Infinity)
+		const right = corners.reduce((max, c) => Math.max(max, c.x), -Infinity)
+		const top = corners.reduce((min, c) => Math.min(min, c.y), Infinity)
+		const bottom = corners.reduce((max, c) => Math.max(max, c.y), -Infinity)
 
-		return {
-			top: Math.min(...ys),
-			bottom: Math.max(...ys),
-			left: Math.min(...xs),
-			right: Math.max(...xs),
-			centerX: obj.x + dx * cos - dy * sin,
-			centerY: obj.y + dx * sin + dy * cos,
+		if (rect) {
+			return rect.setTo(left, top, right - left, bottom - top)
 		}
+
+		return new Phaser.Geom.Rectangle(left, top, right - left, bottom - top)
 	}
 }

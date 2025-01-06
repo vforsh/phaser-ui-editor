@@ -229,6 +229,7 @@ export class MainScene extends BaseScene {
 		const chefCherry_4 = await this.addTestImage(chefCherryFrame, -400, 500)
 		chefCherry_4?.setName(this.getNewObjectName(context, chefCherry_4!, 'chefCherry_bottomLeft'))
 		chefCherry_4?.setOrigin(0, 1)
+		chefCherry_4?.setAngle(45)
 
 		const chefCherry_5 = await this.addTestImage(chefCherryFrame, 0, 800)
 		chefCherry_5?.setName(this.getNewObjectName(context, chefCherry_5!, 'chefCherry_center'))
@@ -465,10 +466,12 @@ export class MainScene extends BaseScene {
 	}
 
 	private group(selection: Selection, editContext: EditContext): EditableContainer {
+		const bounds =
+			selection.objects.length === 1 ? this.aligner.getRotatedBounds(selection.objects[0]) : selection.bounds
 		const group = new EditableContainer(this, 0, 0)
 		group.name = this.getNewObjectName(editContext, group)
-		group.setPosition(selection.x, selection.y)
-		group.setSize(selection.width, selection.height)
+		group.setPosition(bounds.centerX, bounds.centerY)
+		group.setSize(bounds.width, bounds.height)
 		editContext.target.add(group)
 
 		this.logger.debug(`grouped ${selection.objectsAsString} -> '${group.name}'`)
