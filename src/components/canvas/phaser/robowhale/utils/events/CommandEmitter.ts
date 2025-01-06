@@ -1,3 +1,4 @@
+import { MissingCommandCallbackError } from './MissingCommandCallbackError'
 import { TypedEvent, TypedEventMap } from './TypedEvent'
 
 type AnyFunction = (...args: any[]) => any
@@ -103,8 +104,7 @@ export class CommandEmitter<TCommands extends TypedEventMap> {
 		const index = this.handlers.findIndex((item) => item.command === command)
 		if (index === -1) {
 			if (this.throwOnMissingCallbacks) {
-				console.warn(`there are no callbacks for '${command}' command on '${this.name}'`)
-				throw new Error(`there are no callbacks for '${command}''`)
+				throw new MissingCommandCallbackError(command)
 			}
 
 			return undefined

@@ -1,7 +1,6 @@
-// TODO replace with EditableObject
-export type Transformable = Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | Phaser.GameObjects.Container
+import { EditableObject } from '../objects/EditableObject'
 
-export function calculateBounds(objects: Transformable[], rect?: Phaser.Geom.Rectangle): Phaser.Geom.Rectangle {
+export function calculateBounds(objects: EditableObject[], rect?: Phaser.Geom.Rectangle): Phaser.Geom.Rectangle {
 	if (objects.length === 1) {
 		return calculateBoundsSingle(objects[0], rect)
 	}
@@ -12,7 +11,7 @@ export function calculateBounds(objects: Transformable[], rect?: Phaser.Geom.Rec
 		right = -Infinity,
 		top = Infinity,
 		bottom = -Infinity
-	
+
 	objects.forEach((obj) => {
 		const sin = Math.sin(obj.rotation)
 		const cos = Math.cos(obj.rotation)
@@ -63,7 +62,7 @@ export function calculateBounds(objects: Transformable[], rect?: Phaser.Geom.Rec
 	return new Phaser.Geom.Rectangle(left, top, right - left, bottom - top)
 }
 
-export function calculateBoundsSingle(obj: Transformable, rect?: Phaser.Geom.Rectangle): Phaser.Geom.Rectangle {
+export function calculateBoundsSingle(obj: EditableObject, rect?: Phaser.Geom.Rectangle): Phaser.Geom.Rectangle {
 	const originX = obj.getData('originX') ?? obj.originX
 	const originY = obj.getData('originY') ?? obj.originY
 	const w = obj.displayWidth
@@ -81,10 +80,10 @@ export function calculateBoundsSingle(obj: Transformable, rect?: Phaser.Geom.Rec
 	return new Phaser.Geom.Rectangle(left, top, right - left, bottom - top)
 }
 
-export type TransformableOrigin = Transformable & {
+export type TransformableOrigin = EditableObject & {
 	setOrigin: (x: number, y: number) => void
 }
 
-export function canChangeOrigin(obj: Transformable): obj is TransformableOrigin {
+export function canChangeOrigin(obj: EditableObject): obj is TransformableOrigin {
 	return 'setOrigin' in obj && typeof obj.setOrigin === 'function'
 }

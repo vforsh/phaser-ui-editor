@@ -6,7 +6,7 @@ import { EditableObject } from '../objects/EditableObject'
 import { AdjustableRect } from './AdjustableRect'
 import { Selection } from './Selection'
 import { SelectionRect } from './SelectionRect'
-import { calculateBounds, Transformable } from './Transformable'
+import { calculateBounds } from './Transformable'
 import { TransformControls } from './TransformControls'
 
 type HoverMode = 'disabled' | 'normal' | 'selection-rect'
@@ -590,11 +590,11 @@ export class EditContext extends TypedEventEmitter<Events> {
 			subSelectionRect.revive()
 			subSelectionRect.setData('object', object)
 		})
-
+		
 		return selection
 	}
 
-	private onSelectionChanged(type: 'add' | 'remove', object: Transformable): void {
+	private onSelectionChanged(type: 'add' | 'remove', object: EditableObject): void {
 		if (type === 'add') {
 			const subSelectionRect = this.getOrCreateSubSelectionRect()
 			subSelectionRect.adjustTo(object)

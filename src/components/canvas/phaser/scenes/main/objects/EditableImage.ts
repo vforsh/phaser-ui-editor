@@ -1,4 +1,4 @@
-import { CreateEditableObjectJson, IEditableObject } from './EditableObject'
+import { CreateEditableObjectJson, CreateEditableObjectJsonBasic, IEditableObject } from './EditableObject'
 
 export class EditableImage extends Phaser.GameObjects.Image implements IEditableObject {
 	private _isLocked = false
@@ -21,6 +21,16 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 				x: this.originX,
 				y: this.originY,
 			},
+			locked: this.locked,
+		}
+	}
+
+	toJsonBasic(): EditableImageJsonBasic {
+		return {
+			type: 'Image',
+			name: this.name,
+			locked: this.locked,
+			visible: this.visible,
 		}
 	}
 
@@ -34,6 +44,7 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 		image.setBlendMode(json.blendMode)
 		image.setScale(json.scale.x, json.scale.y)
 		image.setOrigin(json.origin.x, json.origin.y)
+		image.locked = json.locked
 		return image
 	}
 
@@ -44,6 +55,10 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 	get locked(): boolean {
 		return this._isLocked
 	}
+
+	get isResizable(): boolean {
+		return true
+	}
 }
 
 export type EditableImageJson = CreateEditableObjectJson<{
@@ -52,4 +67,12 @@ export type EditableImageJson = CreateEditableObjectJson<{
 	blendMode: string | Phaser.BlendModes | number
 	scale: { x: number; y: number }
 	origin: { x: number; y: number }
+	locked: boolean
+}>
+
+export type EditableImageJsonBasic = CreateEditableObjectJsonBasic<{
+	type: 'Image'
+	name: string
+	locked: boolean
+	visible: boolean
 }>

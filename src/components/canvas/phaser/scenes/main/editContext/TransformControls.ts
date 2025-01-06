@@ -5,7 +5,7 @@ import { ReadonlyDeep } from 'type-fest'
 import { signalFromEvent } from '../../../robowhale/utils/events/create-abort-signal-from-event'
 import { EditableObject } from '../objects/EditableObject'
 import { Selection } from './Selection'
-import { canChangeOrigin, Transformable } from './Transformable'
+import { canChangeOrigin } from './Transformable'
 import arrowsHorizontalCursor from './cursors/arrows-horizontal.svg?raw'
 import arrowsLeftDownCursor from './cursors/arrows-left-down.svg?raw'
 
@@ -296,7 +296,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			selectionInitialPos.x - pointerInitialPos.x
 		)
 
-		const selectedTransforms = new Map<Transformable, { angleDeg: number }>(
+		const selectedTransforms = new Map<EditableObject, { angleDeg: number }>(
 			selection.objects.map((obj) => [obj, { angleDeg: obj.angle }])
 		)
 
@@ -500,6 +500,8 @@ export class TransformControls extends Phaser.GameObjects.Container {
 				selectedTransforms.forEach((transform, obj) => {
 					// keep the aspect ratio if shift is pressed
 					const _dy = pointer.event.shiftKey ? dx / transform.aspectRatio : dy
+
+					// TODO BitmapText is not resizable, account for that (check isResizable property)
 					obj.displayWidth = Math.max(transform.width + dx, 16)
 					obj.displayHeight = Math.max(transform.height + _dy, 16)
 				})

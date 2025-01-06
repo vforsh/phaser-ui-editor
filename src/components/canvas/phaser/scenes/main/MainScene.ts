@@ -122,11 +122,15 @@ export class MainScene extends BaseScene {
 
 		this.addTestImages()
 
+		// trigger hierarchy change event so hierarchy panel will be updated
+		this.onHierarchyChanged()
+
 		const zoom = urlParams.getNumber('zoom')
 		if (typeof zoom === 'number') {
 			this.setCameraZoom(zoom)
 		}
 	}
+
 	private initObjectsFactory() {
 		this.objectsFactory = new ObjectsFactory({
 			scene: this,
@@ -153,10 +157,18 @@ export class MainScene extends BaseScene {
 		this.root.name = 'root' // TODO use the current prefab name (from the assets tree)
 		this.add.existing(this.root)
 
+		this.root.events.on('hierarchy-changed', this.onHierarchyChanged, this, this.shutdownSignal)
+
 		this.editContexts.add(this.root, {
 			switchTo: true,
 			isRoot: true,
 		})
+	}
+
+	private onHierarchyChanged(): void {
+		const hierarchy = this.root.toJsonBasic()
+		this.logger.debug(`hierarchy changed`, hierarchy)
+		this.game.ev3nts.emit('hierarchy-changed', hierarchy)
 	}
 
 	private initAligner() {

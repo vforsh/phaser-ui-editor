@@ -1,4 +1,4 @@
-import { Transformable } from './Transformable'
+import { EditableObject } from '../objects/EditableObject'
 
 export type AdjustableRectOptions = {
 	thickness: number
@@ -23,7 +23,7 @@ export class AdjustableRect extends Phaser.GameObjects.Container {
 		this.add(this.graphics)
 	}
 
-	public adjustTo(go: Transformable): void {
+	public adjustTo(go: EditableObject): void {
 		// adjust to object display size
 		this.graphics.clear()
 		this.graphics.lineStyle(this.options.thickness, this.options.color, 1)

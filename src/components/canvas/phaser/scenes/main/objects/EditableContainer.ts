@@ -1,14 +1,18 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { match } from 'ts-pattern'
+import { EditableBitmapText } from './EditableBitmapText'
 import { EditableImage } from './EditableImage'
 import {
 	CreateEditableObjectJson,
+	CreateEditableObjectJsonBasic,
 	EditableObject,
 	EditableObjectClass,
 	EditableObjectJson,
+	EditableObjectJsonBasic,
 	EditableObjectJsonType,
 	IEditableObject,
 } from './EditableObject'
+import { EditableText } from './EditableText'
 
 type Events = {
 	'editable-added': (child: EditableObject) => void
@@ -19,6 +23,8 @@ type Events = {
 
 export class EditableContainer extends Phaser.GameObjects.Container implements IEditableObject {
 	private readonly __events = new TypedEventEmitter<Events>()
+	private readonly _preDestroyController = new AbortController()
+	private _editablesCopy: EditableObject[] = []
 	private _isLocked = false
 
 	constructor(scene: Phaser.Scene, x = 0, y = 0, children: Phaser.GameObjects.GameObject[] = []) {
@@ -27,6 +33,27 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		// defer adding children
 		// we do it here instead of in `super()` because `__events` is not initialized yet in `super()`
 		this.add(children)
+
+		this.checkForHierarchyChanges()
+	}
+
+	/**
+	 * Check if hierarchy has changed.
+	 * If so, emit 'hierarchy-changed' event.
+	 * @returns true if hierarchy has changed since last check, false otherwise
+	 */
+	public checkForHierarchyChanges(): boolean {
+		const editables = this.editables
+
+		const hasChanges = editables.some((obj, index) => obj !== this._editablesCopy[index])
+
+		if (hasChanges) {
+			this.events.emit('hierarchy-changed')
+		}
+
+		this._editablesCopy = editables
+
+		return hasChanges
 	}
 
 	override addHandler(gameObject: Phaser.GameObjects.GameObject): void {
@@ -34,6 +61,16 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 
 		if (isEditable(gameObject)) {
 			this.events.emit('editable-added', gameObject)
+
+			// every change in child container will propagate to parent container
+			if (gameObject instanceof EditableContainer) {
+				gameObject.events.on(
+					'hierarchy-changed',
+					() => this.events.emit('hierarchy-changed'),
+					this,
+					this.preDestroySignal
+				)
+			}
 		}
 	}
 
@@ -42,6 +79,10 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 
 		if (isEditable(gameObject)) {
 			this.events.emit('editable-removed', gameObject)
+
+			if (gameObject instanceof EditableContainer) {
+				gameObject.events.offByContext(this, 'hierarchy-changed')
+			}
 		}
 	}
 
@@ -59,6 +100,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 
 		return {
 			...this.toJSON(),
+			type: 'Container',
 			width: this.width,
 			height: this.height,
 			depth: this.depth,
@@ -66,10 +108,22 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 			name: this.name,
 			children,
 			scale: { x: this.scaleX, y: this.scaleY },
-			type: 'Container',
+			locked: this.locked,
 		}
 	}
 
+	toJsonBasic(): EditableContainerJsonBasic {
+		const children = this.editables.map((child) => child.toJsonBasic())
+		
+		return {
+			type: 'Container',
+			name: this.name,
+			locked: this.locked,
+			visible: this.visible,
+			children,
+		}
+	}
+	
 	static fromJson<T extends EditableContainerJson>(json: T, scene: Phaser.Scene): EditableContainer {
 		const children = json.children.map(
 			(childJson) =>
@@ -86,6 +140,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		container.setDepth(json.depth)
 		container.setBlendMode(json.blendMode)
 		container.setSize(json.width, json.height)
+		container.locked = json.locked
 
 		return container
 	}
@@ -99,14 +154,21 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 	}
 
 	public preUpdate(time: number, deltaMs: number): void {
-		// TODO check if hierarchy has changed if so, emit 'hierarchy-changed' event
-		// check only for editables
+		this.checkForHierarchyChanges()
 	}
 
 	override destroy(): void {
+		this._preDestroyController.abort()
+
 		super.destroy()
 
 		this.__events.destroy()
+
+		this._editablesCopy.length = 0
+	}
+
+	get preDestroySignal(): AbortSignal {
+		return this._preDestroyController.signal
 	}
 
 	get events(): TypedEventEmitter<Events> {
@@ -120,6 +182,10 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 	get locked(): boolean {
 		return this._isLocked
 	}
+
+	get isResizable(): boolean {
+		return true
+	}
 }
 
 export type EditableContainerJson = CreateEditableObjectJson<{
@@ -131,6 +197,12 @@ export type EditableContainerJson = CreateEditableObjectJson<{
 	depth: number
 	blendMode: string | Phaser.BlendModes | number
 	scale: { x: number; y: number }
+	locked: boolean
+}>
+
+export type EditableContainerJsonBasic = CreateEditableObjectJsonBasic<{
+	type: 'Container'
+	children: EditableObjectJsonBasic[]
 }>
 
 export function isEditable(obj: Phaser.GameObjects.GameObject): obj is EditableObject {
@@ -143,5 +215,7 @@ export function getEditableObjectClass(jsonType: EditableObjectJsonType): Editab
 		.returnType<EditableObjectClass>()
 		.with('Container', () => EditableContainer)
 		.with('Image', () => EditableImage)
+		.with('Text', () => EditableText)
+		.with('BitmapText', () => EditableBitmapText)
 		.exhaustive()
 }
