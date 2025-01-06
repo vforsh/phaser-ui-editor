@@ -13,6 +13,7 @@ import {
 type Events = {
 	'editable-added': (child: EditableObject) => void
 	'editable-removed': (child: EditableObject) => void
+	'size-changed': (width: number, height: number, prevWidth: number, prevHeight: number) => void
 }
 
 export class EditableContainer extends Phaser.GameObjects.Container implements IEditableObject {
@@ -85,6 +86,14 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		container.setSize(json.width, json.height)
 
 		return container
+	}
+
+	override setSize(width: number, height: number): this {
+		const prevWidth = this.width
+		const prevHeight = this.height
+		super.setSize(width, height)
+		this.events.emit('size-changed', width, height, prevWidth, prevHeight)
+		return this
 	}
 
 	override destroy(): void {
