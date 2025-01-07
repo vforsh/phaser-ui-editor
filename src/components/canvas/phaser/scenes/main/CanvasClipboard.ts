@@ -1,7 +1,7 @@
 import { Logger } from 'tslog'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { TypedEventEmitter } from '../../robowhale/phaser3/TypedEventEmitter'
-import { ObjectsFactory } from './factory/ObjectsFactory'
+import { ObjectsFactory } from './objects/EditableObjectsFactory'
 import { EditableObject, EditableObjectJson } from './objects/EditableObject'
 
 type Events = {

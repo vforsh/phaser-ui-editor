@@ -1,6 +1,6 @@
 import { EditableBitmapText, EditableBitmapTextJson, EditableBitmapTextJsonBasic } from './EditableBitmapText'
-import type { EditableContainer, EditableContainerJson, EditableContainerJsonBasic } from './EditableContainer'
-import type { EditableImage, EditableImageJson, EditableImageJsonBasic } from './EditableImage'
+import { EditableContainer, EditableContainerJson, EditableContainerJsonBasic } from './EditableContainer'
+import { EditableImage, EditableImageJson, EditableImageJsonBasic } from './EditableImage'
 import { EditableText, EditableTextJson, EditableTextJsonBasic } from './EditableText'
 
 export interface IEditableObject {
@@ -17,23 +17,20 @@ export interface IEditableObject {
 	// returns simplified state of the object to use in Hierarchy Panel
 	toJsonBasic(): EditableObjectJsonBasic
 
-	// TODO move to ObjectsFactory
-	// static fromJson(json: EditableObjectJson, scene: Phaser.Scene): EditableObject
-
 	// addComponent(component: EditableObjectComponent): void
 	// removeComponent(component: EditableObjectComponent): void
 	// getComponent<T extends typeof EditableObjectComponent>(component: T): InstanceType<T>
 }
 
 // TODO fix imports order so we can use this
-// const EDITABLE_CLASSES = [EditableContainer, EditableImage]
+export const EDITABLE_CLASSES = [EditableContainer, EditableImage, EditableText, EditableBitmapText]
 
-// export type EditableObjectClass = (typeof EDITABLE_CLASSES)[number]
-export type EditableObjectClass =
-	| typeof EditableContainer
-	| typeof EditableImage
-	| typeof EditableText
-	| typeof EditableBitmapText
+export type EditableObjectClass = (typeof EDITABLE_CLASSES)[number]
+// export type EditableObjectClass =
+// | typeof EditableContainer
+// | typeof EditableImage
+// | typeof EditableText
+// | typeof EditableBitmapText
 
 export type EditableObject = InstanceType<EditableObjectClass>
 

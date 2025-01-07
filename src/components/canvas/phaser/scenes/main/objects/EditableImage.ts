@@ -33,21 +33,6 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 			visible: this.visible,
 		}
 	}
-	
-	// TODO move to ObjectsFactory
-	static fromJson<T extends EditableImageJson>(json: T, scene: Phaser.Scene): EditableImage {
-		const image = new EditableImage(scene, json.x, json.y, json.textureKey, json.frameKey)
-		image.setName(json.name)
-		image.setVisible(json.visible)
-		image.setAlpha(json.alpha)
-		image.setRotation(json.rotation)
-		image.setDepth(json.depth)
-		image.setBlendMode(json.blendMode)
-		image.setScale(json.scale.x, json.scale.y)
-		image.setOrigin(json.origin.x, json.origin.y)
-		image.locked = json.locked
-		return image
-	}
 
 	set locked(value: boolean) {
 		this._isLocked = value

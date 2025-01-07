@@ -38,20 +38,6 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 		}
 	}
 
-	static fromJson<T extends EditableTextJson>(json: T, scene: Phaser.Scene): EditableText {
-		const text = new EditableText(scene, json.x, json.y, json.text, json.style)
-		text.setName(json.name)
-		text.setVisible(json.visible)
-		text.setAlpha(json.alpha)
-		text.setRotation(json.rotation)
-		text.setDepth(json.depth)
-		text.setBlendMode(json.blendMode)
-		text.setScale(json.scale.x, json.scale.y)
-		text.setOrigin(json.origin.x, json.origin.y)
-		text.locked = json.locked
-		return text
-	}
-
 	set locked(value: boolean) {
 		this._isLocked = value
 	}

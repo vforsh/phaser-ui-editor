@@ -1,18 +1,13 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
-import { match } from 'ts-pattern'
-import { EditableBitmapText } from './EditableBitmapText'
 import { EditableImage } from './EditableImage'
 import {
 	CreateEditableObjectJson,
 	CreateEditableObjectJsonBasic,
 	EditableObject,
-	EditableObjectClass,
 	EditableObjectJson,
 	EditableObjectJsonBasic,
-	EditableObjectJsonType,
 	IEditableObject,
 } from './EditableObject'
-import { EditableText } from './EditableText'
 
 type Events = {
 	'editable-added': (child: EditableObject) => void
@@ -114,7 +109,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 
 	toJsonBasic(): EditableContainerJsonBasic {
 		const children = this.editables.map((child) => child.toJsonBasic())
-		
+
 		return {
 			type: 'Container',
 			name: this.name,
@@ -122,27 +117,6 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 			visible: this.visible,
 			children,
 		}
-	}
-	
-	static fromJson<T extends EditableContainerJson>(json: T, scene: Phaser.Scene): EditableContainer {
-		const children = json.children.map(
-			(childJson) =>
-				// @ts-expect-error
-				getEditableObjectClass(childJson.type).fromJson(childJson, scene) as EditableObject
-		)
-		const container = new EditableContainer(scene, json.x, json.y, children)
-
-		container.setScale(json.scale.x, json.scale.y)
-		container.setRotation(json.rotation)
-		container.setAlpha(json.alpha)
-		container.setVisible(json.visible)
-		container.setName(json.name)
-		container.setDepth(json.depth)
-		container.setBlendMode(json.blendMode)
-		container.setSize(json.width, json.height)
-		container.locked = json.locked
-
-		return container
 	}
 
 	override setSize(width: number, height: number): this {
@@ -208,14 +182,4 @@ export type EditableContainerJsonBasic = CreateEditableObjectJsonBasic<{
 export function isEditable(obj: Phaser.GameObjects.GameObject): obj is EditableObject {
 	// return EDITABLE_CLASSES.some((cls) => obj instanceof cls)
 	return obj instanceof EditableContainer || obj instanceof EditableImage
-}
-
-export function getEditableObjectClass(jsonType: EditableObjectJsonType): EditableObjectClass {
-	return match(jsonType)
-		.returnType<EditableObjectClass>()
-		.with('Container', () => EditableContainer)
-		.with('Image', () => EditableImage)
-		.with('Text', () => EditableText)
-		.with('BitmapText', () => EditableBitmapText)
-		.exhaustive()
 }

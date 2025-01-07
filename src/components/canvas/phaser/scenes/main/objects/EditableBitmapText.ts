@@ -47,21 +47,6 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		}
 	}
 
-	static fromJson<T extends EditableBitmapTextJson>(json: T, scene: Phaser.Scene): EditableBitmapText {
-		const text = new EditableBitmapText(scene, json.x, json.y, json.font, json.text, json.fontSize, json.align)
-		text.setName(json.name)
-		text.setVisible(json.visible)
-		text.setAlpha(json.alpha)
-		text.setRotation(json.rotation)
-		text.setDepth(json.depth)
-		text.setBlendMode(json.blendMode)
-		text.setScale(json.scale.x, json.scale.y)
-		text.setOrigin(json.origin.x, json.origin.y)
-		text.setMaxWidth(json.maxWidth)
-		text.locked = json.locked
-		return text
-	}
-
 	set locked(value: boolean) {
 		this._isLocked = value
 	}
