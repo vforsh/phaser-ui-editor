@@ -98,7 +98,7 @@ export default function EditorLayout() {
 			return
 		}
 
-		console.log('project', openedProject)
+		logger.info('project opened', openedProject)
 
 		const assetsGlob = path.join(openedProject.assetsDir, '**/*')
 		const assetsToIgnore = openedProject.projectConfig.assetsIgnore.map((item) =>
@@ -108,10 +108,10 @@ export default function EditorLayout() {
 			patterns: [assetsGlob],
 			options: { ignore: assetsToIgnore },
 		})
-		console.log('assets paths', assets)
+		// console.log('assets paths', assets)
 
 		const assetTree = await buildAssetTree(assets, openedProject.assetsDir)
-		console.log('assetTree', assetTree)
+		// console.log('assetTree', assetTree)
 
 		setAssets(assetTree)
 

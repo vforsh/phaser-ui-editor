@@ -71,6 +71,14 @@ export class ObjectsFactory {
 		return image
 	}
 
+	public text(content: string, style: Phaser.Types.GameObjects.Text.TextStyle): EditableText {
+		const id = this.getObjectId()
+		const text = new EditableText(this.scene, id, 0, 0, content, style)
+		text.setOrigin(0.5)
+		this.register(text)
+		return text
+	}
+
 	/**
 	 * Creates an object but it **doesn't add it to the scene**
 	 */

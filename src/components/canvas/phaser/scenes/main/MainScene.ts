@@ -2,15 +2,17 @@ import { urlParams } from '@url-params'
 import { once } from 'es-toolkit'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
+import WebFont from 'webfontloader'
 import { AppCommandsEmitter } from '../../../../../AppCommands'
 import { logger } from '../../../../../logs/logs'
 import { Project } from '../../../../../project/Project'
 import { ProjectConfig } from '../../../../../project/ProjectConfig'
-import trpc from '../../../../../trpc'
+import trpc, { WebFontParsed } from '../../../../../trpc'
 import {
 	AssetTreeImageData,
 	AssetTreeItemData,
 	AssetTreeSpritesheetFrameData,
+	AssetTreeWebFontData,
 	fetchImageUrl,
 	GraphicAssetData,
 } from '../../../../../types/assets'
@@ -413,20 +415,20 @@ export class MainScene extends BaseScene {
 	}
 
 	private async handleAssetDrop(data: { asset: AssetTreeItemData; position: { x: number; y: number } }) {
-		const gameObject = await this.createEditableFromAsset(data.asset)
-		if (!gameObject) {
+		const obj = await this.createEditableFromAsset(data.asset)
+		if (!obj) {
 			return null
 		}
 
-		gameObject.name = this.getNewObjectName(this.editContexts.current!, gameObject, data.asset.name)
-		gameObject.setOrigin(0.5, 0.5)
-		gameObject.setPosition(data.position.x, data.position.y)
+		obj.name ||= this.getNewObjectName(this.editContexts.current!, obj, data.asset.name)
+		obj.setOrigin(0.5, 0.5)
+		obj.setPosition(data.position.x, data.position.y)
 
-		this.editContexts.current!.target.add(gameObject)
+		this.editContexts.current!.target.add(obj)
 
-		return gameObject
+		return obj
 	}
-	
+
 	// TODO return Result
 	private createEditableFromAsset(asset: AssetTreeItemData) {
 		return (
@@ -454,6 +456,20 @@ export class MainScene extends BaseScene {
 					}
 
 					return this.objectsFactory.image(texture.key, spritesheetFrame.pathInHierarchy)
+				})
+				.with({ type: 'web-font' }, async (webFontAsset) => {
+					const font = await this.loadWebFont(webFontAsset)
+					if (!font) {
+						return null
+					}
+
+					const text = this.objectsFactory.text(font.familyName, {
+						fontFamily: font.familyName,
+						fontSize: 60,
+						color: '#ffffff',
+					})
+					text.setName(this.getNewObjectName(this.editContexts.current!, text, 'text'))
+					return text
 				})
 				// TODO handle fonts drop - create a new Phaser.GameObjects.BitmapText or Phaser.GameObjects.Text
 				.otherwise(() => null)
@@ -509,6 +525,43 @@ export class MainScene extends BaseScene {
 			img.onerror = () => reject(new Error(`Failed to load image: ${asset.path}`))
 			img.src = imgUrl
 		})
+	}
+
+	private async loadWebFont(asset: AssetTreeWebFontData) {
+		// it only supports WOFF, WOFF2 and TTF formats
+		const webFontParsed = await trpc.parseWebFont.query({ path: asset.path })
+		const webFontCss = this.createWebFontCss(webFontParsed)
+		document.head.appendChild(webFontCss)
+
+		return new Promise<WebFontParsed>((resolve, reject) => {
+			WebFont.load({
+				custom: {
+					families: [webFontParsed.familyName],
+				},
+				active: () => {
+					this.logger.info(`web font loaded '${webFontParsed.familyName}'`)
+					resolve(webFontParsed)
+				},
+				inactive: () => {
+					this.logger.warn(`web font not loaded '${webFontParsed.familyName}'`)
+					reject(new Error(`failed to load web font '${webFontParsed.familyName}'`))
+				},
+			})
+		})
+	}
+
+	private createWebFontCss(webFontParsed: WebFontParsed) {
+		const dataUrl = `data:font/${webFontParsed.type.toLowerCase()};base64,${webFontParsed.base64}`
+		const content = `@font-face {
+			font-family: '${webFontParsed.familyName}';
+			src: url('${dataUrl}') format('${webFontParsed.type.toLowerCase()}');
+			font-weight: normal;
+			font-style: normal;
+		}`
+
+		const css = document.createElement('style')
+		css.textContent = content
+		return css
 	}
 
 	private addKeyboadCallbacks() {

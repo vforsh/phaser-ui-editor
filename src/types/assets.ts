@@ -1,6 +1,6 @@
 import { match } from 'ts-pattern'
-import { imageDataToUrl } from '../utils/image-data-to-url'
 import trpc from '../trpc'
+import { imageDataToUrl } from '../utils/image-data-to-url'
 
 export type AssetTreeData = AssetTreeItemData[]
 
@@ -16,6 +16,8 @@ export type AssetTreeItemData =
 	| AssetTreeSpritesheetData
 	| AssetTreeSpritesheetFrameData
 	| AssetTreeSpritesheetFolderData
+
+export type AssetTreeItemDataType = AssetTreeItemData['type']
 
 // Common types
 export type AssetTreeFolderData = {
@@ -118,12 +120,32 @@ export type AssetTreeSpritesheetFrameData = {
 	size: { w: number; h: number }
 }
 
-export type GraphicAssetData = AssetTreeSpritesheetData | AssetTreeSpritesheetFrameData | AssetTreeImageData | AssetTreeBitmapFontData
+export type GraphicAssetData =
+	| AssetTreeSpritesheetData
+	| AssetTreeSpritesheetFrameData
+	| AssetTreeImageData
+	| AssetTreeBitmapFontData
 
 export function isGraphicAsset(asset: AssetTreeItemData): asset is GraphicAssetData {
 	return match(asset.type)
 		.with('image', 'spritesheet', 'spritesheet-frame', 'bitmap-font', () => true)
 		.otherwise(() => false)
+}
+
+export function isDraggableAsset(assetType: AssetTreeItemDataType): boolean {
+	return match(assetType)
+		.with('folder', () => false)
+		.with('image', () => true)
+		.with('json', () => false)
+		.with('xml', () => false)
+		.with('spritesheet', () => false)
+		.with('spritesheet-folder', () => false)
+		.with('file', () => false)
+		.with('spritesheet-frame', () => true)
+		.with('web-font', () => true)
+		.with('bitmap-font', () => true)
+		.with('prefab', () => true)
+		.exhaustive()
 }
 
 /**

@@ -4,7 +4,7 @@ import { useMemo, useRef, useState } from 'react'
 import { AppCommands } from '../../AppCommands'
 import { AppEvents } from '../../AppEvents'
 import { state, useSnapshot } from '../../state/State'
-import type { AssetTreeItemData } from '../../types/assets'
+import { isDraggableAsset, type AssetTreeItemData } from '../../types/assets'
 import AlignmentControls from './AlignmentControls'
 import { Canvas } from './Canvas'
 import { TypedEventEmitter } from './phaser/robowhale/phaser3/TypedEventEmitter'
@@ -64,18 +64,21 @@ export default function CanvasContainer() {
 
 		try {
 			const item = JSON.parse(e.dataTransfer.getData('application/json')) as AssetTreeItemData
-			if (item.type === 'image' || item.type === 'spritesheet-frame') {
-				const rect = containerRef.current?.getBoundingClientRect()
-				if (rect) {
-					const x = e.clientX - rect.left
-					const y = e.clientY - rect.top
+			const isDraggable = isDraggableAsset(item.type)
+			if (!isDraggable) {
+				return
+			}
 
-					if (state.app?.commands) {
-						state.app.commands.emit('handle-asset-drop', {
-							asset: item,
-							position: { x, y },
-						})
-					}
+			const rect = containerRef.current?.getBoundingClientRect()
+			if (rect) {
+				const x = e.clientX - rect.left
+				const y = e.clientY - rect.top
+
+				if (state.app?.commands) {
+					state.app.commands.emit('handle-asset-drop', {
+						asset: item,
+						position: { x, y },
+					})
 				}
 			}
 		} catch (error) {

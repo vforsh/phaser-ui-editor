@@ -1,5 +1,6 @@
 import { initTRPC } from '@trpc/server'
 import { createHTTPHandler } from '@trpc/server/adapters/standalone'
+import { Font, FontCollection, create } from 'fontkit'
 import fse from 'fs-extra'
 import { globby } from 'globby'
 import sizeOf from 'image-size'
@@ -23,11 +24,13 @@ const globbyOptionsSchema = z
 	.optional()
 
 const appRouter = t.router({
-	globby: t.procedure.input(z.object({ patterns: z.array(z.string()), options: globbyOptionsSchema })).query(async ({ input }) => {
-		const { patterns, options } = input
-		const result = await globby(patterns, options)
-		return result
-	}),
+	globby: t.procedure
+		.input(z.object({ patterns: z.array(z.string()), options: globbyOptionsSchema }))
+		.query(async ({ input }) => {
+			const { patterns, options } = input
+			const result = await globby(patterns, options)
+			return result
+		}),
 	stat: t.procedure.input(z.object({ path: absPathSchema })).query(async ({ input }) => {
 		const { path } = input
 		const stats = await fse.stat(path)
@@ -52,11 +55,13 @@ const appRouter = t.router({
 		await fse.remove(path)
 		return { success: true }
 	}),
-	rename: t.procedure.input(z.object({ oldPath: absPathSchema, newPath: absPathSchema })).mutation(async ({ input }) => {
-		const { oldPath, newPath } = input
-		await fse.rename(oldPath, newPath)
-		return { success: true }
-	}),
+	rename: t.procedure
+		.input(z.object({ oldPath: absPathSchema, newPath: absPathSchema }))
+		.mutation(async ({ input }) => {
+			const { oldPath, newPath } = input
+			await fse.rename(oldPath, newPath)
+			return { success: true }
+		}),
 	readImageSize: t.procedure.input(z.object({ path: absPathSchema })).query(async ({ input }) => {
 		const { path } = input
 		const file = await fse.readFile(path)
@@ -78,21 +83,27 @@ const appRouter = t.router({
 		const text = await fse.readFile(path, 'utf-8')
 		return { content: text }
 	}),
-	readSpritesheetFrame: t.procedure.input(z.object({ spritesheetPath: absPathSchema, frameName: z.string().min(1) })).query(async ({ input }) => {
-		const { spritesheetPath, frameName } = input
+	readSpritesheetFrame: t.procedure
+		.input(z.object({ spritesheetPath: absPathSchema, frameName: z.string().min(1) }))
+		.query(async ({ input }) => {
+			const { spritesheetPath, frameName } = input
 
-		const json = (await fse.readJson(spritesheetPath.replace(path.extname(spritesheetPath), '.json'))) as TexturePacker.Atlas
-		const texture = json.textures.find((texture) => texture.frames.find((frame) => frame.filename === frameName))
-		const frameData = texture?.frames.find((frame) => frame.filename === frameName)
+			const json = (await fse.readJson(
+				spritesheetPath.replace(path.extname(spritesheetPath), '.json')
+			)) as TexturePacker.Atlas
+			const texture = json.textures.find((texture) =>
+				texture.frames.find((frame) => frame.filename === frameName)
+			)
+			const frameData = texture?.frames.find((frame) => frame.filename === frameName)
 
-		if (!frameData) {
-			throw new Error(`Frame '${frameName}' not found in spritesheet '${spritesheetPath}'`)
-		}
+			if (!frameData) {
+				throw new Error(`Frame '${frameName}' not found in spritesheet '${spritesheetPath}'`)
+			}
 
-		const frame = await extractFrameFromSpritesheet(spritesheetPath, frameData)
+			const frame = await extractFrameFromSpritesheet(spritesheetPath, frameData)
 
-		return frame
-	}),
+			return frame
+		}),
 	writeFile: t.procedure.mutation(async () => {
 		// const req = (ctx as any).req as IncomingMessage
 		// const res = (ctx as any).res as ServerResponse
@@ -100,12 +111,54 @@ const appRouter = t.router({
 		// TODO implement
 		return { success: true }
 	}),
-	writeJson: t.procedure.input(z.object({ path: absPathSchema, content: z.string().min(2) })).mutation(async ({ input }) => {
-		const { path, content } = input
-		await fse.writeJson(path, content)
-		return { path }
+	writeJson: t.procedure
+		.input(z.object({ path: absPathSchema, content: z.string().min(2) }))
+		.mutation(async ({ input }) => {
+			const { path, content } = input
+			await fse.writeJson(path, content)
+			return { path }
+		}),
+	parseWebFont: t.procedure.input(z.object({ path: absPathSchema })).query(async ({ input }) => {
+		const { path } = input
+		const fontBuffer = await fse.readFile(path)
+		const fontOrCollection = create(fontBuffer)
+
+		if (isFontCollection(fontOrCollection)) {
+			throw new Error('Font collection is not supported')
+		}
+
+		const font = fontOrCollection as Font
+
+		const base64 = fontBuffer.toString('base64')
+
+		return {
+			base64,
+			type: font.type,
+			postscriptName: font.postscriptName,
+			fullName: font.fullName,
+			familyName: font.familyName,
+			subfamilyName: font.subfamilyName,
+			version: font.version,
+			numGlyphs: font.numGlyphs,
+			unitsPerEm: font.unitsPerEm,
+			bbox: font.bbox,
+			ascent: font.ascent,
+			descent: font.descent,
+			lineGap: font.lineGap,
+			capHeight: font.capHeight,
+			xHeight: font.xHeight,
+			italicAngle: font.italicAngle,
+			underlinePosition: font.underlinePosition,
+			underlineThickness: font.underlineThickness,
+			availableFeatures: font.availableFeatures,
+			characterSet: font.characterSet,
+		}
 	}),
 })
+
+function isFontCollection(font: Font | FontCollection): font is FontCollection {
+	return font.type === 'TTC' || font.type === 'DFont'
+}
 
 async function extractFrameFromSpritesheet(spritesheetPath: string, frameData: TexturePacker.Frame) {
 	const image = sharp(spritesheetPath)
