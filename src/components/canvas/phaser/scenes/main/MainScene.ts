@@ -1,5 +1,6 @@
 import { urlParams } from '@url-params'
 import { once } from 'es-toolkit'
+import { err, ok } from 'neverthrow'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import WebFont from 'webfontloader'
@@ -9,6 +10,7 @@ import { Project } from '../../../../../project/Project'
 import { ProjectConfig } from '../../../../../project/ProjectConfig'
 import trpc, { WebFontParsed } from '../../../../../trpc'
 import {
+	AssetTreeBitmapFontData,
 	AssetTreeImageData,
 	AssetTreeItemData,
 	AssetTreeSpritesheetFrameData,
@@ -16,6 +18,7 @@ import {
 	fetchImageUrl,
 	GraphicAssetData,
 } from '../../../../../types/assets'
+import { parseJsonBitmapFont } from '../../robowhale/phaser3/gameObjects/bitmap-text/parse-json-bitmap-font'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { signalFromEvent } from '../../robowhale/utils/events/create-abort-signal-from-event'
 import { Aligner } from './Aligner'
@@ -29,6 +32,7 @@ import { EditableContainer } from './objects/EditableContainer'
 import { EditableObject } from './objects/EditableObject'
 import { ObjectsFactory } from './objects/EditableObjectsFactory'
 import { Rulers } from './Rulers'
+type PhaserBmfontData = Phaser.Types.GameObjects.BitmapText.BitmapFontData
 
 export type MainSceneInitData = {
 	project: Project
@@ -45,13 +49,6 @@ type SelectionDragData = {
 	// axis to lock the selection movement on
 	lockAxis: 'x' | 'y' | 'none'
 }
-
-/**
- * TODO
- * [ ] add selection rect to select multiple objects with mouse
- * [ ] allow to group selected objects (create a new container and add all selected objects to it)
- * [ ] allow to ungroup (detach all children from this container and make them children of this container's parent)
- */
 
 export class MainScene extends BaseScene {
 	public declare initData: MainSceneInitData
@@ -247,6 +244,36 @@ export class MainScene extends BaseScene {
 		chefCherry_2?.setName(this.getNewObjectName(context, chefCherry_2!, 'chefCherry_topRight'))
 		chefCherry_2?.setOrigin(1, 0)
 
+		const bitmapFontAsset: AssetTreeBitmapFontData = {
+			type: 'bitmap-font',
+			name: 'test',
+			path: '/Users/vlad/dev/papa-cherry-2/dev/assets/fonts/bitmap',
+			image: {
+				type: 'image',
+				name: 'test.png',
+				path: '/Users/vlad/dev/papa-cherry-2/dev/assets/fonts/bitmap/test.png',
+				size: {
+					w: 385,
+					h: 75,
+				},
+			},
+			data: {
+				type: 'json',
+				name: 'test.json',
+				path: '/Users/vlad/dev/papa-cherry-2/dev/assets/fonts/bitmap/test.json',
+			},
+		}
+		const bitmapFont = await this.loadBitmapFont(bitmapFontAsset)
+		if (bitmapFont.isOk()) {
+			this.logger.info('bitmap font loaded', bitmapFont.value)
+			const bmFont = bitmapFont.value
+			const text = this.objectsFactory.bitmapText(bmFont.key, '1234567890', bmFont.data.size)
+			text.setName(this.getNewObjectName(context, text, 'bitmap-text'))
+			this.root.add(text)
+		} else {
+			this.logger.error('failed to load bitmapFont')
+		}
+
 		// const chefCherry_3 = await this.addTestImage(chefCherryFrame, 400, 500)
 		// chefCherry_3?.setName(this.getNewObjectName(context, chefCherry_3!, 'chefCherry_bottomRight'))
 		// chefCherry_3?.setOrigin(1)
@@ -429,51 +456,59 @@ export class MainScene extends BaseScene {
 		return obj
 	}
 
-	// TODO return Result
 	private createEditableFromAsset(asset: AssetTreeItemData) {
-		return (
-			match(asset)
-				.with({ type: 'image' }, async (image) => {
-					let texture: Phaser.Textures.Texture | null = this.textures.get(image.path)
-					if (!texture || texture.key === '__MISSING') {
-						texture = await this.loadTexture(image)
-					}
+		return match(asset)
+			.with({ type: 'image' }, async (image) => {
+				let texture: Phaser.Textures.Texture | null = this.textures.get(image.path)
+				if (!texture || texture.key === '__MISSING') {
+					texture = await this.loadTexture(image)
+				}
 
-					if (!texture) {
-						return null
-					}
+				if (!texture) {
+					return null
+				}
 
-					return this.objectsFactory.image(texture.key)
+				return this.objectsFactory.image(texture.key)
+			})
+			.with({ type: 'spritesheet-frame' }, async (spritesheetFrame) => {
+				let texture: Phaser.Textures.Texture | null = this.textures.get(spritesheetFrame.imagePath)
+				if (!texture || texture.key === '__MISSING') {
+					texture = await this.loadTextureAtlas(spritesheetFrame)
+				}
+
+				if (!texture) {
+					return null
+				}
+
+				return this.objectsFactory.image(texture.key, spritesheetFrame.pathInHierarchy)
+			})
+			.with({ type: 'web-font' }, async (webFontAsset) => {
+				const font = await this.loadWebFont(webFontAsset)
+				if (!font) {
+					return null
+				}
+
+				const text = this.objectsFactory.text(font.familyName, {
+					fontFamily: font.familyName,
+					fontSize: 60,
+					color: '#ffffff',
 				})
-				.with({ type: 'spritesheet-frame' }, async (spritesheetFrame) => {
-					let texture: Phaser.Textures.Texture | null = this.textures.get(spritesheetFrame.imagePath)
-					if (!texture || texture.key === '__MISSING') {
-						texture = await this.loadTextureAtlas(spritesheetFrame)
-					}
+				text.setName(this.getNewObjectName(this.editContexts.current!, text, 'text'))
+				return text
+			})
+			.with({ type: 'bitmap-font' }, async (bitmapFontAsset) => {
+				const bmFontResult = await this.loadBitmapFont(bitmapFontAsset)
+				if (!bmFontResult || bmFontResult.isErr()) {
+					return null
+				}
 
-					if (!texture) {
-						return null
-					}
-
-					return this.objectsFactory.image(texture.key, spritesheetFrame.pathInHierarchy)
-				})
-				.with({ type: 'web-font' }, async (webFontAsset) => {
-					const font = await this.loadWebFont(webFontAsset)
-					if (!font) {
-						return null
-					}
-
-					const text = this.objectsFactory.text(font.familyName, {
-						fontFamily: font.familyName,
-						fontSize: 60,
-						color: '#ffffff',
-					})
-					text.setName(this.getNewObjectName(this.editContexts.current!, text, 'text'))
-					return text
-				})
-				// TODO handle fonts drop - create a new Phaser.GameObjects.BitmapText or Phaser.GameObjects.Text
-				.otherwise(() => null)
-		)
+				const bmFont = bmFontResult.value
+				const bmTextContent = this.getBitmapFontChars(bmFont.data).replace(/ /g, ' ').slice(0, 10)
+				const bmText = this.objectsFactory.bitmapText(bmFont.key, bmTextContent, bmFont.data.size)
+				bmText.setName(this.getNewObjectName(this.editContexts.current!, bmText, 'bitmap-text'))
+				return bmText
+			})
+			.otherwise(() => null)
 	}
 
 	private async loadTexture(asset: GraphicAssetData): Promise<Phaser.Textures.Texture | null> {
@@ -562,6 +597,98 @@ export class MainScene extends BaseScene {
 		const css = document.createElement('style')
 		css.textContent = content
 		return css
+	}
+
+	private async loadBitmapFont(asset: AssetTreeBitmapFontData) {
+		const fontKey = asset.name
+
+		let bmFont = this.sys.cache.bitmapFont.get(fontKey) as { data: PhaserBmfontData } | undefined
+		if (bmFont) {
+			return ok({ key: fontKey, ...bmFont })
+		}
+
+		const frameData = await this.getBitmapFontFrame(asset)
+		if (frameData.isErr()) {
+			return frameData
+		}
+
+		const data = await this.getBitmapFontData(asset, frameData.value.frame)
+		if (data.isErr()) {
+			return data
+		}
+
+		if (frameData.value.fromAtlas) {
+			// prettier-ignore
+			this.sys.cache.bitmapFont.add(fontKey, { data: data.value, texture: frameData.value.frame.texture.key, frame: frameData.value.frameKey, fromAtlas: true })
+		} else {
+			this.sys.cache.bitmapFont.add(fontKey, { data: data.value, texture: frameData.value.frame.texture.key })
+		}
+
+		bmFont = this.sys.cache.bitmapFont.get(fontKey) as { data: PhaserBmfontData }
+
+		return ok({ key: fontKey, ...bmFont })
+	}
+
+	private async getBitmapFontFrame(asset: AssetTreeBitmapFontData) {
+		const isFontFromAtlas = asset.imageExtra !== undefined
+		if (isFontFromAtlas === false) {
+			// load texture
+			const texture = await this.loadTexture(asset.image)
+			if (!texture) {
+				return err('failed to load bitmap font texture')
+			}
+
+			return ok({
+				// @ts-expect-error
+				frame: texture.frames['__BASE'] as Phaser.Textures.Frame,
+				fromAtlas: false as const,
+			})
+		}
+
+		// TODO implement loading bitmap font frame from atlas
+		// const atlasJson = asset.imageExtra?.atlas
+		// const atlasTexture = this.textures.get(atlasJson.texture.path)
+		// const fontFrame = ...
+		return ok({
+			// @ts-expect-error
+			frame: null as Phaser.Textures.Frame,
+			frameKey: '',
+			fromAtlas: true as const,
+		})
+	}
+
+	private async getBitmapFontData(asset: AssetTreeBitmapFontData, frame: Phaser.Textures.Frame) {
+		let data: PhaserBmfontData
+
+		if (asset.data.type === 'json') {
+			const dataJson = await trpc.readJson.query({ path: asset.data.path })
+			if (!dataJson) {
+				return err('failed to load bitmap font json data')
+			}
+
+			data = parseJsonBitmapFont(dataJson, frame)
+		} else {
+			const dataXmlRaw = await trpc.readText.query({ path: asset.data.path })
+			if (!dataXmlRaw) {
+				return err('failed to load bitmap font xml data')
+			}
+
+			const dataXml = new DOMParser().parseFromString(dataXmlRaw.content, 'text/xml')
+			if (!dataXml) {
+				return err('failed to load bitmap font xml data')
+			}
+
+			data = Phaser.GameObjects.BitmapText.ParseXMLBitmapFont(dataXml, frame)
+		}
+
+		return ok(data)
+	}
+
+	private getBitmapFontChars(data: PhaserBmfontData): string {
+		return Object.keys(data.chars)
+			.map((charCodeStr) => parseInt(charCodeStr))
+			.map((charCode) => String.fromCharCode(charCode))
+			.join('')
 	}
 
 	private addKeyboadCallbacks() {

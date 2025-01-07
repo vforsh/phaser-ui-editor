@@ -195,12 +195,14 @@ const doBuildAssetTree = async (fileTree: FileTreeData): Promise<AssetTreeData> 
 								}
 								return spritesheet
 							})
-							.with('bitmap-font', () => {
+							.with('bitmap-font', async () => {
+								const bitmapFontData = await trpc.readJson.query({ path: jsonFile.path })
 								const bitmapFont: AssetTreeBitmapFontData = {
 									type: 'bitmap-font',
 									name: path.basename(fileTreeItem.name, path.extname(fileTreeItem.name)),
 									path: path.dirname(fileTreeItem.path),
 									image,
+									imageExtra: bitmapFontData.extra,
 									data: {
 										type: 'json',
 										name: jsonFile.name,
@@ -214,7 +216,7 @@ const doBuildAssetTree = async (fileTree: FileTreeData): Promise<AssetTreeData> 
 
 					const xmlFileName = fileTreeItem.name.replace(/\.[^/.]+$/, '.xml')
 					const xmlFilePath = path.join(path.dirname(fileTreeItem.path), xmlFileName)
-					const xmlFile = fileTree.find((item) => item.path === xmlFilePath)
+					const xmlFile = findInFileTree(xmlFilePath, fileTree)
 					if (xmlFile) {
 						// to skip processing the XML file again
 						processedItems.add(xmlFile)

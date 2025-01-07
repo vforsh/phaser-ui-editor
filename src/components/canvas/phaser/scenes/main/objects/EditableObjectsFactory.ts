@@ -79,6 +79,14 @@ export class ObjectsFactory {
 		return text
 	}
 
+	public bitmapText(font: string, content: string, fontSize?: number): EditableBitmapText {
+		const id = this.getObjectId()
+		const bitmapText = new EditableBitmapText(this.scene, id, font, content, fontSize)
+		bitmapText.setOrigin(0.5)
+		this.register(bitmapText)
+		return bitmapText
+	}
+
 	/**
 	 * Creates an object but it **doesn't add it to the scene**
 	 */

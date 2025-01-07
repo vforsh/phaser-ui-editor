@@ -70,6 +70,7 @@ export type AssetTreeBitmapFontData = {
 	name: string
 	path: string
 	image: AssetTreeImageData
+	imageExtra?: { atlas: string; texture: string; texturePacker: string }
 	data: AssetTreeJsonData | AssetTreeXmlData
 }
 
