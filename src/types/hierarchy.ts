@@ -5,19 +5,27 @@ import { EditableTextJsonBasic } from '@components/canvas/phaser/scenes/main/obj
 
 type HierarchyImage = EditableImageJsonBasic & {
 	path: string
+	isSelected?: boolean
+	isHovered?: boolean
 }
 
 type HierarchyContainer = Omit<EditableContainerJsonBasic, 'children'> & {
 	path: string
+	isSelected?: boolean
+	isHovered?: boolean
 	children: HierarchyItemData[]
 }
 
 type HierarchyText = EditableTextJsonBasic & {
 	path: string
+	isSelected?: boolean
+	isHovered?: boolean
 }
 
 type HierarchyBitmapText = EditableBitmapTextJsonBasic & {
 	path: string
+	isSelected?: boolean
+	isHovered?: boolean
 }
 
 export type HierarchyItemData = HierarchyImage | HierarchyContainer | HierarchyText | HierarchyBitmapText

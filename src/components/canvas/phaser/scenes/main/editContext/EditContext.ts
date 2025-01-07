@@ -16,6 +16,7 @@ type Events = {
 	'container-removed': (container: EditableContainer) => void
 	'container-double-clicked': (container: EditableContainer) => void
 	'bounds-changed': (bounds: Phaser.Geom.Rectangle) => void
+	'selection-changed': (selection: Selection | null) => void
 	'pre-destroy': () => void
 }
 
@@ -591,6 +592,8 @@ export class EditContext extends TypedEventEmitter<Events> {
 			subSelectionRect.setData('object', object)
 		})
 
+		this.emit('selection-changed', selection)
+
 		return selection
 	}
 
@@ -607,6 +610,8 @@ export class EditContext extends TypedEventEmitter<Events> {
 				subSelectionRect.setData('object', null)
 			}
 		}
+
+		this.emit('selection-changed', this.selection)
 	}
 
 	private onSelectionDestroyed(): void {
@@ -616,6 +621,8 @@ export class EditContext extends TypedEventEmitter<Events> {
 			rect.kill()
 			rect.setData('object', null)
 		})
+
+		this.emit('selection-changed', this.selection)
 	}
 
 	public onDragStart(selection: Selection) {

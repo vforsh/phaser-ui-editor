@@ -3,7 +3,7 @@ import { TypedEventEmitter } from '../../../robowhale/phaser3/TypedEventEmitter'
 import { MainScene } from '../MainScene'
 import { EditableContainer } from '../objects/EditableContainer'
 import { EditContext } from './EditContext'
-
+import { Selection } from './Selection'
 interface AddContextOptions {
 	/**
 	 * If true, the context will be switched to immediately after being added.
@@ -20,6 +20,7 @@ interface AddContextOptions {
 
 type EditContextsManagerEvents = {
 	'context-switched': (context: EditContext) => void
+	'selection-changed': (selection: Selection | null) => void
 }
 
 export interface EditContextsManagerOptions {
@@ -70,6 +71,7 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		// context.on('container-removed', (container) => this.remove(container), this, signal)
 		context.on('container-double-clicked', (container) => this.switchTo(container), this, signal)
 		context.on('bounds-changed', (bounds) => this.onContextBoundsChanged(context, bounds), this, signal)
+		context.on('selection-changed', (selection) => this.emit('selection-changed', selection), this, signal)
 		context.once('pre-destroy', () => this.remove(container), this, signal)
 
 		context.onAdd()

@@ -9,6 +9,7 @@ import { AssetTreeItemData } from './types/assets'
 export type AppCommands = {
 	// commands from hierarchy panel
 	'request-hierarchy': () => EditableObjectJsonBasic[]
+	'request-selection': () => string[]
 	'set-object-visibility': (objPath: string, visible: boolean) => void
 	'set-object-lock': (objPath: string, locked: boolean) => void
 	'delete-object': (objPath: string) => void

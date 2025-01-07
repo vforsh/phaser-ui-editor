@@ -1,6 +1,7 @@
 import { ActionIcon, Group, Text, Tooltip, useMantineTheme } from '@mantine/core'
 import { ChevronDown, Eye, EyeOff, Folder, Image, Lock, TextQuote, Type, Unlock } from 'lucide-react'
 import { useState } from 'react'
+import { match } from 'ts-pattern'
 import type { HierarchyItemData } from '../../types/hierarchy'
 
 const INDENT_SIZE = 26
@@ -9,7 +10,10 @@ const ICON_MARGIN = 8
 interface HierarchyItemProps {
 	item: HierarchyItemData
 	level?: number
-	isLastChild?: boolean
+	isLastChild?: Boolean
+	isSelected?: boolean
+	isHovered?: boolean
+	isOpened?: boolean
 	setItemVisibility: (path: string, visible: boolean) => void
 	setItemLock: (path: string, locked: boolean) => void
 }
@@ -18,24 +22,23 @@ export default function HierarchyItem({
 	item,
 	level = 0,
 	isLastChild = false,
+	isSelected = false,
+	isHovered: isHoveredInitially = false,
+	isOpened: isOpenedInitially = true,
 	setItemVisibility,
 	setItemLock,
 }: HierarchyItemProps) {
-	const [isOpen, setIsOpen] = useState(true)
-	const [isHovered, setIsHovered] = useState(false)
+	const [isOpen, setIsOpen] = useState(isOpenedInitially)
+	const [isHovered, setIsHovered] = useState(isHoveredInitially)
 	const theme = useMantineTheme()
 
 	const getIcon = () => {
-		switch (item.type) {
-			case 'Container':
-				return <Folder size={16} />
-			case 'Image':
-				return <Image size={16} />
-			case 'BitmapText':
-				return <Type size={16} />
-			case 'Text':
-				return <TextQuote size={16} />
-		}
+		return match(item)
+			.with({ type: 'Container' }, () => <Folder size={16} />)
+			.with({ type: 'Image' }, () => <Image size={16} />)
+			.with({ type: 'BitmapText' }, () => <Type size={16} />)
+			.with({ type: 'Text' }, () => <TextQuote size={16} />)
+			.exhaustive()
 	}
 
 	const handleToggle = () => {
@@ -43,7 +46,7 @@ export default function HierarchyItem({
 			setIsOpen(!isOpen)
 		}
 	}
-
+	
 	const gridLineThickness = 1
 
 	return (
@@ -56,8 +59,12 @@ export default function HierarchyItem({
 					padding: '0.5rem 0',
 					paddingLeft: level * INDENT_SIZE + ICON_MARGIN,
 					borderRadius: theme.radius.sm,
-					backgroundColor: isHovered ? theme.colors.dark[6] : 'transparent',
-					transition: 'all 200ms ease',
+					backgroundColor: isSelected
+						? theme.colors.blue[9]
+						: isHovered
+							? theme.colors.dark[6]
+							: 'transparent',
+					transition: 'all 33ms ease',
 					position: 'relative',
 					width: '100%',
 					cursor: 'pointer',
@@ -99,7 +106,7 @@ export default function HierarchyItem({
 					{item.type === 'Container' && (
 						<div
 							style={{
-								transition: 'transform 200ms ease',
+								transition: 'transform 33ms ease',
 								transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
 								color: isHovered ? theme.colors.blue[4] : 'inherit',
 								width: 16,
@@ -114,7 +121,7 @@ export default function HierarchyItem({
 					)}
 					<div
 						style={{
-							transition: 'color 200ms ease',
+							transition: 'color 33ms ease',
 							color: isHovered ? theme.colors.blue[4] : theme.colors.blue[4],
 							width: 16,
 							height: 16,
@@ -129,7 +136,7 @@ export default function HierarchyItem({
 						size="sm"
 						style={{
 							color: isHovered ? theme.white : theme.colors.gray[4],
-							transition: 'color 200ms ease',
+							transition: 'color 33ms ease',
 							whiteSpace: 'nowrap',
 							overflow: 'hidden',
 							textOverflow: 'ellipsis',
@@ -151,7 +158,7 @@ export default function HierarchyItem({
 							style={{
 								marginLeft: 'auto',
 								opacity: isHovered ? 1 : 0,
-								transition: 'opacity 200ms ease',
+								transition: 'opacity 33ms ease',
 							}}
 						>
 							{item.visible ? <Eye size={14} /> : <EyeOff size={14} />}
@@ -169,7 +176,7 @@ export default function HierarchyItem({
 							style={{
 								marginRight: '10px',
 								opacity: item.locked ? 1 : isHovered ? 1 : 0,
-								transition: 'opacity 200ms ease',
+								transition: 'opacity 33ms ease',
 							}}
 						>
 							{item.locked ? <Lock size={14} /> : <Unlock size={14} />}
@@ -188,6 +195,8 @@ export default function HierarchyItem({
 						isLastChild={index === arr.length - 1}
 						setItemVisibility={setItemVisibility}
 						setItemLock={setItemLock}
+						isSelected={child.isSelected}
+						isHovered={child.isHovered}
 					/>
 				))}
 		</>

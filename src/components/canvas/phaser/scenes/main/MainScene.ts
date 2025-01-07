@@ -22,11 +22,10 @@ import { EditContext } from './editContext/EditContext'
 import { EditContextsManager } from './editContext/EditContextsManager'
 import { Selection } from './editContext/Selection'
 import { TransformControls } from './editContext/TransformControls'
-import { ObjectsFactory } from './objects/EditableObjectsFactory'
 import { Grid } from './Grid'
 import { EditableContainer } from './objects/EditableContainer'
-import { EditableImage } from './objects/EditableImage'
 import { EditableObject } from './objects/EditableObject'
+import { ObjectsFactory } from './objects/EditableObjectsFactory'
 import { Rulers } from './Rulers'
 
 export type MainSceneInitData = {
@@ -151,6 +150,17 @@ export class MainScene extends BaseScene {
 			scene: this,
 			logger: this.logger.getSubLogger({ name: ':contexts' }),
 		})
+
+		this.editContexts.on(
+			'selection-changed',
+			(selection) => {
+				const selectionIds = selection?.objects.map((obj) => obj.id) || []
+				// this.logger.debug(`selection changed [${selectionIds.join(', ')}] (${selectionIds.length})`)
+				this.game.ev3nts.emit('selection-changed', selectionIds)
+			},
+			this,
+			this.shutdownSignal
+		)
 	}
 
 	private initRoot() {
@@ -165,10 +175,10 @@ export class MainScene extends BaseScene {
 			isRoot: true,
 		})
 	}
-	
+
 	private onHierarchyChanged(): void {
 		const hierarchy = this.root.toJsonBasic()
-		this.logger.debug(`hierarchy changed`, hierarchy)
+		// this.logger.debug(`hierarchy changed`, hierarchy)
 		this.game.ev3nts.emit('hierarchy-changed', hierarchy)
 	}
 
@@ -235,21 +245,21 @@ export class MainScene extends BaseScene {
 		chefCherry_2?.setName(this.getNewObjectName(context, chefCherry_2!, 'chefCherry_topRight'))
 		chefCherry_2?.setOrigin(1, 0)
 
-		const chefCherry_3 = await this.addTestImage(chefCherryFrame, 400, 500)
-		chefCherry_3?.setName(this.getNewObjectName(context, chefCherry_3!, 'chefCherry_bottomRight'))
-		chefCherry_3?.setOrigin(1)
+		// const chefCherry_3 = await this.addTestImage(chefCherryFrame, 400, 500)
+		// chefCherry_3?.setName(this.getNewObjectName(context, chefCherry_3!, 'chefCherry_bottomRight'))
+		// chefCherry_3?.setOrigin(1)
 
-		const chefCherry_4 = await this.addTestImage(chefCherryFrame, -400, 500)
-		chefCherry_4?.setName(this.getNewObjectName(context, chefCherry_4!, 'chefCherry_bottomLeft'))
-		chefCherry_4?.setOrigin(0, 1)
-		chefCherry_4?.setAngle(45)
+		// const chefCherry_4 = await this.addTestImage(chefCherryFrame, -400, 500)
+		// chefCherry_4?.setName(this.getNewObjectName(context, chefCherry_4!, 'chefCherry_bottomLeft'))
+		// chefCherry_4?.setOrigin(0, 1)
+		// chefCherry_4?.setAngle(45)
 
-		const chefCherry_5 = await this.addTestImage(chefCherryFrame, 0, 800)
-		chefCherry_5?.setName(this.getNewObjectName(context, chefCherry_5!, 'chefCherry_center'))
-		chefCherry_5?.setOrigin(0.5)
-		chefCherry_5?.setAngle(90)
+		// const chefCherry_5 = await this.addTestImage(chefCherryFrame, 0, 800)
+		// chefCherry_5?.setName(this.getNewObjectName(context, chefCherry_5!, 'chefCherry_center'))
+		// chefCherry_5?.setOrigin(0.5)
+		// chefCherry_5?.setAngle(90)
 
-		context.setSelection([chefCherry_5!])
+		// context.setSelection([chefCherry_5!])
 
 		// const selection_1 = context.createSelection([chefCherry_1!, chefCherry_2!])
 		// const group_1 = this.group(selection_1, context)
@@ -350,6 +360,31 @@ export class MainScene extends BaseScene {
 				}
 
 				obj.locked = locked
+			},
+			this,
+			false,
+			this.shutdownSignal
+		)
+
+		appCommands.on(
+			'request-selection',
+			() => {
+				const selection = this.editContexts.current?.selection
+				if (!selection) {
+					return []
+				}
+
+				return selection.objects.map((obj) => obj.id)
+			},
+			this,
+			false,
+			this.shutdownSignal
+		)
+
+		appCommands.on(
+			'request-hierarchy',
+			() => {
+				return [this.root.toJsonBasic()]
 			},
 			this,
 			false,
