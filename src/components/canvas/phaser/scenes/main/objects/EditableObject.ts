@@ -8,12 +8,16 @@ export interface IEditableObject {
 	get locked(): boolean
 	set visible(value: boolean)
 	get visible(): boolean
-	
+
 	// can change displayWidth and displayHeight for this object
 	get isResizable(): boolean
 
 	toJson(): EditableObjectJson
+
+	// returns simplified state of the object to use in Hierarchy Panel
 	toJsonBasic(): EditableObjectJsonBasic
+
+	// TODO move to ObjectsFactory
 	// static fromJson(json: EditableObjectJson, scene: Phaser.Scene): EditableObject
 
 	// addComponent(component: EditableObjectComponent): void

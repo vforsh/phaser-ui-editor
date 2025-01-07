@@ -2,6 +2,7 @@ import { tryit } from '@components/canvas/phaser/robowhale/utils/functions/tryit
 import { Paper, ScrollArea, Stack } from '@mantine/core'
 import { state } from '@state/State'
 import { useState } from 'react'
+import { Logger } from 'tslog'
 import { useSnapshot } from 'valtio'
 import { AppCommandsEmitter } from '../../AppCommands'
 import { addHierarchyPaths } from '../../data/mockHierarchy'
@@ -9,16 +10,16 @@ import { HierarchyItemData } from '../../types/hierarchy'
 import { PanelTitle } from '../PanelTitle'
 import HierarchyItem from './HierarchyItem'
 
-function updateItemVisibility(items: HierarchyItemData[], path: string): HierarchyItemData[] {
+function setItemVisibility(items: HierarchyItemData[], path: string, visible: boolean): HierarchyItemData[] {
 	return items.map((item) => {
 		if (item.path === path) {
-			return { ...item, visible: !item.visible }
+			return { ...item, visible }
 		}
 
 		if (item.type === 'Container' && item.children) {
 			return {
 				...item,
-				children: updateItemVisibility(item.children, path),
+				children: setItemVisibility(item.children, path, visible),
 			}
 		}
 
@@ -26,16 +27,16 @@ function updateItemVisibility(items: HierarchyItemData[], path: string): Hierarc
 	})
 }
 
-function updateItemLock(items: HierarchyItemData[], path: string): HierarchyItemData[] {
+function setItemLock(items: HierarchyItemData[], path: string, locked: boolean): HierarchyItemData[] {
 	return items.map((item) => {
 		if (item.path === path) {
-			return { ...item, locked: !item.locked }
+			return { ...item, locked }
 		}
 
 		if (item.type === 'Container' && item.children) {
 			return {
 				...item,
-				children: updateItemLock(item.children, path),
+				children: setItemLock(item.children, path, locked),
 			}
 		}
 
@@ -56,7 +57,12 @@ function getInitialHierarchy(commands: AppCommandsEmitter): HierarchyItemData[] 
 	return addHierarchyPaths(hierarchy)
 }
 
-export default function HierarchyPanel() {
+export type HierarchyPanelProps = {
+	logger: Logger<{}>
+}
+
+export default function HierarchyPanel(props: HierarchyPanelProps) {
+	const { logger } = props
 	const snap = useSnapshot(state)
 	const initialHierarchy = snap.app?.commands ? getInitialHierarchy(snap.app.commands as AppCommandsEmitter) : []
 	const [hierarchy, setHierarchy] = useState(initialHierarchy)
@@ -65,12 +71,16 @@ export default function HierarchyPanel() {
 		setHierarchy(addHierarchyPaths([hierarchy]))
 	})
 
-	const handleToggleVisibility = (path: string) => {
-		setHierarchy((prev) => updateItemVisibility(prev, path))
+	const handleToggleVisibility = (itemPath: string, visible: boolean) => {
+		setHierarchy((prev) => setItemVisibility(prev, itemPath, visible))
+		snap.app?.commands.emit('set-object-visibility', itemPath, visible)
+		// logger.info('set-object-visibility', path, visible)
 	}
 
-	const handleToggleLock = (path: string) => {
-		setHierarchy((prev) => updateItemLock(prev, path))
+	const handleToggleLock = (itemPath: string, locked: boolean) => {
+		setHierarchy((prev) => setItemLock(prev, itemPath, locked))
+		snap.app?.commands.emit('set-object-lock', itemPath, locked)
+		// logger.info('set-object-lock', path, locked)
 	}
 
 	return (
@@ -84,8 +94,8 @@ export default function HierarchyPanel() {
 								key={item.path}
 								item={item}
 								isLastChild={index === arr.length - 1}
-								onToggleVisibility={handleToggleVisibility}
-								onToggleLock={handleToggleLock}
+								setItemVisibility={handleToggleVisibility}
+								setItemLock={handleToggleLock}
 							/>
 						))}
 					</Stack>

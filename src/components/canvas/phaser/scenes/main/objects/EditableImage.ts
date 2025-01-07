@@ -33,7 +33,8 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 			visible: this.visible,
 		}
 	}
-
+	
+	// TODO move to ObjectsFactory
 	static fromJson<T extends EditableImageJson>(json: T, scene: Phaser.Scene): EditableImage {
 		const image = new EditableImage(scene, json.x, json.y, json.textureKey, json.frameKey)
 		image.setName(json.name)

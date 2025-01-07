@@ -5,6 +5,7 @@ import { PanelTitle } from './../PanelTitle'
 import AssetContextMenu from './AssetContextMenu'
 import AssetTreeItem from './AssetTreeItem'
 import trpc from '../../trpc'
+import { Logger } from 'tslog'
 
 interface ContextMenuState {
 	opened: boolean
@@ -13,11 +14,12 @@ interface ContextMenuState {
 }
 
 interface AssetsPanelProps {
+	logger: Logger<{}>
 	onSelectAsset: (item: AssetTreeItemData | null) => void
 	assets: AssetTreeItemData[]
 }
 
-export default function AssetsPanel({ onSelectAsset, assets }: AssetsPanelProps) {
+export default function AssetsPanel({ logger, onSelectAsset, assets }: AssetsPanelProps) {
 	const [selectedItem, setSelectedItem] = useState<AssetTreeItemData | null>(null)
 	const [openFolders, setOpenFolders] = useState<Set<string>>(new Set())
 	const [contextMenu, setContextMenu] = useState<ContextMenuState>({

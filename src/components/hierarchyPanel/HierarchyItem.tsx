@@ -10,16 +10,16 @@ interface HierarchyItemProps {
 	item: HierarchyItemData
 	level?: number
 	isLastChild?: boolean
-	onToggleVisibility: (path: string) => void
-	onToggleLock: (path: string) => void
+	setItemVisibility: (path: string, visible: boolean) => void
+	setItemLock: (path: string, locked: boolean) => void
 }
 
 export default function HierarchyItem({
 	item,
 	level = 0,
 	isLastChild = false,
-	onToggleVisibility,
-	onToggleLock,
+	setItemVisibility,
+	setItemLock,
 }: HierarchyItemProps) {
 	const [isOpen, setIsOpen] = useState(true)
 	const [isHovered, setIsHovered] = useState(false)
@@ -146,7 +146,7 @@ export default function HierarchyItem({
 							size="sm"
 							onClick={(e) => {
 								e.stopPropagation()
-								onToggleVisibility(item.path)
+								setItemVisibility(item.path, !item.visible)
 							}}
 							style={{
 								marginLeft: 'auto',
@@ -164,7 +164,7 @@ export default function HierarchyItem({
 							size="sm"
 							onClick={(e) => {
 								e.stopPropagation()
-								onToggleLock(item.path)
+								setItemLock(item.path, !item.locked)
 							}}
 							style={{
 								marginRight: '10px',
@@ -186,8 +186,8 @@ export default function HierarchyItem({
 						item={child}
 						level={level + 1}
 						isLastChild={index === arr.length - 1}
-						onToggleVisibility={onToggleVisibility}
-						onToggleLock={onToggleLock}
+						setItemVisibility={setItemVisibility}
+						setItemLock={setItemLock}
 					/>
 				))}
 		</>

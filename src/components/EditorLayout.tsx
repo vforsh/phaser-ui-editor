@@ -1,3 +1,4 @@
+import { logger } from '@logs/logs'
 import { Box, Group, Paper, Stack, useMantineTheme } from '@mantine/core'
 import { urlParams } from '@url-params'
 import JSON5 from 'json5'
@@ -196,7 +197,7 @@ export default function EditorLayout() {
 							flexDirection: 'column',
 						}}
 					>
-						<HierarchyPanel />
+						<HierarchyPanel logger={logger.getOrCreate('hierarchy')} />
 					</Box>
 
 					{/* Horizontal Divider */}
@@ -211,7 +212,11 @@ export default function EditorLayout() {
 							flexDirection: 'column',
 						}}
 					>
-						<AssetsPanel onSelectAsset={setSelectedAsset} assets={assets} />
+						<AssetsPanel
+							logger={logger.getOrCreate('assets')}
+							onSelectAsset={setSelectedAsset}
+							assets={assets}
+						/>
 					</Box>
 				</Stack>
 
@@ -253,7 +258,7 @@ export default function EditorLayout() {
 							borderRadius: 'var(--mantine-radius-sm)',
 						}}
 					>
-						<InspectorPanel selectedAsset={selectedAsset} />
+						<InspectorPanel logger={logger.getOrCreate('inspector')} selectedAsset={selectedAsset} />
 					</Box>
 				</Paper>
 			</Group>

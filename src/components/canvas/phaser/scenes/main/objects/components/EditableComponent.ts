@@ -28,7 +28,7 @@ export abstract class EditableComponent {
 
 		this.onActivate()
 	}
-	
+
 	protected abstract onActivate(): void
 
 	public deactivate(): void {
@@ -52,10 +52,10 @@ export abstract class EditableComponent {
 	public get destroySignal(): AbortSignal {
 		return this._destroyController.signal
 	}
-	
+
 	public destroy(): void {
-		this._parent = undefined
 		this._destroyController.abort()
+		this._parent = undefined
 	}
 }
 

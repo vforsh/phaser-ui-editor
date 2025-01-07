@@ -26,6 +26,7 @@ import { ObjectsFactory } from './factory/ObjectsFactory'
 import { Grid } from './Grid'
 import { EditableContainer } from './objects/EditableContainer'
 import { EditableImage } from './objects/EditableImage'
+import { EditableObject } from './objects/EditableObject'
 import { Rulers } from './Rulers'
 
 export type MainSceneInitData = {
@@ -323,7 +324,57 @@ export class MainScene extends BaseScene {
 	private setupAppCommands() {
 		const appCommands = (this.game as PhaserGameExtra).appCommands as AppCommandsEmitter
 
-		appCommands.on('handle-asset-drop', this.handleAssetDrop, this, undefined, this.shutdownSignal)
+		appCommands.on('handle-asset-drop', this.handleAssetDrop, this, false, this.shutdownSignal)
+
+		appCommands.on(
+			'set-object-visibility',
+			(objPath: string, visible: boolean) => {
+				const obj = this.findObjectByPath(objPath)
+				if (!obj) {
+					throw new Error(`failed to set object visibility - object not found at '${objPath}'`)
+				}
+
+				obj.visible = visible
+			},
+			this,
+			false,
+			this.shutdownSignal
+		)
+
+		appCommands.on(
+			'set-object-lock',
+			(objPath: string, locked: boolean) => {
+				const obj = this.findObjectByPath(objPath)
+				if (!obj) {
+					throw new Error(`failed to set object lock - object not found at '${objPath}'`)
+				}
+
+				obj.locked = locked
+			},
+			this,
+			false,
+			this.shutdownSignal
+		)
+	}
+
+	private findObjectByPath(path: string): EditableObject | undefined {
+		const parts = path.split('/').slice(1)
+
+		let current = this.root
+		for (const part of parts) {
+			const child = current.editables.find((child) => child.name === part)
+			if (!child) {
+				return undefined
+			}
+
+			if (child instanceof EditableContainer) {
+				current = child
+			} else {
+				return child
+			}
+		}
+
+		return current
 	}
 
 	private async handleAssetDrop(data: { asset: AssetTreeItemData; position: { x: number; y: number } }) {
