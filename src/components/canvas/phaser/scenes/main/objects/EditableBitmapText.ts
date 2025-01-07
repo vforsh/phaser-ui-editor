@@ -1,8 +1,14 @@
-import { CreateEditableObjectJson, CreateEditableObjectJsonBasic, IEditableObject } from './EditableObject'
+import {
+	CreateEditableObjectJson,
+	CreateEditableObjectJsonBasic,
+	EDITABLE_SYMBOL,
+	IEditableObject,
+} from './EditableObject'
 
 export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements IEditableObject {
+	readonly [EDITABLE_SYMBOL] = true
 	private _isLocked = false
-
+	
 	constructor(
 		scene: Phaser.Scene,
 		x: number,

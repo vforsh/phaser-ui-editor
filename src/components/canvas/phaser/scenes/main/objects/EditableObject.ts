@@ -3,7 +3,15 @@ import { EditableContainer, EditableContainerJson, EditableContainerJsonBasic } 
 import { EditableImage, EditableImageJson, EditableImageJsonBasic } from './EditableImage'
 import { EditableText, EditableTextJson, EditableTextJsonBasic } from './EditableText'
 
+export const EDITABLE_SYMBOL = Symbol('EditableObject')
+
+export function isEditable(obj: Phaser.GameObjects.GameObject): obj is EditableObject {
+	return EDITABLE_SYMBOL in obj && obj[EDITABLE_SYMBOL] === true
+}
+
 export interface IEditableObject {
+	[EDITABLE_SYMBOL]: true
+
 	set locked(value: boolean)
 	get locked(): boolean
 	set visible(value: boolean)
@@ -22,17 +30,7 @@ export interface IEditableObject {
 	// getComponent<T extends typeof EditableObjectComponent>(component: T): InstanceType<T>
 }
 
-// TODO fix imports order so we can use this
-export const EDITABLE_CLASSES = [EditableContainer, EditableImage, EditableText, EditableBitmapText]
-
-export type EditableObjectClass = (typeof EDITABLE_CLASSES)[number]
-// export type EditableObjectClass =
-// | typeof EditableContainer
-// | typeof EditableImage
-// | typeof EditableText
-// | typeof EditableBitmapText
-
-export type EditableObject = InstanceType<EditableObjectClass>
+export type EditableObject = EditableContainer | EditableImage | EditableText | EditableBitmapText
 
 // #region JSON
 export type CreateEditableObjectJson<T extends { type: string; locked: boolean }> =

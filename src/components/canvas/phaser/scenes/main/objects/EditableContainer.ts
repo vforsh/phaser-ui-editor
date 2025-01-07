@@ -1,12 +1,13 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
-import { EditableImage } from './EditableImage'
 import {
 	CreateEditableObjectJson,
 	CreateEditableObjectJsonBasic,
+	EDITABLE_SYMBOL,
 	EditableObject,
 	EditableObjectJson,
 	EditableObjectJsonBasic,
 	IEditableObject,
+	isEditable,
 } from './EditableObject'
 
 type Events = {
@@ -17,6 +18,7 @@ type Events = {
 }
 
 export class EditableContainer extends Phaser.GameObjects.Container implements IEditableObject {
+	readonly [EDITABLE_SYMBOL] = true
 	private readonly __events = new TypedEventEmitter<Events>()
 	private readonly _preDestroyController = new AbortController()
 	private _editablesCopy: EditableObject[] = []
@@ -71,7 +73,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 
 	override removeHandler(gameObject: Phaser.GameObjects.GameObject): void {
 		super.removeHandler(gameObject)
-
+		
 		if (isEditable(gameObject)) {
 			this.events.emit('editable-removed', gameObject)
 
@@ -178,8 +180,3 @@ export type EditableContainerJsonBasic = CreateEditableObjectJsonBasic<{
 	type: 'Container'
 	children: EditableObjectJsonBasic[]
 }>
-
-export function isEditable(obj: Phaser.GameObjects.GameObject): obj is EditableObject {
-	// return EDITABLE_CLASSES.some((cls) => obj instanceof cls)
-	return obj instanceof EditableContainer || obj instanceof EditableImage
-}
