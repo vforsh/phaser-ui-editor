@@ -285,18 +285,18 @@ export class MainScene extends BaseScene {
 		// }
 	}
 
-	private getNewObjectName(context: EditContext, obj: Phaser.GameObjects.GameObject, prefix?: string): string {
+	// TODO move to ObjectsFactory
+	private getNewObjectName(context: EditContext, obj: EditableObject, prefix?: string): string {
 		const _prefix = prefix ?? this.extractNamePrefix(obj.name) ?? this.createNamePrefix(obj)
 		const uid = Phaser.Math.RND.uuid().slice(0, 4)
 
 		return `${_prefix}__${uid}`
 	}
 
-	private createNamePrefix(obj: Phaser.GameObjects.GameObject): string {
+	private createNamePrefix(obj: EditableObject): string {
 		return match(obj)
-			.with({ type: 'Container' }, () => 'group')
-			.with({ type: 'Image' }, () => {
-				const image = obj as Phaser.GameObjects.Image
+			.with({ kind: 'Container' }, () => 'group')
+			.with({ kind: 'Image' }, (image) => {
 				const textureKey = image.texture.key
 				const frameKey = image.frame.name
 				return `${textureKey}_${frameKey}`
@@ -418,14 +418,15 @@ export class MainScene extends BaseScene {
 			return null
 		}
 
+		gameObject.name = this.getNewObjectName(this.editContexts.current!, gameObject, data.asset.name)
 		gameObject.setOrigin(0.5, 0.5)
 		gameObject.setPosition(data.position.x, data.position.y)
 
-		this.root.add(gameObject)
+		this.editContexts.current!.target.add(gameObject)
 
 		return gameObject
 	}
-
+	
 	// TODO return Result
 	private createEditableFromAsset(asset: AssetTreeItemData) {
 		return (

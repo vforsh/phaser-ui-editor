@@ -12,6 +12,9 @@ export function isEditable(obj: Phaser.GameObjects.GameObject): obj is EditableO
 export interface IEditableObject {
 	[EDITABLE_SYMBOL]: true
 
+	// we use 'kind' because 'type' is already used by Phaser
+	get kind(): string
+
 	get id(): string
 
 	set locked(value: boolean)
@@ -33,6 +36,8 @@ export interface IEditableObject {
 }
 
 export type EditableObject = EditableContainer | EditableImage | EditableText | EditableBitmapText
+
+export type EditableObjectType = EditableObject['kind']
 
 // #region JSON
 export type CreateEditableObjectJson<T extends { type: string; locked: boolean }> =

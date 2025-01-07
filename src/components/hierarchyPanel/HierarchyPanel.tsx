@@ -187,7 +187,7 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 						{hierarchy.map((item, index, arr) => {
 							return (
 								<HierarchyItem
-									key={item.path}
+									key={item.id}
 									item={item}
 									isLastChild={index === arr.length - 1}
 									isSelected={item.isSelected}

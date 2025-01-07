@@ -189,7 +189,7 @@ export default function HierarchyItem({
 				isOpen &&
 				item.children?.map((child, index, arr) => (
 					<HierarchyItem
-						key={child.path}
+						key={child.id}
 						item={child}
 						level={level + 1}
 						isLastChild={index === arr.length - 1}

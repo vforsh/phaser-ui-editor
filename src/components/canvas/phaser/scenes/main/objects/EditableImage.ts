@@ -7,6 +7,7 @@ import {
 
 export class EditableImage extends Phaser.GameObjects.Image implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
+	public readonly kind = 'Image'
 	public readonly id: string
 	private _isLocked = false
 

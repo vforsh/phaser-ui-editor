@@ -19,6 +19,7 @@ type Events = {
 
 export class EditableContainer extends Phaser.GameObjects.Container implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
+	public readonly kind = 'Container'
 	public readonly id: string
 	private readonly __events = new TypedEventEmitter<Events>()
 	private readonly _preDestroyController = new AbortController()
@@ -29,7 +30,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		super(scene, x, y)
 
 		this.id = id
-		
+
 		// defer adding children
 		// we do it here instead of in `super()` because `__events` is not initialized yet in `super()`
 		this.add(children)
@@ -45,7 +46,9 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 	public checkForHierarchyChanges(): boolean {
 		const editables = this.editables
 
-		const hasChanges = editables.some((obj, index) => obj !== this._editablesCopy[index])
+		const hasChanges =
+			editables.length !== this._editablesCopy.length ||
+			editables.some((obj, index) => obj !== this._editablesCopy[index])
 
 		if (hasChanges) {
 			this.events.emit('hierarchy-changed')

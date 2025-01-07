@@ -4,7 +4,6 @@ import { urlParams } from '@url-params'
 import JSON5 from 'json5'
 import path from 'path-browserify'
 import { useCallback, useEffect, useState } from 'react'
-import { mockAssetsPaths } from '../data/mockAssets'
 import { projectConfigSchema } from '../project/ProjectConfig'
 import { state } from '../state/State'
 import trpc from '../trpc'
@@ -105,8 +104,10 @@ export default function EditorLayout() {
 		const assetsToIgnore = openedProject.projectConfig.assetsIgnore.map((item) =>
 			path.join(openedProject.assetsDir, item)
 		)
-		const assets = mockAssetsPaths
-
+		const assets = await trpc.globby.query({
+			patterns: [assetsGlob],
+			options: { ignore: assetsToIgnore },
+		})
 		console.log('assets paths', assets)
 
 		const assetTree = await buildAssetTree(assets, openedProject.assetsDir)

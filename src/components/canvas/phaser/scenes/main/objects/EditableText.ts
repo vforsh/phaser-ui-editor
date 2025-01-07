@@ -9,6 +9,7 @@ type TextStyle = Phaser.Types.GameObjects.Text.TextStyle
 
 export class EditableText extends Phaser.GameObjects.Text implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
+	public readonly kind = 'Text'
 	public readonly id: string
 	private _isLocked = false
 

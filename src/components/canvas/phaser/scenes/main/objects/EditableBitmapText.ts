@@ -7,6 +7,7 @@ import {
 
 export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
+	public readonly kind = 'BitmapText'
 	public readonly id: string
 	private _isLocked = false
 
