@@ -1,13 +1,21 @@
-import { CreateEditableObjectJson, CreateEditableObjectJsonBasic, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
+import {
+	CreateEditableObjectJson,
+	CreateEditableObjectJsonBasic,
+	EDITABLE_SYMBOL,
+	IEditableObject,
+} from './EditableObject'
 
 type TextStyle = Phaser.Types.GameObjects.Text.TextStyle
 
 export class EditableText extends Phaser.GameObjects.Text implements IEditableObject {
-	readonly [EDITABLE_SYMBOL] = true
+	public readonly [EDITABLE_SYMBOL] = true
+	public readonly id: string
 	private _isLocked = false
 
-	constructor(scene: Phaser.Scene, x: number, y: number, text: string, style: TextStyle) {
+	constructor(scene: Phaser.Scene, id: string, x: number, y: number, text: string, style: TextStyle) {
 		super(scene, x, y, text, style)
+
+		this.id = id
 	}
 
 	toJson(): EditableTextJson {
@@ -33,6 +41,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	toJsonBasic(): EditableTextJsonBasic {
 		return {
 			type: 'Text',
+			id: this.id,
 			name: this.name,
 			locked: this.locked,
 			visible: this.visible,

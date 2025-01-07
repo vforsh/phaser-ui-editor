@@ -5,55 +5,45 @@ import type { HierarchyItemData } from '../types/hierarchy'
 export const mockHierarchy: HierarchyItemData[] = addHierarchyPaths([
 	{
 		type: 'Container',
+		id: 'c184762d',
 		name: 'root',
 		locked: false,
 		visible: true,
 		children: [
 			{
 				type: 'Image',
-				name: 'chefCherry_center__005d',
+				id: '10569f05',
+				name: 'chefCherry_topLeft__6c5f',
 				locked: false,
 				visible: true,
 			},
 			{
-				type: 'Container',
-				name: 'group__9f92',
+				type: 'Image',
+				id: 'e1d3518e',
+				name: 'chefCherry_topRight__d21c',
 				locked: false,
 				visible: true,
-				children: [
-					{
-						type: 'Image',
-						name: 'chefCherry_bottomRight__9eff',
-						locked: false,
-						visible: true,
-					},
-					{
-						type: 'Image',
-						name: 'chefCherry_bottomLeft__1393',
-						locked: false,
-						visible: true,
-					},
-					{
-						type: 'Container',
-						name: 'group__acaf',
-						locked: false,
-						visible: true,
-						children: [
-							{
-								type: 'Image',
-								name: 'chefCherry_topLeft__b5a3',
-								locked: false,
-								visible: true,
-							},
-							{
-								type: 'Image',
-								name: 'chefCherry_topRight__8945',
-								locked: false,
-								visible: true,
-							},
-						],
-					},
-				],
+			},
+			{
+				type: 'Image',
+				id: '19fd2134',
+				name: 'chefCherry_bottomRight__4bed',
+				locked: false,
+				visible: true,
+			},
+			{
+				type: 'Image',
+				id: 'd69327c7',
+				name: 'chefCherry_bottomLeft__fd4c',
+				locked: false,
+				visible: true,
+			},
+			{
+				type: 'Image',
+				id: '7ef35ff8',
+				name: 'chefCherry_center__cf7f',
+				locked: false,
+				visible: true,
 			},
 		],
 	},

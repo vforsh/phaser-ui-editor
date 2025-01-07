@@ -18,31 +18,79 @@ export interface ObjectsFactoryOptions {
 export class ObjectsFactory {
 	private scene: Phaser.Scene
 	private logger: Logger<{}>
+	private idsToObjects: Map<string, EditableObject> = new Map()
+	private destroyController = new AbortController()
 
 	constructor(options: ObjectsFactoryOptions) {
 		this.scene = options.scene
 		this.logger = options.logger
 	}
 
+	private register(obj: EditableObject): void {
+		if (this.idsToObjects.has(obj.id)) {
+			throw new Error(`object with id ${obj.id} already exists`)
+		}
+
+		obj.once(
+			'destroy',
+			() => {
+				this.idsToObjects.delete(obj.id)
+			},
+			this,
+			this.destroySignal
+		)
+
+		this.idsToObjects.set(obj.id, obj)
+	}
+
+	private getObjectId(): string {
+		// TODO replace with nanoid
+		let id = Phaser.Math.RND.uuid().split('-')[0]
+		while (this.idsToObjects.has(id)) {
+			id = Phaser.Math.RND.uuid().split('-')[0]
+		}
+		return id
+	}
+
+	// TODO remove
 	public toJson(obj: EditableObject): EditableObjectJson {
 		return obj.toJson()
+	}
+
+	public container(): EditableContainer {
+		const id = this.getObjectId()
+		const container = new EditableContainer(this.scene, id, 0, 0, [])
+		this.register(container)
+		return container
+	}
+
+	public image(texture: string, frame?: string | number): EditableImage {
+		const id = this.getObjectId()
+		const image = new EditableImage(this.scene, id, 0, 0, texture, frame)
+		this.register(image)
+		return image
 	}
 
 	/**
 	 * Creates an object but it **doesn't add it to the scene**
 	 */
 	public fromJson(json: EditableObjectJson) {
-		return match(json)
-			.with({ type: 'Container' }, (json) => this.createContainer(json))
-			.with({ type: 'Image' }, (json) => this.createImage(json))
-			.with({ type: 'Text' }, (json) => this.createText(json))
-			.with({ type: 'BitmapText' }, (json) => this.createBitmapText(json))
+		const obj = match(json)
+			.with({ type: 'Container' }, (json) => this.createContainerFromJson(json))
+			.with({ type: 'Image' }, (json) => this.createImageFromJson(json))
+			.with({ type: 'Text' }, (json) => this.createTextFromJson(json))
+			.with({ type: 'BitmapText' }, (json) => this.createBitmapTextFromJson(json))
 			.exhaustive()
+
+		this.register(obj)
+
+		return obj
 	}
 
-	private createContainer(json: EditableContainerJson): EditableContainer {
+	private createContainerFromJson(json: EditableContainerJson): EditableContainer {
+		const id = this.getObjectId()
 		const children = json.children.map((childJson) => this.fromJson(childJson))
-		const container = new EditableContainer(this.scene, json.x, json.y, children)
+		const container = new EditableContainer(this.scene, id, json.x, json.y, children)
 
 		container.setScale(json.scale.x, json.scale.y)
 		container.setRotation(json.rotation)
@@ -57,8 +105,9 @@ export class ObjectsFactory {
 		return container
 	}
 
-	private createImage(json: EditableImageJson): EditableImage {
-		const image = new EditableImage(this.scene, json.x, json.y, json.textureKey, json.frameKey)
+	private createImageFromJson(json: EditableImageJson): EditableImage {
+		const id = this.getObjectId()
+		const image = new EditableImage(this.scene, id, json.x, json.y, json.textureKey, json.frameKey)
 		image.setName(json.name)
 		image.setVisible(json.visible)
 		image.setAlpha(json.alpha)
@@ -68,11 +117,13 @@ export class ObjectsFactory {
 		image.setScale(json.scale.x, json.scale.y)
 		image.setOrigin(json.origin.x, json.origin.y)
 		image.locked = json.locked
+
 		return image
 	}
 
-	private createText(json: EditableTextJson): EditableText {
-		const text = new EditableText(this.scene, json.x, json.y, json.text, json.style)
+	private createTextFromJson(json: EditableTextJson): EditableText {
+		const id = this.getObjectId()
+		const text = new EditableText(this.scene, id, json.x, json.y, json.text, json.style)
 		text.setName(json.name)
 		text.setVisible(json.visible)
 		text.setAlpha(json.alpha)
@@ -82,22 +133,26 @@ export class ObjectsFactory {
 		text.setScale(json.scale.x, json.scale.y)
 		text.setOrigin(json.origin.x, json.origin.y)
 		text.locked = json.locked
+
 		return text
 	}
 
-	private createBitmapText(json: EditableBitmapTextJson): EditableBitmapText {
-		const text = new EditableBitmapText(this.scene, json.x, json.y, json.font, json.text, json.fontSize, json.align)
-		text.setName(json.name)
-		text.setVisible(json.visible)
-		text.setAlpha(json.alpha)
-		text.setRotation(json.rotation)
-		text.setDepth(json.depth)
-		text.setBlendMode(json.blendMode)
-		text.setScale(json.scale.x, json.scale.y)
-		text.setOrigin(json.origin.x, json.origin.y)
-		text.setMaxWidth(json.maxWidth)
-		text.locked = json.locked
-		return text
+	private createBitmapTextFromJson(json: EditableBitmapTextJson): EditableBitmapText {
+		const id = this.getObjectId()
+		const bitmapText = new EditableBitmapText(this.scene, id, json.font, json.text, json.fontSize, json.align)
+		bitmapText.setPosition(json.x, json.y)
+		bitmapText.setName(json.name)
+		bitmapText.setVisible(json.visible)
+		bitmapText.setAlpha(json.alpha)
+		bitmapText.setRotation(json.rotation)
+		bitmapText.setDepth(json.depth)
+		bitmapText.setBlendMode(json.blendMode)
+		bitmapText.setScale(json.scale.x, json.scale.y)
+		bitmapText.setOrigin(json.origin.x, json.origin.y)
+		bitmapText.setMaxWidth(json.maxWidth)
+		bitmapText.locked = json.locked
+
+		return bitmapText
 	}
 
 	public clone(obj: EditableObject, options?: CloneOptions): EditableObject {
@@ -110,5 +165,18 @@ export class ObjectsFactory {
 		}
 
 		return cloned
+	}
+
+	public getObjectById(id: string): EditableObject | undefined {
+		return this.idsToObjects.get(id)
+	}
+
+	public destroy(): void {
+		this.idsToObjects.clear()
+		this.destroyController.abort()
+	}
+
+	get destroySignal(): AbortSignal {
+		return this.destroyController.signal
 	}
 }

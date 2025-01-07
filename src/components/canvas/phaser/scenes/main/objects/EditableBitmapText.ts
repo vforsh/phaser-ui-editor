@@ -6,19 +6,21 @@ import {
 } from './EditableObject'
 
 export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements IEditableObject {
-	readonly [EDITABLE_SYMBOL] = true
+	public readonly [EDITABLE_SYMBOL] = true
+	public readonly id: string
 	private _isLocked = false
-	
+
 	constructor(
 		scene: Phaser.Scene,
-		x: number,
-		y: number,
+		id: string,
 		font: string,
 		text?: string | string[],
 		size?: number,
 		align?: number
 	) {
-		super(scene, x, y, font, text, size, align)
+		super(scene, 0, 0, font, text, size, align)
+
+		this.id = id
 	}
 
 	toJson(): EditableBitmapTextJson {
@@ -47,6 +49,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 	toJsonBasic(): EditableBitmapTextJsonBasic {
 		return {
 			type: 'BitmapText',
+			id: this.id,
 			name: this.name,
 			locked: this.locked,
 			visible: this.visible,

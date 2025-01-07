@@ -154,7 +154,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private initRoot() {
-		this.root = new EditableContainer(this)
+		this.root = this.objectsFactory.container()
 		this.root.name = 'root' // TODO use the current prefab name (from the assets tree)
 		this.add.existing(this.root)
 
@@ -165,7 +165,7 @@ export class MainScene extends BaseScene {
 			isRoot: true,
 		})
 	}
-
+	
 	private onHierarchyChanged(): void {
 		const hierarchy = this.root.toJsonBasic()
 		this.logger.debug(`hierarchy changed`, hierarchy)
@@ -405,7 +405,7 @@ export class MainScene extends BaseScene {
 						return null
 					}
 
-					return new EditableImage(this, 0, 0, texture.key)
+					return this.objectsFactory.image(texture.key)
 				})
 				.with({ type: 'spritesheet-frame' }, async (spritesheetFrame) => {
 					let texture: Phaser.Textures.Texture | null = this.textures.get(spritesheetFrame.imagePath)
@@ -417,7 +417,7 @@ export class MainScene extends BaseScene {
 						return null
 					}
 
-					return new EditableImage(this, 0, 0, texture.key, spritesheetFrame.pathInHierarchy)
+					return this.objectsFactory.image(texture.key, spritesheetFrame.pathInHierarchy)
 				})
 				// TODO handle fonts drop - create a new Phaser.GameObjects.BitmapText or Phaser.GameObjects.Text
 				.otherwise(() => null)
@@ -531,7 +531,7 @@ export class MainScene extends BaseScene {
 	private group(selection: Selection, editContext: EditContext): EditableContainer {
 		const bounds =
 			selection.objects.length === 1 ? this.aligner.getRotatedBounds(selection.objects[0]) : selection.bounds
-		const group = new EditableContainer(this, 0, 0)
+		const group = this.objectsFactory.container()
 		group.name = this.getNewObjectName(editContext, group)
 		group.setPosition(bounds.centerX, bounds.centerY)
 		group.setSize(bounds.width, bounds.height)

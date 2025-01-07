@@ -29,14 +29,14 @@ export class TestScene extends BaseScene {
     public create(): void {
         this.logger.info(`${this.scene.key} create`)
 
-        const ctr_1 = new EditableContainer(this, 0, 0)
+        const ctr_1 = new EditableContainer(this, 'ctr_1', 0, 0)
         ctr_1.setName('ctr_1')
         ctr_1.on('destroy', () => {
             this.logger.info(`ctr_1 destroyed`)
         })
         this.add.existing(ctr_1)
         
-        const ctr_2 = new EditableContainer(this, 100, 0)
+        const ctr_2 = new EditableContainer(this, 'ctr_2', 100, 0)
         ctr_2.setName('ctr_2')
         ctr_2.on('destroy', () => {
             this.logger.info(`ctr_2 destroyed`)

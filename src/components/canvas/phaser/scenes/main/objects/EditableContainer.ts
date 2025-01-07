@@ -18,15 +18,18 @@ type Events = {
 }
 
 export class EditableContainer extends Phaser.GameObjects.Container implements IEditableObject {
-	readonly [EDITABLE_SYMBOL] = true
+	public readonly [EDITABLE_SYMBOL] = true
+	public readonly id: string
 	private readonly __events = new TypedEventEmitter<Events>()
 	private readonly _preDestroyController = new AbortController()
 	private _editablesCopy: EditableObject[] = []
 	private _isLocked = false
 
-	constructor(scene: Phaser.Scene, x = 0, y = 0, children: Phaser.GameObjects.GameObject[] = []) {
+	constructor(scene: Phaser.Scene, id: string, x = 0, y = 0, children: Phaser.GameObjects.GameObject[] = []) {
 		super(scene, x, y)
 
+		this.id = id
+		
 		// defer adding children
 		// we do it here instead of in `super()` because `__events` is not initialized yet in `super()`
 		this.add(children)
@@ -73,7 +76,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 
 	override removeHandler(gameObject: Phaser.GameObjects.GameObject): void {
 		super.removeHandler(gameObject)
-		
+
 		if (isEditable(gameObject)) {
 			this.events.emit('editable-removed', gameObject)
 
@@ -114,6 +117,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 
 		return {
 			type: 'Container',
+			id: this.id,
 			name: this.name,
 			locked: this.locked,
 			visible: this.visible,
