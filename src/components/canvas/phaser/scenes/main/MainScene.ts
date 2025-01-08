@@ -156,6 +156,20 @@ export class MainScene extends BaseScene {
 				const selectionIds = selection?.objects.map((obj) => obj.id) || []
 				// this.logger.debug(`selection changed [${selectionIds.join(', ')}] (${selectionIds.length})`)
 				this.game.ev3nts.emit('selection-changed', selectionIds)
+
+				if (selection && selection.objects.length > 0) {
+					if (selection.objects.length > 1) {
+						this.game.ev3nts.emit('selected-object-changed', null)
+					} else {
+						const obj = this.objectsFactory.getObjectById(selection.objects[0].id)
+						const objJson = obj?.toJson()
+						if (objJson) {
+							this.game.ev3nts.emit('selected-object-changed', objJson)
+						}
+					}
+				} else {
+					this.game.ev3nts.emit('selected-object-changed', null)
+				}
 			},
 			this,
 			this.shutdownSignal

@@ -5,7 +5,7 @@ import JSON5 from 'json5'
 import path from 'path-browserify'
 import { useCallback, useEffect, useState } from 'react'
 import { projectConfigSchema } from '../project/ProjectConfig'
-import { state } from '../state/State'
+import { state, useSnapshot } from '../state/State'
 import trpc from '../trpc'
 import { AssetTreeItemData } from '../types/assets'
 import AssetsPanel from './assetsPanel/AssetsPanel'
@@ -13,7 +13,7 @@ import { buildAssetTree } from './assetsPanel/build-asset-tree'
 import CanvasContainer from './canvas/CanvasContainer'
 import OpenProjectDialog from './dialogs/OpenProjectDialog'
 import HierarchyPanel from './hierarchyPanel/HierarchyPanel'
-import InspectorPanel from './inspector/InspectorPanel'
+import InspectorPanel, { ItemToInspect } from './inspector/InspectorPanel'
 import ResizableDivider from './ResizableDivider'
 
 const MIN_PANEL_WIDTH = 200
@@ -24,13 +24,15 @@ const MAX_PANEL_HEIGHT = 800
 export default function EditorLayout() {
 	const theme = useMantineTheme()
 
+	const snap = useSnapshot(state)
+
 	const { leftPanelWidth: lpw, rightPanelWidth: rpw, hierarchyHeight: hh } = state.panelDimensions
 	const [leftPanelWidth, setLeftPanelWidth] = useState(lpw)
 	const [rightPanelWidth, setRightPanelWidth] = useState(rpw)
 	const [hierarchyHeight, setHierarchyHeight] = useState(hh || Math.round(window.innerHeight / 2) - 6)
-	const [selectedAsset, setSelectedAsset] = useState<AssetTreeItemData | null>(null)
 	const [assets, setAssets] = useState<AssetTreeItemData[]>([])
 	const [openProjectDialogOpen, setOpenProjectDialogOpen] = useState(false)
+	const [itemToInspect, setItemToInspect] = useState<ItemToInspect | null>(null)
 
 	const handleLeftResize = useCallback((delta: number) => {
 		setLeftPanelWidth((prev) => {
@@ -87,6 +89,29 @@ export default function EditorLayout() {
 		}
 	}, [])
 
+	// listen for selected object changes
+	useEffect(() => {
+		const phaserEvents = snap.phaser?.events
+		if (!phaserEvents) {
+			return
+		}
+
+		const destroyController = new AbortController()
+		const signal = destroyController.signal
+
+		phaserEvents.on(
+			'selected-object-changed',
+			(selectedObject) => {
+				setItemToInspect(selectedObject ? { type: 'object', data: selectedObject } : null)
+			},
+			null,
+			signal
+		)
+
+		// Cleanup function
+		return () => destroyController.abort()
+	}, [snap.phaser?.events])
+
 	const openProject = async (projectDirPath: string) => {
 		if (path.isAbsolute(projectDirPath) === false) {
 			// TODO show mantine toast
@@ -111,7 +136,7 @@ export default function EditorLayout() {
 		// console.log('assets paths', assets)
 
 		const assetTree = await buildAssetTree(assets, openedProject.assetsDir)
-		// console.log('assetTree', assetTree)
+		console.log('assetTree', assetTree)
 
 		setAssets(assetTree)
 
@@ -231,7 +256,9 @@ export default function EditorLayout() {
 							>
 								<AssetsPanel
 									logger={logger.getOrCreate('assets')}
-									onSelectAsset={setSelectedAsset}
+									onSelectAsset={(item) =>
+										setItemToInspect(item ? { type: 'asset', data: item } : null)
+									}
 									assets={assets}
 								/>
 							</Box>
@@ -277,7 +304,7 @@ export default function EditorLayout() {
 							borderRadius: 'var(--mantine-radius-sm)',
 						}}
 					>
-						<InspectorPanel logger={logger.getOrCreate('inspector')} selectedAsset={selectedAsset} />
+						<InspectorPanel logger={logger.getOrCreate('inspector')} item={itemToInspect} />
 					</Box>
 				</Paper>
 			</Group>

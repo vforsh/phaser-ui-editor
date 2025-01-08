@@ -5,7 +5,7 @@ interface PropertyRowProps {
   value: string | number;
 }
 
-export function PropertyRow({ label, value }: PropertyRowProps) {
+export function ReadonlyPropertyRow({ label, value }: PropertyRowProps) {
   return (
     <Group justify="space-between" wrap="nowrap">
       <Text size="sm" c="dimmed" style={{ minWidth: 80 }}>

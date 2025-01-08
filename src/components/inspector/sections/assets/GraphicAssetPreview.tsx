@@ -4,9 +4,9 @@ import path from 'path-browserify'
 import prettyBytes from 'pretty-bytes'
 import { useEffect, useState } from 'react'
 import { match } from 'ts-pattern'
-import trpc from '../../trpc'
-import { GraphicAssetData } from '../../types/assets'
-import { imageDataToUrl } from '../../utils/image-data-to-url'
+import trpc from '../../../../trpc'
+import { GraphicAssetData } from '../../../../types/assets'
+import { imageDataToUrl } from '../../../../utils/image-data-to-url'
 
 interface GraphicAssetPreviewProps {
 	asset: GraphicAssetData

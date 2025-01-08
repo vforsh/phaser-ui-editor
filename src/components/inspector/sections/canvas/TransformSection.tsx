@@ -1,5 +1,5 @@
 import { Stack, Group, NumberInput } from '@mantine/core';
-import { PropertyRow } from '../PropertyRow';
+import { ReadonlyPropertyRow } from '../PropertyRow';
 
 interface TransformSectionProps {
   x?: number;
