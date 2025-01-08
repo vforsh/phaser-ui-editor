@@ -47,6 +47,8 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 			fontSize: this.fontSize,
 			align: this.align,
 			maxWidth: this.maxWidth,
+			letterSpacing: this.letterSpacing,
+			lineSpacing: this.lineSpacing,
 		}
 	}
 
@@ -130,6 +132,8 @@ export type EditableBitmapTextJson = CreateEditableObjectJson<{
 	fontSize: number
 	align: number
 	maxWidth: number
+	letterSpacing: number
+	lineSpacing: number
 }>
 
 export type EditableBitmapTextJsonBasic = CreateEditableObjectJsonBasic<{

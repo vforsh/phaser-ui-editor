@@ -3,14 +3,20 @@ import type { LucideIcon } from 'lucide-react'
 import { ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 
-interface InspectorSectionProps {
+export interface InspectorSectionProps {
+	id: string
 	title: string
 	icon: LucideIcon
 	content: React.ReactNode
 	defaultExpanded?: boolean
 }
 
-export function InspectorSection({ title, icon: Icon, content, defaultExpanded = false }: InspectorSectionProps) {
+export function InspectorSection({
+	title,
+	icon: Icon,
+	content,
+	defaultExpanded = false,
+}: Omit<InspectorSectionProps, 'id'>) {
 	const [expanded, setExpanded] = useState(defaultExpanded)
 
 	return (

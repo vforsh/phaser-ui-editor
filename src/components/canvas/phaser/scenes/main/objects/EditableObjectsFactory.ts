@@ -4,24 +4,24 @@ import { EditableBitmapText, EditableBitmapTextJson } from './EditableBitmapText
 import { EditableContainer, EditableContainerJson } from './EditableContainer'
 import { EditableImage, EditableImageJson } from './EditableImage'
 import { EditableObject, EditableObjectJson } from './EditableObject'
-import { EditableText, EditableTextJson } from './EditableText'
+import { EditableText, EditableTextJson, EditableTextStyleJson } from './EditableText'
 
 export interface CloneOptions {
 	addToScene?: boolean
 }
 
-export interface ObjectsFactoryOptions {
+export interface EditableObjectsFactoryOptions {
 	scene: Phaser.Scene
 	logger: Logger<{}>
 }
 
-export class ObjectsFactory {
+export class EditableObjectsFactory {
 	private scene: Phaser.Scene
 	private logger: Logger<{}>
 	private idsToObjects: Map<string, EditableObject> = new Map()
 	private destroyController = new AbortController()
 
-	constructor(options: ObjectsFactoryOptions) {
+	constructor(options: EditableObjectsFactoryOptions) {
 		this.scene = options.scene
 		this.logger = options.logger
 	}
@@ -71,7 +71,7 @@ export class ObjectsFactory {
 		return image
 	}
 
-	public text(content: string, style: Phaser.Types.GameObjects.Text.TextStyle): EditableText {
+	public text(content: string, style: EditableTextStyleJson): EditableText {
 		const id = this.getObjectId()
 		const text = new EditableText(this.scene, id, 0, 0, content, style)
 		text.setOrigin(0.5)

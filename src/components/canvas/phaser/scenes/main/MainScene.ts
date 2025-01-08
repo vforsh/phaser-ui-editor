@@ -30,7 +30,7 @@ import { TransformControls } from './editContext/TransformControls'
 import { Grid } from './Grid'
 import { EditableContainer } from './objects/EditableContainer'
 import { EditableObject } from './objects/EditableObject'
-import { ObjectsFactory } from './objects/EditableObjectsFactory'
+import { EditableObjectsFactory } from './objects/EditableObjectsFactory'
 import { Rulers } from './Rulers'
 type PhaserBmfontData = Phaser.Types.GameObjects.BitmapText.BitmapFontData
 
@@ -63,7 +63,7 @@ export class MainScene extends BaseScene {
 	private root!: EditableContainer
 	// TODO move to a separate class, it should emit events on resize
 	public projectSizeFrame!: Phaser.GameObjects.Graphics & { width: number; height: number }
-	public objectsFactory!: ObjectsFactory
+	public objectsFactory!: EditableObjectsFactory
 	private clipboard!: CanvasClipboard
 	private aligner!: Aligner
 

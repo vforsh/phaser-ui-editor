@@ -1,7 +1,7 @@
 import { Logger } from 'tslog'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { TypedEventEmitter } from '../../robowhale/phaser3/TypedEventEmitter'
-import { ObjectsFactory } from './objects/EditableObjectsFactory'
+import { EditableObjectsFactory } from './objects/EditableObjectsFactory'
 import { EditableObject, EditableObjectJson } from './objects/EditableObject'
 
 type Events = {
@@ -11,7 +11,7 @@ type Events = {
 
 export type ClipboardOptions = {
 	logger: Logger<{}>
-	factory: ObjectsFactory
+	factory: EditableObjectsFactory
 }
 
 export class CanvasClipboard extends TypedEventEmitter<Events> {

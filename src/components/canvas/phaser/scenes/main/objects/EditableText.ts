@@ -5,16 +5,14 @@ import {
 	IEditableObject,
 } from './EditableObject'
 
-type TextStyle = Phaser.Types.GameObjects.Text.TextStyle
-
 export class EditableText extends Phaser.GameObjects.Text implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
 	public readonly kind = 'Text'
 	public readonly id: string
 	private _isLocked = false
 
-	constructor(scene: Phaser.Scene, id: string, x: number, y: number, text: string, style: TextStyle) {
-		super(scene, x, y, text, style)
+	constructor(scene: Phaser.Scene, id: string, x: number, y: number, text: string, style: EditableTextStyleJson) {
+		super(scene, x, y, text, style as Phaser.Types.GameObjects.Text.TextStyle)
 
 		this.id = id
 	}
@@ -35,7 +33,8 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 			},
 			locked: this.locked,
 			text: this.text,
-			style: this.style.toJSON(),
+			style: this.style.toJSON() as EditableTextStyleJson,
+			letterSpacing: this.letterSpacing,
 		}
 	}
 
@@ -70,7 +69,8 @@ export type EditableTextJson = CreateEditableObjectJson<{
 	origin: { x: number; y: number }
 	locked: boolean
 	text: string
-	style: object
+	style: EditableTextStyleJson
+	letterSpacing: number
 }>
 
 export type EditableTextJsonBasic = CreateEditableObjectJsonBasic<{
@@ -78,4 +78,36 @@ export type EditableTextJsonBasic = CreateEditableObjectJsonBasic<{
 	name: string
 	locked: boolean
 	visible: boolean
+}>
+
+export type EditableTextStyleJson = Partial<{
+	fontFamily: string
+	fontSize: string
+	fontStyle: string
+	backgroundColor: string | null
+	color: string
+	stroke: string
+	strokeThickness: number
+	shadowOffsetX: number
+	shadowOffsetY: number
+	shadowColor: string
+	shadowBlur: number
+	shadowStroke: boolean
+	shadowFill: boolean
+	align: string
+	maxLines: number
+	fixedWidth: number
+	fixedHeight: number
+	resolution: number
+	rtl: boolean
+	testString: string
+	baselineX: number
+	baselineY: number
+	wordWrapWidth: number | null
+	wordWrapUseAdvanced: boolean
+	metrics: {
+		ascent: number
+		descent: number
+		fontSize: number
+	}
 }>
