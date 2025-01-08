@@ -123,9 +123,9 @@ export class MainScene extends BaseScene {
 
 		// trigger hierarchy change event so hierarchy panel will be updated
 		this.onHierarchyChanged()
-
+		
 		const zoom = urlParams.getNumber('zoom')
-		if (typeof zoom === 'number') {
+		if (typeof zoom === 'number' && zoom > 0) {
 			this.setCameraZoom(zoom)
 		}
 	}

@@ -174,55 +174,73 @@ export default function EditorLayout() {
 		}
 	}
 
+	const hideHierarchyPanel = urlParams.getBool('hierarchy', '0')
+	const hideAssetsPanel = urlParams.getBool('assets', '0')
+	const hideInspectorPanel = urlParams.getBool('inspector', '0')
+
+	const displayHierarchyPanel = !hideHierarchyPanel
+	const displayAssetsPanel = !hideAssetsPanel
+	const displayLeftPanel = displayHierarchyPanel || displayAssetsPanel
+	const displayInspectorPanel = !hideInspectorPanel
+	const displayRightPanel = displayInspectorPanel
+
 	return (
 		<>
 			<Group align="stretch" style={{ height: '100vh', margin: 0, backgroundColor: 'black' }} gap={0}>
 				{/* Left Column */}
-				<Stack
-					id="left-column"
-					style={{
-						width: leftPanelWidth,
-						transition: 'width 0.05s ease-out',
-						padding: '4px 0px 4px 4px',
-						height: '100vh',
-					}}
-					gap="4px"
-				>
-					{/* Hierarchy Panel */}
-					<Box
+				{displayLeftPanel && (
+					<Stack
+						id="left-column"
 						style={{
-							height: hierarchyHeight,
-							minHeight: MIN_PANEL_HEIGHT,
-							maxHeight: MAX_PANEL_HEIGHT,
-							display: 'flex',
-							flexDirection: 'column',
+							width: leftPanelWidth,
+							transition: 'width 0.05s ease-out',
+							padding: '4px 0px 4px 4px',
+							height: '100vh',
 						}}
+						gap="4px"
 					>
-						<HierarchyPanel logger={logger.getOrCreate('hierarchy')} />
-					</Box>
+						{/* Hierarchy Panel */}
+						{displayHierarchyPanel && (
+							<Box
+								style={{
+									height: hierarchyHeight,
+									minHeight: MIN_PANEL_HEIGHT,
+									maxHeight: MAX_PANEL_HEIGHT,
+									display: 'flex',
+									flexDirection: 'column',
+								}}
+							>
+								<HierarchyPanel logger={logger.getOrCreate('hierarchy')} />
+							</Box>
+						)}
 
-					{/* Horizontal Divider */}
-					<ResizableDivider onResize={handleHierarchyResize} />
+						{/* Horizontal Divider */}
+						{(displayHierarchyPanel || displayAssetsPanel) && (
+							<ResizableDivider onResize={handleHierarchyResize} />
+						)}
 
-					{/* Assets Panel */}
-					<Box
-						style={{
-							flex: 1,
-							minHeight: MIN_PANEL_HEIGHT,
-							display: 'flex',
-							flexDirection: 'column',
-						}}
-					>
-						<AssetsPanel
-							logger={logger.getOrCreate('assets')}
-							onSelectAsset={setSelectedAsset}
-							assets={assets}
-						/>
-					</Box>
-				</Stack>
+						{/* Assets Panel */}
+						{displayAssetsPanel && (
+							<Box
+								style={{
+									flex: 1,
+									minHeight: MIN_PANEL_HEIGHT,
+									display: 'flex',
+									flexDirection: 'column',
+								}}
+							>
+								<AssetsPanel
+									logger={logger.getOrCreate('assets')}
+									onSelectAsset={setSelectedAsset}
+									assets={assets}
+								/>
+							</Box>
+						)}
+					</Stack>
+				)}
 
 				{/* Left Divider */}
-				<ResizableDivider onResize={handleLeftResize} vertical />
+				{displayLeftPanel && <ResizableDivider onResize={handleLeftResize} vertical />}
 
 				{/* Middle Column - Canvas */}
 				<Paper
@@ -238,7 +256,7 @@ export default function EditorLayout() {
 				</Paper>
 
 				{/* Right Divider */}
-				{urlParams.getBool('inspector') && <ResizableDivider onResize={handleRightResize} vertical />}
+				{displayRightPanel && <ResizableDivider onResize={handleRightResize} vertical />}
 
 				{/* Right Column - Inspector */}
 				<Paper
@@ -247,7 +265,7 @@ export default function EditorLayout() {
 						backgroundColor: 'inherit',
 						transition: 'width 0.05s ease-out',
 						padding: '4px 4px 4px 0px',
-						display: urlParams.getBool('inspector') ? 'block' : 'none',
+						display: displayRightPanel ? 'block' : 'none',
 					}}
 				>
 					<Box
