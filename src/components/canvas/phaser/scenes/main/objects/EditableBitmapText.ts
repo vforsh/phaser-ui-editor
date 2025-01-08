@@ -11,6 +11,9 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 	public readonly id: string
 	private _isLocked = false
 
+	// it is set in the super constructor
+	private _bounds!: Phaser.Types.GameObjects.BitmapText.BitmapTextSize
+
 	constructor(
 		scene: Phaser.Scene,
 		id: string,
@@ -68,15 +71,50 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 	get isResizable() {
 		return false
 	}
+	
+	/**
+	 * @note copied from Phaser pull request
+	 * @link https://github.com/phaserjs/phaser/pull/6623
+	 */
+	public setDisplaySize(displayWidth: number, displayHeight: number) {
+		this.setScale(1, 1)
+		this.getTextBounds(false)
+		const scaleX = displayWidth / this.width
+		const scaleY = displayHeight / this.height
+		this.setScale(scaleX, scaleY)
+		return this
+	}
 
 	// @ts-expect-error
 	set displayWidth(value: number) {
-		// HACK
+		this.setScaleX(1)
+		this.getTextBounds(false)
+		const scale = value / this.width
+		this.setScaleX(scale)
 	}
 
 	// @ts-expect-error
 	set displayHeight(value: number) {
-		// HACK
+		this.setScaleY(1)
+		this.getTextBounds(false)
+		const scale = value / this.height
+		this.setScaleY(scale)
+	}
+
+	get displayWidth(): number {
+		return this.width
+	}
+
+	get displayHeight(): number {
+		return this.height
+	}
+
+	private setScaleX(value: number) {
+		this.setScale(value, this.scaleY)
+	}
+
+	private setScaleY(value: number) {
+		this.setScale(this.scaleX, value)
 	}
 }
 
