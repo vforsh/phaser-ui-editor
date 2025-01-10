@@ -15,7 +15,7 @@ import { useMemo } from 'react'
 import { match } from 'ts-pattern'
 import { AssetSection } from '../components/inspector/sections/assets/AssetSection'
 import { GraphicAssetPreview } from '../components/inspector/sections/assets/GraphicAssetPreview'
-import { DisplaySection, type DisplayProperties } from '../components/inspector/sections/objects/DisplaySection'
+import { DisplaySection, type DisplayData } from '../components/inspector/sections/objects/DisplaySection'
 import { TransformSection } from '../components/inspector/sections/objects/TransformSection'
 import { AssetTreeItemData, isGraphicAsset } from '../types/assets'
 
@@ -74,7 +74,7 @@ function getObjectSections(obj: EditableObjectJson): InspectorSectionProps[] {
 			icon: Eye,
 			content: (
 				<DisplaySection
-					props={defaultDisplayProperties}
+					data={defaultDisplayProperties}
 					onChange={(changes) => {
 						console.log('Display properties changed:', changes)
 						// TODO: Update display properties in state
@@ -296,7 +296,7 @@ function createTextStrokeSection(textStyle: EditableTextStyleJson) {
 	)
 }
 
-const defaultDisplayProperties: DisplayProperties = {
+const defaultDisplayProperties: DisplayData = {
 	visible: true,
 	alpha: 100,
 	blendMode: 'NORMAL',

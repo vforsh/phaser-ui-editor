@@ -1,13 +1,22 @@
 import { Group, NumberInput, Stack } from '@mantine/core'
 
-interface TransformSectionProps {
+interface TransformData {
 	x?: number
 	y?: number
+	originX: number
+	originY: number
 	angle?: number
 	scale?: { x: number; y: number }
 }
 
-export function TransformSection({ x = 0, y = 0, angle = 0, scale = { x: 1, y: 1 } }: TransformSectionProps) {
+export function TransformSection({
+	x = 0,
+	y = 0,
+	originX = 0,
+	originY = 0,
+	angle = 0,
+	scale = { x: 1, y: 1 },
+}: TransformData) {
 	return (
 		<Stack gap="xs">
 			<Group grow>
@@ -26,11 +35,33 @@ export function TransformSection({ x = 0, y = 0, angle = 0, scale = { x: 1, y: 1
 					size="xs"
 				/>
 			</Group>
+			<Group grow>
+				<NumberInput
+					label="Origin X"
+					value={originX}
+					onChange={(val) => console.log('originX changed:', val)}
+					decimalScale={2}
+					min={0}
+					max={1}
+					size="xs"
+				/>
+				<NumberInput
+					label="Origin Y"
+					value={originY}
+					onChange={(val) => console.log('originY changed:', val)}
+					decimalScale={2}
+					min={0}
+					max={1}
+					size="xs"
+				/>
+			</Group>
 			<NumberInput
 				label="Angle"
 				value={angle}
 				onChange={(val) => console.log('angle changed:', val)}
-				decimalScale={2}
+				min={-180}
+				max={180}
+				step={1}
 				size="xs"
 			/>
 			<Group grow>
@@ -39,6 +70,8 @@ export function TransformSection({ x = 0, y = 0, angle = 0, scale = { x: 1, y: 1
 					value={scale.x}
 					onChange={(val) => console.log('scale.x changed:', val)}
 					decimalScale={2}
+					min={0}
+					step={0.01}
 					size="xs"
 				/>
 				<NumberInput
@@ -46,6 +79,8 @@ export function TransformSection({ x = 0, y = 0, angle = 0, scale = { x: 1, y: 1
 					value={scale.y}
 					onChange={(val) => console.log('scale.y changed:', val)}
 					decimalScale={2}
+					min={0}
+					step={0.01}
 					size="xs"
 				/>
 			</Group>
