@@ -119,11 +119,11 @@ export class MainScene extends BaseScene {
 
 		this.setupAppCommands()
 
-		this.addTestImages()
+		this.addTestObjects()
 
 		// trigger hierarchy change event so hierarchy panel will be updated
 		this.onHierarchyChanged()
-		
+
 		const zoom = urlParams.getNumber('zoom')
 		if (typeof zoom === 'number' && zoom > 0) {
 			this.setCameraZoom(zoom)
@@ -131,7 +131,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private initObjectsFactory() {
-		this.objectsFactory = new ObjectsFactory({
+		this.objectsFactory = new EditableObjectsFactory({
 			scene: this,
 			logger: this.logger.getSubLogger({ name: ':objects-factory' }),
 		})
@@ -234,7 +234,7 @@ export class MainScene extends BaseScene {
 		this.projectSizeFrame.height = size.height
 	}
 
-	private async addTestImages(): Promise<void> {
+	private async addTestObjects(): Promise<void> {
 		const chefCherryFrame = {
 			type: 'spritesheet-frame',
 			name: 'Chef Cherry',
@@ -260,10 +260,12 @@ export class MainScene extends BaseScene {
 
 		const bitmapFontAsset: AssetTreeBitmapFontData = {
 			type: 'bitmap-font',
+			id: 'test',
 			name: 'test',
 			path: '/Users/vlad/dev/papa-cherry-2/dev/assets/fonts/bitmap',
 			image: {
 				type: 'image',
+				id: 'test',
 				name: 'test.png',
 				path: '/Users/vlad/dev/papa-cherry-2/dev/assets/fonts/bitmap/test.png',
 				size: {
@@ -273,6 +275,7 @@ export class MainScene extends BaseScene {
 			},
 			data: {
 				type: 'json',
+				id: 'test',
 				name: 'test.json',
 				path: '/Users/vlad/dev/papa-cherry-2/dev/assets/fonts/bitmap/test.json',
 			},
@@ -281,11 +284,36 @@ export class MainScene extends BaseScene {
 		if (bitmapFont.isOk()) {
 			this.logger.info('bitmap font loaded', bitmapFont.value)
 			const bmFont = bitmapFont.value
-			const text = this.objectsFactory.bitmapText(bmFont.key, '1234567890', bmFont.data.size)
-			text.setName(this.getNewObjectName(context, text, 'bitmap-text'))
-			this.root.add(text)
+			const bmText = this.objectsFactory.bitmapText(bmFont.key, '1234567890', bmFont.data.size)
+			bmText.setName(this.getNewObjectName(context, bmText, 'bitmap-text'))
+			this.root.add(bmText)
+			this.logger.info('bitmap text created', bmText.displayWidth, bmText.displayHeight)
 		} else {
 			this.logger.error('failed to load bitmapFont')
+		}
+
+		const fontAsset: AssetTreeWebFontData = {
+			type: 'web-font',
+			id: 'test',
+			fontFamily: 'PoetsenOne',
+			name: 'PoetsenOne-Regular.woff2',
+			path: '/Users/vlad/dev/papa-cherry-2/dev/assets/fonts/web/PoetsenOne-Regular.woff2',
+		}
+		const font = await this.loadWebFont(fontAsset)
+		if (font) {
+			const text = this.objectsFactory.text(font.familyName, {
+				fontFamily: font.familyName,
+				fontSize: '60px',
+				color: '#ffffff',
+				resolution: 2,
+			})
+			text.setName(this.getNewObjectName(context, text, 'text'))
+			text.setPosition(0, 300)
+			text.setStroke('#ff0000', 6)
+			text.setShadow(0, 10, 'rgba(0, 0, 0, 0.33)', 0, true, false)
+			this.root.add(text)
+		} else {
+			this.logger.error('failed to load font')
 		}
 
 		// const chefCherry_3 = await this.addTestImage(chefCherryFrame, 400, 500)
@@ -504,7 +532,7 @@ export class MainScene extends BaseScene {
 
 				const text = this.objectsFactory.text(font.familyName, {
 					fontFamily: font.familyName,
-					fontSize: 60,
+					fontSize: '60px',
 					color: '#ffffff',
 				})
 				text.setName(this.getNewObjectName(this.editContexts.current!, text, 'text'))
@@ -517,7 +545,7 @@ export class MainScene extends BaseScene {
 				}
 
 				const bmFont = bmFontResult.value
-				const bmTextContent = this.getBitmapFontChars(bmFont.data).replace(/ /g, ' ').slice(0, 10)
+				const bmTextContent = this.getBitmapFontChars(bmFont.data).replace(' ', '').slice(0, 10)
 				const bmText = this.objectsFactory.bitmapText(bmFont.key, bmTextContent, bmFont.data.size)
 				bmText.setName(this.getNewObjectName(this.editContexts.current!, bmText, 'bitmap-text'))
 				return bmText
@@ -540,7 +568,7 @@ export class MainScene extends BaseScene {
 
 	private async loadTextureAtlas(asset: AssetTreeSpritesheetFrameData): Promise<Phaser.Textures.Texture | null> {
 		// TODO we create 'fake' image asset here to load the WHOLE spritesheet as a texture and not just a single frame
-		const imgAsset: AssetTreeImageData = { type: 'image', path: asset.imagePath, name: '', size: { w: 0, h: 0 } }
+		const imgAsset: AssetTreeImageData = { type: 'image', id: 'test', path: asset.imagePath, name: '', size: { w: 0, h: 0 } }
 		const img = await this.createImgForTexture(imgAsset)
 		if (!img) {
 			return null

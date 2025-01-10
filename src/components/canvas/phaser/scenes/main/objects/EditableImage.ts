@@ -33,6 +33,8 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 				y: this.originY,
 			},
 			locked: this.locked,
+			tint: this.tint,
+			tintFill: this.tintFill,
 		}
 	}
 
@@ -67,6 +69,8 @@ export type EditableImageJson = CreateEditableObjectJson<{
 	scale: { x: number; y: number }
 	origin: { x: number; y: number }
 	locked: boolean
+	tint: number
+	tintFill: boolean
 }>
 
 export type EditableImageJsonBasic = CreateEditableObjectJsonBasic<{

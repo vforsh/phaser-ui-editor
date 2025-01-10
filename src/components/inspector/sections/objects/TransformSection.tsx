@@ -1,36 +1,31 @@
 import { Group, NumberInput, Stack } from '@mantine/core'
-
+import { BaseSectionProps } from '../BaseSection'
 interface TransformData {
-	x?: number
-	y?: number
+	x: number
+	y: number
 	originX: number
 	originY: number
-	angle?: number
-	scale?: { x: number; y: number }
+	angle: number
+	scale: { x: number; y: number }
 }
 
-export function TransformSection({
-	x = 0,
-	y = 0,
-	originX = 0,
-	originY = 0,
-	angle = 0,
-	scale = { x: 1, y: 1 },
-}: TransformData) {
+interface TransformSectionProps extends BaseSectionProps<TransformData> {}
+
+export function TransformSection({ data, onChange }: TransformSectionProps) {
 	return (
 		<Stack gap="xs">
 			<Group grow>
 				<NumberInput
 					label="X"
-					value={x}
-					onChange={(val) => console.log('x changed:', val)}
+					value={data.x}
+					onChange={(val) => onChange.x(typeof val === 'string' ? parseFloat(val) : val, data.x)}
 					decimalScale={2}
 					size="xs"
 				/>
 				<NumberInput
 					label="Y"
-					value={y}
-					onChange={(val) => console.log('y changed:', val)}
+					value={data.y}
+					onChange={(val) => onChange.y(typeof val === 'string' ? parseFloat(val) : val, data.y)}
 					decimalScale={2}
 					size="xs"
 				/>
@@ -38,8 +33,8 @@ export function TransformSection({
 			<Group grow>
 				<NumberInput
 					label="Origin X"
-					value={originX}
-					onChange={(val) => console.log('originX changed:', val)}
+					value={data.originX}
+					onChange={(val) => onChange.originX(typeof val === 'string' ? parseFloat(val) : val, data.originX)}
 					decimalScale={2}
 					min={0}
 					max={1}
@@ -47,8 +42,8 @@ export function TransformSection({
 				/>
 				<NumberInput
 					label="Origin Y"
-					value={originY}
-					onChange={(val) => console.log('originY changed:', val)}
+					value={data.originY}
+					onChange={(val) => onChange.originY(typeof val === 'string' ? parseFloat(val) : val, data.originY)}
 					decimalScale={2}
 					min={0}
 					max={1}
@@ -57,8 +52,8 @@ export function TransformSection({
 			</Group>
 			<NumberInput
 				label="Angle"
-				value={angle}
-				onChange={(val) => console.log('angle changed:', val)}
+				value={data.angle}
+				onChange={(val) => onChange.angle(typeof val === 'string' ? parseFloat(val) : val, data.angle)}
 				min={-180}
 				max={180}
 				step={1}
@@ -67,8 +62,16 @@ export function TransformSection({
 			<Group grow>
 				<NumberInput
 					label="Scale X"
-					value={scale.x}
-					onChange={(val) => console.log('scale.x changed:', val)}
+					value={data.scale.x}
+					onChange={(val) =>
+						onChange.scale(
+							{
+								x: typeof val === 'string' ? parseFloat(val) : val,
+								y: data.scale.y,
+							},
+							data.scale
+						)
+					}
 					decimalScale={2}
 					min={0}
 					step={0.01}
@@ -76,8 +79,16 @@ export function TransformSection({
 				/>
 				<NumberInput
 					label="Scale Y"
-					value={scale.y}
-					onChange={(val) => console.log('scale.y changed:', val)}
+					value={data.scale.y}
+					onChange={(val) =>
+						onChange.scale(
+							{
+								x: data.scale.x,
+								y: typeof val === 'string' ? parseFloat(val) : val,
+							},
+							data.scale
+						)
+					}
 					decimalScale={2}
 					min={0}
 					step={0.01}

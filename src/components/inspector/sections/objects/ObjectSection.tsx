@@ -3,14 +3,14 @@ import { copyToClipboard } from '@utils/copy-to-clipboard'
 import { Copy } from 'lucide-react'
 import { BaseSectionProps } from '../BaseSection'
 
-export interface ObjectProps {
+export interface ObjectData {
 	name: string
 	readonly type: string
 	readonly id: string
 	locked: boolean
 }
 
-interface ObjectSectionProps extends BaseSectionProps<ObjectProps> {}
+interface ObjectSectionProps extends BaseSectionProps<ObjectData> {}
 
 export function ObjectSection({ data, onChange }: ObjectSectionProps) {
 	const theme = useMantineTheme()

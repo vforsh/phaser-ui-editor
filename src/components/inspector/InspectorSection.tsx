@@ -3,7 +3,8 @@ import type { LucideIcon } from 'lucide-react'
 import { ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 
-export interface InspectorSectionProps {
+// TODO replace with union type
+export type InspectorSectionProps = {
 	id: string
 	title: string
 	icon: LucideIcon

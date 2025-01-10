@@ -15,7 +15,7 @@ import { useMemo } from 'react'
 import { match } from 'ts-pattern'
 import { AssetSection } from '../components/inspector/sections/assets/AssetSection'
 import { GraphicAssetPreview } from '../components/inspector/sections/assets/GraphicAssetPreview'
-import { DisplaySection, type DisplayData } from '../components/inspector/sections/objects/DisplaySection'
+import { BlendMode, DisplaySection, type DisplayData } from '../components/inspector/sections/objects/DisplaySection'
 import { TransformSection } from '../components/inspector/sections/objects/TransformSection'
 import { AssetTreeItemData, isGraphicAsset } from '../types/assets'
 
@@ -72,22 +72,14 @@ function getObjectSections(obj: EditableObjectJson): InspectorSectionProps[] {
 			id: 'display',
 			title: 'Display',
 			icon: Eye,
-			content: (
-				<DisplaySection
-					data={defaultDisplayProperties}
-					onChange={(changes) => {
-						console.log('Display properties changed:', changes)
-						// TODO: Update display properties in state
-					}}
-				/>
-			),
+			content: createDisplaySection(obj),
 			defaultExpanded: false,
 		},
 		{
 			id: 'transform',
 			title: 'Transform',
 			icon: Move,
-			content: <TransformSection />,
+			content: createTransformSection(obj),
 			defaultExpanded: false,
 		},
 		// TODO add ObjectDataSection that will allow to edit object.data (https://docs.phaser.io/api-documentation/class/data-datamanager)
@@ -154,18 +146,6 @@ function getObjectSections(obj: EditableObjectJson): InspectorSectionProps[] {
 	return [...baseSections, ...objectTypeSections, ...componentSections]
 }
 
-function createImageSection(image: EditableImageJson) {
-	return (
-		<ImageSection
-			data={{
-				texture: image.textureKey,
-				frame: image.frameKey,
-			}}
-			onChange={() => {}}
-		/>
-	)
-}
-
 function createObjectSection(obj: EditableObjectJson) {
 	return (
 		<ObjectSection
@@ -178,6 +158,97 @@ function createObjectSection(obj: EditableObjectJson) {
 					// appCommands.emit('obj-locked-change', obj.id, value, prevValue)
 				},
 			}}
+		/>
+	)
+}
+
+function createDisplaySection(obj: EditableObjectJson) {
+	// TODO normalize blend mode from object.blendMode to DisplayData.blendMode
+	// @see Phaser.BlendModes
+	const blendMode = obj.blendMode as BlendMode
+
+	const data: DisplayData = {
+		visible: obj.visible,
+		alpha: obj.alpha,
+		blendMode: blendMode,
+	}
+
+	if (isTintable(obj)) {
+		data.tint = `#${obj.tint.toString(16)}`
+		data.tintFill = obj.tintFill
+	}
+
+	return (
+		<DisplaySection
+			data={data}
+			onChange={{
+				visible: (value, prevValue) => {
+					console.log('Display properties changed:', { visible: value, prevValue })
+				},
+				alpha: (value, prevValue) => {
+					console.log('Display properties changed:', { alpha: value, prevValue })
+				},
+				blendMode: (value, prevValue) => {
+					console.log('Display properties changed:', { blendMode: value, prevValue })
+				},
+				tint: (value, prevValue) => {
+					console.log('Display properties changed:', { tint: value, prevValue })
+				},
+				tintFill: (value, prevValue) => {
+					console.log('Display properties changed:', { tintFill: value, prevValue })
+				},
+			}}
+		/>
+	)
+}
+
+function isTintable(obj: EditableObjectJson): obj is EditableObjectJson & { tint: number; tintFill: boolean } {
+	return 'tint' in obj && typeof obj.tint === 'number' && 'tintFill' in obj && typeof obj.tintFill === 'boolean'
+}
+
+function createTransformSection(obj: EditableObjectJson) {
+	return (
+		<TransformSection
+			data={{
+				x: obj.x,
+				y: obj.y,
+				originX: obj['origin.x'],
+				originY: obj['origin.y'],
+				scale: { x: obj.scale.x, y: obj.scale.y },
+				angle: obj.rotation * Phaser.Math.RAD_TO_DEG,
+			}}
+			onChange={{
+				x: (value, prevValue) => {
+					console.log('Transform properties changed:', { x: value, y: obj.y })
+				},
+				y: (value, prevValue) => {
+					console.log('Transform properties changed:', { x: obj.x, y: value })
+				},
+				originX: (value, prevValue) => {
+					console.log('Transform properties changed:', { x: obj.x, y: value })
+				},
+				originY: (value, prevValue) => {
+					console.log('Transform properties changed:', { x: obj.x, y: value })
+				},
+				angle: (value, prevValue) => {
+					console.log('Transform properties changed:', { x: obj.x, y: value })
+				},
+				scale: (value, prevValue) => {
+					console.log('Transform properties changed:', { x: obj.x, y: value })
+				},
+			}}
+		/>
+	)
+}
+
+function createImageSection(image: EditableImageJson) {
+	return (
+		<ImageSection
+			data={{
+				texture: image.textureKey,
+				frame: image.frameKey,
+			}}
+			onChange={() => {}}
 		/>
 	)
 }
@@ -294,10 +365,4 @@ function createTextStrokeSection(textStyle: EditableTextStyleJson) {
 			onChange={() => {}}
 		/>
 	)
-}
-
-const defaultDisplayProperties: DisplayData = {
-	visible: true,
-	alpha: 100,
-	blendMode: 'NORMAL',
 }
