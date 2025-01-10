@@ -2,7 +2,7 @@ import { logger } from '@logs/logs'
 import { Box, Group, Paper, Stack, useMantineTheme } from '@mantine/core'
 import { urlParams } from '@url-params'
 import JSON5 from 'json5'
-import path from 'path-browserify'
+import path from 'path-browserify-esm'
 import { useCallback, useEffect, useState } from 'react'
 import { projectConfigSchema } from '../project/ProjectConfig'
 import { state, stateSchema, useSnapshot } from '../state/State'
@@ -157,6 +157,7 @@ export default function EditorLayout() {
 		}
 
 		state.project = openedProject.projectConfig
+		state.projectDir = projectDirPath
 	}
 
 	// TODO return Result (neverthrow)

@@ -1,5 +1,5 @@
 import { minimatch } from 'minimatch'
-import path from 'path-browserify'
+import path from 'path-browserify-esm'
 import { z } from 'zod'
 
 export const absolutePathSchema = z

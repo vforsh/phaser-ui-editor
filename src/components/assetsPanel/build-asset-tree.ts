@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid'
-import path from 'path-browserify'
+import path from 'path-browserify-esm'
 import { match } from 'ts-pattern'
 import trpc from '../../trpc'
 import {

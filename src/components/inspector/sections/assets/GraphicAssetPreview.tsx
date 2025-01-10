@@ -1,6 +1,6 @@
 import { Box, Image, Stack, Text } from '@mantine/core'
 import { randomInt } from 'es-toolkit'
-import path from 'path-browserify'
+import path from 'path-browserify-esm'
 import prettyBytes from 'pretty-bytes'
 import { useEffect, useState } from 'react'
 import { match } from 'ts-pattern'

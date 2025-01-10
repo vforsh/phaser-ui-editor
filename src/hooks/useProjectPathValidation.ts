@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import path from 'path-browserify';
+import path from 'path-browserify-esm';
 
 export function useProjectPathValidation(projectPath: string) {
   return useMemo(() => {

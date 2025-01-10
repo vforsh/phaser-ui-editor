@@ -1,3 +1,5 @@
+import { state } from '@state/State'
+import path from 'path-browserify-esm'
 import { match } from 'ts-pattern'
 import trpc from '../trpc'
 import { imageDataToUrl } from '../utils/image-data-to-url'
@@ -77,6 +79,7 @@ export type AssetTreeWebFontData = {
 
 export type AssetTreeBitmapFontData = {
 	type: 'bitmap-font'
+	id: string
 	name: string
 	path: string
 	image: AssetTreeImageData
@@ -104,6 +107,7 @@ export type AssetTreeSpritesheetData = {
 // virtual folder
 export type AssetTreeSpritesheetFolderData = {
 	type: 'spritesheet-folder'
+	id: string
 	name: string
 	path: string
 	children: AssetTreeSpritesheetFrameData[]
@@ -224,4 +228,33 @@ export function isAssetOfType<T extends AssetTreeItemDataType>(
 	type: T
 ): asset is AssetTreeItemDataOfType<T> {
 	return asset.type === type
+}
+
+export function getAssetById(assets: AssetTreeItemData[], id: string): AssetTreeItemData | undefined {
+	const findAsset = (items: AssetTreeItemData[]): AssetTreeItemData | undefined => {
+		for (const item of items) {
+			if (item.id === id) {
+				return item
+			}
+
+			if ('children' in item && Array.isArray(item.children)) {
+				const found = findAsset(item.children)
+				if (found) {
+					return found
+				}
+			}
+		}
+		return undefined
+	}
+
+	return findAsset(assets)
+}
+
+export function getAssetRelativePath(asset: AssetTreeItemData, baseDir?: string): string {
+	baseDir ??= path.join(state.projectDir!, state.project!.assetsDir)
+	const prevCwd = path.process_cwd
+	path.setCWD(baseDir)
+	const relativePath = path.relative(baseDir, asset.path)
+	path.setCWD(prevCwd)
+	return relativePath
 }

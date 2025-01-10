@@ -10,16 +10,14 @@ import { ObjectSection } from '@components/inspector/sections/objects/ObjectSect
 import { isTextAlignType, TextAlignType, TextSection } from '@components/inspector/sections/objects/TextSection'
 import { TextShadowSection } from '@components/inspector/sections/objects/TextShadowSection'
 import { TextStrokeSection } from '@components/inspector/sections/objects/TextStrokeSection'
-import { Eye, Image, Info, Link, Move, Type } from 'lucide-react'
+import { Eye, Image, Info, Move, Type } from 'lucide-react'
 import { useMemo } from 'react'
 import { match } from 'ts-pattern'
-import { proxy, subscribe } from 'valtio'
-import { BasicAssetInfoSection } from '../components/inspector/sections/assets/BasicAssetInfoSection'
+import { AssetSection } from '../components/inspector/sections/assets/AssetSection'
 import { GraphicAssetPreview } from '../components/inspector/sections/assets/GraphicAssetPreview'
 import { DisplaySection, type DisplayProperties } from '../components/inspector/sections/objects/DisplaySection'
 import { TransformSection } from '../components/inspector/sections/objects/TransformSection'
 import { AssetTreeItemData, isGraphicAsset } from '../types/assets'
-import { AppCommandsEmitter } from '../AppCommands'
 
 export function useInspectorSections(item: ItemToInspect): InspectorSectionProps[] {
 	return useMemo(() => {
@@ -36,7 +34,7 @@ function getAssetSections(item: AssetTreeItemData): InspectorSectionProps[] {
 			id: 'basic-info',
 			title: 'Basic Information',
 			icon: Info,
-			content: <BasicAssetInfoSection asset={item} />,
+			content: <AssetSection asset={item} />,
 			defaultExpanded: true,
 		},
 	]
@@ -54,22 +52,7 @@ function getAssetSections(item: AssetTreeItemData): InspectorSectionProps[] {
 
 	// Add asset-specific sections
 	switch (item.type) {
-		case 'spritesheet':
-			sections.push({
-				id: 'references',
-				title: 'References',
-				icon: Link,
-				content: (
-					<BasicAssetInfoSection
-						asset={{
-							type: 'json',
-							name: item.json.name,
-							path: item.json.path,
-						}}
-					/>
-				),
-				defaultExpanded: false,
-			})
+		default:
 			break
 	}
 
@@ -174,7 +157,7 @@ function getObjectSections(obj: EditableObjectJson): InspectorSectionProps[] {
 function createImageSection(image: EditableImageJson) {
 	return (
 		<ImageSection
-			props={{
+			data={{
 				texture: image.textureKey,
 				frame: image.frameKey,
 			}}

@@ -1,6 +1,6 @@
-import { PartialDeep } from 'type-fest'
-import { proxy, subscribe, unstable_getInternalStates, useSnapshot } from 'valtio'
 import { derive } from 'derive-valtio'
+import { PartialDeep } from 'type-fest'
+import { proxy, subscribe, useSnapshot } from 'valtio'
 import { z } from 'zod'
 import { AppCommands } from '../AppCommands'
 import { AppEvents } from '../AppEvents'
@@ -28,6 +28,7 @@ export const stateSchema = z.object({
 		rightPanelWidth: z.number().int().positive(),
 		hierarchyHeight: z.number().int().positive().optional(),
 	}),
+	projectDir: absolutePathSchema.nullable(),
 	project: projectConfigSchema.nullable(),
 	assets: z.array(z.unknown()) as z.ZodType<AssetTreeItemData[]>,
 	app: z
@@ -57,6 +58,7 @@ const initialStateParsed = Object.assign(
 			leftPanelWidth: 400,
 			rightPanelWidth: 400,
 		},
+		projectDir: null,
 		project: null,
 		assets: [],
 		app: null,
@@ -84,8 +86,8 @@ function serializeState(): string {
 			delete stateCopy[key]
 		}
 	})
-	
+
 	return JSON.stringify(stateCopy)
 }
 
-export { state, subscribe, useSnapshot, derive, unproxy }
+export { derive, state, subscribe, unproxy, useSnapshot }
