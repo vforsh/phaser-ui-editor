@@ -24,6 +24,7 @@ export type AssetTreeItemDataOfType<T extends AssetTreeItemDataType> = Extract<A
 // Common types
 export type AssetTreeFolderData = {
 	type: 'folder'
+	id: string
 	name: string
 	path: string
 	children: AssetTreeItemData[]
@@ -31,6 +32,7 @@ export type AssetTreeFolderData = {
 
 export type AssetTreeFileData = {
 	type: 'file'
+	id: string
 	name: string
 	path: string
 }
@@ -38,18 +40,21 @@ export type AssetTreeFileData = {
 // Specific types
 export type AssetTreeJsonData = {
 	type: 'json'
+	id: string
 	name: string
 	path: string
 }
 
 export type AssetTreeXmlData = {
 	type: 'xml'
+	id: string
 	name: string
 	path: string
 }
 
 export type AssetTreeImageData = {
 	type: 'image'
+	id: string
 	name: string
 	path: string
 	size: { w: number; h: number }
@@ -57,12 +62,14 @@ export type AssetTreeImageData = {
 
 export type AssetTreePrefabData = {
 	type: 'prefab'
+	id: string
 	name: string
 	path: string
 }
 
 export type AssetTreeWebFontData = {
 	type: 'web-font'
+	id: string
 	fontFamily: string
 	name: string
 	path: string
@@ -79,6 +86,7 @@ export type AssetTreeBitmapFontData = {
 
 export type AssetTreeSpritesheetData = {
 	type: 'spritesheet'
+	id: string
 	name: string
 	/**
 	 * Absolute path to the image file (e.g. `/Users/user/game/assets/graphics/gameplay_gui.png`)
@@ -103,6 +111,7 @@ export type AssetTreeSpritesheetFolderData = {
 
 export type AssetTreeSpritesheetFrameData = {
 	type: 'spritesheet-frame'
+	id: string
 	name: string
 	/**
 	 * Absolute path to the image file (e.g. `/Users/user/game/assets/graphics/gameplay_gui.png`)

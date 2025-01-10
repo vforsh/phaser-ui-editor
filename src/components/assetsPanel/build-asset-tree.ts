@@ -1,18 +1,26 @@
+import { nanoid } from 'nanoid'
 import path from 'path-browserify'
 import { match } from 'ts-pattern'
 import trpc from '../../trpc'
 import {
 	AssetTreeBitmapFontData,
 	AssetTreeData,
+	AssetTreeFolderData,
 	AssetTreeImageData,
 	AssetTreeItemData,
+	AssetTreeItemDataType,
 	AssetTreeSpritesheetData,
 	AssetTreeSpritesheetFrameData,
+	AssetTreeWebFontData,
 	AssetTreeXmlData,
 } from '../../types/assets'
 import { FileTreeData, FileTreeItemData, findInFileTree } from './FileTreeData'
 
 export const buildAssetTree = async (absoluteFilepaths: string[], baseDir: string): Promise<AssetTreeData> => {
+	// absoluteFilepaths = absoluteFilepaths.filter((path) =>
+	// path.startsWith('/Users/vlad/dev/papa-cherry-2/dev/assets/fonts')
+	// )
+
 	const fileTree = await buildFileTree(absoluteFilepaths, baseDir)
 	const assets = await doBuildAssetTree(fileTree)
 	return assets
@@ -99,7 +107,7 @@ const extractSpritesheetFrames = async (
 
 	// TODO handle multiple textures
 	const frames = json.textures[0].frames.map((data) => {
-		return {
+		const frameAsset: AssetTreeSpritesheetFrameData = addAssetId({
 			type: 'spritesheet-frame',
 			name: data.filename,
 			path: imagePath,
@@ -107,7 +115,9 @@ const extractSpritesheetFrames = async (
 			imagePath,
 			jsonPath,
 			pathInHierarchy: data.filename,
-		} satisfies AssetTreeSpritesheetFrameData
+		})
+
+		return frameAsset
 	})
 
 	return frames
@@ -116,13 +126,13 @@ const extractSpritesheetFrames = async (
 const doBuildAssetTree = async (fileTree: FileTreeData): Promise<AssetTreeData> => {
 	const processedItems = new Set<FileTreeItemData>()
 
-	const convertToAssetTreeItem = async (fileTreeItem: FileTreeItemData): Promise<AssetTreeItemData> => {
-		return match(fileTreeItem)
+	const convertToAsset = async (file: FileTreeItemData): Promise<AssetTreeItemData> => {
+		return match(file)
 			.returnType<Promise<AssetTreeItemData>>()
-			.with({ type: 'folder' }, async (fileTreeItem) => {
-				const assets: AssetTreeItemData[] = []
+			.with({ type: 'folder' }, async (folder) => {
+				const childAssets: AssetTreeItemData[] = []
 
-				const children = fileTreeItem.children.slice().sort((a, b) => {
+				const children = folder.children.slice().sort((a, b) => {
 					if (a.type === 'folder' && b.type === 'file') {
 						return -1
 					}
@@ -146,26 +156,28 @@ const doBuildAssetTree = async (fileTree: FileTreeData): Promise<AssetTreeData> 
 						continue
 					}
 
-					const asset = await convertToAssetTreeItem(child)
-					assets.push(asset)
+					const asset = await convertToAsset(child)
+					childAssets.push(asset)
 				}
 
-				return {
+				const folderAsset: AssetTreeFolderData = addAssetId({
 					type: 'folder',
-					name: fileTreeItem.name,
-					path: fileTreeItem.path,
-					children: assets,
-				}
+					name: folder.name,
+					path: folder.path,
+					children: childAssets,
+				})
+
+				return folderAsset
 			})
 			.with({ type: 'file' }, async (fileTreeItem) => {
 				if (isImageFile(fileTreeItem.name)) {
 					const imageSize = await trpc.readImageSize.query({ path: fileTreeItem.path })
-					const image: AssetTreeImageData = {
+					const image: AssetTreeImageData = addAssetId({
 						type: 'image',
 						name: fileTreeItem.name,
 						path: fileTreeItem.path,
 						size: { w: imageSize.width!, h: imageSize.height! },
-					}
+					})
 
 					const jsonFileName = fileTreeItem.name.replace(/\.[^/.]+$/, '.json')
 					const jsonFilePath = path.join(path.dirname(fileTreeItem.path), jsonFileName)
@@ -179,36 +191,37 @@ const doBuildAssetTree = async (fileTree: FileTreeData): Promise<AssetTreeData> 
 							.with('spritesheet', async () => {
 								const frames = await extractSpritesheetFrames(image.path, jsonFilePath)
 
-								const spritesheet: AssetTreeSpritesheetData = {
+								const spritesheet: AssetTreeSpritesheetData = addAssetId({
 									type: 'spritesheet',
 									name: image.name,
 									path: image.path,
 									image,
-									json: {
+									json: addAssetId({
 										type: 'json',
 										name: jsonFile.name,
 										path: jsonFile.path,
-									},
+									}),
 									frames,
 									// TODO find the TexturePacker project file (.tps)
 									project: '',
-								}
+								})
+
 								return spritesheet
 							})
 							.with('bitmap-font', async () => {
 								const bitmapFontData = await trpc.readJson.query({ path: jsonFile.path })
-								const bitmapFont: AssetTreeBitmapFontData = {
+								const bitmapFont: AssetTreeBitmapFontData = addAssetId({
 									type: 'bitmap-font',
 									name: path.basename(fileTreeItem.name, path.extname(fileTreeItem.name)),
 									path: path.dirname(fileTreeItem.path),
 									image,
 									imageExtra: bitmapFontData.extra,
-									data: {
+									data: addAssetId({
 										type: 'json',
 										name: jsonFile.name,
 										path: jsonFile.path,
-									},
-								}
+									}),
+								})
 								return bitmapFont
 							})
 							.otherwise(() => image)
@@ -221,43 +234,48 @@ const doBuildAssetTree = async (fileTree: FileTreeData): Promise<AssetTreeData> 
 						// to skip processing the XML file again
 						processedItems.add(xmlFile)
 
-						const data: AssetTreeXmlData = {
+						const data: AssetTreeXmlData = addAssetId({
 							type: 'xml',
 							name: xmlFile.name,
 							path: xmlFile.path,
-						}
+						})
 
-						return {
+						const bitmapFont: AssetTreeBitmapFontData = addAssetId({
 							type: 'bitmap-font',
 							name: path.basename(fileTreeItem.name, path.extname(fileTreeItem.name)),
 							path: path.dirname(fileTreeItem.path),
 							image,
 							data,
-						} satisfies AssetTreeBitmapFontData
+						})
+
+						return bitmapFont
 					}
 
 					return image
 				} else if (isJsonFile(fileTreeItem.name)) {
-					return {
+					return addAssetId({
 						type: 'json',
 						name: fileTreeItem.name,
 						path: fileTreeItem.path,
-					}
+					})
 				} else if (isWebFontFile(fileTreeItem.name)) {
 					const webFontData = await trpc.parseWebFont.query({ path: fileTreeItem.path })
-					return {
+
+					const webFont: AssetTreeWebFontData = addAssetId({
 						type: 'web-font',
 						fontFamily: webFontData.familyName,
 						name: fileTreeItem.name,
 						path: fileTreeItem.path,
-					}
+					})
+
+					return webFont
 				}
 
-				return {
+				return addAssetId({
 					type: 'file',
 					name: fileTreeItem.name,
 					path: fileTreeItem.path,
-				}
+				})
 			})
 			.exhaustive()
 	}
@@ -270,9 +288,21 @@ const doBuildAssetTree = async (fileTree: FileTreeData): Promise<AssetTreeData> 
 			continue
 		}
 
-		const asset = await convertToAssetTreeItem(file)
+		const asset = await convertToAsset(file)
 		assets.push(asset)
 	}
 
 	return assets
+}
+
+/**
+ * Adds an id to the asset.
+ * @note it mutates the asset object
+ */
+function addAssetId<T extends AssetTreeItemData>(asset: Omit<T, 'id'>): T & { id: string } {
+	return Object.assign(asset, { id: getAssetId(asset.type) }) as T & { id: string }
+}
+
+function getAssetId(assetType: AssetTreeItemDataType): string {
+	return nanoid(10)
 }
