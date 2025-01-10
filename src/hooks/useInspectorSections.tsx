@@ -13,11 +13,13 @@ import { TextStrokeSection } from '@components/inspector/sections/objects/TextSt
 import { Eye, Image, Info, Link, Move, Type } from 'lucide-react'
 import { useMemo } from 'react'
 import { match } from 'ts-pattern'
+import { proxy, subscribe } from 'valtio'
 import { BasicAssetInfoSection } from '../components/inspector/sections/assets/BasicAssetInfoSection'
 import { GraphicAssetPreview } from '../components/inspector/sections/assets/GraphicAssetPreview'
 import { DisplaySection, type DisplayProperties } from '../components/inspector/sections/objects/DisplaySection'
 import { TransformSection } from '../components/inspector/sections/objects/TransformSection'
 import { AssetTreeItemData, isGraphicAsset } from '../types/assets'
+import { AppCommandsEmitter } from '../AppCommands'
 
 export function useInspectorSections(item: ItemToInspect): InspectorSectionProps[] {
 	return useMemo(() => {
@@ -75,14 +77,12 @@ function getAssetSections(item: AssetTreeItemData): InspectorSectionProps[] {
 }
 
 function getObjectSections(obj: EditableObjectJson): InspectorSectionProps[] {
-	console.log(`object selected`, obj)
-
 	const baseSections = [
 		{
 			id: 'basic-object-props',
 			title: 'Object Info',
 			icon: Info,
-			content: <ObjectSection object={obj} onChange={() => {}} />,
+			content: createObjectSection(obj),
 			defaultExpanded: true,
 		},
 		{
@@ -183,10 +183,26 @@ function createImageSection(image: EditableImageJson) {
 	)
 }
 
+function createObjectSection(obj: EditableObjectJson) {
+	return (
+		<ObjectSection
+			data={obj}
+			onChange={{
+				name: (value, prevValue) => {
+					// appCommands.emit('obj-name-change', obj.id, value, prevValue)
+				},
+				locked: (value, prevValue) => {
+					// appCommands.emit('obj-locked-change', obj.id, value, prevValue)
+				},
+			}}
+		/>
+	)
+}
+
 function createBitmapTextSection(bitmapText: EditableBitmapTextJson) {
 	return (
 		<BitmapTextSection
-			properties={{
+			data={{
 				content: bitmapText.text,
 				font: bitmapText.font,
 				fontSize: bitmapText.fontSize,
@@ -251,7 +267,10 @@ function createTextSection(text: EditableTextJson) {
 				wordWrapWidth: text.style.wordWrapWidth ?? 0,
 				wordWrapAdvanced: text.style.wordWrapUseAdvanced ?? false,
 			}}
-			onChange={() => {}}
+			onChange={(changes) => {
+				console.log('Text properties changed:', changes)
+				// TODO: Update text properties in state
+			}}
 		/>
 	)
 }

@@ -1,5 +1,6 @@
 import { PartialDeep } from 'type-fest'
 import { proxy, subscribe, unstable_getInternalStates, useSnapshot } from 'valtio'
+import { derive } from 'derive-valtio'
 import { z } from 'zod'
 import { AppCommands } from '../AppCommands'
 import { AppEvents } from '../AppEvents'
@@ -8,9 +9,12 @@ import { PhaserAppEvents } from '../components/canvas/phaser/PhaserAppEvents'
 import { TypedEventEmitter } from '../components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { CommandEmitter } from '../components/canvas/phaser/robowhale/utils/events/CommandEmitter'
 import { projectConfigSchema } from '../project/ProjectConfig'
+import { AssetTreeItemData } from '../types/assets'
 import { getObjectKeys } from '../utils/collection/get-object-keys'
 import { absolutePathSchema } from './Schemas'
-const stateSchema = z.object({
+import { isValtioRef, unproxy } from './valtio-utils'
+
+export const stateSchema = z.object({
 	lastOpenedProjectDir: absolutePathSchema.optional(),
 	recentProjects: z.array(
 		z.object({
@@ -25,6 +29,7 @@ const stateSchema = z.object({
 		hierarchyHeight: z.number().int().positive().optional(),
 	}),
 	project: projectConfigSchema.nullable(),
+	assets: z.array(z.unknown()) as z.ZodType<AssetTreeItemData[]>,
 	app: z
 		.object({
 			events: z.instanceof(TypedEventEmitter<AppEvents>),
@@ -41,7 +46,7 @@ const stateSchema = z.object({
 		.nullable(),
 })
 
-type State = z.infer<typeof stateSchema>
+export type State = z.infer<typeof stateSchema>
 
 // state from localStorage, hydrated with default values
 const initialStateParsed = Object.assign(
@@ -53,6 +58,7 @@ const initialStateParsed = Object.assign(
 			rightPanelWidth: 400,
 		},
 		project: null,
+		assets: [],
 		app: null,
 		phaser: null,
 	} satisfies PartialDeep<State>,
@@ -78,14 +84,8 @@ function serializeState(): string {
 			delete stateCopy[key]
 		}
 	})
-
+	
 	return JSON.stringify(stateCopy)
 }
 
-const valtioInternals = unstable_getInternalStates()
-
-function isValtioRef(value: unknown): boolean {
-	return typeof value === 'object' && value !== null && valtioInternals.refSet.has(value)
-}
-
-export { state, subscribe, useSnapshot, type State }
+export { state, subscribe, useSnapshot, derive, unproxy }

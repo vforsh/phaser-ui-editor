@@ -244,8 +244,10 @@ const doBuildAssetTree = async (fileTree: FileTreeData): Promise<AssetTreeData> 
 						path: fileTreeItem.path,
 					}
 				} else if (isWebFontFile(fileTreeItem.name)) {
+					const webFontData = await trpc.parseWebFont.query({ path: fileTreeItem.path })
 					return {
 						type: 'web-font',
+						fontFamily: webFontData.familyName,
 						name: fileTreeItem.name,
 						path: fileTreeItem.path,
 					}

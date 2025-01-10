@@ -19,6 +19,8 @@ export type AssetTreeItemData =
 
 export type AssetTreeItemDataType = AssetTreeItemData['type']
 
+export type AssetTreeItemDataOfType<T extends AssetTreeItemDataType> = Extract<AssetTreeItemData, { type: T }>
+
 // Common types
 export type AssetTreeFolderData = {
 	type: 'folder'
@@ -61,6 +63,7 @@ export type AssetTreePrefabData = {
 
 export type AssetTreeWebFontData = {
 	type: 'web-font'
+	fontFamily: string
 	name: string
 	path: string
 }
@@ -179,4 +182,37 @@ async function fetchImageData(asset: GraphicAssetData, signal?: AbortSignal): Pr
 		.exhaustive()
 
 	return res.data
+}
+
+/**
+ * Recursively collects all assets of a given type
+ */
+export function getAssetsOfType<T extends AssetTreeItemDataType>(
+	assets: AssetTreeItemData[],
+	type: T
+): AssetTreeItemDataOfType<T>[] {
+	const result: AssetTreeItemDataOfType<T>[] = []
+
+	const collectAssets = (items: AssetTreeItemData[]) => {
+		items.forEach((item) => {
+			if (isAssetOfType(item, type)) {
+				result.push(item)
+			}
+
+			if ('children' in item && Array.isArray(item.children)) {
+				collectAssets(item.children)
+			}
+		})
+	}
+
+	collectAssets(assets)
+
+	return result
+}
+
+export function isAssetOfType<T extends AssetTreeItemDataType>(
+	asset: AssetTreeItemData,
+	type: T
+): asset is AssetTreeItemDataOfType<T> {
+	return asset.type === type
 }

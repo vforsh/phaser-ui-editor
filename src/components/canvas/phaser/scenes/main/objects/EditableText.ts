@@ -20,6 +20,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	toJson(): EditableTextJson {
 		return {
 			...this.toJSON(),
+			id: this.id,
 			type: 'Text',
 			depth: this.depth,
 			blendMode: this.blendMode,
@@ -63,6 +64,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 
 export type EditableTextJson = CreateEditableObjectJson<{
 	type: 'Text'
+	id: string
 	depth: number
 	blendMode: string | Phaser.BlendModes | number
 	scale: { x: number; y: number }

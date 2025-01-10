@@ -1,4 +1,7 @@
-import { NumberInput, Select, Stack, TextInput } from '@mantine/core'
+import { Group, NumberInput, Select, Stack, TextInput } from '@mantine/core'
+import { state, State, useSnapshot } from '@state/State'
+import { uniq } from 'es-toolkit'
+import { getAssetsOfType } from '../../../../types/assets'
 
 const ALIGN_OPTIONS = [
 	{ value: 0, label: 'Left' },
@@ -19,42 +22,46 @@ export type BitmapTextProps = {
 }
 
 interface BitmapTextSectionProps {
-	properties: BitmapTextProps
+	data: BitmapTextProps
 	onChange: (properties: Partial<BitmapTextProps>) => void
 }
 
-export function BitmapTextSection({ properties, onChange }: BitmapTextSectionProps) {
-	// pass list of available bitmap fonts from the project
-	// it can be updated dynamically so the select should be updated accordingly
+export function BitmapTextSection({ data, onChange }: BitmapTextSectionProps) {
+	const snap = useSnapshot(state)
+
+	const fonts = uniq(getAssetsOfType(snap.assets as State['assets'], 'bitmap-font').map((asset) => asset.name)).sort()
+
 	return (
 		<Stack gap="xs">
 			<TextInput
 				label="Content"
-				value={properties.content}
+				value={data.content}
 				onChange={(e) => onChange({ content: e.currentTarget.value })}
 				size="xs"
 			/>
 
-			{/* TODO: font should be a select based on list of available bitmap fonts from the project */}
-			<TextInput
-				label="Font"
-				value={properties.font}
-				onChange={(e) => onChange({ font: e.currentTarget.value })}
-				size="xs"
-			/>
+			<Group grow>
+				<Select
+					label="Font"
+					value={data.font}
+					onChange={(value) => value && onChange({ font: value })}
+					data={fonts.map((font) => ({ label: font, value: font }))}
+					size="xs"
+				/>
 
-			<NumberInput
-				label="Font Size"
-				value={properties.fontSize}
-				onChange={(value) => onChange({ fontSize: value as number })}
-				min={1}
-				step={1}
-				size="xs"
-			/>
+				<NumberInput
+					label="Font Size"
+					value={data.fontSize}
+					onChange={(value) => onChange({ fontSize: value as number })}
+					min={1}
+					step={1}
+					size="xs"
+				/>
+			</Group>
 
 			<Select
 				label="Text Align"
-				value={properties.align.toString()}
+				value={data.align.toString()}
 				onChange={(value) => onChange({ align: Number(value) as AlignType })}
 				data={ALIGN_OPTIONS.map((option) => ({ label: option.label, value: option.value.toString() }))}
 				size="xs"
@@ -62,7 +69,7 @@ export function BitmapTextSection({ properties, onChange }: BitmapTextSectionPro
 
 			<NumberInput
 				label="Max Width"
-				value={properties.maxWidth}
+				value={data.maxWidth}
 				onChange={(value) => onChange({ maxWidth: value as number })}
 				min={0}
 				step={10}
@@ -71,7 +78,7 @@ export function BitmapTextSection({ properties, onChange }: BitmapTextSectionPro
 
 			<NumberInput
 				label="Letter Spacing"
-				value={properties.letterSpacing}
+				value={data.letterSpacing}
 				onChange={(value) => onChange({ letterSpacing: value as number })}
 				step={1}
 				size="xs"
@@ -79,7 +86,7 @@ export function BitmapTextSection({ properties, onChange }: BitmapTextSectionPro
 
 			<NumberInput
 				label="Line Spacing"
-				value={properties.lineSpacing}
+				value={data.lineSpacing}
 				onChange={(value) => onChange({ lineSpacing: value as number })}
 				step={1}
 				size="xs"

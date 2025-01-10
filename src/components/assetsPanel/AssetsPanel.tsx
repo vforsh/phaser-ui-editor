@@ -1,11 +1,11 @@
 import { Paper, ScrollArea, Stack } from '@mantine/core'
 import { useEffect, useState } from 'react'
+import { Logger } from 'tslog'
+import trpc from '../../trpc'
 import type { AssetTreeItemData } from '../../types/assets'
 import { PanelTitle } from './../PanelTitle'
 import AssetContextMenu from './AssetContextMenu'
 import AssetTreeItem from './AssetTreeItem'
-import trpc from '../../trpc'
-import { Logger } from 'tslog'
 
 interface ContextMenuState {
 	opened: boolean
@@ -58,6 +58,7 @@ export default function AssetsPanel({ logger, onSelectAsset, assets }: AssetsPan
 	const handleSelect = (item: AssetTreeItemData) => {
 		setSelectedItem(item)
 		onSelectAsset(item)
+		logger.info(`Selected asset: ${item.name}`, item)
 	}
 
 	const handleContextMenu = (item: AssetTreeItemData, position: { x: number; y: number }) => {
@@ -73,41 +74,41 @@ export default function AssetsPanel({ logger, onSelectAsset, assets }: AssetsPan
 
 		switch (action) {
 			case 'open':
-        if (BOLT) {
-          console.log('Open:', contextMenu.asset.name)
-        } else {
-          // TODO implement `trpc.open()` 
-          console.log('Open:', contextMenu.asset.name)
-        }
+				if (BOLT) {
+					console.log('Open:', contextMenu.asset.name)
+				} else {
+					// TODO implement `trpc.open()`
+					console.log('Open:', contextMenu.asset.name)
+				}
 				break
 			case 'openInFiles':
-        if (BOLT) {
-          console.log('Open in files:', contextMenu.asset.name)
-        } else {
-          // TODO implement `trpc.openInFiles()`
-          console.log('Open in files:', contextMenu.asset.name)
-        }
+				if (BOLT) {
+					console.log('Open in files:', contextMenu.asset.name)
+				} else {
+					// TODO implement `trpc.openInFiles()`
+					console.log('Open in files:', contextMenu.asset.name)
+				}
 				break
 			case 'rename':
-        if (BOLT) {
-          console.log('Rename:', contextMenu.asset.name)
-        } else {
-          
-        }
+				if (BOLT) {
+					console.log('Rename:', contextMenu.asset.name)
+				} else {
+				}
 				break
 			case 'delete':
-        if (BOLT) {
-          console.log('Delete:', contextMenu.asset.name)
-        } else {
-          const shouldDelete = event.ctrlKey || confirm(`Are you sure you want to delete ${contextMenu.asset.name}?`)
-          if (shouldDelete) {
-            await trpc.remove.mutate({
-              path: contextMenu.asset.path,
-            })
+				if (BOLT) {
+					console.log('Delete:', contextMenu.asset.name)
+				} else {
+					const shouldDelete =
+						event.ctrlKey || confirm(`Are you sure you want to delete ${contextMenu.asset.name}?`)
+					if (shouldDelete) {
+						await trpc.remove.mutate({
+							path: contextMenu.asset.path,
+						})
 
-            // TODO: pass to parent to remove from assets
-          }
-        }
+						// TODO: pass to parent to remove from assets
+					}
+				}
 				break
 		}
 		setContextMenu({ ...contextMenu, opened: false })

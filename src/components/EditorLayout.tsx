@@ -5,7 +5,7 @@ import JSON5 from 'json5'
 import path from 'path-browserify'
 import { useCallback, useEffect, useState } from 'react'
 import { projectConfigSchema } from '../project/ProjectConfig'
-import { state, useSnapshot } from '../state/State'
+import { state, stateSchema, useSnapshot } from '../state/State'
 import trpc from '../trpc'
 import { AssetTreeItemData } from '../types/assets'
 import AssetsPanel from './assetsPanel/AssetsPanel'
@@ -117,14 +117,14 @@ export default function EditorLayout() {
 			// TODO show mantine toast
 			return
 		}
-
+		
 		const openedProject = await doOpenProject(projectDirPath)
 		if (!openedProject) {
 			return
 		}
-
+		
 		logger.info('project opened', openedProject)
-
+		
 		const assetsGlob = path.join(openedProject.assetsDir, '**/*')
 		const assetsToIgnore = openedProject.projectConfig.assetsIgnore.map((item) =>
 			path.join(openedProject.assetsDir, item)
@@ -134,14 +134,15 @@ export default function EditorLayout() {
 			options: { ignore: assetsToIgnore },
 		})
 		// console.log('assets paths', assets)
-
+		
 		const assetTree = await buildAssetTree(assets, openedProject.assetsDir)
-		console.log('assetTree', assetTree)
-
+		// console.log('assetTree', assetTree)
+		state.assets = stateSchema.shape.assets.parse(assetTree)
+		
 		setAssets(assetTree)
-
+		
 		state.lastOpenedProjectDir = projectDirPath
-
+		
 		// update recent projects in state
 		state.recentProjects ??= []
 		const recentProject = state.recentProjects.find((item) => item.dir === projectDirPath)

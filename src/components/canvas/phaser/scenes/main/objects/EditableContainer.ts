@@ -103,6 +103,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 
 		return {
 			...this.toJSON(),
+			id: this.id,
 			type: 'Container',
 			width: this.width,
 			height: this.height,
@@ -173,6 +174,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 
 export type EditableContainerJson = CreateEditableObjectJson<{
 	type: 'Container'
+	id: string
 	width: number
 	height: number
 	children: EditableObjectJson[]

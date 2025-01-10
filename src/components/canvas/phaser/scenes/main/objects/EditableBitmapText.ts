@@ -30,6 +30,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 	toJson(): EditableBitmapTextJson {
 		return {
 			...this.toJSON(),
+			id: this.id,
 			type: 'BitmapText',
 			depth: this.depth,
 			blendMode: this.blendMode,
@@ -122,6 +123,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 
 export type EditableBitmapTextJson = CreateEditableObjectJson<{
 	type: 'BitmapText'
+	id: string
 	depth: number
 	blendMode: string | Phaser.BlendModes | number
 	scale: { x: number; y: number }

@@ -20,6 +20,7 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 	toJson(): EditableImageJson {
 		return {
 			...this.toJSON(),
+			id: this.id,
 			type: 'Image',
 			depth: this.depth,
 			blendMode: this.blendMode,
@@ -60,6 +61,7 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 
 export type EditableImageJson = CreateEditableObjectJson<{
 	type: 'Image'
+	id: string
 	depth: number
 	blendMode: string | Phaser.BlendModes | number
 	scale: { x: number; y: number }

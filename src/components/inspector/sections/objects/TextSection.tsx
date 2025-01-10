@@ -1,4 +1,7 @@
 import { Checkbox, ColorInput, Group, NumberInput, Select, Stack, TextInput } from '@mantine/core'
+import { State, state, useSnapshot } from '@state/State'
+import { uniq } from 'es-toolkit'
+import { getAssetsOfType } from '../../../../types/assets'
 
 const TEXT_ALIGN_TYPES = ['left', 'right', 'center', 'justify'] as const
 
@@ -8,6 +11,9 @@ export function isTextAlignType(value: string): value is TextAlignType {
 
 export type TextAlignType = (typeof TEXT_ALIGN_TYPES)[number]
 
+/**
+ * https://docs.phaser.io/api-documentation/class/gameobjects-textstyle
+ */
 export interface TextProps {
 	content: string
 	resolution: number
@@ -20,9 +26,6 @@ export interface TextProps {
 	lineSpacing: number
 	wordWrapWidth: number
 	wordWrapAdvanced: boolean
-
-	// move text stroke to separate section
-	// stroke: { color: string; width: number }
 }
 
 interface TextSectionProps {
@@ -31,6 +34,12 @@ interface TextSectionProps {
 }
 
 export function TextSection({ properties, onChange }: TextSectionProps) {
+	const snap = useSnapshot(state)
+
+	const fontFamilies = uniq(
+		getAssetsOfType(snap.assets as State['assets'], 'web-font').map((asset) => asset.fontFamily)
+	).sort()
+
 	return (
 		<Stack gap="xs">
 			<TextInput
@@ -45,26 +54,29 @@ export function TextSection({ properties, onChange }: TextSectionProps) {
 				value={properties.resolution}
 				onChange={(value) => onChange({ resolution: value as number })}
 				min={1}
-				step={1}
+				max={3}
+				step={0.5}
 				size="xs"
 			/>
 
-			{/* TODO font family should be a select based on list of available fonts from the project */}
-			<TextInput
-				label="Font Family"
-				value={properties.fontFamily}
-				onChange={(e) => onChange({ fontFamily: e.currentTarget.value })}
-				size="xs"
-			/>
+			<Group grow>
+				<Select
+					label="Font Family"
+					value={properties.fontFamily}
+					onChange={(value) => value && onChange({ fontFamily: value })}
+					data={fontFamilies.map((font) => ({ label: font, value: font }))}
+					size="xs"
+				/>
 
-			<NumberInput
-				label="Font Size"
-				value={properties.fontSize}
-				onChange={(value) => onChange({ fontSize: value as number })}
-				min={1}
-				step={1}
-				size="xs"
-			/>
+				<NumberInput
+					label="Font Size"
+					value={properties.fontSize}
+					onChange={(value) => onChange({ fontSize: value as number })}
+					min={1}
+					step={1}
+					size="xs"
+				/>
+			</Group>
 
 			<ColorInput
 				label="Font Color"
@@ -110,21 +122,23 @@ export function TextSection({ properties, onChange }: TextSectionProps) {
 				/>
 			</Group>
 
-			<NumberInput
-				label="Letter Spacing"
-				value={properties.letterSpacing}
-				onChange={(value) => onChange({ letterSpacing: value as number })}
-				step={0.1}
-				size="xs"
-			/>
+			<Group grow>
+				<NumberInput
+					label="Letter Spacing"
+					value={properties.letterSpacing}
+					onChange={(value) => onChange({ letterSpacing: value as number })}
+					step={0.1}
+					size="xs"
+				/>
 
-			<NumberInput
-				label="Line Spacing"
-				value={properties.lineSpacing}
-				onChange={(value) => onChange({ lineSpacing: value as number })}
-				step={0.1}
-				size="xs"
-			/>
+				<NumberInput
+					label="Line Spacing"
+					value={properties.lineSpacing}
+					onChange={(value) => onChange({ lineSpacing: value as number })}
+					step={0.1}
+					size="xs"
+				/>
+			</Group>
 
 			<NumberInput
 				label="Word Wrap Width"
