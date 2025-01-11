@@ -564,8 +564,13 @@ export class MainScene extends BaseScene {
 			return null
 		}
 
+		const origin =
+			data.asset.type === 'spritesheet-frame' && data.asset.settings?.pivot
+				? data.asset.settings.pivot
+				: { x: 0.5, y: 0.5 }
+
 		obj.name ||= this.getNewObjectName(this.editContexts.current!, obj, data.asset.name)
-		obj.setOrigin(0.5, 0.5)
+		obj.setOrigin(origin.x, origin.y)
 		obj.setPosition(data.position.x, data.position.y)
 
 		this.editContexts.current!.target.add(obj)
