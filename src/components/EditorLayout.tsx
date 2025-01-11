@@ -261,6 +261,7 @@ export default function EditorLayout() {
 									onSelectAsset={(item) =>
 										setItemToInspect(item ? { type: 'asset', data: item } : null)
 									}
+									// TODO pass state.assets to AssetsPanel
 									assets={assets}
 								/>
 							</Box>

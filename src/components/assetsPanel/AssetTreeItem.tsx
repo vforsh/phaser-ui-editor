@@ -26,7 +26,7 @@ const BASE_PADDING = 3
 interface AssetTreeItemProps {
 	item: AssetTreeItemData
 	level?: number
-	onToggle: (path: string) => void
+	onToggle: (id: string) => void
 	onSelect: (item: AssetTreeItemData) => void
 	onContextMenu: (item: AssetTreeItemData, position: { x: number; y: number }) => void
 	selectedItem?: AssetTreeItemData | null
@@ -72,7 +72,7 @@ export default function AssetTreeItem({
 	const handleClick = (e: React.MouseEvent) => {
 		e.preventDefault()
 		if (item.type === 'folder' || item.type === 'spritesheet' || item.type === 'spritesheet-folder') {
-			onToggle(item.path)
+			onToggle(item.id)
 		} else {
 			onSelect(item)
 		}
@@ -238,7 +238,7 @@ export default function AssetTreeItem({
 						onContextMenu={onContextMenu}
 						selectedItem={selectedItem}
 						isLastChild={index === arr.length - 1}
-						isOpen={openFolders.has(child.path)}
+						isOpen={openFolders.has(child.id)}
 						openFolders={openFolders}
 					/>
 				))}

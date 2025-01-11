@@ -90,6 +90,7 @@ const appRouter = t.router({
 		.input(z.object({ oldPath: absPathSchema, newPath: absPathSchema }))
 		.mutation(async ({ input }) => {
 			const { oldPath, newPath } = input
+			// TODO check if newPath is a valid name
 			await fse.rename(oldPath, newPath)
 			return { success: true }
 		}),

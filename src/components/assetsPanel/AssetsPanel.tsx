@@ -36,7 +36,7 @@ export default function AssetsPanel({ logger, onSelectAsset, assets }: AssetsPan
 		const collectFolderPaths = (items: AssetTreeItemData[]) => {
 			items.forEach((item) => {
 				if (item.type === 'folder') {
-					folders.add(item.path)
+					folders.add(item.id)
 					collectFolderPaths(item.children)
 				}
 			})
@@ -45,13 +45,13 @@ export default function AssetsPanel({ logger, onSelectAsset, assets }: AssetsPan
 		setOpenFolders(folders)
 	}, [assets])
 
-	const toggleFolder = (path: string) => {
+	const toggleFolder = (folderId: string) => {
 		setOpenFolders((prev) => {
 			const next = new Set(prev)
-			if (next.has(path)) {
-				next.delete(path)
+			if (next.has(folderId)) {
+				next.delete(folderId)
 			} else {
-				next.add(path)
+				next.add(folderId)
 			}
 			return next
 		})
@@ -102,6 +102,23 @@ export default function AssetsPanel({ logger, onSelectAsset, assets }: AssetsPan
 				}
 				break
 			case 'rename':
+				// TODO allow to rename inplace (without opening a dialog)
+				const extension = path.extname(asset.path)
+				const newName = prompt(`Enter new name for '${asset.name}'`, asset.name.replace(extension, ''))
+				if (newName) {
+					// const { error } = await until(() =>
+					// 	trpc.rename.mutate({ oldPath: asset.path, newPath: newName + extension })
+					// )
+					// if (error) {
+					// 	logger.error(
+					// 		`failed to rename '${asset.name}' to '${newName + extension}' (${getErrorLog(error)})`
+					// 	)
+					// } else {
+					// 	logger.info(`renamed '${asset.name}' to '${newName + extension}'`)
+					// }
+
+					logger.info(`renamed '${asset.name}' to '${newName + extension}'`)
+				}
 				break
 			case 'delete':
 				const shouldDelete =
@@ -142,7 +159,7 @@ export default function AssetsPanel({ logger, onSelectAsset, assets }: AssetsPan
 								onContextMenu={handleContextMenu}
 								selectedItem={selectedItem}
 								isLastChild={index === assets.length - 1}
-								isOpen={openFolders.has(asset.path)}
+								isOpen={openFolders.has(asset.id)}
 								openFolders={openFolders}
 							/>
 						))}
