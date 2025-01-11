@@ -1,5 +1,5 @@
 import { Menu } from '@mantine/core'
-import { ExternalLink, FileJson, FolderOpen, Pencil, Trash2, Image } from 'lucide-react'
+import { ExternalLink, FileJson, FolderOpen, Image, TextCursorInput, Trash2 } from 'lucide-react'
 import type { AssetTreeItemData } from '../../types/assets'
 
 interface AssetContextMenuProps {
@@ -42,7 +42,9 @@ export default function AssetContextMenu({ asset, opened, position, onClose, onA
 				<Menu.Item leftSection={<ExternalLink size={16} />} onClick={(event) => onAction('openInFiles', event)}>
 					Open in Files
 				</Menu.Item>
-				{asset.type === 'spritesheet' && (
+				{(asset.type === 'spritesheet' ||
+					asset.type === 'spritesheet-folder' ||
+					asset.type === 'spritesheet-frame') && (
 					<>
 						<Menu.Item
 							leftSection={<Image size={16} />}
@@ -52,11 +54,7 @@ export default function AssetContextMenu({ asset, opened, position, onClose, onA
 						</Menu.Item>
 					</>
 				)}
-				<Menu.Item
-					color="red"
-					leftSection={<Trash2 size={16} />}
-					onClick={(event) => onAction('delete', event)}
-				>
+				<Menu.Item leftSection={<TextCursorInput size={16} />} onClick={(event) => onAction('rename', event)}>
 					Rename
 				</Menu.Item>
 				<Menu.Item

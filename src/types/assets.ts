@@ -266,6 +266,32 @@ export function getAssetById(assets: AssetTreeItemData[], id: string): AssetTree
 	return findAsset(assets)
 }
 
+/**
+ * Recursively removes an asset by its id
+ * @note modifies the original array
+ * @returns true if the asset was found and removed, false otherwise
+ */
+export function removeAssetById(assets: AssetTreeItemData[], id: string): boolean {
+	// Recursively search in children
+	for (let i = 0; i < assets.length; i++) {
+		const asset = assets[i]
+
+		if (asset.id === id) {
+			assets.splice(i, 1)
+			return true
+		}
+
+		if ('children' in asset && Array.isArray(asset.children)) {
+			const removed = removeAssetById(asset.children, id)
+			if (removed) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 export function getAssetRelativePath(asset: AssetTreeItemData, baseDir?: string): string {
 	baseDir ??= path.join(state.projectDir!, state.project!.assetsDir)
 	const prevCwd = path.process_cwd

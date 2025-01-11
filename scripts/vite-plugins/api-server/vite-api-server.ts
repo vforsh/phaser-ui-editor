@@ -9,6 +9,7 @@ import path from 'path'
 import sharp from 'sharp'
 import { Plugin } from 'vite'
 import { z } from 'zod'
+import trash from 'trash';
 
 const t = initTRPC.create()
 
@@ -78,6 +79,11 @@ const appRouter = t.router({
 	remove: t.procedure.input(z.object({ path: absPathSchema })).mutation(async ({ input }) => {
 		const { path } = input
 		await fse.remove(path)
+		return { success: true }
+	}),
+	trash: t.procedure.input(z.object({ path: absPathSchema })).mutation(async ({ input }) => {
+		const { path } = input
+		await trash(path)
 		return { success: true }
 	}),
 	rename: t.procedure

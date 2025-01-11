@@ -1,8 +1,10 @@
 import { Paper, ScrollArea, Stack } from '@mantine/core'
+import { state } from '@state/State'
+import path from 'path-browserify-esm'
 import { useEffect, useState } from 'react'
 import { Logger } from 'tslog'
 import trpc from '../../trpc'
-import type { AssetTreeItemData } from '../../types/assets'
+import { removeAssetById, type AssetTreeItemData } from '../../types/assets'
 import { PanelTitle } from './../PanelTitle'
 import AssetContextMenu from './AssetContextMenu'
 import AssetTreeItem from './AssetTreeItem'
@@ -58,7 +60,7 @@ export default function AssetsPanel({ logger, onSelectAsset, assets }: AssetsPan
 	const handleSelect = (item: AssetTreeItemData) => {
 		setSelectedItem(item)
 		onSelectAsset(item)
-		logger.info(`Selected asset: ${item.name}`, item)
+		logger.info(`selected '${item.name}' (${item.type})`, item)
 	}
 
 	const handleContextMenu = (item: AssetTreeItemData, position: { x: number; y: number }) => {
@@ -70,61 +72,47 @@ export default function AssetsPanel({ logger, onSelectAsset, assets }: AssetsPan
 	}
 
 	const handleContextAction = async (action: string, event: React.MouseEvent<HTMLButtonElement>) => {
-		if (!contextMenu.asset) {
+		const asset = contextMenu.asset
+		if (!asset) {
 			return
 		}
 
-		const asset = contextMenu.asset
+		if (BOLT) {
+			console.log('Context menu action:', action, asset)
+			setContextMenu({ ...contextMenu, opened: false })
+			return
+		}
 
 		switch (action) {
 			case 'open':
-				if (BOLT) {
-					console.log('Open:', contextMenu.asset.name)
-				} else {
-					// TODO implement `trpc.open()`
-					console.log('Open:', contextMenu.asset.name)
-				}
+				await trpc.open.query({ path: asset.path })
 				break
 			case 'openInFiles':
-				if (BOLT) {
-					console.log('Open in files:', contextMenu.asset.name)
-				} else {
-					// TODO implement `trpc.openInFiles()`
-					console.log('Open in files:', contextMenu.asset.name)
-				}
+				const pathToOpen = path.dirname(asset.path)
+				await trpc.open.query({ path: pathToOpen })
 				break
 			case 'openInTexturePacker':
-				if (BOLT) {
-					console.log('Open in TexturePacker:', contextMenu.asset.name)
-				} else {
-					if (asset.type === 'spritesheet' && asset.project) {
-						await trpc.open.query({ path: asset.project })
-						console.log('Open in TexturePacker:', asset)
-					}
+				if (
+					(asset.type === 'spritesheet' ||
+						asset.type === 'spritesheet-folder' ||
+						asset.type === 'spritesheet-frame') &&
+					asset.project
+				) {
+					await trpc.open.query({ path: asset.project })
 				}
 				break
 			case 'rename':
-				if (BOLT) {
-					console.log('Rename:', contextMenu.asset.name)
-				} else {
-				}
 				break
 			case 'delete':
-				if (BOLT) {
-					console.log('Delete:', contextMenu.asset.name)
-				} else {
-					const shouldDelete =
-						event.ctrlKey || confirm(`Are you sure you want to delete ${contextMenu.asset.name}?`)
-					if (shouldDelete) {
-						await trpc.remove.mutate({
-							path: contextMenu.asset.path,
-						})
-
-						// TODO: pass to parent to remove from assets
-					}
+				const shouldDelete =
+					event.ctrlKey || event.metaKey || confirm(`Are you sure you want to delete ${asset.name}?`)
+				if (shouldDelete) {
+					await trpc.trash.mutate({ path: asset.path })
+					removeAssetById(state.assets, asset.id)
 				}
 				break
 		}
+
 		setContextMenu({ ...contextMenu, opened: false })
 	}
 
