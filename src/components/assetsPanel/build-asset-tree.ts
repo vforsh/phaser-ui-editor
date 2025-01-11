@@ -11,6 +11,7 @@ import {
 	AssetTreeItemData,
 	AssetTreeItemDataType,
 	AssetTreeSpritesheetData,
+	AssetTreeSpritesheetFolderData,
 	AssetTreeSpritesheetFrameData,
 	AssetTreeWebFontData,
 	AssetTreeXmlData,
@@ -325,6 +326,62 @@ function getSpritesheetFrameSettings(
 	return settings
 }
 
+function groupFramesByFolders(
+	frames: AssetTreeSpritesheetFrameData[],
+	tpsProject?: TexturePackerProject
+): (AssetTreeSpritesheetFolderData | AssetTreeSpritesheetFrameData)[] {
+	const result: (AssetTreeSpritesheetFolderData | AssetTreeSpritesheetFrameData)[] = []
+	const folderMap = new Map<string, AssetTreeSpritesheetFrameData[]>()
+
+	// Group frames by their folder path
+	frames.forEach((frame) => {
+		const pathParts = frame.pathInHierarchy.split('/')
+		if (pathParts.length === 1) {
+			// No folders, add directly to result
+			result.push(frame)
+		} else {
+			// Has folders, group by folder path
+			const folderPath = pathParts.slice(0, -1).join('/')
+			const frameName = pathParts[pathParts.length - 1] // Get just the filename
+
+			// Create a new frame object with updated name
+			const frameWithStrippedName = {
+				...frame,
+				name: frameName,
+			}
+
+			if (!folderMap.has(folderPath)) {
+				folderMap.set(folderPath, [])
+			}
+			folderMap.get(folderPath)!.push(frameWithStrippedName)
+		}
+	})
+
+	// Convert folder groups to AssetTreeSpritesheetFolderData
+	folderMap.forEach((folderFrames, folderPath) => {
+		const folderName = folderPath.split('/').pop()!
+		const folder: AssetTreeSpritesheetFolderData = addAssetId({
+			type: 'spritesheet-folder',
+			name: folderName,
+			path: folderFrames[0].imagePath + '/' + folderPath,
+			children: folderFrames,
+			project: tpsProject?.path,
+		})
+		result.push(folder)
+	})
+
+	// Sort result - folders first, then frames
+	return result.sort((a, b) => {
+		if (a.type === 'spritesheet-folder' && b.type === 'spritesheet-frame') {
+			return -1
+		}
+		if (a.type === 'spritesheet-frame' && b.type === 'spritesheet-folder') {
+			return 1
+		}
+		return a.name.localeCompare(b.name)
+	})
+}
+
 const doBuildAssetTree = async (
 	fileTree: FileTreeData,
 	texturePackerProjects: TexturePackerProject[]
@@ -352,7 +409,7 @@ const doBuildAssetTree = async (
 						if (isImageFile(a.name) && !isImageFile(b.name)) {
 							return -1
 						}
-						
+
 						return a.name.localeCompare(b.name)
 					}
 
@@ -401,11 +458,11 @@ const doBuildAssetTree = async (
 								// TODO group frames in folders
 								const texturePackerProject = texturePackerProjects.find((p) => p.data === jsonFile.path)
 
-								const frames = await extractSpritesheetFrames(
-									image.path,
-									jsonFilePath,
-									texturePackerProject
-								)
+								const frames = (
+									await extractSpritesheetFrames(image.path, jsonFilePath, texturePackerProject)
+								).sort((a, b) => a.name.localeCompare(b.name))
+
+								const framesByFolders = groupFramesByFolders(frames, texturePackerProject)
 
 								const spritesheet: AssetTreeSpritesheetData = addAssetId({
 									type: 'spritesheet',
@@ -417,7 +474,7 @@ const doBuildAssetTree = async (
 										name: jsonFile.name,
 										path: jsonFile.path,
 									}),
-									frames,
+									frames: framesByFolders,
 									project: texturePackerProject?.path,
 								})
 
