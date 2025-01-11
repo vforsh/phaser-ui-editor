@@ -1,5 +1,4 @@
 import { Center, Text } from '@mantine/core'
-import { isEmpty } from 'lodash-es'
 import { useMemo, useRef, useState } from 'react'
 import { AppCommands } from '../../AppCommands'
 import { AppEvents } from '../../AppEvents'
@@ -106,7 +105,7 @@ export default function CanvasContainer() {
 	// use memo to prevent re-rendering of the canvas element
 	const canvas = useMemo(() => {
 		// Only create canvas if we have all required props
-		if (!snap.project || isEmpty(snap.project) || !snap.app?.events || !snap.app?.commands) {
+		if (!snap.project || !snap.app?.events || !snap.app?.commands) {
 			return null
 		}
 

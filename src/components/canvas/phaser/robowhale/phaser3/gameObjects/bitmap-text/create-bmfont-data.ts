@@ -1,4 +1,4 @@
-import { without } from 'lodash-es'
+import { without } from 'es-toolkit'
 import { Font } from 'opentype.js'
 
 export type BitmapFontTexture = { blob: Blob; width: number; height: number }
