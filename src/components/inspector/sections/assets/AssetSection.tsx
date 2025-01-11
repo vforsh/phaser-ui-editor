@@ -1,18 +1,19 @@
 import { Stack } from '@mantine/core'
 import { getAssetRelativePath, type AssetTreeItemData } from '../../../../types/assets'
 import { ReadonlyPropertyRow } from '../PropertyRow'
+import { BaseSectionProps } from '../BaseSection'
 
-interface AssetSectionProps {
-	asset: AssetTreeItemData
-}
+export type AssetSectionData = Readonly<AssetTreeItemData>
 
-export function AssetSection({ asset }: AssetSectionProps) {
+export interface AssetSectionProps extends BaseSectionProps<AssetSectionData> {}
+
+export function AssetSection({ data }: AssetSectionProps) {
 	return (
 		<Stack gap="xs">
-			<ReadonlyPropertyRow label="Name" value={asset.name} />
+			<ReadonlyPropertyRow label="Name" value={data.name} />
 			{/* <ReadonlyPropertyRow label="Id" value={asset.id} /> */}
-			<ReadonlyPropertyRow label="Type" value={asset.type} />
-			<ReadonlyPropertyRow label="Path" value={getAssetRelativePath(asset)} />
+			<ReadonlyPropertyRow label="Type" value={data.type} />
+			<ReadonlyPropertyRow label="Path" value={getAssetRelativePath(data)} />
 		</Stack>
 	)
 }

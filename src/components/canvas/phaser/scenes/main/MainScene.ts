@@ -29,7 +29,7 @@ import { Selection } from './editContext/Selection'
 import { TransformControls } from './editContext/TransformControls'
 import { Grid } from './Grid'
 import { EditableContainer } from './objects/EditableContainer'
-import { EditableObject } from './objects/EditableObject'
+import { EditableObject, isTintable } from './objects/EditableObject'
 import { EditableObjectsFactory } from './objects/EditableObjectsFactory'
 import { Rulers } from './Rulers'
 type PhaserBmfontData = Phaser.Types.GameObjects.BitmapText.BitmapFontData
@@ -461,6 +461,81 @@ export class MainScene extends BaseScene {
 			false,
 			this.shutdownSignal
 		)
+
+		appCommands.on(
+			'obj-change',
+			(payload) => {
+				const obj = this.objectsFactory.getObjectById(payload.id)
+				if (!obj) {
+					this.logger.error(`failed to find object by id '${payload.id}'`)
+					return
+				}
+
+				match(payload)
+					.with({ type: 'obj-info' }, (payload) => {
+						match(payload)
+							.with({ prop: 'name' }, (payload) => {
+								obj.setName(payload.value)
+							})
+							.with({ prop: 'locked' }, (payload) => {
+								obj.locked = payload.value
+							})
+							.exhaustive()
+					})
+					.with({ type: 'obj-display' }, (display) => {
+						match(display)
+							.with({ prop: 'visible' }, (payload) => {
+								obj.setVisible(payload.value)
+							})
+							.with({ prop: 'alpha' }, (payload) => {
+								obj.setAlpha(payload.value)
+							})
+							.with({ prop: 'blendMode' }, (payload) => {
+								obj.setBlendMode(payload.value)
+							})
+							.with({ prop: 'tint' }, (payload) => {
+								if (isTintable(obj)) {
+									obj.tint = parseInt(payload.value.slice(1), 16)
+								}
+							})
+							.with({ prop: 'tintFill' }, (payload) => {
+								if (isTintable(obj)) {
+									obj.tintFill = payload.value
+								}
+							})
+							.exhaustive()
+					})
+					.with({ type: 'obj-transform' }, (transform) => {
+						match(transform)
+							.with({ prop: 'x' }, (payload) => {
+								console.log('x', payload)
+							})
+							.with({ prop: 'y' }, (payload) => {
+								console.log('y', payload)
+							})
+							.with({ prop: 'originX' }, (payload) => {
+								console.log('originX', payload)
+							})
+							.with({ prop: 'originY' }, (payload) => {
+								console.log('originY', payload)
+							})
+							.with({ prop: 'angle' }, (payload) => {
+								console.log('angle', payload)
+							})
+							.with({ prop: 'scaleX' }, (payload) => {
+								console.log('scaleX', payload)
+							})
+							.with({ prop: 'scaleY' }, (payload) => {
+								console.log('scaleY', payload)
+							})
+							.exhaustive()
+					})
+					.exhaustive()
+			},
+			this,
+			false,
+			this.shutdownSignal
+		)
 	}
 
 	private findObjectByPath(path: string): EditableObject | undefined {
@@ -568,7 +643,13 @@ export class MainScene extends BaseScene {
 
 	private async loadTextureAtlas(asset: AssetTreeSpritesheetFrameData): Promise<Phaser.Textures.Texture | null> {
 		// TODO we create 'fake' image asset here to load the WHOLE spritesheet as a texture and not just a single frame
-		const imgAsset: AssetTreeImageData = { type: 'image', id: 'test', path: asset.imagePath, name: '', size: { w: 0, h: 0 } }
+		const imgAsset: AssetTreeImageData = {
+			type: 'image',
+			id: 'test',
+			path: asset.imagePath,
+			name: '',
+			size: { w: 0, h: 0 },
+		}
 		const img = await this.createImgForTexture(imgAsset)
 		if (!img) {
 			return null

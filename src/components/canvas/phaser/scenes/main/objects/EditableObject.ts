@@ -64,3 +64,7 @@ export type EditableObjectJsonBasic =
 
 export type EditableObjectJsonBasicType = EditableObjectJsonBasic['type']
 // #endregion
+
+export function isTintable(obj: EditableObject): obj is EditableObject & { tint: number; tintFill: boolean } {
+	return 'tint' in obj && typeof obj.tint === 'number' && 'tintFill' in obj && typeof obj.tintFill === 'boolean'
+}

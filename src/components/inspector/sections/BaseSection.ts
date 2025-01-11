@@ -1,10 +1,7 @@
 import { WritableKeysOf } from 'type-fest'
-
-type ChangeMap<T extends object> = {
-	[K in WritableKeysOf<T>]: (value: T[K], prevValue: T[K]) => void
-}
+import { ChangeCallback } from '../InspectorSection'
 
 export type BaseSectionProps<T extends object> = {
 	data: T
-	onChange: ChangeMap<T>
+	onChange: ChangeCallback<T, WritableKeysOf<T>>
 }

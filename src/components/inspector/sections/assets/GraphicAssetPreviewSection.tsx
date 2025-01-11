@@ -7,10 +7,9 @@ import { match } from 'ts-pattern'
 import trpc from '../../../../trpc'
 import { GraphicAssetData } from '../../../../types/assets'
 import { imageDataToUrl } from '../../../../utils/image-data-to-url'
+import { BaseSectionProps } from '../BaseSection'
 
-interface GraphicAssetPreviewProps {
-	asset: GraphicAssetData
-}
+export type GraphicAssetPreviewSectionData = Readonly<GraphicAssetData>
 
 function getImageUrlForBolt(): string {
 	const seeds = ['game-asset', 'pixel-art', 'game-sprite', 'game-texture', 'game-ui']
@@ -96,10 +95,12 @@ function getImageDimensions(asset: GraphicAssetData) {
 		.exhaustive()
 }
 
-export function GraphicAssetPreview({ asset }: GraphicAssetPreviewProps) {
+export interface GraphicAssetPreviewSectionProps extends BaseSectionProps<GraphicAssetPreviewSectionData> {}
+
+export function GraphicAssetPreviewSection({ data }: GraphicAssetPreviewSectionProps) {
 	const [imageUrl, setImageUrl] = useState<string | null>(null)
 	const [imageFileSize, setImageFileSize] = useState<number | null>(null)
-	const imageDimensions = getImageDimensions(asset)
+	const imageDimensions = getImageDimensions(data)
 
 	// fetch image url
 	useEffect(() => {
@@ -112,8 +113,8 @@ export function GraphicAssetPreview({ asset }: GraphicAssetPreviewProps) {
 		const ac = new AbortController()
 
 		const fetchData = async () => {
-			const imageData = await readImageData(asset, ac.signal)
-			const imageType = detectImageType(asset)
+			const imageData = await readImageData(data, ac.signal)
+			const imageType = detectImageType(data)
 			const imageUrl = imageDataToUrl(imageData.data, imageType)
 			setImageUrl(imageUrl)
 		}
@@ -121,7 +122,7 @@ export function GraphicAssetPreview({ asset }: GraphicAssetPreviewProps) {
 		fetchData()
 
 		return () => ac.abort()
-	}, [asset])
+	}, [data])
 
 	// fetch image file size
 	useEffect(() => {
@@ -134,14 +135,14 @@ export function GraphicAssetPreview({ asset }: GraphicAssetPreviewProps) {
 		const ac = new AbortController()
 
 		const fetchData = async () => {
-			const imageFileSize = await getImageFileSize(asset, ac.signal)
+			const imageFileSize = await getImageFileSize(data, ac.signal)
 			setImageFileSize(imageFileSize)
 		}
 
 		fetchData()
 
 		return () => ac.abort()
-	}, [asset])
+	}, [data])
 
 	return (
 		<Stack gap="md">
@@ -156,7 +157,13 @@ export function GraphicAssetPreview({ asset }: GraphicAssetPreviewProps) {
 					justifyContent: 'center',
 				}}
 			>
-				{imageUrl && <Image src={imageUrl} alt={asset.name} style={{ objectFit: 'contain', maxWidth: '100%', maxHeight: '100%' }} />}
+				{imageUrl && (
+					<Image
+						src={imageUrl}
+						alt={data.name}
+						style={{ objectFit: 'contain', maxWidth: '100%', maxHeight: '100%' }}
+					/>
+				)}
 			</Box>
 
 			<Stack gap="xs">
@@ -166,7 +173,7 @@ export function GraphicAssetPreview({ asset }: GraphicAssetPreviewProps) {
 				<Stack gap={4}>
 					<MetadataRow label="Dimensions" value={`${imageDimensions.w} × ${imageDimensions.h}px`} />
 					<MetadataRow label="Size" value={imageFileSize ? prettyBytes(imageFileSize) : '???'} />
-					<MetadataRow label="Type" value={asset.type} />
+					<MetadataRow label="Type" value={data.type} />
 				</Stack>
 			</Stack>
 		</Stack>

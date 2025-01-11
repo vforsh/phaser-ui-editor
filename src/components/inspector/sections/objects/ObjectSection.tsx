@@ -3,14 +3,14 @@ import { copyToClipboard } from '@utils/copy-to-clipboard'
 import { Copy } from 'lucide-react'
 import { BaseSectionProps } from '../BaseSection'
 
-export interface ObjectData {
+export interface ObjectSectionData {
 	name: string
 	readonly type: string
 	readonly id: string
 	locked: boolean
 }
 
-interface ObjectSectionProps extends BaseSectionProps<ObjectData> {}
+interface ObjectSectionProps extends BaseSectionProps<ObjectSectionData> {}
 
 export function ObjectSection({ data, onChange }: ObjectSectionProps) {
 	const theme = useMantineTheme()
@@ -30,7 +30,7 @@ export function ObjectSection({ data, onChange }: ObjectSectionProps) {
 			<TextInput
 				label="Name"
 				value={data.name}
-				onChange={(e) => onChange.name(e.currentTarget.value, data.name)}
+				onChange={(e) => onChange('name', e.currentTarget.value, data.name)}
 				size="xs"
 				rightSection={
 					<ActionIcon
@@ -68,7 +68,7 @@ export function ObjectSection({ data, onChange }: ObjectSectionProps) {
 			<Checkbox
 				label="Locked"
 				checked={data.locked}
-				onChange={(e) => onChange.locked(e.currentTarget.checked, data.locked)}
+				onChange={(e) => onChange('locked', e.currentTarget.checked, data.locked)}
 				size="xs"
 			/>
 		</Stack>

@@ -1,24 +1,52 @@
 import { Box, Collapse, Group, Text, UnstyledButton } from '@mantine/core'
-import type { LucideIcon } from 'lucide-react'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, LucideIcon } from 'lucide-react'
 import { useState } from 'react'
+import { ValueOf, WritableKeysOf } from 'type-fest'
+import { AssetSectionData } from './sections/assets/AssetSection'
+import { GraphicAssetPreviewSectionData } from './sections/assets/GraphicAssetPreviewSection'
+import { DisplaySectionData } from './sections/objects/DisplaySection'
+import { ObjectSectionData } from './sections/objects/ObjectSection'
+import { TransformSectionData } from './sections/objects/TransformSection'
 
-// TODO replace with union type
-export type InspectorSectionProps = {
-	id: string
+type AssetSectionDef =
+	| { type: 'asset-info'; data: AssetSectionData }
+	| { type: 'asset-graphic-preview'; data: GraphicAssetPreviewSectionData }
+
+type ObjectSectionDef =
+	| { type: 'obj-info'; data: ObjectSectionData }
+	| { type: 'obj-display'; data: DisplaySectionData }
+	| { type: 'obj-transform'; data: TransformSectionData }
+
+type SectionDefBase = AssetSectionDef | ObjectSectionDef
+
+export type GetDefByType<T extends SectionDefBase['type']> = Extract<SectionDefBase, { type: T }>
+
+export type ChangeCallback<T extends object, K extends WritableKeysOf<T>> = (
+	key: K,
+	value: T[K],
+	prevValue: T[K]
+) => void
+
+export type InspectorSectionDef = ValueOf<{
+	[T in SectionDefBase['type']]: CreateInspectorSectionDef<GetDefByType<T>>
+}>
+
+type CreateInspectorSectionDef<T extends SectionDefBase> = {
+	type: T['type']
 	title: string
 	icon: LucideIcon
-	content: React.ReactNode
 	defaultExpanded?: boolean
+	data: T['data']
+	content: (data: T['data'], onChange: ChangeCallback<T['data'], WritableKeysOf<T['data']>>) => React.ReactNode
 }
 
-export function InspectorSection({
-	title,
-	icon: Icon,
-	content,
-	defaultExpanded = false,
-}: Omit<InspectorSectionProps, 'id'>) {
-	const [expanded, setExpanded] = useState(defaultExpanded)
+export type InspectorSectionProps = Omit<InspectorSectionDef, 'data' | 'content'> & {
+	content: React.ReactNode
+}
+
+export function InspectorSection(props: InspectorSectionProps) {
+	const { title, icon: Icon, content, defaultExpanded } = props
+	const [expanded, setExpanded] = useState(defaultExpanded ?? false)
 
 	return (
 		<Box>
