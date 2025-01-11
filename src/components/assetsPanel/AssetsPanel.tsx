@@ -70,7 +70,11 @@ export default function AssetsPanel({ logger, onSelectAsset, assets }: AssetsPan
 	}
 
 	const handleContextAction = async (action: string, event: React.MouseEvent<HTMLButtonElement>) => {
-		if (!contextMenu.asset) return
+		if (!contextMenu.asset) {
+			return
+		}
+
+		const asset = contextMenu.asset
 
 		switch (action) {
 			case 'open':
@@ -87,6 +91,16 @@ export default function AssetsPanel({ logger, onSelectAsset, assets }: AssetsPan
 				} else {
 					// TODO implement `trpc.openInFiles()`
 					console.log('Open in files:', contextMenu.asset.name)
+				}
+				break
+			case 'openInTexturePacker':
+				if (BOLT) {
+					console.log('Open in TexturePacker:', contextMenu.asset.name)
+				} else {
+					if (asset.type === 'spritesheet' && asset.project) {
+						await trpc.open.query({ path: asset.project })
+						console.log('Open in TexturePacker:', asset)
+					}
 				}
 				break
 			case 'rename':

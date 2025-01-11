@@ -1,3 +1,4 @@
+import { state } from '@state/State'
 import { nanoid } from 'nanoid'
 import path from 'path-browserify-esm'
 import { match } from 'ts-pattern'
@@ -16,14 +17,92 @@ import {
 } from '../../types/assets'
 import { FileTreeData, FileTreeItemData, findInFileTree } from './FileTreeData'
 
+export type TexturePackerProject = {
+	/** Absolute path to the .tps file */
+	path: string
+	/** Absolute path to the data file (usually JSON) */
+	data: string
+	/** Absolute path to the texture file (usually PNG) */
+	texture: string
+}
+
 export const buildAssetTree = async (absoluteFilepaths: string[], baseDir: string): Promise<AssetTreeData> => {
 	// absoluteFilepaths = absoluteFilepaths.filter((path) =>
 	// path.startsWith('/Users/vlad/dev/papa-cherry-2/dev/assets/fonts')
 	// )
 
 	const fileTree = await buildFileTree(absoluteFilepaths, baseDir)
-	const assets = await doBuildAssetTree(fileTree)
+	const texturePackerProjects = await getTexturePackerProjects()
+	const assets = await doBuildAssetTree(fileTree, texturePackerProjects)
 	return assets
+}
+
+async function getTexturePackerProjects(): Promise<TexturePackerProject[]> {
+	if (!state.project?.texturePacker) {
+		return []
+	}
+
+	const { path: baseDir, mapping } = state.project.texturePacker
+	const projects = await trpc.globby.query({
+		patterns: [path.join(baseDir, '**/*.tps')],
+	})
+
+	const xmlParser = new DOMParser()
+
+	const parsedProjectsPromises = projects.map(async (projectPath) => {
+		const xmlContent = (await trpc.readText.query({ path: projectPath })).content
+		const xml = xmlParser.parseFromString(xmlContent, 'application/xml')
+
+		// Extract the DataFile path
+		const dataFilePathRelative = xml.evaluate(
+			"//key[text()='name']/following-sibling::filename",
+			xml,
+			null,
+			XPathResult.FIRST_ORDERED_NODE_TYPE,
+			null
+		).singleNodeValue?.textContent
+
+		if (!dataFilePathRelative) {
+			return null
+		}
+
+		// Extract texture format
+		const textureFormat =
+			xml
+				.evaluate(
+					"//key[text()='textureFormat']/following-sibling::enum",
+					xml,
+					null,
+					XPathResult.FIRST_ORDERED_NODE_TYPE,
+					null
+				)
+				.singleNodeValue?.textContent?.toLowerCase() || 'png'
+
+		const projectDir = path.dirname(projectPath)
+		const dataFilePath = path.join(projectDir, dataFilePathRelative)
+
+		const dataFileExists = await trpc.exists.query({ path: dataFilePath })
+		if (!dataFileExists) {
+			return null
+		}
+
+		const textureFilePath = path.join(projectDir, dataFilePathRelative.replace(/\.json$/, `.${textureFormat}`))
+
+		const textureFileExists = await trpc.exists.query({ path: textureFilePath })
+		if (!textureFileExists) {
+			return null
+		}
+
+		return {
+			path: projectPath,
+			data: dataFilePath,
+			texture: textureFilePath,
+		}
+	})
+
+	const parsedProjects = await Promise.all(parsedProjectsPromises)
+
+	return parsedProjects.filter((p) => p !== null) as TexturePackerProject[]
 }
 
 const buildFileTree = async (absoluteFilepaths: string[], baseDir: string): Promise<FileTreeData> => {
@@ -123,7 +202,10 @@ const extractSpritesheetFrames = async (
 	return frames
 }
 
-const doBuildAssetTree = async (fileTree: FileTreeData): Promise<AssetTreeData> => {
+const doBuildAssetTree = async (
+	fileTree: FileTreeData,
+	texturePackerProjects: TexturePackerProject[]
+): Promise<AssetTreeData> => {
 	const processedItems = new Set<FileTreeItemData>()
 
 	const convertToAsset = async (file: FileTreeItemData): Promise<AssetTreeItemData> => {
@@ -189,7 +271,10 @@ const doBuildAssetTree = async (fileTree: FileTreeData): Promise<AssetTreeData> 
 						const subtype = await isSpritesheetOrBitmapFont(fileTreeItem.path, jsonFilePath)
 						return match(subtype)
 							.with('spritesheet', async () => {
+								// TODO group frames in folders
 								const frames = await extractSpritesheetFrames(image.path, jsonFilePath)
+
+								const texturePackerProject = texturePackerProjects.find((p) => p.data === jsonFile.path)
 
 								const spritesheet: AssetTreeSpritesheetData = addAssetId({
 									type: 'spritesheet',
@@ -202,8 +287,7 @@ const doBuildAssetTree = async (fileTree: FileTreeData): Promise<AssetTreeData> 
 										path: jsonFile.path,
 									}),
 									frames,
-									// TODO find the TexturePacker project file (.tps)
-									project: '',
+									project: texturePackerProject?.path,
 								})
 
 								return spritesheet

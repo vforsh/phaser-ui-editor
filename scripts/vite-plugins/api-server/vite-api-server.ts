@@ -4,6 +4,7 @@ import { Font, FontCollection, create } from 'fontkit'
 import fse from 'fs-extra'
 import { globby } from 'globby'
 import sizeOf from 'image-size'
+import open from 'open'
 import path from 'path'
 import sharp from 'sharp'
 import { Plugin } from 'vite'
@@ -23,6 +24,20 @@ const globbyOptionsSchema = z
 	.partial()
 	.optional()
 
+const openOptionsSchema = z
+	.object({
+		app: z.object({
+			name: z.string(),
+			arguments: z.array(z.string()).optional(),
+		}),
+		wait: z.boolean(),
+		background: z.boolean(),
+		newInstance: z.boolean(),
+		allowNonzeroExitCode: z.boolean(),
+	})
+	.partial()
+	.optional()
+
 const appRouter = t.router({
 	globby: t.procedure
 		.input(z.object({ patterns: z.array(z.string()), options: globbyOptionsSchema }))
@@ -31,6 +46,11 @@ const appRouter = t.router({
 			const result = await globby(patterns, options)
 			return result
 		}),
+	exists: t.procedure.input(z.object({ path: absPathSchema })).query(async ({ input }) => {
+		const { path } = input
+		const exists = await fse.exists(path)
+		return exists
+	}),
 	stat: t.procedure.input(z.object({ path: absPathSchema })).query(async ({ input }) => {
 		const { path } = input
 		const stats = await fse.stat(path)
@@ -49,6 +69,11 @@ const appRouter = t.router({
 			isDirectory: stats.isDirectory(),
 			isSymbolicLink: stats.isSymbolicLink(),
 		}))
+	}),
+	open: t.procedure.input(z.object({ path: absPathSchema, options: openOptionsSchema })).query(async ({ input }) => {
+		const { path, options } = input
+		const cp = await open(path, options)
+		return { success: true }
 	}),
 	remove: t.procedure.input(z.object({ path: absPathSchema })).mutation(async ({ input }) => {
 		const { path } = input

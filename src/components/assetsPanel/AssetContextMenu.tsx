@@ -1,5 +1,5 @@
 import { Menu } from '@mantine/core'
-import { ExternalLink, FileJson, FolderOpen, Pencil, Trash2 } from 'lucide-react'
+import { ExternalLink, FileJson, FolderOpen, Pencil, Trash2, Image } from 'lucide-react'
 import type { AssetTreeItemData } from '../../types/assets'
 
 interface AssetContextMenuProps {
@@ -33,17 +33,37 @@ export default function AssetContextMenu({ asset, opened, position, onClose, onA
 			}}
 		>
 			<Menu.Dropdown>
-				<Menu.Item leftSection={asset.type === 'folder' ? <FolderOpen size={16} /> : <FileJson size={16} />} onClick={(event) => onAction('open', event)}>
+				<Menu.Item
+					leftSection={asset.type === 'folder' ? <FolderOpen size={16} /> : <FileJson size={16} />}
+					onClick={(event) => onAction('open', event)}
+				>
 					Open
 				</Menu.Item>
 				<Menu.Item leftSection={<ExternalLink size={16} />} onClick={(event) => onAction('openInFiles', event)}>
 					Open in Files
 				</Menu.Item>
-				<Menu.Divider />
-				<Menu.Item leftSection={<Pencil size={16} />} onClick={(event) => onAction('rename', event)}>
+				{asset.type === 'spritesheet' && (
+					<>
+						<Menu.Item
+							leftSection={<Image size={16} />}
+							onClick={(event) => onAction('openInTexturePacker', event)}
+						>
+							Open in TexturePacker
+						</Menu.Item>
+					</>
+				)}
+				<Menu.Item
+					color="red"
+					leftSection={<Trash2 size={16} />}
+					onClick={(event) => onAction('delete', event)}
+				>
 					Rename
 				</Menu.Item>
-				<Menu.Item color="red" leftSection={<Trash2 size={16} />} onClick={(event) => onAction('delete', event)}>
+				<Menu.Item
+					color="red"
+					leftSection={<Trash2 size={16} />}
+					onClick={(event) => onAction('delete', event)}
+				>
 					Delete
 				</Menu.Item>
 			</Menu.Dropdown>
