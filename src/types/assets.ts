@@ -111,6 +111,10 @@ export type AssetTreeSpritesheetFolderData = {
 	name: string
 	path: string
 	children: AssetTreeSpritesheetFrameData[]
+	/**
+	 * Absolute path to the TexturePacker project file (e.g. `/Users/user/game/assets/graphics/gameplay_gui.tps`)
+	 */
+	project?: string
 }
 
 export type AssetTreeSpritesheetFrameData = {
@@ -143,6 +147,10 @@ export type AssetTreeSpritesheetFrameData = {
 			paddings: [number, number, number, number]
 		}
 	}
+	/**
+	 * Absolute path to the TexturePacker project file (e.g. `/Users/user/game/assets/graphics/gameplay_gui.tps`)
+	 */
+	project?: string
 }
 
 export type GraphicAssetData =

@@ -284,6 +284,7 @@ const extractSpritesheetFrames = async (
 			jsonPath,
 			pathInHierarchy: data.filename,
 			settings: tpsProject ? getSpritesheetFrameSettings(data, tpsProject.spriteSettings) : {},
+			project: tpsProject?.path,
 		})
 
 		return frameAsset
@@ -337,6 +338,7 @@ const doBuildAssetTree = async (
 				const childAssets: AssetTreeItemData[] = []
 
 				const children = folder.children.slice().sort((a, b) => {
+					// folders should be first
 					if (a.type === 'folder' && b.type === 'file') {
 						return -1
 					}
@@ -346,9 +348,12 @@ const doBuildAssetTree = async (
 					}
 
 					if (a.type === 'file' && b.type === 'file') {
+						// images should be first so we can correctly find the spritesheets and bitmap fonts
 						if (isImageFile(a.name) && !isImageFile(b.name)) {
 							return -1
 						}
+						
+						return a.name.localeCompare(b.name)
 					}
 
 					return a.name.localeCompare(b.name)
