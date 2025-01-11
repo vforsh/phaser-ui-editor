@@ -46,6 +46,8 @@ export type DataChangePayload = ValueOf<{
 }>
 
 export default function InspectorPanel({ logger, item: selectedItem }: InspectorPanelProps) {
+	const snap = useSnapshot(state)
+	
 	if (!selectedItem) {
 		return (
 			<Stack gap="xs" p="xs">
@@ -53,10 +55,8 @@ export default function InspectorPanel({ logger, item: selectedItem }: Inspector
 			</Stack>
 		)
 	}
-
+	
 	const sections = createSections(selectedItem)
-
-	const snap = useSnapshot(state)
 
 	return (
 		<Stack gap="xs" p="xs">
