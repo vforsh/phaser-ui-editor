@@ -1,5 +1,4 @@
 import { state } from '@state/State'
-import { isEmpty } from 'lodash-es'
 import { nanoid } from 'nanoid'
 import path from 'path-browserify-esm'
 import { match } from 'ts-pattern'
@@ -284,12 +283,8 @@ const extractSpritesheetFrames = async (
 			imagePath,
 			jsonPath,
 			pathInHierarchy: data.filename,
-			settings: tpsProject ? (getSpritesheetFrameSettings(data, tpsProject.spriteSettings) as any) : {},
+			settings: tpsProject ? getSpritesheetFrameSettings(data, tpsProject.spriteSettings) : {},
 		})
-
-		if (isEmpty(frameAsset.settings) === false) {
-			console.log('===', data.filename, frameAsset.settings)
-		}
 
 		return frameAsset
 	})
