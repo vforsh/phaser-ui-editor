@@ -135,6 +135,14 @@ export type AssetTreeSpritesheetFrameData = {
 	 */
 	pathInHierarchy: string
 	size: { w: number; h: number }
+	settings: {
+		scale?: number
+		pivot?: { x: number; y: number }
+		nineScale?: {
+			borders: [number, number, number, number]
+			paddings: [number, number, number, number]
+		}
+	}
 }
 
 export type GraphicAssetData =
