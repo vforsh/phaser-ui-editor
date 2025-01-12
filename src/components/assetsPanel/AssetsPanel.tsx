@@ -71,7 +71,7 @@ export default function AssetsPanel({ logger, onSelectAsset, assets }: AssetsPan
 		})
 	}
 
-	const handleContextAction = async (action: string, event: React.MouseEvent<HTMLButtonElement>) => {
+	const handleContextMenuAction = async (action: string, event: React.MouseEvent<HTMLButtonElement>) => {
 		const asset = contextMenu.asset
 		if (!asset) {
 			return
@@ -172,7 +172,7 @@ export default function AssetsPanel({ logger, onSelectAsset, assets }: AssetsPan
 				opened={contextMenu.opened}
 				position={contextMenu.position}
 				onClose={() => setContextMenu({ ...contextMenu, opened: false })}
-				onAction={handleContextAction}
+				onAction={handleContextMenuAction}
 			/>
 		</Paper>
 	)

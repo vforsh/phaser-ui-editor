@@ -165,6 +165,9 @@ export function isGraphicAsset(asset: AssetTreeItemData): asset is GraphicAssetD
 		.otherwise(() => false)
 }
 
+/**
+ * Returns true if the asset can be dragged from the Assets panel to the Canvas
+ */
 export function isDraggableAsset(assetType: AssetTreeItemDataType): boolean {
 	return match(assetType)
 		.with('folder', () => false)

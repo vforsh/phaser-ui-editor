@@ -19,7 +19,6 @@ import { isDraggableAsset, type AssetTreeItemData } from '../../types/assets'
 
 const INDENT_SIZE = 20
 const ICON_SIZE = 16
-const GRID_LINE_COLOR = 'rgba(255, 255, 255, 0.1)'
 const ITEM_HEIGHT = 28
 const BASE_PADDING = 3
 
@@ -53,6 +52,8 @@ export default function AssetTreeItem({
 	const { dragState, handleDragStart, handleDragEnd } = useDragAndDrop({ logger: dragAndDropLogger })
 	const isDraggable = isDraggableAsset(item.type)
 
+	const GRID_LINE_COLOR = theme.colors.gray[7]
+
 	const getIcon = () => {
 		return match(item)
 			.with({ type: 'folder' }, () => <Folder size={ICON_SIZE} />)
@@ -71,11 +72,12 @@ export default function AssetTreeItem({
 
 	const handleClick = (e: React.MouseEvent) => {
 		e.preventDefault()
-		if (item.type === 'folder' || item.type === 'spritesheet' || item.type === 'spritesheet-folder') {
-			onToggle(item.id)
-		} else {
-			onSelect(item)
-		}
+
+		match(item)
+			.with({ type: 'folder' }, () => onToggle(item.id))
+			.with({ type: 'spritesheet' }, () => onToggle(item.id))
+			.with({ type: 'spritesheet-folder' }, () => onToggle(item.id))
+			.otherwise(() => onSelect(item))
 	}
 
 	const handleContextMenu = (e: React.MouseEvent) => {
@@ -84,36 +86,19 @@ export default function AssetTreeItem({
 	}
 
 	const hasChildren = (item: AssetTreeItemData): boolean => {
-		switch (item.type) {
-			case 'folder':
-				return item.children.length > 0
-			case 'spritesheet':
-				return item.frames.length > 0
-			case 'spritesheet-folder':
-				return item.children.length > 0
-			default:
-				return false
-		}
+		return match(item)
+			.with({ type: 'folder' }, (item) => item.children.length > 0)
+			.with({ type: 'spritesheet' }, (item) => item.frames.length > 0)
+			.with({ type: 'spritesheet-folder' }, (item) => item.children.length > 0)
+			.otherwise(() => false)
 	}
 
 	const getChildren = (item: AssetTreeItemData) => {
-		switch (item.type) {
-			case 'folder':
-				return item.children
-			case 'spritesheet':
-				return item.frames
-			case 'spritesheet-folder':
-				return item.children
-			default:
-				return []
-		}
-	}
-
-	const getItemKey = (child: AssetTreeItemData, index: number) => {
-		if (child.type === 'spritesheet-frame') {
-			return `${item.path}-frame-${child.name}-${index}`
-		}
-		return `${child.path}-${index}`
+		return match(item)
+			.with({ type: 'folder' }, (item) => item.children)
+			.with({ type: 'spritesheet' }, (item) => item.frames)
+			.with({ type: 'spritesheet-folder' }, (item) => item.children)
+			.otherwise(() => [])
 	}
 
 	return (
@@ -230,7 +215,7 @@ export default function AssetTreeItem({
 				isOpen &&
 				getChildren(item).map((child, index, arr) => (
 					<AssetTreeItem
-						key={getItemKey(child, index)}
+						key={child.id}
 						item={child}
 						level={level + 1}
 						onToggle={onToggle}
