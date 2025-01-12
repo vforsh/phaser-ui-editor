@@ -56,9 +56,10 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 	}
 
 	private getObjectId(): string {
-		let id = nanoid()
+		const idLength = 10
+		let id = nanoid(idLength)
 		while (this.idsToObjects.has(id)) {
-			id = nanoid()
+			id = nanoid(idLength)
 		}
 		return id
 	}
