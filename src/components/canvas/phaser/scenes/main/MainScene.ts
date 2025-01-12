@@ -274,17 +274,17 @@ export class MainScene extends BaseScene {
 			jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.json',
 			pathInHierarchy: 'popups_2/chefs_cup/popup_back.png',
 			project: '/Users/vlad/Yandex.Disk.localized/papa-cherry-2/__graphics/__Atlases/popups_2.tps',
-			id: '3VFfOclqbT',
+			id: 'pT6rmxn77M',
 		}
-		const nineSlice = await this.handleAssetDrop({
-			asset: nineSliceAsset,
-			position: { x: -400, y: -400 },
-		})
-		if (nineSlice && nineSlice.kind === 'NineSlice') {
-			nineSlice.resize(500, 400)
-			nineSlice.setPosition(this.projectSizeFrame.width / 2, this.projectSizeFrame.height / 2)
-			// nineSlice.setName(this.getNewObjectName(context, nineSlice, 'nineSlice'))
-			// this.root.add(nineSlice)
+		if (nineSliceAsset) {
+			const nineSlice = await this.handleAssetDrop({
+				asset: nineSliceAsset,
+				position: { x: -400, y: -400 },
+			})
+			if (nineSlice && nineSlice.kind === 'NineSlice') {
+				nineSlice.resize(500, 400)
+				nineSlice.setPosition(this.projectSizeFrame.width / 2, this.projectSizeFrame.height / 2)
+			}
 		}
 
 		const chefCherry_1 = (await this.addTestImage(chefCherryFrame, -400, -400)) as EditableImage

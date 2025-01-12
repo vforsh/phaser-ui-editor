@@ -7,7 +7,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { projectConfigSchema } from '../project/ProjectConfig'
 import { state, stateSchema, useSnapshot } from '../state/State'
 import trpc from '../trpc'
-import { AssetTreeItemData } from '../types/assets'
 import AssetsPanel from './assetsPanel/AssetsPanel'
 import { buildAssetTree } from './assetsPanel/build-asset-tree'
 import CanvasContainer from './canvas/CanvasContainer'
@@ -30,7 +29,6 @@ export default function EditorLayout() {
 	const [leftPanelWidth, setLeftPanelWidth] = useState(lpw)
 	const [rightPanelWidth, setRightPanelWidth] = useState(rpw)
 	const [hierarchyHeight, setHierarchyHeight] = useState(hh || Math.round(window.innerHeight / 2) - 6)
-	const [assets, setAssets] = useState<AssetTreeItemData[]>([])
 	const [openProjectDialogOpen, setOpenProjectDialogOpen] = useState(false)
 	const [itemToInspect, setItemToInspect] = useState<ItemToInspect | null>(null)
 
@@ -117,14 +115,14 @@ export default function EditorLayout() {
 			// TODO show mantine toast
 			return
 		}
-		
+
 		const openedProject = await doOpenProject(projectDirPath)
 		if (!openedProject) {
 			return
 		}
-		
+
 		logger.info('project opened', openedProject)
-		
+
 		const assetsGlob = path.join(openedProject.assetsDir, '**/*')
 		const assetsToIgnore = openedProject.projectConfig.assetsIgnore.map((item) =>
 			path.join(openedProject.assetsDir, item)
@@ -134,15 +132,13 @@ export default function EditorLayout() {
 			options: { ignore: assetsToIgnore },
 		})
 		// console.log('assets paths', assets)
-		
+
 		const assetTree = await buildAssetTree(assets, openedProject.assetsDir)
 		// console.log('assetTree', assetTree)
 		state.assets = stateSchema.shape.assets.parse(assetTree)
-		
-		setAssets(assetTree)
-		
+
 		state.lastOpenedProjectDir = projectDirPath
-		
+
 		// update recent projects in state
 		state.recentProjects ??= []
 		const recentProject = state.recentProjects.find((item) => item.dir === projectDirPath)
@@ -261,8 +257,7 @@ export default function EditorLayout() {
 									onSelectAsset={(item) =>
 										setItemToInspect(item ? { type: 'asset', data: item } : null)
 									}
-									// TODO pass state.assets to AssetsPanel
-									assets={assets}
+									assets={state.assets}
 								/>
 							</Box>
 						)}

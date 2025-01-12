@@ -230,8 +230,9 @@ export function getAssetsOfType<T extends AssetTreeItemDataType>(
 				result.push(item)
 			}
 
-			if ('children' in item && Array.isArray(item.children)) {
-				collectAssets(item.children)
+			const children = getAssetChildren(item)
+			if (children) {
+				collectAssets(children)
 			}
 		})
 	}
@@ -255,8 +256,9 @@ export function getAssetById(assets: AssetTreeItemData[], id: string): AssetTree
 				return item
 			}
 
-			if ('children' in item && Array.isArray(item.children)) {
-				const found = findAsset(item.children)
+			const children = getAssetChildren(item)
+			if (children) {
+				const found = findAsset(children)
 				if (found) {
 					return found
 				}
@@ -283,8 +285,9 @@ export function removeAssetById(assets: AssetTreeItemData[], id: string): boolea
 			return true
 		}
 
-		if ('children' in asset && Array.isArray(asset.children)) {
-			const removed = removeAssetById(asset.children, id)
+		const children = getAssetChildren(asset)
+		if (children) {
+			const removed = removeAssetById(children, id)
 			if (removed) {
 				return true
 			}
@@ -294,6 +297,25 @@ export function removeAssetById(assets: AssetTreeItemData[], id: string): boolea
 	return false
 }
 
+export function getAssetChildren(asset: AssetTreeItemData): AssetTreeItemData[] | undefined {
+	return match(asset)
+		.with({ type: 'folder' }, (folder) => folder.children)
+		.with({ type: 'spritesheet' }, (spritesheet) => spritesheet.frames)
+		.with({ type: 'spritesheet-folder' }, (spritesheetFolder) => spritesheetFolder.children)
+		.with({ type: 'file' }, () => undefined)
+		.with({ type: 'json' }, () => undefined)
+		.with({ type: 'xml' }, () => undefined)
+		.with({ type: 'image' }, () => undefined)
+		.with({ type: 'prefab' }, () => undefined)
+		.with({ type: 'web-font' }, () => undefined)
+		.with({ type: 'bitmap-font' }, () => undefined)
+		.with({ type: 'spritesheet-frame' }, () => undefined)
+		.exhaustive()
+}
+
+/**
+ * Get path to asset relative to assets root directory.
+ */
 export function getAssetRelativePath(asset: AssetTreeItemData, baseDir?: string): string {
 	baseDir ??= path.join(state.projectDir!, state.project!.assetsDir)
 	const prevCwd = path.process_cwd
