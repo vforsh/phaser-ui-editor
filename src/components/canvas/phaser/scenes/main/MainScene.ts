@@ -1,3 +1,4 @@
+import { IPatchesConfig } from '@koreez/phaser3-ninepatch'
 import { urlParams } from '@url-params'
 import { once } from 'es-toolkit'
 import { err, ok } from 'neverthrow'
@@ -29,6 +30,7 @@ import { Selection } from './editContext/Selection'
 import { TransformControls } from './editContext/TransformControls'
 import { Grid } from './Grid'
 import { EditableContainer } from './objects/EditableContainer'
+import { EditableImage } from './objects/EditableImage'
 import { EditableObject, isTintable } from './objects/EditableObject'
 import { EditableObjectsFactory } from './objects/EditableObjectsFactory'
 import { Rulers } from './Rulers'
@@ -287,7 +289,6 @@ export class MainScene extends BaseScene {
 			const bmText = this.objectsFactory.bitmapText(bmFont.key, '1234567890', bmFont.data.size)
 			bmText.setName(this.getNewObjectName(context, bmText, 'bitmap-text'))
 			this.root.add(bmText)
-			this.logger.info('bitmap text created', bmText.displayWidth, bmText.displayHeight)
 		} else {
 			this.logger.error('failed to load bitmapFont')
 		}
@@ -558,6 +559,10 @@ export class MainScene extends BaseScene {
 		return current
 	}
 
+	/**
+	 * Handles asset that was dropped from the Assets Panel on the canvas.
+	 * @returns The created editable object or null if the object could not be created.
+	 */
 	private async handleAssetDrop(data: { asset: AssetTreeItemData; position: { x: number; y: number } }) {
 		const obj = await this.createEditableFromAsset(data.asset)
 		if (!obj) {
@@ -565,13 +570,14 @@ export class MainScene extends BaseScene {
 		}
 
 		const origin =
-			data.asset.type === 'spritesheet-frame' && data.asset.settings?.pivot
-				? data.asset.settings.pivot
-				: { x: 0.5, y: 0.5 }
+			data.asset.type === 'spritesheet-frame' && data.asset.anchor ? data.asset.anchor : { x: 0.5, y: 0.5 }
 
 		obj.name ||= this.getNewObjectName(this.editContexts.current!, obj, data.asset.name)
-		obj.setOrigin(origin.x, origin.y)
 		obj.setPosition(data.position.x, data.position.y)
+
+		if ('setOrigin' in obj && typeof obj.setOrigin === 'function') {
+			obj.setOrigin(origin.x, origin.y)
+		}
 
 		this.editContexts.current!.target.add(obj)
 
@@ -602,7 +608,27 @@ export class MainScene extends BaseScene {
 					return null
 				}
 
-				return this.objectsFactory.image(texture.key, spritesheetFrame.pathInHierarchy)
+				if (spritesheetFrame.scale9Borders) {
+					const frameWidth = spritesheetFrame.size.w
+					const frameHeight = spritesheetFrame.size.h
+					const { x, y, w, h } = spritesheetFrame.scale9Borders
+					const nineScaleConfig: IPatchesConfig = {
+						top: y,
+						bottom: frameHeight - y - h,
+						left: x,
+						right: frameWidth - x - w,
+					}
+
+					return this.objectsFactory.nineSlice(
+						spritesheetFrame.size.w,
+						spritesheetFrame.size.h,
+						texture.key,
+						spritesheetFrame.pathInHierarchy,
+						nineScaleConfig
+					)
+				} else {
+					return this.objectsFactory.image(texture.key, spritesheetFrame.pathInHierarchy)
+				}
 			})
 			.with({ type: 'web-font' }, async (webFontAsset) => {
 				const font = await this.loadWebFont(webFontAsset)

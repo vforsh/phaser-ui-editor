@@ -1,5 +1,5 @@
 import { ActionIcon, Group, Text, Tooltip, useMantineTheme } from '@mantine/core'
-import { ChevronDown, Eye, EyeOff, Folder, Image, Lock, TextQuote, Type, Unlock } from 'lucide-react'
+import { ChevronDown, Eye, EyeOff, Folder, Image, ImageUpscale, Lock, TextQuote, Type, Unlock } from 'lucide-react'
 import { useState } from 'react'
 import { match } from 'ts-pattern'
 import type { HierarchyItemData } from '../../types/hierarchy'
@@ -36,6 +36,7 @@ export default function HierarchyItem({
 		return match(item)
 			.with({ type: 'Container' }, () => <Folder size={16} />)
 			.with({ type: 'Image' }, () => <Image size={16} />)
+			.with({ type: 'NineSlice' }, () => <ImageUpscale size={16} />)
 			.with({ type: 'BitmapText' }, () => <Type size={16} />)
 			.with({ type: 'Text' }, () => <TextQuote size={16} />)
 			.exhaustive()
@@ -46,7 +47,7 @@ export default function HierarchyItem({
 			setIsOpen(!isOpen)
 		}
 	}
-	
+
 	const gridLineThickness = 1
 
 	return (

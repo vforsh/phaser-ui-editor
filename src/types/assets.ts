@@ -139,13 +139,12 @@ export type AssetTreeSpritesheetFrameData = {
 	 */
 	pathInHierarchy: string
 	size: { w: number; h: number }
-	settings: {
-		scale?: number
-		pivot?: { x: number; y: number }
-		nineScale?: {
-			borders: [number, number, number, number]
-			paddings: [number, number, number, number]
-		}
+	anchor: { x: number; y: number }
+	scale9Borders?: {
+		x: number
+		y: number
+		w: number
+		h: number
 	}
 	/**
 	 * Absolute path to the TexturePacker project file (e.g. `/Users/user/game/assets/graphics/gameplay_gui.tps`)

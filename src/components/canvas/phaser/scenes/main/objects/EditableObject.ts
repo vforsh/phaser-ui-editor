@@ -1,6 +1,7 @@
 import { EditableBitmapText, EditableBitmapTextJson, EditableBitmapTextJsonBasic } from './EditableBitmapText'
 import { EditableContainer, EditableContainerJson, EditableContainerJsonBasic } from './EditableContainer'
 import { EditableImage, EditableImageJson, EditableImageJsonBasic } from './EditableImage'
+import { EditableNineSlice, EditableNineSliceJson, EditableNineSliceJsonBasic } from './EditableNineSlice'
 import { EditableText, EditableTextJson, EditableTextJsonBasic } from './EditableText'
 
 export const EDITABLE_SYMBOL = Symbol('EditableObject')
@@ -26,7 +27,7 @@ export interface IEditableObject {
 	get isResizable(): boolean
 
 	toJson(): EditableObjectJson
-
+	
 	// returns simplified state of the object to use in Hierarchy Panel
 	toJsonBasic(): EditableObjectJsonBasic
 
@@ -35,7 +36,7 @@ export interface IEditableObject {
 	// getComponent<T extends typeof EditableObjectComponent>(component: T): InstanceType<T>
 }
 
-export type EditableObject = EditableContainer | EditableImage | EditableText | EditableBitmapText
+export type EditableObject = EditableContainer | EditableImage | EditableNineSlice | EditableText | EditableBitmapText
 
 export type EditableObjectType = EditableObject['kind']
 
@@ -43,7 +44,12 @@ export type EditableObjectType = EditableObject['kind']
 export type CreateEditableObjectJson<T extends { type: string; locked: boolean }> =
 	Phaser.Types.GameObjects.JSONGameObject & T
 
-export type EditableObjectJson = EditableContainerJson | EditableImageJson | EditableTextJson | EditableBitmapTextJson
+export type EditableObjectJson =
+	| EditableContainerJson
+	| EditableImageJson
+	| EditableNineSliceJson
+	| EditableTextJson
+	| EditableBitmapTextJson
 
 export type EditableObjectJsonType = EditableObjectJson['type']
 // #endregion
@@ -59,6 +65,7 @@ export type CreateEditableObjectJsonBasic<T extends { type: string }> = T & {
 export type EditableObjectJsonBasic =
 	| EditableContainerJsonBasic
 	| EditableImageJsonBasic
+	| EditableNineSliceJsonBasic
 	| EditableTextJsonBasic
 	| EditableBitmapTextJsonBasic
 

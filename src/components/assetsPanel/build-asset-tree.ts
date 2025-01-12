@@ -25,17 +25,6 @@ export type TexturePackerProject = {
 	data: string
 	/** Absolute path to the texture file (usually PNG) */
 	texture: string
-	/** XML DOM of the .tps file */
-	xml: Document
-	/** Sprite settings for each frame */
-	spriteSettings: {
-		frameName: string
-		pivotPoint: [number, number]
-		spriteScale: number
-		scale9Enabled: boolean
-		scale9Borders: [number, number, number, number] | null
-		scale9Paddings: [number, number, number, number] | null
-	}[]
 }
 
 export const buildAssetTree = async (absoluteFilepaths: string[], baseDir: string): Promise<AssetTreeData> => {
@@ -105,81 +94,10 @@ async function getTexturePackerProjects(): Promise<TexturePackerProject[]> {
 			return null
 		}
 
-		// Extract sprite settings
-		const spritesSettings: TexturePackerProject['spriteSettings'] = []
-		const spriteNodes = xml.evaluate(
-			"//key[@type='filename']",
-			xml,
-			null,
-			XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-			null
-		)
-
-		for (let i = 0; i < spriteNodes.snapshotLength; i++) {
-			const filenameNode = spriteNodes.snapshotItem(i) as Element
-			const filename = filenameNode.textContent
-			if (!filename) continue
-
-			const settingsStruct = filenameNode.nextElementSibling
-			if (!settingsStruct || settingsStruct.getAttribute('type') !== 'IndividualSpriteSettings') continue
-
-			const pivotPoint = xml.evaluate(
-				'.//point_f',
-				settingsStruct,
-				null,
-				XPathResult.FIRST_ORDERED_NODE_TYPE,
-				null
-			).singleNodeValue?.textContent
-
-			const spriteScale = xml.evaluate(
-				".//key[text()='spriteScale']/following-sibling::double[1]",
-				settingsStruct,
-				null,
-				XPathResult.FIRST_ORDERED_NODE_TYPE,
-				null
-			).singleNodeValue?.textContent
-
-			const scale9Enabled =
-				xml.evaluate(
-					".//key[text()='scale9Enabled']/following-sibling::true",
-					settingsStruct,
-					null,
-					XPathResult.FIRST_ORDERED_NODE_TYPE,
-					null
-				).singleNodeValue !== null
-
-			const borders = xml.evaluate(
-				".//key[text()='scale9Borders']/following-sibling::rect[1]",
-				settingsStruct,
-				null,
-				XPathResult.FIRST_ORDERED_NODE_TYPE,
-				null
-			).singleNodeValue?.textContent
-
-			const paddings = xml.evaluate(
-				".//key[text()='scale9Paddings']/following-sibling::rect[1]",
-				settingsStruct,
-				null,
-				XPathResult.FIRST_ORDERED_NODE_TYPE,
-				null
-			).singleNodeValue?.textContent
-
-			spritesSettings.push({
-				frameName: filename,
-				pivotPoint: pivotPoint ? (pivotPoint.split(',').map(Number) as [number, number]) : [0.5, 0.5],
-				spriteScale: spriteScale ? parseFloat(spriteScale) : 1,
-				scale9Enabled,
-				scale9Borders: borders ? parseTpsRect(borders) : null,
-				scale9Paddings: paddings ? parseTpsRect(paddings) : null,
-			})
-		}
-
 		return {
 			path: projectPath,
 			data: dataFilePath,
 			texture: textureFilePath,
-			xml,
-			spriteSettings: spritesSettings,
 		}
 	})
 
@@ -272,19 +190,20 @@ const extractSpritesheetFrames = async (
 	const jsonFileRaw = (await trpc.readText.query({ path: jsonPath })).content
 
 	// as of now it handles only TexturePacker JSON format
-	const json = JSON.parse(jsonFileRaw) as TexturePacker.Atlas
+	const atlasJson = JSON.parse(jsonFileRaw) as TexturePacker.Atlas
 
 	// TODO handle multiple textures
-	const frames = json.textures[0].frames.map((data) => {
+	const frames = atlasJson.textures[0].frames.map((data) => {
 		const frameAsset: AssetTreeSpritesheetFrameData = addAssetId({
 			type: 'spritesheet-frame',
 			name: data.filename,
 			path: imagePath,
 			size: { w: data.frame.w, h: data.frame.h },
+			anchor: data.anchor ? { x: data.anchor.x, y: data.anchor.y } : { x: 0.5, y: 0.5 },
+			scale9Borders: data.scale9Borders,
 			imagePath,
 			jsonPath,
 			pathInHierarchy: data.filename,
-			settings: tpsProject ? getSpritesheetFrameSettings(data, tpsProject.spriteSettings) : {},
 			project: tpsProject?.path,
 		})
 
@@ -292,38 +211,6 @@ const extractSpritesheetFrames = async (
 	})
 
 	return frames
-}
-
-function getSpritesheetFrameSettings(
-	frame: TexturePacker.Frame,
-	tpsSettings: TexturePackerProject['spriteSettings']
-): AssetTreeSpritesheetFrameData['settings'] {
-	const settingsXml = tpsSettings.find((settings) => settings.frameName.endsWith(frame.filename))
-	if (!settingsXml) {
-		return {}
-	}
-
-	const settings: AssetTreeSpritesheetFrameData['settings'] = {}
-
-	if (settingsXml.pivotPoint) {
-		settings.pivot = {
-			x: settingsXml.pivotPoint[0],
-			y: settingsXml.pivotPoint[1],
-		}
-	}
-
-	if (settingsXml.spriteScale) {
-		settings.scale = settingsXml.spriteScale
-	}
-
-	if (settingsXml.scale9Enabled) {
-		settings.nineScale = {
-			borders: settingsXml.scale9Borders!,
-			paddings: settingsXml.scale9Paddings!,
-		}
-	}
-
-	return settings
 }
 
 function groupFramesByFolders(

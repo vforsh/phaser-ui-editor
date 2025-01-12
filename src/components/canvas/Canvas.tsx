@@ -1,3 +1,4 @@
+import { NinePatchPlugin } from '@koreez/phaser3-ninepatch'
 import Phaser from 'phaser'
 import { useLayoutEffect, useRef } from 'react'
 import { ref } from 'valtio'
@@ -82,6 +83,15 @@ function createPhaserApp(
 			noAudio: true,
 		},
 		banner: false,
+		plugins: {
+			global: [
+				{
+					key: 'NinePatchPlugin',
+					plugin: NinePatchPlugin,
+					start: true,
+				},
+			],
+		},
 	}
 
 	return new PhaserApp(config, projectConfig, appEvents, appCommands)

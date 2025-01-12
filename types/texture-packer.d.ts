@@ -25,6 +25,12 @@ namespace TexturePacker {
 		spriteSourceSize: SpriteSourceSize
 		frame: FrameRect
 		anchor: Anchor
+		scale9Borders?: {
+			x: number
+			y: number
+			w: number
+			h: number
+		}
 	}
 
 	export interface SpriteSourceSize {

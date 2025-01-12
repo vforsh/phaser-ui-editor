@@ -1,8 +1,10 @@
+import { IPatchesConfig } from '@koreez/phaser3-ninepatch'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import { EditableBitmapText, EditableBitmapTextJson } from './EditableBitmapText'
 import { EditableContainer, EditableContainerJson } from './EditableContainer'
 import { EditableImage, EditableImageJson } from './EditableImage'
+import { EditableNineSlice, EditableNineSliceJson } from './EditableNineSlice'
 import { EditableObject, EditableObjectJson } from './EditableObject'
 import { EditableText, EditableTextJson, EditableTextStyleJson } from './EditableText'
 
@@ -71,6 +73,19 @@ export class EditableObjectsFactory {
 		return image
 	}
 
+	public nineSlice(
+		width: number,
+		height: number,
+		texture: string,
+		frame?: string | number,
+		config?: IPatchesConfig
+	): EditableNineSlice {
+		const id = this.getObjectId()
+		const nineSlice = new EditableNineSlice(this.scene, id, width, height, texture, frame, config)
+		this.register(nineSlice)
+		return nineSlice
+	}
+
 	public text(content: string, style: EditableTextStyleJson): EditableText {
 		const id = this.getObjectId()
 		const text = new EditableText(this.scene, id, 0, 0, content, style)
@@ -94,6 +109,7 @@ export class EditableObjectsFactory {
 		const obj = match(json)
 			.with({ type: 'Container' }, (json) => this.createContainerFromJson(json))
 			.with({ type: 'Image' }, (json) => this.createImageFromJson(json))
+			.with({ type: 'NineSlice' }, (json) => this.createNineSliceFromJson(json))
 			.with({ type: 'Text' }, (json) => this.createTextFromJson(json))
 			.with({ type: 'BitmapText' }, (json) => this.createBitmapTextFromJson(json))
 			.exhaustive()
@@ -124,6 +140,7 @@ export class EditableObjectsFactory {
 	private createImageFromJson(json: EditableImageJson): EditableImage {
 		const id = this.getObjectId()
 		const image = new EditableImage(this.scene, id, json.x, json.y, json.textureKey, json.frameKey)
+
 		image.setName(json.name)
 		image.setVisible(json.visible)
 		image.setAlpha(json.alpha)
@@ -137,9 +154,26 @@ export class EditableObjectsFactory {
 		return image
 	}
 
+	private createNineSliceFromJson(json: EditableNineSliceJson): EditableNineSlice {
+		const id = this.getObjectId()
+		const nineSlice = new EditableNineSlice(this.scene, id, json.width, json.height, json.textureKey, json.frameKey)
+
+		nineSlice.setName(json.name)
+		nineSlice.setVisible(json.visible)
+		nineSlice.setAlpha(json.alpha)
+		nineSlice.setRotation(json.rotation)
+		nineSlice.setDepth(json.depth)
+		nineSlice.setBlendMode(json.blendMode)
+		nineSlice.setScale(json.scale.x, json.scale.y)
+		nineSlice.locked = json.locked
+
+		return nineSlice
+	}
+
 	private createTextFromJson(json: EditableTextJson): EditableText {
 		const id = this.getObjectId()
 		const text = new EditableText(this.scene, id, json.x, json.y, json.text, json.style)
+
 		text.setName(json.name)
 		text.setVisible(json.visible)
 		text.setAlpha(json.alpha)
@@ -156,6 +190,7 @@ export class EditableObjectsFactory {
 	private createBitmapTextFromJson(json: EditableBitmapTextJson): EditableBitmapText {
 		const id = this.getObjectId()
 		const bitmapText = new EditableBitmapText(this.scene, id, json.font, json.text, json.fontSize, json.align)
+
 		bitmapText.setPosition(json.x, json.y)
 		bitmapText.setName(json.name)
 		bitmapText.setVisible(json.visible)
