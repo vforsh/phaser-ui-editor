@@ -366,7 +366,8 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	/**
-	 * As of now resizing is done separately for each object in the selection.
+	 * As of now resizing is done _separately_ for each object in the selection.
+	 * @note Resizing is done by changing the `displayWidth` and `displayHeight` of the objects.
 	 * @note Hold SHIFT to keep the aspect ratio.
 	 */
 	private resize(knob: Phaser.GameObjects.Image, pointer: Phaser.Input.Pointer, x: number, y: number) {
@@ -440,8 +441,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 				obj.y += offsetX * Math.sin(angleRad) + offsetY * Math.cos(angleRad)
 			}
 
-			// TODO move to EditableContainer
-			if (obj instanceof Phaser.GameObjects.Container) {
+			if (obj.kind === 'Container') {
 				// manually set container origin by moving its children
 				const childOffsetX = -obj.displayWidth * (newOrigin[0] - 0.5)
 				const childOffsetY = -obj.displayHeight * (newOrigin[1] - 0.5)
@@ -500,8 +500,6 @@ export class TransformControls extends Phaser.GameObjects.Container {
 				selectedTransforms.forEach((transform, obj) => {
 					// keep the aspect ratio if shift is pressed
 					const _dy = pointer.event.shiftKey ? dx / transform.aspectRatio : dy
-
-					// TODO BitmapText is not resizable, account for that (check isResizable property)
 					obj.displayWidth = Math.max(transform.width + dx, 16)
 					obj.displayHeight = Math.max(transform.height + _dy, 16)
 				})
@@ -528,8 +526,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 						obj.y += offsetX * Math.sin(angleRad) + offsetY * Math.cos(angleRad)
 					}
 
-					// TODO move to EditableContainer
-					if (obj instanceof Phaser.GameObjects.Container) {
+					if (obj.kind === 'Container') {
 						// manually restore container origin by moving children back to their original positions
 						obj.list.forEach((child) => {
 							const originalPosition = child.getData('originalPosition')

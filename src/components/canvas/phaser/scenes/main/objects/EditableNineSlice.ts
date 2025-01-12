@@ -46,7 +46,6 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 			tintFill: this.tintFill,
 			width: this.width,
 			height: this.height,
-			// TODO: get from NinePatch
 			// @ts-expect-error
 			ninePatchConfig: this.config as IPatchesConfig,
 		}
@@ -72,6 +71,35 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 
 	get isResizable(): boolean {
 		return true
+	}
+
+	override resize(width: number, height: number) {
+		if (this.input) {
+			// TODO support different hitArea types, not just Rectangle
+			this.input.hitArea?.setSize(width, height)
+		}
+
+		return super.resize(width, height)
+	}
+
+	// we override the displayWidth and displayHeight for selection and transform controls to work properly
+
+	// @ts-expect-error
+	get displayWidth(): number {
+		return this.width
+	}
+
+	set displayWidth(value: number) {
+		this.resize(value, this.height)
+	}
+
+	// @ts-expect-error
+	get displayHeight(): number {
+		return this.height
+	}
+
+	set displayHeight(value: number) {
+		this.resize(this.width, value)
 	}
 }
 

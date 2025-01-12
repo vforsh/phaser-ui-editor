@@ -252,11 +252,46 @@ export class MainScene extends BaseScene {
 
 		const context = this.editContexts.current!
 
-		const chefCherry_1 = await this.addTestImage(chefCherryFrame, -400, -400)
+		const nineSliceAsset: AssetTreeSpritesheetFrameData = {
+			type: 'spritesheet-frame',
+			name: 'popup_back.png',
+			path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png',
+			size: {
+				w: 119,
+				h: 118,
+			},
+			anchor: {
+				x: 0.5,
+				y: 0.5,
+			},
+			scale9Borders: {
+				x: 52,
+				y: 52,
+				w: 15,
+				h: 14,
+			},
+			imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png',
+			jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.json',
+			pathInHierarchy: 'popups_2/chefs_cup/popup_back.png',
+			project: '/Users/vlad/Yandex.Disk.localized/papa-cherry-2/__graphics/__Atlases/popups_2.tps',
+			id: '3VFfOclqbT',
+		}
+		const nineSlice = await this.handleAssetDrop({
+			asset: nineSliceAsset,
+			position: { x: -400, y: -400 },
+		})
+		if (nineSlice && nineSlice.kind === 'NineSlice') {
+			nineSlice.resize(500, 400)
+			nineSlice.setPosition(this.projectSizeFrame.width / 2, this.projectSizeFrame.height / 2)
+			// nineSlice.setName(this.getNewObjectName(context, nineSlice, 'nineSlice'))
+			// this.root.add(nineSlice)
+		}
+
+		const chefCherry_1 = (await this.addTestImage(chefCherryFrame, -400, -400)) as EditableImage
 		chefCherry_1?.setName(this.getNewObjectName(context, chefCherry_1!, 'chefCherry_topLeft'))
 		chefCherry_1?.setOrigin(0)
 
-		const chefCherry_2 = await this.addTestImage(chefCherryFrame, 400, -400)
+		const chefCherry_2 = (await this.addTestImage(chefCherryFrame, 400, -400)) as EditableImage
 		chefCherry_2?.setName(this.getNewObjectName(context, chefCherry_2!, 'chefCherry_topRight'))
 		chefCherry_2?.setOrigin(1, 0)
 
