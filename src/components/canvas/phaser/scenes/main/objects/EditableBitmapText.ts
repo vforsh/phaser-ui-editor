@@ -131,6 +131,17 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		this.setScale(this.scaleX, value)
 	}
 
+	// @ts-expect-error
+	get name(): string {
+		return this._stateObj?.name || ''
+	}
+	
+	set name(value: string) {
+		if (this._stateObj) {
+			this._stateObj.name = value
+		}
+	}
+
 	get stateObj() {
 		return this._stateObj
 	}

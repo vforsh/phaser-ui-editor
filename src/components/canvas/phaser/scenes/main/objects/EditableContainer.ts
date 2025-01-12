@@ -61,11 +61,12 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 			editables.some((obj, index) => obj !== this._editablesCopy[index])
 
 		if (hasChanges) {
+			this._stateObj.children = editables.map((obj) => obj.stateObj)
 			this.events.emit('hierarchy-changed')
 		}
 
 		this._editablesCopy = editables
-
+		
 		return hasChanges
 	}
 
@@ -75,7 +76,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		if (isEditable(gameObject)) {
 			this.events.emit('editable-added', gameObject)
 
-			this._stateObj.children.push(gameObject.stateObj)
+			// this._stateObj.children.push(gameObject.stateObj)
 
 			// every change in child container will propagate to parent container
 			if (gameObject instanceof EditableContainer) {
@@ -95,10 +96,10 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		if (isEditable(gameObject)) {
 			this.events.emit('editable-removed', gameObject)
 
-			const stateIndex = this._stateObj.children.findIndex((child) => child.id === gameObject.id)
-			if (stateIndex !== -1) {
-				this._stateObj.children.splice(stateIndex, 1)
-			}
+			// const stateIndex = this._stateObj.children.findIndex((child) => child.id === gameObject.id)
+			// if (stateIndex !== -1) {
+			// 	this._stateObj.children.splice(stateIndex, 1)
+			// }
 
 			if (gameObject instanceof EditableContainer) {
 				gameObject.events.offByContext(this, 'hierarchy-changed')
@@ -188,6 +189,17 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 
 	get isResizable(): boolean {
 		return true
+	}
+
+	// @ts-expect-error
+	get name(): string {
+		return this._stateObj?.name || ''
+	}
+
+	set name(value: string) {
+		if (this._stateObj) {
+			this._stateObj.name = value
+		}
 	}
 
 	get stateObj() {

@@ -111,6 +111,17 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 		this.resize(this.width, value)
 	}
 
+	// @ts-expect-error
+	get name(): string {
+		return this._stateObj?.name || ''
+	}
+	
+	set name(value: string) {
+		if (this._stateObj) {
+			this._stateObj.name = value
+		}
+	}
+
 	get stateObj() {
 		return this._stateObj
 	}

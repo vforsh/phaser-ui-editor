@@ -13,6 +13,8 @@ import { AssetTreeItemData } from '../types/assets'
 import { getObjectKeys } from '../utils/collection/get-object-keys'
 import { absolutePathSchema } from './Schemas'
 import { isValtioRef, unproxy } from './valtio-utils'
+import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { merge } from 'es-toolkit'
 
 export const stateSchema = z.object({
 	lastOpenedProjectDir: absolutePathSchema.optional(),
@@ -31,6 +33,11 @@ export const stateSchema = z.object({
 	projectDir: absolutePathSchema.nullable(),
 	project: projectConfigSchema.nullable(),
 	assets: z.array(z.unknown()) as z.ZodType<AssetTreeItemData[]>,
+	canvas: z.object({
+		selection: z.array(z.string()),
+		objects: z.unknown().nullable() as z.ZodType<EditableObjectJson | null>,
+		objectById: z.function().args(z.string()).returns(z.unknown() as z.ZodType<EditableObjectJson | undefined>).nullable(),
+	}),
 	app: z
 		.object({
 			events: z.instanceof(TypedEventEmitter<AppEvents>),
@@ -50,8 +57,8 @@ export const stateSchema = z.object({
 export type State = z.infer<typeof stateSchema>
 
 // state from localStorage, hydrated with default values
-const initialStateParsed = Object.assign(
-	{},
+const initialStateParsed = merge(
+	// {},
 	{
 		recentProjects: [],
 		panelDimensions: {
@@ -61,6 +68,11 @@ const initialStateParsed = Object.assign(
 		projectDir: null,
 		project: null,
 		assets: [],
+		canvas: {
+			selection: [],
+			objects: null,
+			objectById: null,
+		},
 		app: null,
 		phaser: null,
 	} satisfies PartialDeep<State>,

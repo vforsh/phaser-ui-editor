@@ -1,3 +1,4 @@
+import { match, P } from 'ts-pattern'
 import { proxy, subscribe } from 'valtio'
 import {
 	CreateEditableObjectJson,
@@ -5,6 +6,7 @@ import {
 	EDITABLE_SYMBOL,
 	IEditableObject,
 } from './EditableObject'
+import { EditableObjectChangesEmitter } from './EditableObjectChangesEmitter'
 
 export class EditableImage extends Phaser.GameObjects.Image implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
@@ -12,7 +14,7 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 	public readonly id: string
 	private _isLocked = false
 	private _stateObj: EditableImageJson
-	private _stateUnsub: () => void
+	private _stateChanges: EditableObjectChangesEmitter<EditableImageJson>
 
 	constructor(scene: Phaser.Scene, id: string, x: number, y: number, texture: string, frame?: string | number) {
 		super(scene, x, y, texture, frame)
@@ -21,9 +23,11 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 
 		this._stateObj = proxy(this.toJson())
 
-		this._stateUnsub = subscribe(this._stateObj, (ops) => {
-			console.log(`${this.id} (${this.kind}) state changed`, ops)
-		})
+		this._stateChanges = new EditableObjectChangesEmitter(this._stateObj)
+		this._stateChanges.on('visible', (value) => this.visible = value)
+		this._stateChanges.on('locked', (value) => this.locked = value)
+		this._stateChanges.on('x', (value) => this.x = value)
+		this._stateChanges.on('y', (value) => this.y = value)
 	}
 
 	toJson(): EditableImageJson {
@@ -69,13 +73,24 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 		return true
 	}
 
+	// @ts-expect-error
+	get name(): string {
+		return this._stateObj?.name || ''
+	}
+
+	set name(value: string) {
+		if (this._stateObj) {
+			this._stateObj.name = value
+		}
+	}
+
 	get stateObj() {
 		return this._stateObj
 	}
 
 	override destroy(fromScene?: boolean): void {
-		this._stateUnsub()
-		
+		this._stateChanges.destroy()
+
 		super.destroy(fromScene)
 	}
 }

@@ -72,6 +72,17 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 		return false
 	}
 
+	// @ts-expect-error
+	get name(): string {
+		return this._stateObj?.name || ''
+	}
+	
+	set name(value: string) {
+		if (this._stateObj) {
+			this._stateObj.name = value
+		}
+	}
+
 	get stateObj() {
 		return this._stateObj
 	}

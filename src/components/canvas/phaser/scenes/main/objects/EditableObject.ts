@@ -43,7 +43,7 @@ export type EditableObject = EditableContainer | EditableImage | EditableNineSli
 export type EditableObjectType = EditableObject['kind']
 
 // #region JSON
-export type CreateEditableObjectJson<T extends { type: string; locked: boolean }> =
+export type CreateEditableObjectJson<T extends { readonly type: string; locked: boolean }> =
 	Phaser.Types.GameObjects.JSONGameObject & T
 
 export type EditableObjectJson =
