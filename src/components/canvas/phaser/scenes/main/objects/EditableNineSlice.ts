@@ -114,6 +114,12 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 	get stateObj() {
 		return this._stateObj
 	}
+
+	override destroy(fromScene?: boolean): void {
+		this._stateUnsub()
+		
+		super.destroy(fromScene)
+	}
 }
 
 export type EditableNineSliceJson = CreateEditableObjectJson<{

@@ -13,7 +13,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 	private _isLocked = false
 	private _stateObj: EditableBitmapTextJson
 	private _stateUnsub: () => void
-
+	
 	// it is set in the super constructor
 	private _bounds!: Phaser.Types.GameObjects.BitmapText.BitmapTextSize
 
@@ -133,6 +133,12 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 
 	get stateObj() {
 		return this._stateObj
+	}
+
+	override destroy(fromScene?: boolean): void {
+		this._stateUnsub()
+		
+		super.destroy(fromScene)
 	}
 }
 

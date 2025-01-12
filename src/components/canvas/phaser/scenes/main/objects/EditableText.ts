@@ -25,7 +25,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 			console.log(`${this.id} (${this.kind}) state changed`, ops)
 		})
 	}
-	
+
 	toJson(): EditableTextJson {
 		return {
 			...this.toJSON(),
@@ -67,13 +67,19 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	get locked(): boolean {
 		return this._isLocked
 	}
-
+	
 	get isResizable() {
 		return false
 	}
 
 	get stateObj() {
 		return this._stateObj
+	}
+
+	override destroy(fromScene?: boolean): void {
+		this._stateUnsub()
+
+		super.destroy(fromScene)
 	}
 }
 

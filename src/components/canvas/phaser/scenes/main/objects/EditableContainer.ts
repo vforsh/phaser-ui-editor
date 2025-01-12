@@ -1,4 +1,5 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
+import { proxy, subscribe } from 'valtio'
 import {
 	CreateEditableObjectJson,
 	CreateEditableObjectJsonBasic,
@@ -9,7 +10,6 @@ import {
 	IEditableObject,
 	isEditable,
 } from './EditableObject'
-import { proxy, subscribe } from 'valtio'
 
 type Events = {
 	'editable-added': (child: EditableObject) => void
@@ -24,6 +24,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 	public readonly id: string
 	private readonly __events = new TypedEventEmitter<Events>()
 	private readonly _preDestroyController = new AbortController()
+	// copy of editables to track changes in hierarchy
 	private _editablesCopy: EditableObject[] = []
 	private _isLocked = false
 	private _stateObj: EditableContainerJson
@@ -31,13 +32,13 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 
 	constructor(scene: Phaser.Scene, id: string, x = 0, y = 0, children: Phaser.GameObjects.GameObject[] = []) {
 		super(scene, x, y)
-		
+
 		this.id = id
-		
+
 		// defer adding children
 		// we do it here instead of in `super()` because `__events` is not initialized yet in `super()`
 		this.add(children)
-		
+
 		this._stateObj = proxy(this.toJson())
 
 		this._stateUnsub = subscribe(this._stateObj, (ops) => {
@@ -74,6 +75,8 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		if (isEditable(gameObject)) {
 			this.events.emit('editable-added', gameObject)
 
+			this._stateObj.children.push(gameObject.stateObj)
+
 			// every change in child container will propagate to parent container
 			if (gameObject instanceof EditableContainer) {
 				gameObject.events.on(
@@ -91,6 +94,11 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 
 		if (isEditable(gameObject)) {
 			this.events.emit('editable-removed', gameObject)
+
+			const stateIndex = this._stateObj.children.findIndex((child) => child.id === gameObject.id)
+			if (stateIndex !== -1) {
+				this._stateObj.children.splice(stateIndex, 1)
+			}
 
 			if (gameObject instanceof EditableContainer) {
 				gameObject.events.offByContext(this, 'hierarchy-changed')
@@ -150,10 +158,12 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		this.checkForHierarchyChanges()
 	}
 
-	override destroy(): void {
+	override destroy(fromScene?: boolean): void {
 		this._preDestroyController.abort()
 
-		super.destroy()
+		this._stateUnsub()
+
+		super.destroy(fromScene)
 
 		this.__events.destroy()
 

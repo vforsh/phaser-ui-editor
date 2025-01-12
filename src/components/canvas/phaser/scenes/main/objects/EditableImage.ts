@@ -72,6 +72,12 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 	get stateObj() {
 		return this._stateObj
 	}
+
+	override destroy(fromScene?: boolean): void {
+		this._stateUnsub()
+		
+		super.destroy(fromScene)
+	}
 }
 
 export type EditableImageJson = CreateEditableObjectJson<{
