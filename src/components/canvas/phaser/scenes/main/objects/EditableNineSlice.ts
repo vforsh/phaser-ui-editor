@@ -5,12 +5,15 @@ import {
 	EDITABLE_SYMBOL,
 	IEditableObject,
 } from './EditableObject'
+import { proxy, subscribe } from 'valtio'
 
 export class EditableNineSlice extends NinePatch implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
 	public readonly kind = 'NineSlice'
 	public readonly id: string
 	private _isLocked = false
+	private _stateObj: EditableNineSliceJson
+	private _stateUnsub: () => void
 
 	constructor(
 		scene: Phaser.Scene,
@@ -24,6 +27,12 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 		super(scene, 0, 0, width, height, texture, frame, ninePatchConfig)
 
 		this.id = id
+
+		this._stateObj = proxy(this.toJson())
+
+		this._stateUnsub = subscribe(this._stateObj, (ops) => {
+			console.log(`${this.id} (${this.kind}) state changed`, ops)
+		})
 	}
 
 	toJson(): EditableNineSliceJson {
@@ -100,6 +109,10 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 
 	set displayHeight(value: number) {
 		this.resize(this.width, value)
+	}
+
+	get stateObj() {
+		return this._stateObj
 	}
 }
 

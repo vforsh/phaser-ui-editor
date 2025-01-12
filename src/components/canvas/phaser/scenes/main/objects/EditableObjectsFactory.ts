@@ -11,7 +11,10 @@ import { EditableObject, EditableObjectJson } from './EditableObject'
 import { EditableText, EditableTextJson, EditableTextStyleJson } from './EditableText'
 
 type Events = {
+	// emitted after an object is created and has an id, but **not added to the scene**
 	'obj-registered': (obj: EditableObject) => void
+	// emitted after an object is destroyed
+	'obj-destroyed': (obj: EditableObject) => void
 }
 
 export interface CloneOptions {
@@ -45,6 +48,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 			'destroy',
 			() => {
 				this.idsToObjects.delete(obj.id)
+				this.emit('obj-destroyed', obj)
 			},
 			this,
 			this.destroySignal

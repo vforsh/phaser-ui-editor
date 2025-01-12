@@ -1,3 +1,4 @@
+import { proxy, subscribe } from 'valtio'
 import {
 	CreateEditableObjectJson,
 	CreateEditableObjectJsonBasic,
@@ -10,11 +11,19 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 	public readonly kind = 'Image'
 	public readonly id: string
 	private _isLocked = false
+	private _stateObj: EditableImageJson
+	private _stateUnsub: () => void
 
 	constructor(scene: Phaser.Scene, id: string, x: number, y: number, texture: string, frame?: string | number) {
 		super(scene, x, y, texture, frame)
 
 		this.id = id
+
+		this._stateObj = proxy(this.toJson())
+
+		this._stateUnsub = subscribe(this._stateObj, (ops) => {
+			console.log(`${this.id} (${this.kind}) state changed`, ops)
+		})
 	}
 
 	toJson(): EditableImageJson {
@@ -58,6 +67,10 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 
 	get isResizable(): boolean {
 		return true
+	}
+
+	get stateObj() {
+		return this._stateObj
 	}
 }
 

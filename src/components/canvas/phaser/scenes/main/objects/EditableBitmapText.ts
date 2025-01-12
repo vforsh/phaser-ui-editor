@@ -1,3 +1,4 @@
+import { proxy, subscribe } from 'valtio'
 import {
 	CreateEditableObjectJson,
 	CreateEditableObjectJsonBasic,
@@ -10,6 +11,8 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 	public readonly kind = 'BitmapText'
 	public readonly id: string
 	private _isLocked = false
+	private _stateObj: EditableBitmapTextJson
+	private _stateUnsub: () => void
 
 	// it is set in the super constructor
 	private _bounds!: Phaser.Types.GameObjects.BitmapText.BitmapTextSize
@@ -25,6 +28,12 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		super(scene, 0, 0, font, text, size, align)
 
 		this.id = id
+
+		this._stateObj = proxy(this.toJson())
+
+		this._stateUnsub = subscribe(this._stateObj, (ops) => {
+			console.log(`${this.id} (${this.kind}) state changed`, ops)
+		})
 	}
 
 	toJson(): EditableBitmapTextJson {
@@ -76,7 +85,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 	get isResizable() {
 		return false
 	}
-	
+
 	/**
 	 * @note copied from Phaser pull request
 	 * @link https://github.com/phaserjs/phaser/pull/6623
@@ -120,6 +129,10 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 
 	private setScaleY(value: number) {
 		this.setScale(this.scaleX, value)
+	}
+
+	get stateObj() {
+		return this._stateObj
 	}
 }
 

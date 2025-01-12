@@ -9,6 +9,7 @@ import {
 	IEditableObject,
 	isEditable,
 } from './EditableObject'
+import { proxy, subscribe } from 'valtio'
 
 type Events = {
 	'editable-added': (child: EditableObject) => void
@@ -25,15 +26,23 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 	private readonly _preDestroyController = new AbortController()
 	private _editablesCopy: EditableObject[] = []
 	private _isLocked = false
+	private _stateObj: EditableContainerJson
+	private _stateUnsub: () => void
 
 	constructor(scene: Phaser.Scene, id: string, x = 0, y = 0, children: Phaser.GameObjects.GameObject[] = []) {
 		super(scene, x, y)
-
+		
 		this.id = id
-
+		
 		// defer adding children
 		// we do it here instead of in `super()` because `__events` is not initialized yet in `super()`
 		this.add(children)
+		
+		this._stateObj = proxy(this.toJson())
+
+		this._stateUnsub = subscribe(this._stateObj, (ops) => {
+			console.log(`${this.id} (${this.kind}) state changed`, ops)
+		})
 
 		this.checkForHierarchyChanges()
 	}
@@ -169,6 +178,10 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 
 	get isResizable(): boolean {
 		return true
+	}
+
+	get stateObj() {
+		return this._stateObj
 	}
 }
 

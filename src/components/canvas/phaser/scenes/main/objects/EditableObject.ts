@@ -17,7 +17,7 @@ export interface IEditableObject {
 	get kind(): string
 
 	get id(): string
-
+	
 	set locked(value: boolean)
 	get locked(): boolean
 	set visible(value: boolean)
@@ -30,6 +30,8 @@ export interface IEditableObject {
 	
 	// returns simplified state of the object to use in Hierarchy Panel
 	toJsonBasic(): EditableObjectJsonBasic
+
+	get stateObj(): EditableObjectJson
 
 	// addComponent(component: EditableObjectComponent): void
 	// removeComponent(component: EditableObjectComponent): void

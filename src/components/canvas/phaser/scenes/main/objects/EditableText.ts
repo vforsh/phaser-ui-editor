@@ -1,3 +1,4 @@
+import { proxy, subscribe } from 'valtio'
 import {
 	CreateEditableObjectJson,
 	CreateEditableObjectJsonBasic,
@@ -10,13 +11,21 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	public readonly kind = 'Text'
 	public readonly id: string
 	private _isLocked = false
+	private _stateObj: EditableTextJson
+	private _stateUnsub: () => void
 
 	constructor(scene: Phaser.Scene, id: string, x: number, y: number, text: string, style: EditableTextStyleJson) {
 		super(scene, x, y, text, style as Phaser.Types.GameObjects.Text.TextStyle)
 
 		this.id = id
-	}
 
+		this._stateObj = proxy(this.toJson())
+
+		this._stateUnsub = subscribe(this._stateObj, (ops) => {
+			console.log(`${this.id} (${this.kind}) state changed`, ops)
+		})
+	}
+	
 	toJson(): EditableTextJson {
 		return {
 			...this.toJSON(),
@@ -61,6 +70,10 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 
 	get isResizable() {
 		return false
+	}
+
+	get stateObj() {
+		return this._stateObj
 	}
 }
 
