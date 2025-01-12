@@ -26,9 +26,11 @@ The project uses the following libraries:
 -   tslog for logging
 -   valtio for state management
 -   zod for data validation
+-   ts-pattern for pattern matching
 
 ### Development Guidelines
 
 -   Use @mantine/hooks for React hooks
 -   Follow the Mantine UI component library's design system and patterns
 -   Utilize TypeScript for type safety and code completion
+-   Use ts-pattern instead of switch statements for pattern matching, use `match().exhaustive()` whenever possible
