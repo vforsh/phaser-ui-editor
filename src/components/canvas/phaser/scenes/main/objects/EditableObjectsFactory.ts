@@ -1,4 +1,6 @@
+import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { IPatchesConfig } from '@koreez/phaser3-ninepatch'
+import { nanoid } from 'nanoid'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import { EditableBitmapText, EditableBitmapTextJson } from './EditableBitmapText'
@@ -7,6 +9,10 @@ import { EditableImage, EditableImageJson } from './EditableImage'
 import { EditableNineSlice, EditableNineSliceJson } from './EditableNineSlice'
 import { EditableObject, EditableObjectJson } from './EditableObject'
 import { EditableText, EditableTextJson, EditableTextStyleJson } from './EditableText'
+
+type Events = {
+	'obj-registered': (obj: EditableObject) => void
+}
 
 export interface CloneOptions {
 	addToScene?: boolean
@@ -17,13 +23,15 @@ export interface EditableObjectsFactoryOptions {
 	logger: Logger<{}>
 }
 
-export class EditableObjectsFactory {
+export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 	private scene: Phaser.Scene
 	private logger: Logger<{}>
 	private idsToObjects: Map<string, EditableObject> = new Map()
 	private destroyController = new AbortController()
 
 	constructor(options: EditableObjectsFactoryOptions) {
+		super()
+
 		this.scene = options.scene
 		this.logger = options.logger
 	}
@@ -43,20 +51,16 @@ export class EditableObjectsFactory {
 		)
 
 		this.idsToObjects.set(obj.id, obj)
+
+		this.emit('obj-registered', obj)
 	}
 
 	private getObjectId(): string {
-		// TODO replace with nanoid
-		let id = Phaser.Math.RND.uuid().split('-')[0]
+		let id = nanoid()
 		while (this.idsToObjects.has(id)) {
-			id = Phaser.Math.RND.uuid().split('-')[0]
+			id = nanoid()
 		}
 		return id
-	}
-
-	// TODO remove
-	public toJson(obj: EditableObject): EditableObjectJson {
-		return obj.toJson()
 	}
 
 	public container(): EditableContainer {
@@ -223,6 +227,8 @@ export class EditableObjectsFactory {
 	}
 
 	public destroy(): void {
+		super.destroy()
+
 		this.idsToObjects.clear()
 		this.destroyController.abort()
 	}

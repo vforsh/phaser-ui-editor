@@ -1,8 +1,8 @@
 import { Logger } from 'tslog'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { TypedEventEmitter } from '../../robowhale/phaser3/TypedEventEmitter'
-import { EditableObjectsFactory } from './objects/EditableObjectsFactory'
 import { EditableObject, EditableObjectJson } from './objects/EditableObject'
+import { EditableObjectsFactory } from './objects/EditableObjectsFactory'
 
 type Events = {
 	// "copy": (data: string) => void
@@ -30,7 +30,7 @@ export class CanvasClipboard extends TypedEventEmitter<Events> {
 	}
 
 	public copy(content: EditableObject[]): void {
-		this.content = content.map((item) => this.factory.toJson(item))
+		this.content = content.map((item) => item.toJson())
 	}
 
 	public paste(): EditableObject[] | null {
