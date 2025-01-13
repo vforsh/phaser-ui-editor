@@ -1,0 +1,11 @@
+.input {
+	transition: border-color 100ms ease;
+}
+
+.input:hover {
+	border-color: var(--mantine-color-blue-9);
+}
+
+.input:focus {
+	border-color: var(--mantine-color-blue-5);
+}

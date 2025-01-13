@@ -1,5 +1,8 @@
-import { Group, NumberInput, Stack } from '@mantine/core'
-import { BaseSectionProps } from '../BaseSection'
+import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { NumberInputCustom } from '@components/inspector/sections/common/NumberInputCustom'
+import { Group, Stack } from '@mantine/core'
+import { state } from '@state/State'
+import { useSnapshot } from 'valtio'
 
 export interface TransformSectionData {
 	x: number
@@ -11,74 +14,114 @@ export interface TransformSectionData {
 	scaleY: number
 }
 
-interface TransformSectionProps extends BaseSectionProps<TransformSectionData> {}
+interface TransformSectionProps {
+	data: EditableObjectJson
+}
 
-export function TransformSection({ data, onChange }: TransformSectionProps) {
+// TODO pass snap as prop
+export function TransformSection({ data }: TransformSectionProps) {
+	const stateObj = state.canvas.objectById!(data.id)!
+	const snap = useSnapshot(stateObj)
+
 	return (
 		<Stack gap="xs">
 			<Group grow>
-				<NumberInput
+				<NumberInputCustom
 					label="X"
-					value={data.x}
-					onChange={(val) => onChange('x', typeof val === 'string' ? parseFloat(val) : val, data.x)}
+					value={snap.x}
+					onChange={(val) => {
+						const obj = state.canvas.objectById!(data.id)
+						if (obj) {
+							obj.x = val
+						}
+					}}
 					decimalScale={2}
 					size="xs"
 				/>
-				<NumberInput
+				<NumberInputCustom
 					label="Y"
-					value={data.y}
-					onChange={(val) => onChange('y', typeof val === 'string' ? parseFloat(val) : val, data.y)}
+					value={snap.y}
+					onChange={(val) => {
+						const obj = state.canvas.objectById!(data.id)
+						if (obj) {
+							obj.y = val
+						}
+					}}
 					decimalScale={2}
 					size="xs"
 				/>
 			</Group>
 			<Group grow>
-				<NumberInput
+				<NumberInputCustom
 					label="Origin X"
-					value={data.originX}
-					onChange={(val) =>
-						onChange('originX', typeof val === 'string' ? parseFloat(val) : val, data.originX)
-					}
+					value={snap['origin.x']}
+					onChange={(val) => {
+						const obj = state.canvas.objectById!(data.id)
+						if (obj) {
+							obj['origin.x'] = val
+						}
+					}}
 					decimalScale={2}
 					min={0}
 					max={1}
+					step={0.01}
 					size="xs"
 				/>
-				<NumberInput
+				<NumberInputCustom
 					label="Origin Y"
-					value={data.originY}
-					onChange={(val) =>
-						onChange('originY', typeof val === 'string' ? parseFloat(val) : val, data.originY)
-					}
+					value={snap['origin.y']}
+					onChange={(val) => {
+						const obj = state.canvas.objectById!(data.id)
+						if (obj) {
+							obj['origin.y'] = val
+						}
+					}}
 					decimalScale={2}
 					min={0}
 					max={1}
+					step={0.01}
 					size="xs"
 				/>
 			</Group>
-			<NumberInput
+			<NumberInputCustom
 				label="Angle"
-				value={data.angle}
-				onChange={(val) => onChange('angle', typeof val === 'string' ? parseFloat(val) : val, data.angle)}
+				value={snap.angle}
+				onChange={(val) => {
+					const obj = state.canvas.objectById!(data.id)
+					if (obj) {
+						obj.angle = val
+					}
+				}}
+				decimalScale={0}
 				min={-180}
 				max={180}
 				step={1}
 				size="xs"
 			/>
 			<Group grow>
-				<NumberInput
+				<NumberInputCustom
 					label="Scale X"
-					value={data.scaleX}
-					onChange={(val) => onChange('scaleX', typeof val === 'string' ? parseFloat(val) : val, data.scaleX)}
+					value={snap.scale.x}
+					onChange={(val) => {
+						const obj = state.canvas.objectById!(data.id)
+						if (obj) {
+							obj.scale.x = val
+						}
+					}}
 					decimalScale={2}
 					min={0}
 					step={0.01}
 					size="xs"
 				/>
-				<NumberInput
+				<NumberInputCustom
 					label="Scale Y"
-					value={data.scaleY}
-					onChange={(val) => onChange('scaleY', typeof val === 'string' ? parseFloat(val) : val, data.scaleY)}
+					value={snap.scale.y}
+					onChange={(val) => {
+						const obj = state.canvas.objectById!(data.id)
+						if (obj) {
+							obj.scale.y = val
+						}
+					}}
 					decimalScale={2}
 					min={0}
 					step={0.01}
