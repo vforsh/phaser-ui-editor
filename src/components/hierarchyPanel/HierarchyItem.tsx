@@ -1,37 +1,46 @@
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
-import { ActionIcon, Group, Text, Tooltip, useMantineTheme } from '@mantine/core'
+import { ActionIcon, alpha, Group, Text, Tooltip, useMantineTheme } from '@mantine/core'
+import { state } from '@state/State'
 import { ChevronDown, Eye, EyeOff, Folder, Image, ImageUpscale, Lock, TextQuote, Type, Unlock } from 'lucide-react'
 import { useState } from 'react'
 import { match } from 'ts-pattern'
-import { Snapshot } from 'valtio'
+import { useSnapshot } from 'valtio'
 
-import { state } from '@state/State'
 const INDENT_SIZE = 26
 const ICON_MARGIN = 8
 
 interface HierarchyItemProps {
-	obj: Snapshot<EditableObjectJson>
+	objId: string
 	level?: number
+	selectedIds: readonly string[]
+	hoveredIds: readonly string[]
 	isLastChild?: Boolean
-	isSelected?: boolean
 	isHovered?: boolean
 	isOpened?: boolean
 }
 
 export default function HierarchyItem({
-	obj,
+	objId,
+	selectedIds,
+	hoveredIds,
 	level = 0,
 	isLastChild = false,
-	isSelected = false,
 	isHovered: isHoveredInitially = false,
 	isOpened: isOpenedInitially = true,
 }: HierarchyItemProps) {
+	const stateObj = state.canvas.objectById?.(objId)
+	if (!stateObj) {
+		return <></>
+	}
+
+	const theme = useMantineTheme()
 	const [isOpen, setIsOpen] = useState(isOpenedInitially)
 	const [isHovered, setIsHovered] = useState(isHoveredInitially)
-	const theme = useMantineTheme()
+	const snap = useSnapshot(stateObj)
+	const isSelectedInCanvas = selectedIds.includes(objId)
+	const isHoveredInCanvas = hoveredIds.includes(objId)
 
 	const getIcon = () => {
-		return match(obj)
+		return match(snap)
 			.with({ type: 'Container' }, () => <Folder size={16} />)
 			.with({ type: 'Image' }, () => <Image size={16} />)
 			.with({ type: 'NineSlice' }, () => <ImageUpscale size={16} />)
@@ -41,19 +50,17 @@ export default function HierarchyItem({
 	}
 
 	const handleToggle = () => {
-		if (obj.type === 'Container') {
+		if (snap.type === 'Container') {
 			setIsOpen(!isOpen)
 		}
 	}
 
 	const setItemVisibility = (visible: boolean) => {
-		// TODO replace with custom hook
-		state.canvas.objectById!(obj.id)!.visible = visible
+		stateObj!.visible = visible
 	}
 
 	const setItemLock = (locked: boolean) => {
-		// TODO replace with custom hook
-		state.canvas.objectById!(obj.id)!.locked = locked
+		stateObj!.locked = locked
 	}
 
 	const gridLineThickness = 1
@@ -68,8 +75,8 @@ export default function HierarchyItem({
 					padding: '0.5rem 0',
 					paddingLeft: level * INDENT_SIZE + ICON_MARGIN,
 					borderRadius: theme.radius.sm,
-					backgroundColor: isSelected
-						? theme.colors.blue[9]
+					backgroundColor: isSelectedInCanvas
+						? alpha(theme.colors.blue[9], 0.5)
 						: isHovered
 							? theme.colors.dark[6]
 							: 'transparent',
@@ -112,7 +119,7 @@ export default function HierarchyItem({
 				)}
 
 				<Group gap="xs" wrap="nowrap">
-					{obj.type === 'Container' && (
+					{snap.type === 'Container' && (
 						<div
 							style={{
 								transition: 'transform 33ms ease',
@@ -149,20 +156,21 @@ export default function HierarchyItem({
 							whiteSpace: 'nowrap',
 							overflow: 'hidden',
 							textOverflow: 'ellipsis',
-							opacity: obj.visible ? 1 : 0.5,
+							opacity: snap.visible ? 1 : 0.5,
 							userSelect: 'none',
 						}}
 					>
-						{obj.name}
+						{snap.name}
 					</Text>
 
-					<Tooltip label={obj.visible ? 'Hide' : 'Show'}>
+					<Tooltip label={snap.visible ? 'Hide' : 'Show'}>
 						<ActionIcon
 							variant="subtle"
 							size="sm"
+							color={theme.colors.gray[5]}
 							onClick={(e) => {
 								e.stopPropagation()
-								setItemVisibility(!obj.visible)
+								setItemVisibility(!snap.visible)
 							}}
 							style={{
 								marginLeft: 'auto',
@@ -170,40 +178,41 @@ export default function HierarchyItem({
 								transition: 'opacity 33ms ease',
 							}}
 						>
-							{obj.visible ? <Eye size={14} /> : <EyeOff size={14} />}
+							{snap.visible ? <Eye size={14} /> : <EyeOff size={14} />}
 						</ActionIcon>
 					</Tooltip>
 
-					<Tooltip label={obj.locked ? 'Unlock' : 'Lock'}>
+					<Tooltip label={snap.locked ? 'Unlock' : 'Lock'}>
 						<ActionIcon
 							variant="subtle"
 							size="sm"
+							color={theme.colors.gray[5]}
 							onClick={(e) => {
 								e.stopPropagation()
-								setItemLock(!obj.locked)
+								setItemLock(!snap.locked)
 							}}
 							style={{
 								marginRight: '10px',
-								opacity: obj.locked ? 1 : isHovered ? 1 : 0,
+								opacity: snap.locked ? 1 : isHovered ? 1 : 0,
 								transition: 'opacity 33ms ease',
 							}}
 						>
-							{obj.locked ? <Lock size={14} /> : <Unlock size={14} />}
+							{snap.locked ? <Lock size={14} /> : <Unlock size={14} />}
 						</ActionIcon>
 					</Tooltip>
 				</Group>
 			</div>
 
-			{obj.type === 'Container' &&
+			{snap.type === 'Container' &&
 				isOpen &&
-				obj.children?.map((obj, index, arr) => (
+				snap.children?.map((child, index, arr) => (
 					<HierarchyItem
-						key={obj.id}
-						obj={obj}
+						key={child.id}
+						objId={child.id}
 						level={level + 1}
+						selectedIds={selectedIds}
+						hoveredIds={hoveredIds}
 						isLastChild={index === arr.length - 1}
-						isSelected={isSelected}
-						isHovered={isHovered}
 					/>
 				))}
 		</>

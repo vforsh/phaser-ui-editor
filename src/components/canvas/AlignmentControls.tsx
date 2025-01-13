@@ -23,7 +23,7 @@ export default function AlignmentControls({
 }: AlignmentControlsProps) {
 	const theme = useMantineTheme()
 	const isHorizontal = orientation === 'horizontal'
-	const iconColor = '#c9c9c9'
+	const iconColor = theme.colors.gray[5]
 	const iconSize = 18
 
 	return (

@@ -1,8 +1,14 @@
+import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { Paper, ScrollArea, Stack } from '@mantine/core'
 import { state, useSnapshot } from '@state/State'
 import { Logger } from 'tslog'
 import { PanelTitle } from '../PanelTitle'
 import HierarchyItem from './HierarchyItem'
+
+type HierarchyItem = EditableObjectJson & {
+	selected: boolean
+	hovered: boolean
+}
 
 export type HierarchyPanelProps = {
 	logger: Logger<{}>
@@ -11,11 +17,7 @@ export type HierarchyPanelProps = {
 export default function HierarchyPanel(props: HierarchyPanelProps) {
 	const { logger } = props
 
-	const canvasSnap = useSnapshot(state.canvas.objects!)
-
-	// TODO implement selection and hover for hierarchy panel
-	const isSelected = false
-	const isHovered = false
+	const canvasSnap = useSnapshot(state.canvas)
 
 	return (
 		<Paper style={{ height: '100%', display: 'flex', flexDirection: 'column' }} radius="sm">
@@ -23,13 +25,13 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 				<PanelTitle title="Hierarchy" />
 				<ScrollArea style={{ flex: 1 }}>
 					<Stack gap={0}>
-						{canvasSnap && (
+						{canvasSnap.objects && (
 							<HierarchyItem
-								key={canvasSnap.id}
-								obj={canvasSnap}
+								key={canvasSnap.objects.id}
+								objId={canvasSnap.objects.id}
+								selectedIds={canvasSnap.selection}
+								hoveredIds={canvasSnap.hover}
 								isLastChild={true}
-								isSelected={isSelected}
-								isHovered={isHovered}
 							/>
 						)}
 					</Stack>

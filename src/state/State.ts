@@ -34,6 +34,7 @@ export const stateSchema = z.object({
 	project: projectConfigSchema.nullable(),
 	assets: z.array(z.unknown()) as z.ZodType<AssetTreeItemData[]>,
 	canvas: z.object({
+		hover: z.array(z.string()),
 		selection: z.array(z.string()),
 		selectionChangedAt: z.number().int().positive().optional(),
 		objects: z.unknown().nullable() as z.ZodType<EditableObjectJson | null>,
@@ -76,6 +77,7 @@ const initialStateParsed = merge(
 		project: null,
 		assets: [],
 		canvas: {
+			hover: [],
 			selection: [],
 			objects: null,
 			objectById: null,
