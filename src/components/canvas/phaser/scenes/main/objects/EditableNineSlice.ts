@@ -57,6 +57,7 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 			height: this.height,
 			// @ts-expect-error
 			ninePatchConfig: this.config as IPatchesConfig,
+			angle: this.angle,
 		}
 	}
 
@@ -146,6 +147,7 @@ export type EditableNineSliceJson = CreateEditableObjectJson<{
 	width: number
 	height: number
 	ninePatchConfig: IPatchesConfig
+	angle: number
 }>
 
 export type EditableNineSliceJsonBasic = CreateEditableObjectJsonBasic<{

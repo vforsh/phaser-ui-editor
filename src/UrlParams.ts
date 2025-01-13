@@ -14,6 +14,7 @@ export type GenericUrlParam =
 	| 'test'
 	// to enable react-scan
 	| 'scan'
+
 export type UrlParamsOptions = {
 	logger: Logger<{}>
 	search: string

@@ -47,6 +47,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 			letterSpacing: this.letterSpacing,
 			tint: this.tint,
 			tintFill: this.tintFill,
+			angle: this.angle,
 		}
 	}
 
@@ -107,6 +108,7 @@ export type EditableTextJson = CreateEditableObjectJson<{
 	letterSpacing: number
 	tint: number
 	tintFill: boolean
+	angle: number
 }>
 
 export type EditableTextJsonBasic = CreateEditableObjectJsonBasic<{
