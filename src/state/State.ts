@@ -1,4 +1,6 @@
+import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { derive } from 'derive-valtio'
+import { merge } from 'es-toolkit'
 import { PartialDeep } from 'type-fest'
 import { proxy, subscribe, useSnapshot } from 'valtio'
 import { z } from 'zod'
@@ -13,8 +15,6 @@ import { AssetTreeItemData } from '../types/assets'
 import { getObjectKeys } from '../utils/collection/get-object-keys'
 import { absolutePathSchema } from './Schemas'
 import { isValtioRef, unproxy } from './valtio-utils'
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
-import { merge } from 'es-toolkit'
 
 export const stateSchema = z.object({
 	lastOpenedProjectDir: absolutePathSchema.optional(),
@@ -35,9 +35,15 @@ export const stateSchema = z.object({
 	assets: z.array(z.unknown()) as z.ZodType<AssetTreeItemData[]>,
 	canvas: z.object({
 		selection: z.array(z.string()),
+		selectionChangedAt: z.number().int().positive().optional(),
 		objects: z.unknown().nullable() as z.ZodType<EditableObjectJson | null>,
-		objectById: z.function().args(z.string()).returns(z.unknown() as z.ZodType<EditableObjectJson | undefined>).nullable(),
+		objectById: z
+			.function()
+			.args(z.string())
+			.returns(z.unknown() as z.ZodType<EditableObjectJson | undefined>)
+			.nullable(),
 	}),
+	// TODO move it out of state
 	app: z
 		.object({
 			events: z.instanceof(TypedEventEmitter<AppEvents>),
@@ -45,6 +51,7 @@ export const stateSchema = z.object({
 		})
 		.required()
 		.nullable(),
+	// TODO move it out of state
 	phaser: z
 		.object({
 			events: z.instanceof(TypedEventEmitter<PhaserAppEvents>),

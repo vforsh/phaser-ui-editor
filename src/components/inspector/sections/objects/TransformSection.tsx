@@ -1,7 +1,6 @@
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { NumberInputCustom } from '@components/inspector/sections/common/NumberInputCustom'
 import { Group, Stack } from '@mantine/core'
-import { state } from '@state/State'
 import { useSnapshot } from 'valtio'
 
 export interface TransformSectionData {
@@ -20,33 +19,22 @@ interface TransformSectionProps {
 
 // TODO pass snap as prop
 export function TransformSection({ data }: TransformSectionProps) {
-	const stateObj = state.canvas.objectById!(data.id)!
-	const snap = useSnapshot(stateObj)
-
+	const snap = useSnapshot(data)
+	
 	return (
 		<Stack gap="xs">
 			<Group grow>
 				<NumberInputCustom
 					label="X"
 					value={snap.x}
-					onChange={(val) => {
-						const obj = state.canvas.objectById!(data.id)
-						if (obj) {
-							obj.x = val
-						}
-					}}
+					onChange={(val) => (data.x = val)}
 					decimalScale={2}
 					size="xs"
 				/>
 				<NumberInputCustom
 					label="Y"
 					value={snap.y}
-					onChange={(val) => {
-						const obj = state.canvas.objectById!(data.id)
-						if (obj) {
-							obj.y = val
-						}
-					}}
+					onChange={(val) => (data.y = val)}
 					decimalScale={2}
 					size="xs"
 				/>
@@ -55,12 +43,7 @@ export function TransformSection({ data }: TransformSectionProps) {
 				<NumberInputCustom
 					label="Origin X"
 					value={snap['origin.x']}
-					onChange={(val) => {
-						const obj = state.canvas.objectById!(data.id)
-						if (obj) {
-							obj['origin.x'] = val
-						}
-					}}
+					onChange={(val) => (data['origin.x'] = val)}
 					decimalScale={2}
 					min={0}
 					max={1}
@@ -70,12 +53,7 @@ export function TransformSection({ data }: TransformSectionProps) {
 				<NumberInputCustom
 					label="Origin Y"
 					value={snap['origin.y']}
-					onChange={(val) => {
-						const obj = state.canvas.objectById!(data.id)
-						if (obj) {
-							obj['origin.y'] = val
-						}
-					}}
+					onChange={(val) => (data['origin.y'] = val)}
 					decimalScale={2}
 					min={0}
 					max={1}
@@ -86,12 +64,7 @@ export function TransformSection({ data }: TransformSectionProps) {
 			<NumberInputCustom
 				label="Angle"
 				value={snap.angle}
-				onChange={(val) => {
-					const obj = state.canvas.objectById!(data.id)
-					if (obj) {
-						obj.angle = val
-					}
-				}}
+				onChange={(val) => (data.angle = val)}
 				decimalScale={0}
 				min={-180}
 				max={180}
@@ -102,12 +75,7 @@ export function TransformSection({ data }: TransformSectionProps) {
 				<NumberInputCustom
 					label="Scale X"
 					value={snap.scale.x}
-					onChange={(val) => {
-						const obj = state.canvas.objectById!(data.id)
-						if (obj) {
-							obj.scale.x = val
-						}
-					}}
+					onChange={(val) => (data.scale.x = val)}
 					decimalScale={2}
 					min={0}
 					step={0.01}
@@ -116,12 +84,7 @@ export function TransformSection({ data }: TransformSectionProps) {
 				<NumberInputCustom
 					label="Scale Y"
 					value={snap.scale.y}
-					onChange={(val) => {
-						const obj = state.canvas.objectById!(data.id)
-						if (obj) {
-							obj.scale.y = val
-						}
-					}}
+					onChange={(val) => (data.scale.y = val)}
 					decimalScale={2}
 					min={0}
 					step={0.01}
