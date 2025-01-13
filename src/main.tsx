@@ -6,8 +6,9 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import './polyfills'
+import { urlParams } from '@url-params'
 
-if (typeof window !== 'undefined') {
+if (urlParams.getBool('scan')) {
 	scan({
 		enabled: true,
 		log: false, // logs render info to console (default: false)

@@ -12,7 +12,8 @@ export type GenericUrlParam =
 	| 'clearConsole'
 	// to start with TestScene instead of MainScene
 	| 'test'
-
+	// to enable react-scan
+	| 'scan'
 export type UrlParamsOptions = {
 	logger: Logger<{}>
 	search: string
