@@ -1,6 +1,6 @@
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { derive } from 'derive-valtio'
-import { merge } from 'es-toolkit'
+import { debounce, merge } from 'es-toolkit'
 import { PartialDeep } from 'type-fest'
 import { proxy, subscribe, useSnapshot } from 'valtio'
 import { z } from 'zod'
@@ -34,6 +34,11 @@ export const stateSchema = z.object({
 	project: projectConfigSchema.nullable(),
 	assets: z.array(z.unknown()) as z.ZodType<AssetTreeItemData[]>,
 	canvas: z.object({
+		camera: z.object({
+			zoom: z.number().positive(),
+			scrollX: z.number(),
+			scrollY: z.number(),
+		}),
 		hover: z.array(z.string()),
 		selection: z.array(z.string()),
 		selectionChangedAt: z.number().int().positive().optional(),
@@ -41,8 +46,7 @@ export const stateSchema = z.object({
 		objectById: z
 			.function()
 			.args(z.string())
-			.returns(z.unknown() as z.ZodType<EditableObjectJson | undefined>)
-			.nullable(),
+			.returns(z.unknown() as z.ZodType<EditableObjectJson | undefined>),
 	}),
 	// TODO move it out of state
 	app: z
@@ -77,10 +81,15 @@ const initialStateParsed = merge(
 		project: null,
 		assets: [],
 		canvas: {
+			camera: {
+				zoom: 1,
+				scrollX: 0,
+				scrollY: 0,
+			},
 			hover: [],
 			selection: [],
 			objects: null,
-			objectById: null,
+			objectById: () => undefined,
 		},
 		app: null,
 		phaser: null,
@@ -93,10 +102,18 @@ const initialState = stateSchema.parse(initialStateParsed)
 
 const state = proxy(initialState)
 
-// save state to localStorage on change, but filter out valtio refs
-subscribe(state, () => {
+const debouncedSaveState = debounce(() => {
 	const serializedState = serializeState()
 	localStorage.setItem('state', serializedState)
+}, 1000)
+
+window.addEventListener('beforeunload', () => {
+	debouncedSaveState.flush()
+})
+
+// save state to localStorage on change, but filter out valtio refs
+subscribe(state, () => {
+	debouncedSaveState()
 })
 
 function serializeState(): string {

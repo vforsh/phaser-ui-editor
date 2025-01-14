@@ -1,4 +1,5 @@
 import { IPatchesConfig } from '@koreez/phaser3-ninepatch'
+import { state } from '@state/State'
 import { urlParams } from '@url-params'
 import { once } from 'es-toolkit'
 import { err, ok } from 'neverthrow'
@@ -31,7 +32,7 @@ import { TransformControls } from './editContext/TransformControls'
 import { Grid } from './Grid'
 import { EditableContainer } from './objects/EditableContainer'
 import { EditableImage } from './objects/EditableImage'
-import { EditableObject, isTintable } from './objects/EditableObject'
+import { EditableObject } from './objects/EditableObject'
 import { EditableObjectsFactory } from './objects/EditableObjectsFactory'
 import { Rulers } from './Rulers'
 type PhaserBmfontData = Phaser.Types.GameObjects.BitmapText.BitmapFontData
@@ -115,21 +116,24 @@ export class MainScene extends BaseScene {
 
 		this.scale.on('resize', this.resize, this, this.shutdownSignal)
 
+		const cameraState = state.canvas.camera
+		const camera = this.cameras.main
+		camera.setZoom(cameraState.zoom)
+		camera.setScroll(cameraState.scrollX, cameraState.scrollY)
+
 		this.onResizeOrCameraChange(this.scale.gameSize)
 
-		this.alignCameraToProjectFrame()
+		const isDefaultCameraSettings = cameraState.zoom === 1 && cameraState.scrollX === 0 && cameraState.scrollY === 0
+		if (isDefaultCameraSettings) {
+			this.alignCameraToProjectFrame()
+		}
 
 		this.setupAppCommands()
 
 		this.addTestObjects()
 
-		// trigger hierarchy change event so hierarchy panel will be updated
-		this.onHierarchyChanged()
-
-		const zoom = urlParams.getNumber('zoom')
-		if (typeof zoom === 'number' && zoom > 0) {
-			this.setCameraZoom(zoom)
-		}
+		state.canvas.objects = this.root.stateObj
+		state.canvas.objectById = (id: string) => this.objectsFactory.getObjectById(id)?.stateObj
 	}
 
 	private initObjectsFactory() {
@@ -156,22 +160,8 @@ export class MainScene extends BaseScene {
 			'selection-changed',
 			(selection) => {
 				const selectionIds = selection?.objects.map((obj) => obj.id) || []
-				// this.logger.debug(`selection changed [${selectionIds.join(', ')}] (${selectionIds.length})`)
-				this.game.ev3nts.emit('selection-changed', selectionIds)
-
-				if (selection && selection.objects.length > 0) {
-					if (selection.objects.length > 1) {
-						this.game.ev3nts.emit('selected-object-changed', null)
-					} else {
-						const obj = this.objectsFactory.getObjectById(selection.objects[0].id)
-						const objJson = obj?.toJson()
-						if (objJson) {
-							this.game.ev3nts.emit('selected-object-changed', objJson)
-						}
-					}
-				} else {
-					this.game.ev3nts.emit('selected-object-changed', null)
-				}
+				state.canvas.selection = selectionIds
+				state.canvas.selectionChangedAt = Date.now()
 			},
 			this,
 			this.shutdownSignal
@@ -183,18 +173,10 @@ export class MainScene extends BaseScene {
 		this.root.name = 'root' // TODO use the current prefab name (from the assets tree)
 		this.add.existing(this.root)
 
-		this.root.events.on('hierarchy-changed', this.onHierarchyChanged, this, this.shutdownSignal)
-
 		this.editContexts.add(this.root, {
 			switchTo: true,
 			isRoot: true,
 		})
-	}
-
-	private onHierarchyChanged(): void {
-		const hierarchy = this.root.toJsonBasic()
-		// this.logger.debug(`hierarchy changed`, hierarchy)
-		this.game.ev3nts.emit('hierarchy-changed', hierarchy)
 	}
 
 	private initAligner() {
@@ -289,11 +271,11 @@ export class MainScene extends BaseScene {
 
 		const chefCherry_1 = (await this.addTestImage(chefCherryFrame, -400, -400)) as EditableImage
 		chefCherry_1?.setName(this.getNewObjectName(context, chefCherry_1!, 'chefCherry_topLeft'))
-		chefCherry_1?.setOrigin(0)
+		chefCherry_1?.setOriginCustom(0)
 
 		const chefCherry_2 = (await this.addTestImage(chefCherryFrame, 400, -400)) as EditableImage
 		chefCherry_2?.setName(this.getNewObjectName(context, chefCherry_2!, 'chefCherry_topRight'))
-		chefCherry_2?.setOrigin(1, 0)
+		chefCherry_2?.setOriginCustom(1, 0)
 
 		const bitmapFontAsset: AssetTreeBitmapFontData = {
 			type: 'bitmap-font',
@@ -497,81 +479,6 @@ export class MainScene extends BaseScene {
 			false,
 			this.shutdownSignal
 		)
-
-		appCommands.on(
-			'obj-change',
-			(payload) => {
-				const obj = this.objectsFactory.getObjectById(payload.id)
-				if (!obj) {
-					this.logger.error(`failed to find object by id '${payload.id}'`)
-					return
-				}
-
-				match(payload)
-					.with({ type: 'obj-info' }, (payload) => {
-						match(payload)
-							.with({ prop: 'name' }, (payload) => {
-								obj.setName(payload.value)
-							})
-							.with({ prop: 'locked' }, (payload) => {
-								obj.locked = payload.value
-							})
-							.exhaustive()
-					})
-					.with({ type: 'obj-display' }, (display) => {
-						match(display)
-							.with({ prop: 'visible' }, (payload) => {
-								obj.setVisible(payload.value)
-							})
-							.with({ prop: 'alpha' }, (payload) => {
-								obj.setAlpha(payload.value)
-							})
-							.with({ prop: 'blendMode' }, (payload) => {
-								obj.setBlendMode(payload.value)
-							})
-							.with({ prop: 'tint' }, (payload) => {
-								if (isTintable(obj)) {
-									obj.tint = parseInt(payload.value.slice(1), 16)
-								}
-							})
-							.with({ prop: 'tintFill' }, (payload) => {
-								if (isTintable(obj)) {
-									obj.tintFill = payload.value
-								}
-							})
-							.exhaustive()
-					})
-					.with({ type: 'obj-transform' }, (transform) => {
-						match(transform)
-							.with({ prop: 'x' }, (payload) => {
-								console.log('x', payload)
-							})
-							.with({ prop: 'y' }, (payload) => {
-								console.log('y', payload)
-							})
-							.with({ prop: 'originX' }, (payload) => {
-								console.log('originX', payload)
-							})
-							.with({ prop: 'originY' }, (payload) => {
-								console.log('originY', payload)
-							})
-							.with({ prop: 'angle' }, (payload) => {
-								console.log('angle', payload)
-							})
-							.with({ prop: 'scaleX' }, (payload) => {
-								console.log('scaleX', payload)
-							})
-							.with({ prop: 'scaleY' }, (payload) => {
-								console.log('scaleY', payload)
-							})
-							.exhaustive()
-					})
-					.exhaustive()
-			},
-			this,
-			false,
-			this.shutdownSignal
-		)
 	}
 
 	private findObjectByPath(path: string): EditableObject | undefined {
@@ -607,7 +514,7 @@ export class MainScene extends BaseScene {
 		const origin =
 			data.asset.type === 'spritesheet-frame' && data.asset.anchor ? data.asset.anchor : { x: 0.5, y: 0.5 }
 
-		obj.name ||= this.getNewObjectName(this.editContexts.current!, obj, data.asset.name)
+		obj.setName(this.getNewObjectName(this.editContexts.current!, obj, data.asset.name))
 		obj.setPosition(data.position.x, data.position.y)
 
 		if ('setOrigin' in obj && typeof obj.setOrigin === 'function') {
@@ -881,7 +788,6 @@ export class MainScene extends BaseScene {
 	}
 
 	private addKeyboadCallbacks() {
-		// TODO implement restart scene
 		this.onKeyDown('R', this.restart, this, this.shutdownSignal)
 		this.onKeyDown('F', this.alignCameraToProjectFrame, this, this.shutdownSignal)
 
@@ -1033,7 +939,7 @@ export class MainScene extends BaseScene {
 		copiedObjs.forEach((obj) => {
 			obj.x += 30
 			obj.y += 30
-			obj.name = this.getNewObjectName(editContext, obj)
+			obj.setName(this.getNewObjectName(editContext, obj))
 			editContext.target.add(obj)
 			this.logger.debug(`pasted '${obj.name}'`)
 		})
@@ -1057,7 +963,8 @@ export class MainScene extends BaseScene {
 
 		// create a copy of the objects array bc obj.destroy() will remove it from the original array `selection.objects`
 		selection.objects.slice(0).forEach((obj) => {
-			obj.destroy()
+			// delete it like this to trigger removeHandler in EditableContainer
+			obj.parentContainer.remove(obj, true)
 		})
 	}
 
@@ -1404,6 +1311,10 @@ export class MainScene extends BaseScene {
 		let camera = this.cameras.main
 		this.grid.redraw(gameSize, camera, camera.scrollX, camera.scrollY)
 		this.rulers.redraw(gameSize, camera.zoom, camera.scrollX, camera.scrollY)
+
+		state.canvas.camera.zoom = camera.zoom
+		state.canvas.camera.scrollX = camera.scrollX
+		state.canvas.camera.scrollY = camera.scrollY
 	}
 
 	private alignCameraToProjectFrame() {
@@ -1437,6 +1348,9 @@ export class MainScene extends BaseScene {
 		this.clipboard?.destroy()
 		// @ts-expect-error
 		this.clipboard = undefined
+
+		state.canvas.objects = null
+		state.canvas.objectById = () => undefined
 
 		this.logger.debug(`${this.scene.key} shutdown - complete`)
 	}
