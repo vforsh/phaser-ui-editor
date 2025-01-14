@@ -8,6 +8,7 @@ import { Box, Collapse, Group, Text, UnstyledButton } from '@mantine/core'
 import { ChevronRight, LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import { ValueOf } from 'type-fest'
+import classes from './InspectorSection.module.css'
 import { AssetSectionData } from './sections/assets/AssetSection'
 import { GraphicAssetPreviewSectionData } from './sections/assets/GraphicAssetPreviewSection'
 
@@ -53,16 +54,7 @@ export function InspectorSection(props: InspectorSectionProps) {
 
 	return (
 		<Box>
-			<UnstyledButton
-				onClick={() => setExpanded(!expanded)}
-				style={{
-					width: '100%',
-					padding: 'var(--mantine-spacing-xs)',
-					borderRadius: 'var(--mantine-radius-sm)',
-					backgroundColor: 'var(--mantine-color-dark-6)',
-					transition: 'background-color 150ms ease',
-				}}
-			>
+			<UnstyledButton onClick={() => setExpanded(!expanded)} className={classes.button}>
 				<Group gap="xs">
 					<div
 						style={{

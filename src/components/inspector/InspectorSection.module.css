@@ -1,0 +1,11 @@
+.button {
+	width: 100%;
+	padding: var(--mantine-spacing-xs);
+	border-radius: var(--mantine-radius-sm);
+	background-color: var(--mantine-color-dark-6);
+	transition: background-color 150ms ease;
+}
+
+.button:hover {
+	background-color: var(--mantine-color-dark-5);
+}
