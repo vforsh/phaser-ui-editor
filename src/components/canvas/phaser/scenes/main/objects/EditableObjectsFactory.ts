@@ -152,13 +152,13 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 
 		image.setName(json.name)
 		image.setVisible(json.visible)
+		image.setLocked(json.locked)
 		image.setAlpha(json.alpha)
 		image.setRotation(json.rotation)
 		image.setDepth(json.depth)
 		image.setBlendMode(json.blendMode)
-		image.setScale(json.scale.x, json.scale.y)
-		image.setOrigin(json.origin.x, json.origin.y)
-		image.locked = json.locked
+		image.setScale(json['scale.x'], json['scale.y'])
+		image.setOrigin(json['origin.x'], json['origin.y'])
 
 		return image
 	}

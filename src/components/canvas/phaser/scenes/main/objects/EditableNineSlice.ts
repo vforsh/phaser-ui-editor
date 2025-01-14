@@ -1,7 +1,6 @@
 import { IPatchesConfig, NinePatch } from '@koreez/phaser3-ninepatch'
 import {
 	CreateEditableObjectJson,
-	CreateEditableObjectJsonBasic,
 	EDITABLE_SYMBOL,
 	IEditableObject,
 } from './EditableObject'
@@ -31,7 +30,7 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 		this._stateObj = proxy(this.toJson())
 
 		this._stateUnsub = subscribe(this._stateObj, (ops) => {
-			console.log(`${this.id} (${this.kind}) state changed`, ops)
+			// console.log(`${this.id} (${this.kind}) state changed`, ops)
 		})
 	}
 
@@ -58,16 +57,6 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 			// @ts-expect-error
 			ninePatchConfig: this.config as IPatchesConfig,
 			angle: this.angle,
-		}
-	}
-
-	toJsonBasic(): EditableNineSliceJsonBasic {
-		return {
-			type: 'NineSlice',
-			id: this.id,
-			name: this.name,
-			locked: this.locked,
-			visible: this.visible,
 		}
 	}
 
@@ -148,11 +137,4 @@ export type EditableNineSliceJson = CreateEditableObjectJson<{
 	height: number
 	ninePatchConfig: IPatchesConfig
 	angle: number
-}>
-
-export type EditableNineSliceJsonBasic = CreateEditableObjectJsonBasic<{
-	type: 'NineSlice'
-	name: string
-	locked: boolean
-	visible: boolean
 }>

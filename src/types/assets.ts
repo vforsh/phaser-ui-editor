@@ -150,6 +150,10 @@ export type AssetTreeSpritesheetFrameData = {
 	 * Absolute path to the TexturePacker project file (e.g. `/Users/user/game/assets/graphics/gameplay_gui.tps`)
 	 */
 	project?: string
+	/**
+	 * Id of the parent spritesheet
+	 */
+	parentId?: string
 }
 
 export type GraphicAssetData =
@@ -316,11 +320,11 @@ export function getAssetChildren(asset: AssetTreeItemData): AssetTreeItemData[] 
 /**
  * Get path to asset relative to assets root directory.
  */
-export function getAssetRelativePath(asset: AssetTreeItemData, baseDir?: string): string {
+export function getAssetRelativePath(assetPath: string, baseDir?: string): string {
 	baseDir ??= path.join(state.projectDir!, state.project!.assetsDir)
 	const prevCwd = path.process_cwd
 	path.setCWD(baseDir)
-	const relativePath = path.relative(baseDir, asset.path)
+	const relativePath = path.relative(baseDir, assetPath)
 	path.setCWD(prevCwd)
 	return relativePath
 }

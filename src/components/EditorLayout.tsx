@@ -5,7 +5,7 @@ import JSON5 from 'json5'
 import path from 'path-browserify-esm'
 import { useCallback, useEffect, useState } from 'react'
 import { projectConfigSchema } from '../project/ProjectConfig'
-import { state, stateSchema, useSnapshot } from '../state/State'
+import { state, stateSchema } from '../state/State'
 import trpc from '../trpc'
 import AssetsPanel from './assetsPanel/AssetsPanel'
 import { buildAssetTree } from './assetsPanel/build-asset-tree'
@@ -22,8 +22,6 @@ const MAX_PANEL_HEIGHT = 800
 
 export default function EditorLayout() {
 	const theme = useMantineTheme()
-
-	const snap = useSnapshot(state)
 
 	const { leftPanelWidth: lpw, rightPanelWidth: rpw, hierarchyHeight: hh } = state.panelDimensions
 	const [leftPanelWidth, setLeftPanelWidth] = useState(lpw)
@@ -87,28 +85,14 @@ export default function EditorLayout() {
 		}
 	}, [])
 
-	// listen for selected object changes
+	// display OpenProjectDialog if state.project is null
 	useEffect(() => {
-		const phaserEvents = snap.phaser?.events
-		if (!phaserEvents) {
+		if (state.project) {
 			return
 		}
 
-		const destroyController = new AbortController()
-		const signal = destroyController.signal
-
-		phaserEvents.on(
-			'selected-object-changed',
-			(selectedObject) => {
-				setItemToInspect(selectedObject ? { type: 'object', data: selectedObject } : null)
-			},
-			null,
-			signal
-		)
-
-		// Cleanup function
-		return () => destroyController.abort()
-	}, [snap.phaser?.events])
+		setOpenProjectDialogOpen(true)
+	}, [state.project])
 
 	const openProject = async (projectDirPath: string) => {
 		if (path.isAbsolute(projectDirPath) === false) {
@@ -302,7 +286,7 @@ export default function EditorLayout() {
 							borderRadius: 'var(--mantine-radius-sm)',
 						}}
 					>
-						<InspectorPanel logger={logger.getOrCreate('inspector')} item={itemToInspect} />
+						<InspectorPanel logger={logger.getOrCreate('inspector')} />
 					</Box>
 				</Paper>
 			</Group>

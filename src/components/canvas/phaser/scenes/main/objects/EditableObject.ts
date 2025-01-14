@@ -1,8 +1,8 @@
-import { EditableBitmapText, EditableBitmapTextJson, EditableBitmapTextJsonBasic } from './EditableBitmapText'
-import { EditableContainer, EditableContainerJson, EditableContainerJsonBasic } from './EditableContainer'
-import { EditableImage, EditableImageJson, EditableImageJsonBasic } from './EditableImage'
-import { EditableNineSlice, EditableNineSliceJson, EditableNineSliceJsonBasic } from './EditableNineSlice'
-import { EditableText, EditableTextJson, EditableTextJsonBasic } from './EditableText'
+import { EditableBitmapText, EditableBitmapTextJson } from './EditableBitmapText'
+import { EditableContainer, EditableContainerJson } from './EditableContainer'
+import { EditableImage, EditableImageJson } from './EditableImage'
+import { EditableNineSlice, EditableNineSliceJson } from './EditableNineSlice'
+import { EditableText, EditableTextJson } from './EditableText'
 
 export const EDITABLE_SYMBOL = Symbol('EditableObject')
 
@@ -17,7 +17,7 @@ export interface IEditableObject {
 	get kind(): string
 
 	get id(): string
-	
+
 	set locked(value: boolean)
 	get locked(): boolean
 	set visible(value: boolean)
@@ -27,9 +27,6 @@ export interface IEditableObject {
 	get isResizable(): boolean
 
 	toJson(): EditableObjectJson
-	
-	// returns simplified state of the object to use in Hierarchy Panel
-	toJsonBasic(): EditableObjectJsonBasic
 
 	get stateObj(): EditableObjectJson
 
@@ -54,24 +51,6 @@ export type EditableObjectJson =
 	| EditableBitmapTextJson
 
 export type EditableObjectJsonType = EditableObjectJson['type']
-// #endregion
-
-// #region JSON Basic
-export type CreateEditableObjectJsonBasic<T extends { type: string }> = T & {
-	id: string
-	name: string
-	locked: boolean
-	visible: boolean
-}
-
-export type EditableObjectJsonBasic =
-	| EditableContainerJsonBasic
-	| EditableImageJsonBasic
-	| EditableNineSliceJsonBasic
-	| EditableTextJsonBasic
-	| EditableBitmapTextJsonBasic
-
-export type EditableObjectJsonBasicType = EditableObjectJsonBasic['type']
 // #endregion
 
 export function isTintable(obj: EditableObject): obj is EditableObject & { tint: number; tintFill: boolean } {

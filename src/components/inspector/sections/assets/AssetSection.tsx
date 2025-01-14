@@ -13,7 +13,7 @@ export function AssetSection({ data }: AssetSectionProps) {
 			<ReadonlyPropertyRow label="Name" value={data.name} />
 			{/* <ReadonlyPropertyRow label="Id" value={asset.id} /> */}
 			<ReadonlyPropertyRow label="Type" value={data.type} />
-			<ReadonlyPropertyRow label="Path" value={getAssetRelativePath(data)} />
+			<ReadonlyPropertyRow label="Path" value={getAssetRelativePath(data.path)} />
 		</Stack>
 	)
 }

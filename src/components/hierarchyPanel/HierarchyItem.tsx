@@ -27,7 +27,7 @@ export default function HierarchyItem({
 	isHovered: isHoveredInitially = false,
 	isOpened: isOpenedInitially = true,
 }: HierarchyItemProps) {
-	const stateObj = state.canvas.objectById?.(objId)
+	const stateObj = state.canvas.objectById(objId)
 	if (!stateObj) {
 		return <></>
 	}
@@ -205,7 +205,7 @@ export default function HierarchyItem({
 
 			{snap.type === 'Container' &&
 				isOpen &&
-				snap.children?.map((child, index, arr) => (
+				snap.children.map((child, index, arr) => (
 					<HierarchyItem
 						key={child.id}
 						objId={child.id}

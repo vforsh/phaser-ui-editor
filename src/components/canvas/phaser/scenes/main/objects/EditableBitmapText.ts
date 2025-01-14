@@ -1,7 +1,6 @@
 import { proxy, subscribe } from 'valtio'
 import {
 	CreateEditableObjectJson,
-	CreateEditableObjectJsonBasic,
 	EDITABLE_SYMBOL,
 	IEditableObject,
 } from './EditableObject'
@@ -32,7 +31,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		this._stateObj = proxy(this.toJson())
 
 		this._stateUnsub = subscribe(this._stateObj, (ops) => {
-			console.log(`${this.id} (${this.kind}) state changed`, ops)
+			// console.log(`${this.id} (${this.kind}) state changed`, ops)
 		})
 	}
 
@@ -61,16 +60,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 			lineSpacing: this.lineSpacing,
 			tint: this.tint,
 			tintFill: this.tintFill,
-		}
-	}
-
-	toJsonBasic(): EditableBitmapTextJsonBasic {
-		return {
-			type: 'BitmapText',
-			id: this.id,
-			name: this.name,
-			locked: this.locked,
-			visible: this.visible,
+			angle: this.angle,
 		}
 	}
 
@@ -170,11 +160,5 @@ export type EditableBitmapTextJson = CreateEditableObjectJson<{
 	lineSpacing: number
 	tint: number
 	tintFill: boolean
-}>
-
-export type EditableBitmapTextJsonBasic = CreateEditableObjectJsonBasic<{
-	type: 'BitmapText'
-	name: string
-	locked: boolean
-	visible: boolean
+	angle: number
 }>

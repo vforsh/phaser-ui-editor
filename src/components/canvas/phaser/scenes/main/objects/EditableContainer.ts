@@ -2,11 +2,9 @@ import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/T
 import { proxy, subscribe } from 'valtio'
 import {
 	CreateEditableObjectJson,
-	CreateEditableObjectJsonBasic,
 	EDITABLE_SYMBOL,
 	EditableObject,
 	EditableObjectJson,
-	EditableObjectJsonBasic,
 	IEditableObject,
 	isEditable,
 } from './EditableObject'
@@ -42,7 +40,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		this._stateObj = proxy(this.toJson())
 
 		this._stateUnsub = subscribe(this._stateObj, (ops) => {
-			console.log(`${this.id} (${this.kind}) state changed`, ops)
+			// console.log(`${this.id} (${this.kind}) state changed`, ops)
 		})
 
 		this.checkForHierarchyChanges()
@@ -66,7 +64,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		}
 
 		this._editablesCopy = editables
-		
+
 		return hasChanges
 	}
 
@@ -132,19 +130,6 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 			scale: { x: this.scaleX, y: this.scaleY },
 			locked: this.locked,
 			angle: this.angle,
-		}
-	}
-
-	toJsonBasic(): EditableContainerJsonBasic {
-		const children = this.editables.map((child) => child.toJsonBasic())
-
-		return {
-			type: 'Container',
-			id: this.id,
-			name: this.name,
-			locked: this.locked,
-			visible: this.visible,
-			children,
 		}
 	}
 
@@ -220,9 +205,4 @@ export type EditableContainerJson = CreateEditableObjectJson<{
 	scale: { x: number; y: number }
 	locked: boolean
 	angle: number
-}>
-
-export type EditableContainerJsonBasic = CreateEditableObjectJsonBasic<{
-	type: 'Container'
-	children: EditableObjectJsonBasic[]
 }>

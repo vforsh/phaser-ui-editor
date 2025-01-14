@@ -34,10 +34,10 @@ interface TextSectionProps {
 }
 
 export function TextSection({ properties, onChange }: TextSectionProps) {
-	const snap = useSnapshot(state)
+	const assetsSnap = useSnapshot(state.assets)
 
 	const fontFamilies = uniq(
-		getAssetsOfType(snap.assets as State['assets'], 'web-font').map((asset) => asset.fontFamily)
+		getAssetsOfType(assetsSnap as State['assets'], 'web-font').map((asset) => asset.fontFamily)
 	).sort()
 
 	return (

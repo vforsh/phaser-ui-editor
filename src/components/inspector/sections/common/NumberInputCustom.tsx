@@ -4,7 +4,6 @@ import classes from './NumberInputCustom.module.css'
 
 interface NumberInputCustomProps extends Omit<NumberInputProps, 'onChange'> {
 	onChange: (value: number) => void
-	step?: number
 	shiftMultiplier?: number
 	ctrlMultiplier?: number
 }
@@ -12,13 +11,12 @@ interface NumberInputCustomProps extends Omit<NumberInputProps, 'onChange'> {
 /**
  * NumberInput with custom wheel event handling
  */
-export function NumberInputCustom({
-	onChange,
-	step = 1,
-	shiftMultiplier = 10,
-	ctrlMultiplier = 0.1,
-	...props
-}: NumberInputCustomProps) {
+export function NumberInputCustom(props: NumberInputCustomProps) {
+	const onChange = props.onChange
+	const step = props.step ?? 1
+	const shiftMultiplier = props.shiftMultiplier ?? 10
+	const ctrlMultiplier = props.ctrlMultiplier ?? 0.1
+
 	const inputRef = useEventListener<'wheel', HTMLInputElement>(
 		'wheel',
 		(event: WheelEvent) => {

@@ -3,6 +3,10 @@ import { unstable_getInternalStates } from 'valtio/vanilla'
 
 const valtioInternals = unstable_getInternalStates()
 
+export function isValtioProxy(value: unknown): boolean {
+	return typeof value === 'object' && value !== null && valtioInternals.proxyStateMap.has(value)
+}
+
 export function isValtioRef(value: unknown): boolean {
 	return typeof value === 'object' && value !== null && valtioInternals.refSet.has(value)
 }

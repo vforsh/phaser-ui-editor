@@ -13,11 +13,13 @@ import { ProjectConfig } from '../../../../../project/ProjectConfig'
 import trpc, { WebFontParsed } from '../../../../../trpc'
 import {
 	AssetTreeBitmapFontData,
-	AssetTreeImageData,
 	AssetTreeItemData,
 	AssetTreeSpritesheetFrameData,
 	AssetTreeWebFontData,
 	fetchImageUrl,
+	getAssetById,
+	getAssetRelativePath,
+	getAssetsOfType,
 	GraphicAssetData,
 } from '../../../../../types/assets'
 import { parseJsonBitmapFont } from '../../robowhale/phaser3/gameObjects/bitmap-text/parse-json-bitmap-font'
@@ -219,45 +221,11 @@ export class MainScene extends BaseScene {
 	}
 
 	private async addTestObjects(): Promise<void> {
-		const chefCherryFrame = {
-			type: 'spritesheet-frame',
-			name: 'Chef Cherry',
-			size: {
-				w: 285,
-				h: 375,
-			},
-			imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png',
-			pathInHierarchy: 'level_complete/Chef Cherry',
-			path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.png/level_complete/Chef Cherry',
-			jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/gameplay_gui.json',
-		} as AssetTreeSpritesheetFrameData
-
 		const context = this.editContexts.current!
 
-		const nineSliceAsset: AssetTreeSpritesheetFrameData = {
-			type: 'spritesheet-frame',
-			name: 'popup_back.png',
-			path: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png',
-			size: {
-				w: 119,
-				h: 118,
-			},
-			anchor: {
-				x: 0.5,
-				y: 0.5,
-			},
-			scale9Borders: {
-				x: 52,
-				y: 52,
-				w: 15,
-				h: 14,
-			},
-			imagePath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.png',
-			jsonPath: '/Users/vlad/dev/papa-cherry-2/dev/assets/graphics/popups_2.json',
-			pathInHierarchy: 'popups_2/chefs_cup/popup_back.png',
-			project: '/Users/vlad/Yandex.Disk.localized/papa-cherry-2/__graphics/__Atlases/popups_2.tps',
-			id: 'pT6rmxn77M',
-		}
+		const nineSliceAsset = getAssetsOfType(state.assets, 'spritesheet-frame').find(
+			(frame) => frame.name === 'popup_back.png'
+		)
 		if (nineSliceAsset) {
 			const nineSlice = await this.handleAssetDrop({
 				asset: nineSliceAsset,
@@ -269,13 +237,20 @@ export class MainScene extends BaseScene {
 			}
 		}
 
-		const chefCherry_1 = (await this.addTestImage(chefCherryFrame, -400, -400)) as EditableImage
-		chefCherry_1?.setName(this.getNewObjectName(context, chefCherry_1!, 'chefCherry_topLeft'))
-		chefCherry_1?.setOriginCustom(0)
+		const chefCherryFrame = getAssetsOfType(state.assets, 'spritesheet-frame').find(
+			(frame) => frame.name === 'Chef Cherry'
+		)
+		if (chefCherryFrame) {
+			const chefCherry_1 = (await this.addTestImage(chefCherryFrame, -400, -400)) as EditableImage
+			chefCherry_1?.setName(this.getNewObjectName(context, chefCherry_1!, 'chefCherry_topLeft'))
+			chefCherry_1?.setOrigin(0)
+		}
 
-		const chefCherry_2 = (await this.addTestImage(chefCherryFrame, 400, -400)) as EditableImage
-		chefCherry_2?.setName(this.getNewObjectName(context, chefCherry_2!, 'chefCherry_topRight'))
-		chefCherry_2?.setOriginCustom(1, 0)
+		if (chefCherryFrame) {
+			const chefCherry_2 = (await this.addTestImage(chefCherryFrame, 400, -400)) as EditableImage
+			chefCherry_2?.setName(this.getNewObjectName(context, chefCherry_2!, 'chefCherry_topRight'))
+			chefCherry_2?.setOrigin(1, 0)
+		}
 
 		const bitmapFontAsset: AssetTreeBitmapFontData = {
 			type: 'bitmap-font',
@@ -414,7 +389,7 @@ export class MainScene extends BaseScene {
 			const centerX = this.initData.project.config.size.width / 2
 			const centerY = this.initData.project.config.size.height / 2
 			gameObject.setPosition(centerX + offsetX, centerY + offsetY)
-			gameObject.angle = angle
+			gameObject.setAngle(angle)
 		}
 
 		return gameObject
@@ -424,81 +399,6 @@ export class MainScene extends BaseScene {
 		const appCommands = (this.game as PhaserGameExtra).appCommands as AppCommandsEmitter
 
 		appCommands.on('handle-asset-drop', this.handleAssetDrop, this, false, this.shutdownSignal)
-
-		appCommands.on(
-			'set-object-visibility',
-			(objPath: string, visible: boolean) => {
-				const obj = this.findObjectByPath(objPath)
-				if (!obj) {
-					throw new Error(`failed to set object visibility - object not found at '${objPath}'`)
-				}
-
-				obj.visible = visible
-			},
-			this,
-			false,
-			this.shutdownSignal
-		)
-
-		appCommands.on(
-			'set-object-lock',
-			(objPath: string, locked: boolean) => {
-				const obj = this.findObjectByPath(objPath)
-				if (!obj) {
-					throw new Error(`failed to set object lock - object not found at '${objPath}'`)
-				}
-
-				obj.locked = locked
-			},
-			this,
-			false,
-			this.shutdownSignal
-		)
-
-		appCommands.on(
-			'request-selection',
-			() => {
-				const selection = this.editContexts.current?.selection
-				if (!selection) {
-					return []
-				}
-
-				return selection.objects.map((obj) => obj.id)
-			},
-			this,
-			false,
-			this.shutdownSignal
-		)
-
-		appCommands.on(
-			'request-hierarchy',
-			() => {
-				return [this.root.toJsonBasic()]
-			},
-			this,
-			false,
-			this.shutdownSignal
-		)
-	}
-
-	private findObjectByPath(path: string): EditableObject | undefined {
-		const parts = path.split('/').slice(1)
-
-		let current = this.root
-		for (const part of parts) {
-			const child = current.editables.find((child) => child.name === part)
-			if (!child) {
-				return undefined
-			}
-
-			if (child instanceof EditableContainer) {
-				current = child
-			} else {
-				return child
-			}
-		}
-
-		return current
 	}
 
 	/**
@@ -511,13 +411,13 @@ export class MainScene extends BaseScene {
 			return null
 		}
 
-		const origin =
-			data.asset.type === 'spritesheet-frame' && data.asset.anchor ? data.asset.anchor : { x: 0.5, y: 0.5 }
-
 		obj.setName(this.getNewObjectName(this.editContexts.current!, obj, data.asset.name))
 		obj.setPosition(data.position.x, data.position.y)
 
 		if ('setOrigin' in obj && typeof obj.setOrigin === 'function') {
+			const origin =
+				data.asset.type === 'spritesheet-frame' && data.asset.anchor ? data.asset.anchor : { x: 0.5, y: 0.5 }
+
 			obj.setOrigin(origin.x, origin.y)
 		}
 
@@ -529,7 +429,7 @@ export class MainScene extends BaseScene {
 	private createEditableFromAsset(asset: AssetTreeItemData) {
 		return match(asset)
 			.with({ type: 'image' }, async (image) => {
-				let texture: Phaser.Textures.Texture | null = this.textures.get(image.path)
+				let texture: Phaser.Textures.Texture | null = this.textures.get(image.id)
 				if (!texture || texture.key === '__MISSING') {
 					texture = await this.loadTexture(image)
 				}
@@ -541,7 +441,7 @@ export class MainScene extends BaseScene {
 				return this.objectsFactory.image(texture.key)
 			})
 			.with({ type: 'spritesheet-frame' }, async (spritesheetFrame) => {
-				let texture: Phaser.Textures.Texture | null = this.textures.get(spritesheetFrame.imagePath)
+				let texture: Phaser.Textures.Texture | null = this.textures.get(spritesheetFrame.id)
 				if (!texture || texture.key === '__MISSING') {
 					texture = await this.loadTextureAtlas(spritesheetFrame)
 				}
@@ -607,7 +507,7 @@ export class MainScene extends BaseScene {
 			return null
 		}
 
-		const textureKey = asset.path
+		const textureKey = getAssetRelativePath(asset.path)
 
 		this.textures.addImage(textureKey, img)
 
@@ -615,25 +515,23 @@ export class MainScene extends BaseScene {
 	}
 
 	private async loadTextureAtlas(asset: AssetTreeSpritesheetFrameData): Promise<Phaser.Textures.Texture | null> {
-		// TODO we create 'fake' image asset here to load the WHOLE spritesheet as a texture and not just a single frame
-		const imgAsset: AssetTreeImageData = {
-			type: 'image',
-			id: 'test',
-			path: asset.imagePath,
-			name: '',
-			size: { w: 0, h: 0 },
+		const spritesheetId = asset.parentId!
+		const spritesheetAsset = getAssetById(state.assets, spritesheetId)
+		if (!spritesheetAsset || spritesheetAsset.type !== 'spritesheet') {
+			return null
 		}
-		const img = await this.createImgForTexture(imgAsset)
+
+		const img = await this.createImgForTexture(spritesheetAsset)
 		if (!img) {
 			return null
 		}
 
-		const json = await trpc.readJson.query({ path: asset.jsonPath })
+		const json = await trpc.readJson.query({ path: spritesheetAsset.json.path })
 		if (!json) {
 			return null
 		}
 
-		const textureKey = asset.imagePath
+		const textureKey = getAssetRelativePath(spritesheetAsset.image.path)
 
 		this.textures.addAtlas(textureKey, img, json)
 

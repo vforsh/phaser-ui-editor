@@ -269,6 +269,19 @@ function groupFramesByFolders(
 	})
 }
 
+function setSpritesheetFramesParentId(
+	children: (AssetTreeSpritesheetFrameData | AssetTreeSpritesheetFolderData)[],
+	parentId: string
+) {
+	children.forEach((frame) => {
+		if (frame.type === 'spritesheet-frame') {
+			frame.parentId = parentId
+		} else if (frame.type === 'spritesheet-folder') {
+			setSpritesheetFramesParentId(frame.children, parentId)
+		}
+	})
+}
+
 const doBuildAssetTree = async (
 	fileTree: FileTreeData,
 	texturePackerProjects: TexturePackerProject[]
@@ -364,6 +377,8 @@ const doBuildAssetTree = async (
 									frames: framesByFolders,
 									project: texturePackerProject?.path,
 								})
+
+								setSpritesheetFramesParentId(spritesheet.frames, spritesheet.id)
 
 								return spritesheet
 							})

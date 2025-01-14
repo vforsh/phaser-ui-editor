@@ -1,10 +1,5 @@
 import { proxy, subscribe } from 'valtio'
-import {
-	CreateEditableObjectJson,
-	CreateEditableObjectJsonBasic,
-	EDITABLE_SYMBOL,
-	IEditableObject,
-} from './EditableObject'
+import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
 
 export class EditableText extends Phaser.GameObjects.Text implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
@@ -22,7 +17,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 		this._stateObj = proxy(this.toJson())
 
 		this._stateUnsub = subscribe(this._stateObj, (ops) => {
-			console.log(`${this.id} (${this.kind}) state changed`, ops)
+			// console.log(`${this.id} (${this.kind}) state changed`, ops)
 		})
 	}
 
@@ -51,16 +46,6 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 		}
 	}
 
-	toJsonBasic(): EditableTextJsonBasic {
-		return {
-			type: 'Text',
-			id: this.id,
-			name: this.name,
-			locked: this.locked,
-			visible: this.visible,
-		}
-	}
-
 	set locked(value: boolean) {
 		this._isLocked = value
 	}
@@ -68,7 +53,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	get locked(): boolean {
 		return this._isLocked
 	}
-	
+
 	get isResizable() {
 		return false
 	}
@@ -77,7 +62,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	get name(): string {
 		return this._stateObj?.name || ''
 	}
-	
+
 	set name(value: string) {
 		if (this._stateObj) {
 			this._stateObj.name = value
@@ -109,13 +94,6 @@ export type EditableTextJson = CreateEditableObjectJson<{
 	tint: number
 	tintFill: boolean
 	angle: number
-}>
-
-export type EditableTextJsonBasic = CreateEditableObjectJsonBasic<{
-	type: 'Text'
-	name: string
-	locked: boolean
-	visible: boolean
 }>
 
 export type EditableTextStyleJson = Partial<{

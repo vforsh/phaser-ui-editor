@@ -1,31 +1,34 @@
+import { EditableBitmapTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableBitmapText'
+import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
+import { EditableImageJson } from '@components/canvas/phaser/scenes/main/objects/EditableImage'
+import { EditableNineSlice } from '@components/canvas/phaser/scenes/main/objects/EditableNineSlice'
+import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { EditableTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableText'
 import { Box, Collapse, Group, Text, UnstyledButton } from '@mantine/core'
 import { ChevronRight, LucideIcon } from 'lucide-react'
 import { useState } from 'react'
-import { ValueOf, WritableKeysOf } from 'type-fest'
+import { ValueOf } from 'type-fest'
 import { AssetSectionData } from './sections/assets/AssetSection'
 import { GraphicAssetPreviewSectionData } from './sections/assets/GraphicAssetPreviewSection'
-import { DisplaySectionData } from './sections/objects/DisplaySection'
-import { ObjectSectionData } from './sections/objects/ObjectSection'
-import { TransformSectionData } from './sections/objects/TransformSection'
 
 type AssetSectionDef =
 	| { type: 'asset-info'; data: AssetSectionData }
 	| { type: 'asset-graphic-preview'; data: GraphicAssetPreviewSectionData }
 
 type ObjectSectionDef =
-	| { type: 'obj-info'; data: ObjectSectionData }
-	| { type: 'obj-display'; data: DisplaySectionData }
-	| { type: 'obj-transform'; data: TransformSectionData }
+	| { type: 'obj-info'; data: EditableObjectJson }
+	| { type: 'obj-display'; data: EditableObjectJson }
+	| { type: 'obj-transform'; data: EditableObjectJson }
+	//
+	| { type: 'obj-image'; data: EditableImageJson }
+	| { type: 'obj-bitmap-text'; data: EditableBitmapTextJson }
+	| { type: 'obj-text'; data: EditableTextJson }
+	| { type: 'obj-nine-patch'; data: EditableNineSlice }
+	| { type: 'obj-container'; data: EditableContainerJson }
 
 type SectionDefBase = AssetSectionDef | ObjectSectionDef
 
 export type GetDefByType<T extends SectionDefBase['type']> = Extract<SectionDefBase, { type: T }>
-
-export type ChangeCallback<T extends object, K extends WritableKeysOf<T>> = (
-	key: K,
-	value: T[K],
-	prevValue: T[K]
-) => void
 
 export type InspectorSectionDef = ValueOf<{
 	[T in SectionDefBase['type']]: CreateInspectorSectionDef<GetDefByType<T>>
@@ -37,7 +40,7 @@ type CreateInspectorSectionDef<T extends SectionDefBase> = {
 	icon: LucideIcon
 	defaultExpanded?: boolean
 	data: T['data']
-	content: (data: T['data'], onChange: ChangeCallback<T['data'], WritableKeysOf<T['data']>>) => React.ReactNode
+	content: React.ReactNode
 }
 
 export type InspectorSectionProps = Omit<InspectorSectionDef, 'data' | 'content'> & {
@@ -64,7 +67,7 @@ export function InspectorSection(props: InspectorSectionProps) {
 					<div
 						style={{
 							transform: `rotate(${expanded ? '90deg' : '0deg'})`,
-							transition: 'transform 200ms ease',
+							transition: 'transform 30ms ease',
 						}}
 					>
 						<ChevronRight size={16} />
@@ -76,7 +79,7 @@ export function InspectorSection(props: InspectorSectionProps) {
 				</Group>
 			</UnstyledButton>
 
-			<Collapse in={expanded} transitionDuration={200}>
+			<Collapse in={expanded} transitionDuration={30}>
 				<Box pt="xs" pb="sm" px="sm">
 					{content}
 				</Box>

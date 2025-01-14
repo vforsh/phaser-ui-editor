@@ -1,11 +1,5 @@
-import { match, P } from 'ts-pattern'
-import { proxy, subscribe } from 'valtio'
-import {
-	CreateEditableObjectJson,
-	CreateEditableObjectJsonBasic,
-	EDITABLE_SYMBOL,
-	IEditableObject,
-} from './EditableObject'
+import { proxy } from 'valtio'
+import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
 import { EditableObjectChangesEmitter } from './EditableObjectChangesEmitter'
 
 export class EditableImage extends Phaser.GameObjects.Image implements IEditableObject {
@@ -23,11 +17,35 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 
 		this._stateObj = proxy(this.toJson())
 
-		this._stateChanges = new EditableObjectChangesEmitter(this._stateObj)
-		this._stateChanges.on('visible', (value) => this.visible = value)
-		this._stateChanges.on('locked', (value) => this.locked = value)
-		this._stateChanges.on('x', (value) => this.x = value)
-		this._stateChanges.on('y', (value) => this.y = value)
+		// state changes are reflected in the underlying Phaser object
+		this._stateChanges = new EditableObjectChangesEmitter(this._stateObj, {
+			'name': (value) => (this.name = value),
+			'visible': (value) => (this.visible = value),
+			'locked': (value) => (this._isLocked = value),
+			'angle': (value) => (this.angle = value),
+			'x': (value) => (this.x = value),
+			'y': (value) => (this.y = value),
+			'origin.x': (value) => this.setOrigin(value, this.originY),
+			'origin.y': (value) => this.setOrigin(this.originX, value),
+			'scale.x': (value) => (this.scaleX = value),
+			'scale.y': (value) => (this.scaleY = value),
+			'alpha': (value) => (this.alpha = value),
+			'tint': (value) => (this.tint = value),
+			'tintFill': (value) => (this.tintFill = value),
+			'frameKey': (value) => this.setFrame(value),
+		})
+	}
+
+	/**
+	 * Use this method to change the state without applying these changes to the underlying Phaser object.
+	 */
+	private withoutEmits(fn: (state: EditableImageJson) => void): void {
+		if (!this._stateObj || !this._stateChanges) return
+
+		const prev = this._stateChanges.emitsEnabled
+		this._stateChanges.emitsEnabled = false
+		fn(this._stateObj)
+		this._stateChanges.emitsEnabled = prev
 	}
 
 	toJson(): EditableImageJson {
@@ -41,29 +59,11 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 				x: this.scaleX,
 				y: this.scaleY,
 			},
-			origin: {
-				x: this.originX,
-				y: this.originY,
-			},
 			locked: this.locked,
 			tint: this.tint,
 			tintFill: this.tintFill,
 			angle: this.angle,
 		}
-	}
-
-	toJsonBasic(): EditableImageJsonBasic {
-		return {
-			type: 'Image',
-			id: this.id,
-			name: this.name,
-			locked: this.locked,
-			visible: this.visible,
-		}
-	}
-
-	set locked(value: boolean) {
-		this._isLocked = value
 	}
 
 	get locked(): boolean {
@@ -74,15 +74,116 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 		return true
 	}
 
-	// @ts-expect-error
-	get name(): string {
-		return this._stateObj?.name || ''
+	override setName(value: string): this {
+		super.setName(value)
+
+		this.withoutEmits((state) => {
+			state.name = value
+		})
+
+		return this
 	}
 
-	set name(value: string) {
+	override setVisible(value: boolean): this {
+		super.setVisible(value)
+
+		this.withoutEmits((state) => {
+			state.visible = value
+		})
+
+		return this
+	}
+
+	public setLocked(value: boolean): this {
+		this._stateObj.locked = value
+		return this
+	}
+
+	override setOrigin(x?: number, y?: number): this {
+		super.setOrigin(x, y)
+
+		this.withoutEmits((state) => {
+			state['origin.x'] = this.originX
+			state['origin.y'] = this.originY
+		})
+
+		return this
+	}
+
+	override setDisplayOrigin(x?: number, y?: number): this {
+		super.setDisplayOrigin(x, y)
+
+		this.withoutEmits((state) => {
+			state['origin.x'] = this.originX
+			state['origin.y'] = this.originY
+		})
+
+		return this
+	}
+
+	override setScale(x: number, y?: number): this {
+		super.setScale(x, y)
+
+		this.withoutEmits((state) => {
+			state.scale.x = this.scaleX
+			state.scale.y = this.scaleY
+		})
+
+		return this
+	}
+
+	override setDisplaySize(width: number, height: number): this {
+		super.setDisplaySize(width, height)
+
+		this.withoutEmits((state) => {
+			state.scale.x = this.scaleX
+			state.scale.y = this.scaleY
+		})
+
+		return this
+	}
+
+	override setAngle(angle: number): this {
 		if (this._stateObj) {
-			this._stateObj.name = value
+			this._stateObj.angle = angle
 		}
+
+		return this
+	}
+
+	override setPosition(x?: number, y?: number): this {
+		if (this._stateObj) {
+			this._stateObj.x = x ?? this._stateObj.x
+			this._stateObj.y = y ?? this._stateObj.y
+		}
+
+		return this
+	}
+
+	override setAlpha(alpha: number): this {
+		super.setAlpha(alpha)
+
+		this.withoutEmits((state) => {
+			state.alpha = alpha
+		})
+
+		return this
+	}
+
+	override setTint(tint: number): this {
+		if (this._stateObj) {
+			this._stateObj.tint = tint
+		}
+
+		return this
+	}
+
+	public setTintFillCustom(tintFill: boolean): this {
+		if (this._stateObj) {
+			this._stateObj.tintFill = tintFill
+		}
+
+		return this
 	}
 
 	get stateObj() {
@@ -102,16 +203,8 @@ export type EditableImageJson = CreateEditableObjectJson<{
 	depth: number
 	blendMode: string | Phaser.BlendModes | number
 	scale: { x: number; y: number }
-	origin: { x: number; y: number }
 	locked: boolean
 	tint: number
 	tintFill: boolean
 	angle: number
-}>
-
-export type EditableImageJsonBasic = CreateEditableObjectJsonBasic<{
-	type: 'Image'
-	name: string
-	locked: boolean
-	visible: boolean
 }>

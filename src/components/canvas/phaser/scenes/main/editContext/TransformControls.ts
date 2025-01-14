@@ -500,8 +500,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 				selectedTransforms.forEach((transform, obj) => {
 					// keep the aspect ratio if shift is pressed
 					const _dy = pointer.event.shiftKey ? dx / transform.aspectRatio : dy
-					obj.displayWidth = Math.max(transform.width + dx, 16)
-					obj.displayHeight = Math.max(transform.height + _dy, 16)
+					obj.setDisplaySize(Math.max(transform.width + dx, 16), Math.max(transform.height + _dy, 16))
 				})
 
 				selection.updateBounds()
@@ -831,11 +830,21 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	private adjustToSelectionAngle(selection: Selection): void {
-		this.setAngle(selection.angle)
+		if (selection.objects.length === 1) {
+			const obj = selection.objects[0]
+			this.setAngle(obj.angle)
+		} else {
+			this.setAngle(selection.angle)
+		}
 	}
 
 	private adjustToSelectionPosition(selection: Selection): void {
-		this.setPosition(selection.x, selection.y)
+		if (selection.objects.length === 1) {
+			const obj = selection.objects[0]
+			this.setPosition(obj.x, obj.y)
+		} else {
+			this.setPosition(selection.x, selection.y)
+		}
 	}
 
 	private onUpdate(time: number, deltaMs: number): void {

@@ -1,6 +1,5 @@
 import { AlignType } from '@components/canvas/phaser/scenes/main/Aligner'
 import { CommandEmitter } from './components/canvas/phaser/robowhale/utils/events/CommandEmitter'
-import { EditableObjectJsonBasic } from './components/canvas/phaser/scenes/main/objects/EditableObject'
 import { AssetTreeItemData } from './types/assets'
 
 /**
@@ -8,10 +7,6 @@ import { AssetTreeItemData } from './types/assets'
  */
 export type AppCommands = {
 	// commands from hierarchy panel
-	'request-hierarchy': () => EditableObjectJsonBasic[]
-	'request-selection': () => string[]
-	'set-object-visibility': (objPath: string, visible: boolean) => void
-	'set-object-lock': (objPath: string, locked: boolean) => void
 	'delete-object': (objPath: string) => void
 
 	// commands from assets panel

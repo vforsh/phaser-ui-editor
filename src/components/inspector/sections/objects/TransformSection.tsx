@@ -2,25 +2,13 @@ import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/object
 import { NumberInputCustom } from '@components/inspector/sections/common/NumberInputCustom'
 import { Group, Stack } from '@mantine/core'
 import { useSnapshot } from 'valtio'
+import { BaseSectionProps } from '../BaseSection'
 
-export interface TransformSectionData {
-	x: number
-	y: number
-	originX: number
-	originY: number
-	angle: number
-	scaleX: number
-	scaleY: number
-}
+interface TransformSectionProps extends BaseSectionProps<EditableObjectJson> {}
 
-interface TransformSectionProps {
-	data: EditableObjectJson
-}
-
-// TODO pass snap as prop
 export function TransformSection({ data }: TransformSectionProps) {
 	const snap = useSnapshot(data)
-	
+
 	return (
 		<Stack gap="xs">
 			<Group grow>
@@ -39,6 +27,7 @@ export function TransformSection({ data }: TransformSectionProps) {
 					size="xs"
 				/>
 			</Group>
+
 			<Group grow>
 				<NumberInputCustom
 					label="Origin X"
@@ -61,16 +50,7 @@ export function TransformSection({ data }: TransformSectionProps) {
 					size="xs"
 				/>
 			</Group>
-			<NumberInputCustom
-				label="Angle"
-				value={snap.angle}
-				onChange={(val) => (data.angle = val)}
-				decimalScale={0}
-				min={-180}
-				max={180}
-				step={1}
-				size="xs"
-			/>
+
 			<Group grow>
 				<NumberInputCustom
 					label="Scale X"
@@ -91,6 +71,17 @@ export function TransformSection({ data }: TransformSectionProps) {
 					size="xs"
 				/>
 			</Group>
+
+			<NumberInputCustom
+				label="Angle"
+				value={snap.angle}
+				onChange={(val) => (data.angle = val)}
+				decimalScale={0}
+				min={-180}
+				max={180}
+				step={1}
+				size="xs"
+			/>
 		</Stack>
 	)
 }

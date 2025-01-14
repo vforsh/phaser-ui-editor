@@ -95,8 +95,7 @@ export class Selection extends TypedEventEmitter<Events> {
 
 	public move(dx: number, dy = 0): Selection {
 		this.objects.forEach((obj) => {
-			obj.x += dx
-			obj.y += dy
+			obj.setPosition(obj.x + dx, obj.y + dy)
 		})
 
 		this._bounds = this.updateBounds()

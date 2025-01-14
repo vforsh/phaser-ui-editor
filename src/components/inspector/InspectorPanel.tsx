@@ -3,24 +3,24 @@ import { EditableImageJson } from '@components/canvas/phaser/scenes/main/objects
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { EditableTextJson, EditableTextStyleJson } from '@components/canvas/phaser/scenes/main/objects/EditableText'
 import { Stack } from '@mantine/core'
-import { state, useSnapshot } from '@state/State'
+import { state } from '@state/State'
 import { Eye, Image, Info, Move } from 'lucide-react'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
-import { Primitive, ValueOf, WritableKeysOf } from 'type-fest'
+import { useSnapshot } from 'valtio'
 import { isGraphicAsset, type AssetTreeItemData } from '../../types/assets'
-import { GetDefByType, InspectorSection, InspectorSectionDef } from './InspectorSection'
+import { InspectorSection, InspectorSectionDef } from './InspectorSection'
 import { NoSelection } from './NoSelection'
 import { AssetSection } from './sections/assets/AssetSection'
 import { GraphicAssetPreviewSection } from './sections/assets/GraphicAssetPreviewSection'
 import { BitmapTextSection } from './sections/objects/BitmapTextSection'
-import { BlendMode, DisplaySection, DisplaySectionData } from './sections/objects/DisplaySection'
+import { DisplaySection } from './sections/objects/DisplaySection'
 import { ImageSection } from './sections/objects/ImageSection'
 import { ObjectSection } from './sections/objects/ObjectSection'
 import { isTextAlignType, TextAlignType, TextSection } from './sections/objects/TextSection'
 import { TextShadowSection } from './sections/objects/TextShadowSection'
 import { TextStrokeSection } from './sections/objects/TextStrokeSection'
-import { TransformSection, TransformSectionData } from './sections/objects/TransformSection'
+import { TransformSection } from './sections/objects/TransformSection'
 
 export type AssetToInspect = { type: 'asset'; data: AssetTreeItemData }
 export type ObjectToInspect = { type: 'object'; data: EditableObjectJson }
@@ -28,57 +28,41 @@ export type ItemToInspect = AssetToInspect | ObjectToInspect
 
 interface InspectorPanelProps {
 	logger: Logger<{}>
-	item: ItemToInspect | null
 }
 
-export type DataChangePayload = ValueOf<{
-	[T in InspectorSectionDef['type']]: { type: T; id: string } & ValueOf<{
-		[K in WritableKeysOf<Required<GetDefByType<T>['data']>>]: {
-			prop: K
-			value: GetDefByType<T>['data'][K] extends Primitive
-				? NonNullable<GetDefByType<T>['data'][K]>
-				: GetDefByType<T>['data'][K]
-			prevValue: GetDefByType<T>['data'][K] extends Primitive
-				? NonNullable<GetDefByType<T>['data'][K]>
-				: GetDefByType<T>['data'][K]
-		}
-	}>
-}>
+export default function InspectorPanel({ logger }: InspectorPanelProps) {
+	const canvasSnap = useSnapshot(state.canvas)
 
-export default function InspectorPanel({ logger, item: selectedItem }: InspectorPanelProps) {
-	const snap = useSnapshot(state)
-	
-	if (!selectedItem) {
+	if (canvasSnap.selection.length !== 1 || !canvasSnap.objectById) {
 		return (
 			<Stack gap="xs" p="xs">
 				<NoSelection />
 			</Stack>
 		)
 	}
-	
+
+	const canvasObjState = canvasSnap.objectById(canvasSnap.selection[0])
+	if (!canvasObjState) {
+		return (
+			<Stack gap="xs" p="xs">
+				<NoSelection />
+			</Stack>
+		)
+	}
+
+	const selectedItem = { type: 'object' as const, data: canvasObjState }
 	const sections = createSections(selectedItem)
 
 	return (
 		<Stack gap="xs" p="xs">
 			{sections.map((section) => {
-				const content = section.content(section.data as any, (prop, value, prevValue) => {
-					// console.log('Change detected', section.type, { key, value, prevValue })
-
-					if (selectedItem.type === 'object') {
-						// @ts-expect-error
-						snap.app!.commands.emit('obj-change', { type: section.type, id: selectedItem.data.id, prop, value, prevValue }) // prettier-ignore
-					} else {
-						// snap.app!.commands.emit('asset-change', { type: section.type, prop: key, value, prevValue })
-					}
-				})
-
 				return (
 					<InspectorSection
 						key={section.type}
 						type={section.type}
 						title={section.title}
 						icon={section.icon}
-						content={content}
+						content={section.content}
 						defaultExpanded={section.defaultExpanded}
 					/>
 				)
@@ -102,7 +86,7 @@ function getAssetSections(item: AssetTreeItemData) {
 			title: 'Basic Information',
 			icon: Info,
 			data: item,
-			content: (data, onChange) => <AssetSection data={data} onChange={onChange} />,
+			content: <AssetSection data={item} />,
 			defaultExpanded: true,
 		},
 	]
@@ -114,7 +98,7 @@ function getAssetSections(item: AssetTreeItemData) {
 			title: 'Preview',
 			icon: Image,
 			data: item,
-			content: (data, onChange) => <GraphicAssetPreviewSection data={data} onChange={onChange} />,
+			content: <GraphicAssetPreviewSection data={item} />,
 			defaultExpanded: true,
 		})
 	}
@@ -135,29 +119,30 @@ function getObjectSections(obj: EditableObjectJson): InspectorSectionDef[] {
 			title: 'Object Info',
 			icon: Info,
 			data: obj,
-			content: (data, onChange) => <ObjectSection data={data} onChange={onChange} />,
+			content: <ObjectSection data={obj} />,
 			defaultExpanded: true,
 		},
 		{
 			type: 'obj-display',
 			title: 'Display',
 			icon: Eye,
-			data: createDisplaySectionData(obj),
-			content: (data, onChange) => <DisplaySection data={data} onChange={onChange} />,
+			data: obj,
+			content: <DisplaySection data={obj} />,
 			defaultExpanded: false,
 		},
 		{
 			type: 'obj-transform',
 			title: 'Transform',
 			icon: Move,
-			data: createTransformSectionData(obj),
-			content: (data, onChange) => <TransformSection data={data} onChange={onChange} />,
-			defaultExpanded: false,
+			data: obj,
+			content: <TransformSection data={obj} />,
+			defaultExpanded: true,
 		},
 		// TODO add ObjectDataSection that will allow to edit object.data (https://docs.phaser.io/api-documentation/class/data-datamanager)
 	]
 
-	/* const objectTypeSections = match(obj)
+	const objectTypeSections = match(obj)
+		.returnType<InspectorSectionDef[]>()
 		.with({ type: 'Container' }, (container) => {
 			// TODO add grid align section
 			return []
@@ -165,15 +150,16 @@ function getObjectSections(obj: EditableObjectJson): InspectorSectionDef[] {
 		.with({ type: 'Image' }, (image) => {
 			return [
 				{
-					id: 'image',
+					type: 'obj-image',
 					title: 'Image',
 					icon: Image,
-					content: createImageSection(image),
-					defaultExpanded: false,
+					data: image,
+					content: <ImageSection data={image} />,
+					defaultExpanded: true,
 				},
 			]
 		})
-		.with({ type: 'BitmapText' }, (bitmapText) => {
+		/* .with({ type: 'BitmapText' }, (bitmapText) => {
 			return [
 				{
 					id: 'bitmap-text',
@@ -210,61 +196,15 @@ function getObjectSections(obj: EditableObjectJson): InspectorSectionDef[] {
 			]
 
 			return textSections
-		})
-		.exhaustive()
+		}) */
+		// TODO replace with exhaustive()
+		.otherwise(() => [])
 
 	const componentSections: InspectorSectionDef[] = []
-	
-	return [...baseSections, ...objectTypeSections, ...componentSections] */
+
+	return [...baseSections, ...objectTypeSections, ...componentSections]
 
 	return baseSections
-}
-
-function createDisplaySectionData(obj: EditableObjectJson): DisplaySectionData {
-	// TODO normalize blend mode from object.blendMode to DisplayData.blendMode
-	// @see Phaser.BlendModes
-	const blendMode = obj.blendMode as BlendMode
-
-	const data: DisplaySectionData = {
-		visible: obj.visible,
-		alpha: obj.alpha,
-		blendMode: blendMode,
-	}
-
-	if (isTintable(obj)) {
-		data.tint = `#${obj.tint.toString(16)}`
-		data.tintFill = obj.tintFill
-	}
-
-	return data
-}
-
-function isTintable(obj: EditableObjectJson): obj is EditableObjectJson & { tint: number; tintFill: boolean } {
-	return 'tint' in obj && typeof obj.tint === 'number' && 'tintFill' in obj && typeof obj.tintFill === 'boolean'
-}
-
-function createTransformSectionData(obj: EditableObjectJson): TransformSectionData {
-	return {
-		x: obj.x,
-		y: obj.y,
-		originX: obj['origin.x'],
-		originY: obj['origin.y'],
-		angle: obj.rotation * Phaser.Math.RAD_TO_DEG,
-		scaleX: obj['scale.x'],
-		scaleY: obj['scale.y'],
-	}
-}
-
-function createImageSection(image: EditableImageJson) {
-	return (
-		<ImageSection
-			data={{
-				texture: image.textureKey,
-				frame: image.frameKey,
-			}}
-			onChange={() => {}}
-		/>
-	)
 }
 
 function createBitmapTextSection(bitmapText: EditableBitmapTextJson) {

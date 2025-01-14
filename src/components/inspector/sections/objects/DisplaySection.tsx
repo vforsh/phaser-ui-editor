@@ -1,13 +1,8 @@
-import { Checkbox, ColorInput, NumberInput, Select, Stack } from '@mantine/core'
+import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { Checkbox, ColorInput, Stack } from '@mantine/core'
+import { Snapshot, useSnapshot } from 'valtio'
 import { BaseSectionProps } from '../BaseSection'
-
-export interface DisplaySectionData {
-	visible: boolean
-	alpha: number
-	blendMode: BlendMode
-	tint?: string
-	tintFill?: boolean
-}
+import { NumberInputCustom } from '../common/NumberInputCustom'
 
 export type BlendMode = 'NORMAL' | 'ADD' | 'MULTIPLY' | 'SCREEN' | 'ERASE'
 
@@ -19,52 +14,65 @@ const BLEND_MODES: { label: string; value: BlendMode }[] = [
 	{ label: 'Erase', value: 'ERASE' },
 ]
 
-interface DisplaySectionProps extends BaseSectionProps<DisplaySectionData> {}
+interface DisplaySectionProps extends BaseSectionProps<EditableObjectJson> {}
 
-export function DisplaySection({ data, onChange }: DisplaySectionProps) {
+export function DisplaySection({ data }: DisplaySectionProps) {
+	const snap = useSnapshot(data)
+
+	const hasTint = (
+		obj: EditableObjectJson | Snapshot<EditableObjectJson>
+	): obj is EditableObjectJson & { tint: number } => {
+		return 'tint' in obj && typeof obj.tint === 'number'
+	}
+
+	const hasTintFill = (
+		obj: EditableObjectJson | Snapshot<EditableObjectJson>
+	): obj is EditableObjectJson & { tintFill: boolean } => {
+		return 'tintFill' in obj && typeof obj.tintFill === 'boolean'
+	}
+
 	return (
 		<Stack gap="xs">
 			<Checkbox
 				label="Visible"
-				checked={data.visible}
-				onChange={(e) => onChange('visible', e.currentTarget.checked, data.visible)}
+				checked={snap.visible}
+				onChange={(e) => (data.visible = e.currentTarget.checked)}
 			/>
 
-			<NumberInput
+			<NumberInputCustom
 				label="Alpha"
-				value={data.alpha}
-				onChange={(value) =>
-					onChange('alpha', typeof value === 'string' ? parseFloat(value) : value, data.alpha)
-				}
+				value={snap.alpha}
+				onChange={(value) => (data.alpha = value)}
 				min={0}
 				max={1}
+				decimalScale={2}
 				step={0.01}
 				size="xs"
 			/>
 
-			<Select
+			{/* <Select
 				label="Blend Mode"
-				value={data.blendMode}
-				onChange={(value) => onChange('blendMode', value as BlendMode, data.blendMode)}
+				value={snap.blendMode}
+				onChange={(value) => (data.blendMode = value as BlendMode)}
 				data={BLEND_MODES}
 				size="xs"
-			/>
+			/> */}
 
-			{typeof data.tint === 'string' && (
+			{hasTint(data) && hasTint(snap) && (
 				<ColorInput
 					label="Tint"
-					value={data.tint}
-					onChange={(value) => onChange('tint', value, data.tint)}
-					format="hexa"
+					value={'#' + snap.tint.toString(16)}
+					onChange={(value) => (data.tint = parseInt(value.slice(1), 16))}
+					format="hex"
 					size="xs"
 				/>
 			)}
 
-			{typeof data.tintFill === 'boolean' && (
+			{hasTintFill(data) && hasTintFill(snap) && (
 				<Checkbox
 					label="Tint Fill"
-					checked={data.tintFill}
-					onChange={(e) => onChange('tintFill', e.currentTarget.checked, data.tintFill)}
+					checked={snap.tintFill}
+					onChange={(e) => (data.tintFill = e.currentTarget.checked)}
 					// size="xs"
 				/>
 			)}
