@@ -65,6 +65,8 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 			console.clear()
 		}
 
+		this.canvas.addEventListener('pointerdown', (e) => this.canvas.focus(), { signal: this.destroySignal })
+
 		this.logger = logger.getOrCreate('canvas')
 		this.logger.info('PhaserApp created')
 
