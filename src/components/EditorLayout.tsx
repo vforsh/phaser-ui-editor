@@ -275,6 +275,7 @@ export default function EditorLayout() {
 						transition: 'width 0.05s ease-out',
 						padding: '4px 4px 4px 0px',
 						display: displayRightPanel ? 'block' : 'none',
+						height: '100vh',
 					}}
 				>
 					<Box

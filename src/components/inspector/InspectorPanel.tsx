@@ -1,6 +1,6 @@
 import { EditableBitmapTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableBitmapText'
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
-import { Stack } from '@mantine/core'
+import { ScrollArea, Stack } from '@mantine/core'
 import { state } from '@state/State'
 import { Eye, Image, Info, Move, Type } from 'lucide-react'
 import { match } from 'ts-pattern'
@@ -52,20 +52,22 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 	const sections = createSections(selectedItem)
 
 	return (
-		<Stack gap="xs" p="xs">
-			{sections.map((section) => {
-				return (
-					<InspectorSection
-						key={section.type}
-						type={section.type}
-						title={section.title}
-						icon={section.icon}
-						content={section.content}
-						defaultExpanded={section.defaultExpanded}
-					/>
-				)
-			})}
-		</Stack>
+		<ScrollArea style={{ flex: 1 }}>
+			<Stack gap="xs" p="xs">
+				{sections.map((section) => {
+					return (
+						<InspectorSection
+							key={section.type}
+							type={section.type}
+							title={section.title}
+							icon={section.icon}
+							content={section.content}
+							defaultExpanded={section.defaultExpanded}
+						/>
+					)
+				})}
+			</Stack>
+		</ScrollArea>
 	)
 }
 
