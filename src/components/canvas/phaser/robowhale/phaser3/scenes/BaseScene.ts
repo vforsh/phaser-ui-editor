@@ -61,14 +61,39 @@ export abstract class BaseScene extends Phaser.Scene {
 		this.pinner.onResize(Config.GAME_WIDTH, Config.GAME_HEIGHT, Config.ASSETS_SCALE)
 	}
 
-	public abstract restart(data?: object): void;
-	
+	public abstract restart(data?: object): void
+
 	public onKeyDown(key: Key, callback: (e: KeyboardEvent) => void, context?: any, signal?: AbortSignal): void {
-		this.keyboard?.on(`keydown-${key}`, callback, context, signal || this.shutdownSignal)
+		this.keyboard?.on(
+			`keydown-${key}`,
+			(e: KeyboardEvent) => {
+				if (this.isGameCanvasFocused()) {
+					callback(e)
+				}
+			},
+			context,
+			signal || this.shutdownSignal
+		)
 	}
 
 	public onceKeyDown(key: Key, callback: (e: KeyboardEvent) => void, context?: any, signal?: AbortSignal): void {
-		this.keyboard?.once(`keydown-${key}`, callback, context, signal || this.shutdownSignal)
+		this.keyboard?.once(
+			`keydown-${key}`,
+			(e: KeyboardEvent) => {
+				if (this.isGameCanvasFocused()) {
+					callback(e)
+				}
+			},
+			context,
+			signal || this.shutdownSignal
+		)
+	}
+
+	/**
+	 * Checks if the Phaser canvas element is currently focused
+	 */
+	protected isGameCanvasFocused(): boolean {
+		return document.activeElement === this.game.canvas
 	}
 
 	public onShutdown(): void {

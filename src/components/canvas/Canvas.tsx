@@ -55,6 +55,8 @@ export const Canvas: React.FC<Props> = ({ projectConfig, appEvents, appCommands 
 			key={key}
 			ref={canvasRef}
 			id="canvas"
+			// specify tab index to make canvas focusable
+			tabIndex={0}
 			style={{
 				borderRadius: 'inherit',
 				maxWidth: '100%',
