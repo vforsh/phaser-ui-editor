@@ -124,6 +124,16 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.logger.debug(`create complete ${this.target.listAsString()}`)
 	}
 
+	/**
+	 * Keep the children in the correct order.
+	 * The transform controls must be on top of everything else.
+	 */
+	private sortChildren(): void {
+		this.hoverRects.forEach((rect) => this.target.bringToTop(rect))
+		this.subSelectionRects.forEach((rect) => this.target.bringToTop(rect))
+		this.target.bringToTop(this.transformControls)
+	}
+
 	private onChildAdded(child: EditableObject) {
 		this.register(child)
 
@@ -131,6 +141,8 @@ export class EditContext extends TypedEventEmitter<Events> {
 			// emit event so context manager will create a new edit context for the container
 			this.emit('container-added', child)
 		}
+
+		this.sortChildren()
 	}
 
 	private onChildRemoved(child: EditableObject) {
