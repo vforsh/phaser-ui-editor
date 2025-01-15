@@ -1,5 +1,7 @@
-import { proxy, subscribe } from 'valtio'
+import { signalFromEvent } from '@components/canvas/phaser/robowhale/utils/events/create-abort-signal-from-event'
+import { proxy } from 'valtio'
 import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
+import { ObjectChangesEmitter } from './EditableObjectChangesEmitter'
 
 export class EditableText extends Phaser.GameObjects.Text implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
@@ -7,18 +9,82 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	public readonly id: string
 	private _isLocked = false
 	private _stateObj: EditableTextJson
-	private _stateUnsub: () => void
+	private _stateChanges: ObjectChangesEmitter<EditableTextJson>
 
 	constructor(scene: Phaser.Scene, id: string, x: number, y: number, text: string, style: EditableTextStyleJson) {
 		super(scene, x, y, text, style as Phaser.Types.GameObjects.Text.TextStyle)
 
 		this.id = id
 
+		const signal = signalFromEvent(this, 'destroy')
+
 		this._stateObj = proxy(this.toJson())
 
-		this._stateUnsub = subscribe(this._stateObj, (ops) => {
-			// console.log(`${this.id} (${this.kind}) state changed`, ops)
-		})
+		// state changes are reflected in the underlying Phaser object
+		this._stateChanges = new ObjectChangesEmitter(
+			this._stateObj,
+			{
+				'name': (value) => (this.name = value),
+				'visible': (value) => (this.visible = value),
+				'locked': (value) => (this._isLocked = value),
+				'angle': (value) => (this.angle = value),
+				'x': (value) => (this.x = value),
+				'y': (value) => (this.y = value),
+				'origin.x': (value) => this.setOrigin(value, this.originY),
+				'origin.y': (value) => this.setOrigin(this.originX, value),
+				'scale.x': (value) => (this.scaleX = value),
+				'scale.y': (value) => (this.scaleY = value),
+				'alpha': (value) => (this.alpha = value),
+				'tint': (value) => (this.tint = value),
+				'tintFill': (value) => (this.tintFill = value),
+				'lineSpacing': (value) => this.setLineSpacing(value),
+				'letterSpacing': (value) => this.setLetterSpacing(value),
+				'text': (value) => (this.text = value),
+				'wordWrapWidth': (value) => this.setWordWrapWidth(value),
+				'wordWrapUseAdvanced': (value) => this.setWordWrapWidth(this.style.wordWrapWidth, value),
+				'paddingX': (value) =>
+					this.setPadding({
+						left: value,
+						right: value,
+						top: this.padding.top || 0,
+						bottom: this.padding.bottom || 0,
+					}),
+				'paddingY': (value) =>
+					this.setPadding({
+						left: this.padding.left || 0,
+						right: this.padding.right || 0,
+						top: value,
+						bottom: value,
+					}),
+			},
+			signal
+		)
+
+		new ObjectChangesEmitter(
+			this._stateObj.style,
+			{
+				resolution: (value) => value && this.setResolution(value),
+				align: (value) => value && this.setAlign(value),
+				fontFamily: (value) => value && this.setFontFamily(value),
+				fontSize: (value) => value && this.setFontSize(value),
+				fontStyle: (value) => value && this.setFontStyle(value),
+				backgroundColor: (value) => value && this.setBackgroundColor(value),
+				color: (value) => value && this.setColor(value),
+				// stroke
+				stroke: (value) => value && this.setStroke(value, this.style.strokeThickness),
+				strokeThickness: (value) => value && this.setStroke(this.style.stroke, value),
+				// shadow
+				shadowColor: (value) => value !== undefined && this.style.setShadowColor(value),
+				shadowBlur: (value) => value !== undefined && this.style.setShadowBlur(value),
+				shadowOffsetX: (value) =>
+					value !== undefined && this.style.setShadowOffset(value, this.style.shadowOffsetY),
+				shadowOffsetY: (value) =>
+					value !== undefined && this.style.setShadowOffset(this.style.shadowOffsetX, value),
+				shadowStroke: (value) => value !== undefined && this.style.setShadowStroke(value),
+				shadowFill: (value) => value !== undefined && this.style.setShadowFill(value),
+			},
+			signal
+		)
 	}
 
 	toJson(): EditableTextJson {
@@ -39,10 +105,15 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 			locked: this.locked,
 			text: this.text,
 			style: this.style.toJSON() as EditableTextStyleJson,
+			lineSpacing: this.lineSpacing,
 			letterSpacing: this.letterSpacing,
 			tint: this.tint,
 			tintFill: this.tintFill,
 			angle: this.angle,
+			paddingX: this.padding.x || 0,
+			paddingY: this.padding.y || 0,
+			wordWrapWidth: this.style.wordWrapWidth || 0,
+			wordWrapUseAdvanced: this.style.wordWrapUseAdvanced,
 		}
 	}
 
@@ -74,7 +145,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	}
 
 	override destroy(fromScene?: boolean): void {
-		this._stateUnsub()
+		this._stateChanges.destroy()
 
 		super.destroy(fromScene)
 	}
@@ -90,10 +161,15 @@ export type EditableTextJson = CreateEditableObjectJson<{
 	locked: boolean
 	text: string
 	style: EditableTextStyleJson
+	lineSpacing: number
 	letterSpacing: number
 	tint: number
 	tintFill: boolean
 	angle: number
+	paddingX: number
+	paddingY: number
+	wordWrapWidth: number
+	wordWrapUseAdvanced: boolean
 }>
 
 export type EditableTextStyleJson = Partial<{

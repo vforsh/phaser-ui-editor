@@ -1,21 +1,22 @@
 import { isValtioProxy } from '@state/valtio-utils'
 import { subscribe } from 'valtio'
-import { EditableObjectJson } from './EditableObject'
 
-type ChangeCallback<T extends EditableObjectJson, K extends Exclude<keyof T, 'id' | 'type'>> = (
+type StateObject = { [key: string]: unknown }
+
+type ChangeCallback<T extends StateObject, K extends Exclude<keyof T, 'id' | 'type'>> = (
 	value: T[K],
 	prevValue: T[K]
 ) => void
 
-type ChangeCallbackMap<T extends EditableObjectJson> = {
+type ChangeCallbackMap<T extends StateObject> = {
 	[K in Exclude<keyof T, 'id' | 'type'>]?: ChangeCallback<T, K>
 }
 
-export class EditableObjectChangesEmitter<T extends EditableObjectJson> {
+export class ObjectChangesEmitter<T extends StateObject> {
 	private unsub: () => void
 	private _emitsEnabled = true
 
-	constructor(objState: T, callbacks: ChangeCallbackMap<T>) {
+	constructor(objState: T, callbacks: ChangeCallbackMap<T>, signal?: AbortSignal) {
 		if (!isValtioProxy(objState)) {
 			throw new Error('EditableObjectChangesEmitter: obj is not a valtio proxy')
 		}
@@ -38,6 +39,16 @@ export class EditableObjectChangesEmitter<T extends EditableObjectJson> {
 			},
 			true
 		)
+
+		if (signal) {
+			signal.addEventListener(
+				'abort',
+				() => {
+					this.destroy()
+				},
+				{ once: true }
+			)
+		}
 	}
 
 	public get emitsEnabled() {

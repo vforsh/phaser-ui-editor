@@ -1,7 +1,10 @@
-import { Checkbox, ColorInput, Group, NumberInput, Select, Stack, TextInput } from '@mantine/core'
+import { EditableTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableText'
+import { Checkbox, ColorInput, Group, Select, Stack, TextInput } from '@mantine/core'
 import { State, state, useSnapshot } from '@state/State'
 import { uniq } from 'es-toolkit'
 import { getAssetsOfType } from '../../../../types/assets'
+import { BaseSectionProps } from '../BaseSection'
+import { NumberInputCustom } from '../common/NumberInputCustom'
 
 const TEXT_ALIGN_TYPES = ['left', 'right', 'center', 'justify'] as const
 
@@ -14,64 +17,50 @@ export type TextAlignType = (typeof TEXT_ALIGN_TYPES)[number]
 /**
  * https://docs.phaser.io/api-documentation/class/gameobjects-textstyle
  */
-export interface TextProps {
-	content: string
-	resolution: number
-	fontFamily: string
-	fontSize: number
-	fontColor: string
-	align: TextAlignType
-	padding: { x: number; y: number }
-	letterSpacing: number
-	lineSpacing: number
-	wordWrapWidth: number
-	wordWrapAdvanced: boolean
-}
 
-interface TextSectionProps {
-	properties: TextProps
-	onChange: (properties: Partial<TextProps>) => void
-}
+interface TextSectionProps extends BaseSectionProps<EditableTextJson> {}
 
-export function TextSection({ properties, onChange }: TextSectionProps) {
+export function TextSection({ data }: TextSectionProps) {
 	const assetsSnap = useSnapshot(state.assets)
 
 	const fontFamilies = uniq(
 		getAssetsOfType(assetsSnap as State['assets'], 'web-font').map((asset) => asset.fontFamily)
 	).sort()
 
+	const snap = useSnapshot(data)
+
 	return (
 		<Stack gap="xs">
 			<TextInput
 				label="Content"
-				value={properties.content}
-				onChange={(e) => onChange({ content: e.currentTarget.value })}
+				value={snap.text}
+				onChange={(e) => (data.text = e.currentTarget.value)}
 				size="xs"
 			/>
 
-			<NumberInput
+			<NumberInputCustom
 				label="Resolution"
-				value={properties.resolution}
-				onChange={(value) => onChange({ resolution: value as number })}
+				value={snap.style.resolution}
+				onChange={(value) => (data.style.resolution = value)}
 				min={1}
 				max={3}
-				step={0.5}
+				step={0.25}
 				size="xs"
 			/>
 
 			<Group grow>
 				<Select
 					label="Font Family"
-					value={properties.fontFamily}
-					onChange={(value) => value && onChange({ fontFamily: value })}
+					value={snap.style.fontFamily}
+					onChange={(value) => value !== null && (data.style.fontFamily = value)}
 					data={fontFamilies.map((font) => ({ label: font, value: font }))}
 					size="xs"
 				/>
 
-				<NumberInput
+				<NumberInputCustom
 					label="Font Size"
-					value={properties.fontSize}
-					onChange={(value) => onChange({ fontSize: value as number })}
+					value={snap.style.fontSize}
+					onChange={(value) => (data.style.fontSize = value + 'px')}
 					min={1}
 					step={1}
 					size="xs"
@@ -80,8 +69,8 @@ export function TextSection({ properties, onChange }: TextSectionProps) {
 
 			<ColorInput
 				label="Font Color"
-				value={properties.fontColor}
-				onChange={(value) => onChange({ fontColor: value })}
+				value={snap.style.color}
+				onChange={(value) => (data.style.color = value)}
 				size="xs"
 			/>
 
@@ -97,25 +86,25 @@ export function TextSection({ properties, onChange }: TextSectionProps) {
 
 			<Select
 				label="Text Align"
-				value={properties.align}
-				onChange={(value) => onChange({ align: value as TextAlignType })}
+				value={snap.style.align}
+				onChange={(value) => value !== null && (data.style.align = value as TextAlignType)}
 				data={TEXT_ALIGN_TYPES.map((type) => ({ label: type, value: type }))}
 				size="xs"
 			/>
 
 			<Group grow>
-				<NumberInput
+				<NumberInputCustom
 					label="Padding X"
-					value={properties.padding.x}
-					onChange={(value) => onChange({ padding: { ...properties.padding, x: value as number } })}
+					value={snap.paddingX}
+					onChange={(value) => (data.paddingX = value)}
 					min={0}
 					step={1}
 					size="xs"
 				/>
-				<NumberInput
+				<NumberInputCustom
 					label="Padding Y"
-					value={properties.padding.y}
-					onChange={(value) => onChange({ padding: { ...properties.padding, y: value as number } })}
+					value={snap.paddingY}
+					onChange={(value) => (data.paddingY = value)}
 					min={0}
 					step={1}
 					size="xs"
@@ -123,27 +112,27 @@ export function TextSection({ properties, onChange }: TextSectionProps) {
 			</Group>
 
 			<Group grow>
-				<NumberInput
+				<NumberInputCustom
 					label="Letter Spacing"
-					value={properties.letterSpacing}
-					onChange={(value) => onChange({ letterSpacing: value as number })}
-					step={0.1}
+					value={snap.letterSpacing}
+					onChange={(value) => (data.letterSpacing = value)}
+					// step={0.5}
 					size="xs"
 				/>
 
-				<NumberInput
+				<NumberInputCustom
 					label="Line Spacing"
-					value={properties.lineSpacing}
-					onChange={(value) => onChange({ lineSpacing: value as number })}
-					step={0.1}
+					value={snap.lineSpacing}
+					onChange={(value) => (data.lineSpacing = value)}
+					// step={0.1}
 					size="xs"
 				/>
 			</Group>
 
-			<NumberInput
+			<NumberInputCustom
 				label="Word Wrap Width"
-				value={properties.wordWrapWidth}
-				onChange={(value) => onChange({ wordWrapWidth: value as number })}
+				value={snap.wordWrapWidth}
+				onChange={(value) => value !== null && (data.wordWrapWidth = value)}
 				min={0}
 				step={1}
 				size="xs"
@@ -151,8 +140,8 @@ export function TextSection({ properties, onChange }: TextSectionProps) {
 
 			<Checkbox
 				label="Advanced Word Wrap"
-				checked={properties.wordWrapAdvanced}
-				onChange={(e) => onChange({ wordWrapAdvanced: e.currentTarget.checked })}
+				checked={snap.wordWrapUseAdvanced}
+				onChange={(e) => (data.wordWrapUseAdvanced = e.currentTarget.checked)}
 			/>
 		</Stack>
 	)
