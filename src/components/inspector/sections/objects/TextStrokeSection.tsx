@@ -1,49 +1,32 @@
-import { Checkbox, ColorInput, NumberInput, Stack } from '@mantine/core'
+import { EditableTextStyleJson } from '@components/canvas/phaser/scenes/main/objects/EditableText'
+import { ColorInput, Stack } from '@mantine/core'
+import { useSnapshot } from 'valtio'
+import { BaseSectionProps } from '../BaseSection'
+import { NumberInputCustom } from '../common/NumberInputCustom'
 
-export type TextStrokeProps =
-	| {
-			enabled: false
-	  }
-	| {
-			enabled: true
-			thickness: number
-			color: string
-	  }
+interface TextStrokeSectionProps extends BaseSectionProps<EditableTextStyleJson> {}
 
-interface TextStrokeSectionProps {
-	properties: TextStrokeProps
-	onChange: (properties: Partial<TextStrokeProps>) => void
-}
+export function TextStrokeSection({ data }: TextStrokeSectionProps) {
+	const snap = useSnapshot(data)
 
-export function TextStrokeSection({ properties, onChange }: TextStrokeSectionProps) {
 	return (
 		<Stack gap="xs">
-			<Checkbox
-				label="Enabled"
-				checked={properties.enabled}
-				onChange={(e) => onChange({ enabled: e.currentTarget.checked })}
+			<NumberInputCustom
+				label="Thickness"
+				value={snap.strokeThickness}
+				onChange={(value) => (data.strokeThickness = value)}
+				min={0}
+				step={1}
 				size="xs"
 			/>
 
-			{properties.enabled && (
-				<>
-					<NumberInput
-						label="Thickness"
-						value={properties.thickness}
-						onChange={(value) => onChange({ thickness: value as number })}
-						min={0}
-						step={1}
-						size="xs"
-					/>
-
-					<ColorInput
-						label="Color"
-						value={properties.color}
-						onChange={(value) => onChange({ color: value })}
-						size="xs"
-					/>
-				</>
-			)}
+			<ColorInput
+				label="Color"
+				value={snap.stroke}
+				onChange={(value) => (data.stroke = value)}
+				size="xs"
+				format="hsla"
+			/>
 		</Stack>
 	)
 }

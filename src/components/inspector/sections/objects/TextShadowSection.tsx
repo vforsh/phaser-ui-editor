@@ -1,76 +1,64 @@
-import { Checkbox, ColorInput, Group, NumberInput, Stack } from '@mantine/core'
+import { EditableTextStyleJson } from '@components/canvas/phaser/scenes/main/objects/EditableText'
+import { Checkbox, ColorInput, Group, Stack } from '@mantine/core'
+import { useSnapshot } from 'valtio'
+import { BaseSectionProps } from '../BaseSection'
+import { NumberInputCustom } from '../common/NumberInputCustom'
 
-export type TextShadowProps = Phaser.Types.GameObjects.Text.TextShadow & {
-	enabled: boolean
-}
+interface TextShadowSectionProps extends BaseSectionProps<EditableTextStyleJson> {}
 
-interface TextShadowSectionProps {
-	properties: TextShadowProps
-	onChange: (properties: Partial<TextShadowProps>) => void
-}
+export function TextShadowSection({ data }: TextShadowSectionProps) {
+	const snap = useSnapshot(data)
 
-export function TextShadowSection({ properties, onChange }: TextShadowSectionProps) {
 	return (
 		<Stack gap="xs">
-			<Checkbox
-				label="Enabled"
-				checked={properties.enabled}
-				onChange={(e) => onChange({ enabled: e.currentTarget.checked })}
+			<Group grow>
+				<NumberInputCustom
+					label="Offset X"
+					value={snap.shadowOffsetX}
+					onChange={(value) => (data.shadowOffsetX = value)}
+					step={1}
+					size="xs"
+				/>
+				<NumberInputCustom
+					label="Offset Y"
+					value={snap.shadowOffsetY}
+					onChange={(value) => (data.shadowOffsetY = value)}
+					step={1}
+					size="xs"
+				/>
+			</Group>
+
+			<ColorInput
+				label="Color"
+				value={snap.shadowColor}
+				onChange={(value) => (data.shadowColor = value)}
+				size="xs"
+				format="hsla"
+			/>
+
+			<NumberInputCustom
+				label="Blur"
+				value={snap.shadowBlur}
+				onChange={(value) => (data.shadowBlur = value)}
+				min={0}
+				step={1}
 				size="xs"
 			/>
 
-			{properties.enabled && (
-				<>
-					<Group grow>
-						<NumberInput
-							label="Offset X"
-							value={properties.offsetX}
-							onChange={(value) => onChange({ offsetX: value as number })}
-							step={1}
-							size="xs"
-						/>
-						<NumberInput
-							label="Offset Y"
-							value={properties.offsetY}
-							onChange={(value) => onChange({ offsetY: value as number })}
-							step={1}
-							size="xs"
-						/>
-					</Group>
-
-					{/* TODO: check if ColorInput does support alpha (color in 'rgba(...)' format) */}
-					<ColorInput
-						label="Color"
-						value={properties.color}
-						onChange={(value) => onChange({ color: value })}
-						size="xs"
-					/>
-
-					<NumberInput
-						label="Blur"
-						value={properties.blur}
-						onChange={(value) => onChange({ blur: value as number })}
-						min={0}
-						step={1}
-						size="xs"
-					/>
-
-					<Group grow>
-						<Checkbox
-							label="Apply to Fill"
-							checked={properties.fill}
-							onChange={(e) => onChange({ fill: e.currentTarget.checked })}
-							size="xs"
-						/>
-						<Checkbox
-							label="Apply to Stroke"
-							checked={properties.stroke}
-							onChange={(e) => onChange({ stroke: e.currentTarget.checked })}
-							size="xs"
-						/>
-					</Group>
-				</>
-			)}
+			<Group grow>
+				<Checkbox
+					label="Apply to Fill"
+					checked={snap.shadowFill}
+					onChange={(e) => (data.shadowFill = e.currentTarget.checked)}
+					size="xs"
+				/>
+				<Checkbox
+					label="Apply to Stroke"
+					checked={snap.shadowStroke}
+					onChange={(e) => (data.shadowStroke = e.currentTarget.checked)}
+					size="xs"
+				/>
+			</Group>
 		</Stack>
 	)
 }

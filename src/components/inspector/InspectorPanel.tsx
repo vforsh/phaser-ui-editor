@@ -1,10 +1,8 @@
 import { EditableBitmapTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableBitmapText'
-import { EditableImageJson } from '@components/canvas/phaser/scenes/main/objects/EditableImage'
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
-import { EditableTextJson, EditableTextStyleJson } from '@components/canvas/phaser/scenes/main/objects/EditableText'
 import { Stack } from '@mantine/core'
 import { state } from '@state/State'
-import { Eye, Image, Info, Move } from 'lucide-react'
+import { Eye, Image, Info, Move, Type } from 'lucide-react'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import { useSnapshot } from 'valtio'
@@ -17,7 +15,7 @@ import { BitmapTextSection } from './sections/objects/BitmapTextSection'
 import { DisplaySection } from './sections/objects/DisplaySection'
 import { ImageSection } from './sections/objects/ImageSection'
 import { ObjectSection } from './sections/objects/ObjectSection'
-import { isTextAlignType, TextAlignType, TextSection } from './sections/objects/TextSection'
+import { TextSection } from './sections/objects/TextSection'
 import { TextShadowSection } from './sections/objects/TextShadowSection'
 import { TextStrokeSection } from './sections/objects/TextStrokeSection'
 import { TransformSection } from './sections/objects/TransformSection'
@@ -120,7 +118,7 @@ function getObjectSections(obj: EditableObjectJson): InspectorSectionDef[] {
 			icon: Info,
 			data: obj,
 			content: <ObjectSection data={obj} />,
-			defaultExpanded: true,
+			defaultExpanded: false,
 		},
 		{
 			type: 'obj-display',
@@ -136,7 +134,7 @@ function getObjectSections(obj: EditableObjectJson): InspectorSectionDef[] {
 			icon: Move,
 			data: obj,
 			content: <TransformSection data={obj} />,
-			defaultExpanded: true,
+			defaultExpanded: false,
 		},
 		// TODO add ObjectDataSection that will allow to edit object.data (https://docs.phaser.io/api-documentation/class/data-datamanager)
 	]
@@ -169,34 +167,37 @@ function getObjectSections(obj: EditableObjectJson): InspectorSectionDef[] {
 					defaultExpanded: true,
 				},
 			]
-		})
+		}) */
 		.with({ type: 'Text' }, (text) => {
-			const textSections = [
+			const textSections: InspectorSectionDef[] = [
 				{
-					id: 'text',
+					type: 'obj-text',
 					title: 'Text',
 					icon: Type,
-					content: createTextSection(text),
+					data: text,
+					content: <TextSection data={text} />,
 					defaultExpanded: true,
 				},
 				{
-					id: 'text-shadow',
+					type: 'obj-text-shadow',
 					title: 'Text Shadow',
 					icon: Type,
-					content: createTextShadowSection(text.style),
-					defaultExpanded: false,
+					data: text.style,
+					content: <TextShadowSection data={text.style} />,
+					defaultExpanded: true,
 				},
 				{
-					id: 'text-stroke',
+					type: 'obj-text-stroke',
 					title: 'Text Stroke',
 					icon: Type,
-					content: createTextStrokeSection(text.style),
-					defaultExpanded: false,
+					data: text.style,
+					content: <TextStrokeSection data={text.style} />,
+					defaultExpanded: true,
 				},
 			]
 
 			return textSections
-		}) */
+		})
 		// TODO replace with exhaustive()
 		.otherwise(() => [])
 
@@ -225,7 +226,7 @@ function createBitmapTextSection(bitmapText: EditableBitmapTextJson) {
 	)
 }
 
-function createTextSection(text: EditableTextJson) {
+/* function createTextSection(text: EditableTextJson) {
 	function getFontSize(style: (typeof text)['style']): number {
 		if (!style.fontSize) {
 			return 24
@@ -281,9 +282,9 @@ function createTextSection(text: EditableTextJson) {
 			}}
 		/>
 	)
-}
+} */
 
-function createTextShadowSection(textStyle: EditableTextStyleJson) {
+/* function createTextShadowSection(textStyle: EditableTextStyleJson) {
 	if (!textStyle) {
 		return <TextShadowSection properties={{ enabled: false }} onChange={() => {}} />
 	}
@@ -302,9 +303,9 @@ function createTextShadowSection(textStyle: EditableTextStyleJson) {
 			onChange={() => {}}
 		/>
 	)
-}
+} */
 
-function createTextStrokeSection(textStyle: EditableTextStyleJson) {
+/* function createTextStrokeSection(textStyle: EditableTextStyleJson) {
 	if (!textStyle.strokeThickness) {
 		return <TextStrokeSection properties={{ enabled: false }} onChange={() => {}} />
 	}
@@ -319,4 +320,4 @@ function createTextStrokeSection(textStyle: EditableTextStyleJson) {
 			onChange={() => {}}
 		/>
 	)
-}
+} */

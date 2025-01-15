@@ -71,20 +71,30 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 				backgroundColor: (value) => value && this.setBackgroundColor(value),
 				color: (value) => value && this.setColor(value),
 				// stroke
-				stroke: (value) => value && this.setStroke(value, this.style.strokeThickness),
-				strokeThickness: (value) => value && this.setStroke(this.style.stroke, value),
+				stroke: (value) => value !== undefined && this.setStroke(value, this.style.strokeThickness),
+				strokeThickness: (value) => value !== undefined && this.setStroke(this.style.stroke as string, value),
 				// shadow
 				shadowColor: (value) => value !== undefined && this.style.setShadowColor(value),
 				shadowBlur: (value) => value !== undefined && this.style.setShadowBlur(value),
-				shadowOffsetX: (value) =>
-					value !== undefined && this.style.setShadowOffset(value, this.style.shadowOffsetY),
-				shadowOffsetY: (value) =>
-					value !== undefined && this.style.setShadowOffset(this.style.shadowOffsetX, value),
+				shadowOffsetX: (v) => v !== undefined && this.style.setShadowOffset(v, this.style.shadowOffsetY),
+				shadowOffsetY: (v) => v !== undefined && this.style.setShadowOffset(this.style.shadowOffsetX, v),
 				shadowStroke: (value) => value !== undefined && this.style.setShadowStroke(value),
 				shadowFill: (value) => value !== undefined && this.style.setShadowFill(value),
 			},
 			signal
 		)
+	}
+
+	/**
+	 * Use this method to change the state without applying these changes to the underlying Phaser object.
+	 */
+	private withoutEmits(fn: (state: this['stateObj']) => void): void {
+		if (!this._stateObj || !this._stateChanges) return
+
+		const prev = this._stateChanges.emitsEnabled
+		this._stateChanges.emitsEnabled = false
+		fn(this._stateObj)
+		this._stateChanges.emitsEnabled = prev
 	}
 
 	toJson(): EditableTextJson {
@@ -138,6 +148,39 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 		if (this._stateObj) {
 			this._stateObj.name = value
 		}
+	}
+
+	override setStroke(color: string, thickness: number): this {
+		super.setStroke(color, thickness)
+
+		this.withoutEmits((state) => {
+			state.style.stroke = color
+			state.style.strokeThickness = thickness
+		})
+
+		return this
+	}
+
+	override setShadow(
+		offsetX: number,
+		offsetY: number,
+		color: string,
+		blur: number,
+		stroke: boolean,
+		fill: boolean
+	): this {
+		super.setShadow(offsetX, offsetY, color, blur, stroke, fill)
+
+		this.withoutEmits((state) => {
+			state.style.shadowOffsetX = offsetX
+			state.style.shadowOffsetY = offsetY
+			state.style.shadowColor = color
+			state.style.shadowBlur = blur
+			state.style.shadowStroke = stroke
+			state.style.shadowFill = fill
+		})
+
+		return this
 	}
 
 	get stateObj() {
