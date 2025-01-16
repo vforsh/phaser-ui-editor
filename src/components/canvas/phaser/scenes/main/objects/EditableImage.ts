@@ -1,6 +1,6 @@
 import { proxy } from 'valtio'
 import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
-import { ObjectChangesEmitter } from './EditableObjectChangesEmitter'
+import { StateChangesEmitter } from './StateChangesEmitter'
 
 export class EditableImage extends Phaser.GameObjects.Image implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
@@ -8,7 +8,7 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 	public readonly id: string
 	private _isLocked = false
 	private _stateObj: EditableImageJson
-	private _stateChanges: ObjectChangesEmitter<EditableImageJson>
+	private _stateChanges: StateChangesEmitter<EditableImageJson>
 
 	constructor(scene: Phaser.Scene, id: string, x: number, y: number, texture: string, frame?: string | number) {
 		super(scene, x, y, texture, frame)
@@ -18,7 +18,7 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 		this._stateObj = proxy(this.toJson())
 		
 		// state changes are reflected in the underlying Phaser object
-		this._stateChanges = new ObjectChangesEmitter(this._stateObj, {
+		this._stateChanges = new StateChangesEmitter(this._stateObj, {
 			'name': (value) => (this.name = value),
 			'visible': (value) => (this.visible = value),
 			'locked': (value) => (this._isLocked = value),

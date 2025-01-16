@@ -1,28 +1,35 @@
 import { isValtioProxy } from '@state/valtio-utils'
+import { Path, PathValue } from 'dot-path-value'
 import { subscribe } from 'valtio'
 
 type StateObject = { [key: string]: unknown }
 
-type ChangeCallback<T extends StateObject, K extends Exclude<keyof T, 'id' | 'type'>> = (
-	value: T[K],
-	prevValue: T[K]
+type StatePaths<T extends StateObject> = Exclude<Path<T>, 'id' | 'type'>
+
+type ChangeCallback<T extends StateObject, K extends StatePaths<T>> = (
+	value: PathValue<T, K>,
+	prevValue: PathValue<T, K>
 ) => void
 
 type ChangeCallbackMap<T extends StateObject> = {
-	[K in Exclude<keyof T, 'id' | 'type'>]?: ChangeCallback<T, K>
+	[K in StatePaths<T>]?: ChangeCallback<T, K>
 }
 
-export class ObjectChangesEmitter<T extends StateObject> {
+/**
+ * Pass a valtio state object and a map of callbacks to subscribe to state changes.
+ * The callbacks will be called with the new and previous values of the state object when the state changes.
+ */
+export class StateChangesEmitter<T extends StateObject> {
 	private unsub: () => void
 	private _emitsEnabled = true
 
-	constructor(objState: T, callbacks: ChangeCallbackMap<T>, signal?: AbortSignal) {
-		if (!isValtioProxy(objState)) {
-			throw new Error('EditableObjectChangesEmitter: obj is not a valtio proxy')
+	constructor(state: T, callbacks: ChangeCallbackMap<T>, signal?: AbortSignal) {
+		if (!isValtioProxy(state)) {
+			throw new Error('state should be a valtio proxy')
 		}
 
 		this.unsub = subscribe(
-			objState,
+			state,
 			(ops) => {
 				if (!this._emitsEnabled) {
 					return

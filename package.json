@@ -27,6 +27,7 @@
 		"core-js": "^3.39.0",
 		"css-element-queries": "^1.2.3",
 		"derive-valtio": "^0.2.0",
+		"dot-path-value": "^0.0.11",
 		"es-toolkit": "^1.29.0",
 		"json5": "^2.2.3",
 		"lucide-react": "^0.471.0",

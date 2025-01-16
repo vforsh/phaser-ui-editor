@@ -1,7 +1,7 @@
 import { signalFromEvent } from '@components/canvas/phaser/robowhale/utils/events/create-abort-signal-from-event'
 import { proxy } from 'valtio'
 import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
-import { ObjectChangesEmitter } from './EditableObjectChangesEmitter'
+import { StateChangesEmitter } from './StateChangesEmitter'
 
 export class EditableText extends Phaser.GameObjects.Text implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
@@ -9,7 +9,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	public readonly id: string
 	private _isLocked = false
 	private _stateObj: EditableTextJson
-	private _stateChanges: ObjectChangesEmitter<EditableTextJson>
+	private _stateChanges: StateChangesEmitter<EditableTextJson>
 
 	constructor(scene: Phaser.Scene, id: string, x: number, y: number, text: string, style: EditableTextStyleJson) {
 		super(scene, x, y, text, style as Phaser.Types.GameObjects.Text.TextStyle)
@@ -21,7 +21,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 		this._stateObj = proxy(this.toJson())
 
 		// state changes are reflected in the underlying Phaser object
-		this._stateChanges = new ObjectChangesEmitter(
+		this._stateChanges = new StateChangesEmitter(
 			this._stateObj,
 			{
 				'name': (value) => (this.name = value),
@@ -60,7 +60,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 			signal
 		)
 
-		new ObjectChangesEmitter(
+		new StateChangesEmitter(
 			this._stateObj.style,
 			{
 				resolution: (value) => value && this.setResolution(value),

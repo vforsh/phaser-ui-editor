@@ -1,9 +1,6 @@
-import { proxy, subscribe } from 'valtio'
-import {
-	CreateEditableObjectJson,
-	EDITABLE_SYMBOL,
-	IEditableObject,
-} from './EditableObject'
+import { proxy } from 'valtio'
+import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
+import { StateChangesEmitter } from './StateChangesEmitter'
 
 export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
@@ -11,8 +8,8 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 	public readonly id: string
 	private _isLocked = false
 	private _stateObj: EditableBitmapTextJson
-	private _stateUnsub: () => void
-	
+	private _stateChanges: StateChangesEmitter<EditableBitmapTextJson>
+
 	// it is set in the super constructor
 	private _bounds!: Phaser.Types.GameObjects.BitmapText.BitmapTextSize
 
@@ -30,8 +27,31 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 
 		this._stateObj = proxy(this.toJson())
 
-		this._stateUnsub = subscribe(this._stateObj, (ops) => {
-			// console.log(`${this.id} (${this.kind}) state changed`, ops)
+		// state changes are reflected in the underlying Phaser object
+		this._stateChanges = new StateChangesEmitter(this._stateObj, {
+			'name': (value) => (this.name = value),
+			'visible': (value) => (this.visible = value),
+			'locked': (value) => (this._isLocked = value),
+			'angle': (value) => (this.angle = value),
+			'x': (value) => (this.x = value),
+			'y': (value) => (this.y = value),
+			'origin.x': (value) => this.setOrigin(value, this.originY),
+			'origin.y': (value) => this.setOrigin(this.originX, value),
+			'scale.x': (value) => (this.scaleX = value),
+			'scale.y': (value) => (this.scaleY = value),
+			'alpha': (value) => (this.alpha = value),
+			'tint': (value) => (this.tint = value),
+			'tintFill': (value) => (this.tintFill = value),
+			'frameKey': (value) => this.setFrame(value),
+
+			// bitmap text specific properties
+			'text': (value) => (this.text = value),
+			'font': (value) => this.setFont(value),
+			'fontSize': (value) => (this.fontSize = value),
+			'align': (value) => (this.align = value),
+			'maxWidth': (value) => (this.maxWidth = value),
+			'letterSpacing': (value) => (this.letterSpacing = value),
+			'lineSpacing': (value) => (this.lineSpacing = value),
 		})
 	}
 
@@ -125,7 +145,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 	get name(): string {
 		return this._stateObj?.name || ''
 	}
-	
+
 	set name(value: string) {
 		if (this._stateObj) {
 			this._stateObj.name = value
@@ -137,8 +157,8 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 	}
 
 	override destroy(fromScene?: boolean): void {
-		this._stateUnsub()
-		
+		this._stateChanges.destroy()
+
 		super.destroy(fromScene)
 	}
 }
