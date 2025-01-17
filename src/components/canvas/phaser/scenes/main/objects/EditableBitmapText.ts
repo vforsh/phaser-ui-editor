@@ -55,6 +55,18 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		})
 	}
 
+	/**
+	 * Use this method to change the state without applying these changes to the underlying Phaser object.
+	 */
+	private withoutEmits(fn: (state: this['stateObj']) => void): void {
+		if (!this._stateObj || !this._stateChanges) return
+
+		const prev = this._stateChanges.emitsEnabled
+		this._stateChanges.emitsEnabled = false
+		fn(this._stateObj)
+		this._stateChanges.emitsEnabled = prev
+	}
+
 	toJson(): EditableBitmapTextJson {
 		return {
 			...this.toJSON(),
@@ -141,16 +153,25 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		this.setScale(this.scaleX, value)
 	}
 
-	// @ts-expect-error
-	get name(): string {
-		return this._stateObj?.name || ''
+	/* override setName(value: string): this {
+		super.setName(value)
+		
+		this.withoutEmits((state) => {
+			state.name = value
+		})
+		
+		return this
 	}
-
-	set name(value: string) {
-		if (this._stateObj) {
-			this._stateObj.name = value
-		}
-	}
+	
+	override setFontSize(value: number) {
+		super.setFontSize(value)
+		
+		this.withoutEmits((state) => {
+			state.fontSize = value
+		})
+		
+		return this
+	} */
 
 	get stateObj() {
 		return this._stateObj
