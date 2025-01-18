@@ -1,0 +1,11 @@
+.root {
+	margin: var(--mantine-spacing-xs) 0;
+}
+
+.input:hover {
+	border-color: var(--mantine-color-blue-9);
+}
+
+.label {
+	user-select: none;
+}

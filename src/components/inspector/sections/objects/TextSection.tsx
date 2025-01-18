@@ -1,9 +1,10 @@
 import { EditableTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableText'
-import { Checkbox, ColorInput, Group, Stack, TextInput } from '@mantine/core'
+import { ColorInput, Group, Stack, TextInput } from '@mantine/core'
 import { State, state, useSnapshot } from '@state/State'
 import { uniq } from 'es-toolkit'
 import { getAssetsOfType } from '../../../../types/assets'
 import { BaseSectionProps } from '../BaseSection'
+import { CheckboxCustom } from '../common/CheckboxCustom'
 import { NumberInputCustom } from '../common/NumberInputCustom'
 import { SelectCustom } from '../common/SelectCustom'
 
@@ -137,10 +138,10 @@ export function TextSection({ data }: TextSectionProps) {
 				size="xs"
 			/>
 
-			<Checkbox
+			<CheckboxCustom
 				label="Advanced Word Wrap"
 				checked={snap.wordWrapUseAdvanced}
-				onChange={(e) => (data.wordWrapUseAdvanced = e.currentTarget.checked)}
+				onChange={(value) => (data.wordWrapUseAdvanced = value)}
 			/>
 		</Stack>
 	)

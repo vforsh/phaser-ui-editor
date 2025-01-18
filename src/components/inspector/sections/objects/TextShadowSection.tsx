@@ -1,7 +1,8 @@
 import { EditableTextStyleJson } from '@components/canvas/phaser/scenes/main/objects/EditableText'
-import { Checkbox, ColorInput, Group, Stack } from '@mantine/core'
+import { ColorInput, Group, Stack } from '@mantine/core'
 import { useSnapshot } from 'valtio'
 import { BaseSectionProps } from '../BaseSection'
+import { CheckboxCustom } from '../common/CheckboxCustom'
 import { NumberInputCustom } from '../common/NumberInputCustom'
 
 interface TextShadowSectionProps extends BaseSectionProps<EditableTextStyleJson> {}
@@ -46,17 +47,15 @@ export function TextShadowSection({ data }: TextShadowSectionProps) {
 			/>
 
 			<Group grow>
-				<Checkbox
+				<CheckboxCustom
 					label="Apply to Fill"
 					checked={snap.shadowFill}
-					onChange={(e) => (data.shadowFill = e.currentTarget.checked)}
-					size="xs"
+					onChange={(value) => (data.shadowFill = value)}
 				/>
-				<Checkbox
+				<CheckboxCustom
 					label="Apply to Stroke"
 					checked={snap.shadowStroke}
-					onChange={(e) => (data.shadowStroke = e.currentTarget.checked)}
-					size="xs"
+					onChange={(value) => (data.shadowStroke = value)}
 				/>
 			</Group>
 		</Stack>
