@@ -1,16 +1,13 @@
 import { EditableTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableText'
-import { Checkbox, ColorInput, Group, Select, Stack, TextInput } from '@mantine/core'
+import { Checkbox, ColorInput, Group, Stack, TextInput } from '@mantine/core'
 import { State, state, useSnapshot } from '@state/State'
 import { uniq } from 'es-toolkit'
 import { getAssetsOfType } from '../../../../types/assets'
 import { BaseSectionProps } from '../BaseSection'
 import { NumberInputCustom } from '../common/NumberInputCustom'
+import { SelectCustom } from '../common/SelectCustom'
 
 const TEXT_ALIGN_TYPES = ['left', 'right', 'center', 'justify'] as const
-
-export function isTextAlignType(value: string): value is TextAlignType {
-	return TEXT_ALIGN_TYPES.includes(value as TextAlignType)
-}
 
 export type TextAlignType = (typeof TEXT_ALIGN_TYPES)[number]
 
@@ -50,10 +47,10 @@ export function TextSection({ data }: TextSectionProps) {
 			/>
 
 			<Group grow>
-				<Select
+				<SelectCustom
 					label="Font Family"
 					value={snap.style.fontFamily}
-					onChange={(value) => value !== null && (data.style.fontFamily = value)}
+					onChange={(value) => (data.style.fontFamily = value)}
 					data={fontFamilies.map((font) => ({ label: font, value: font }))}
 					size="xs"
 				/>
@@ -85,12 +82,13 @@ export function TextSection({ data }: TextSectionProps) {
 				size="xs"
 			/> */}
 
-			<Select
+			<SelectCustom<typeof TEXT_ALIGN_TYPES>
 				label="Text Align"
 				value={snap.style.align}
-				onChange={(value) => value !== null && (data.style.align = value as TextAlignType)}
+				onChange={(value) => (data.style.align = value)}
 				data={TEXT_ALIGN_TYPES.map((type) => ({ label: type, value: type }))}
 				size="xs"
+				enableWheel
 			/>
 
 			<Group grow>
