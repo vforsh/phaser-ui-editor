@@ -1,7 +1,10 @@
 import { EditableBitmapTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableBitmapText'
 import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
 import { EditableImageJson } from '@components/canvas/phaser/scenes/main/objects/EditableImage'
-import { EditableNineSlice } from '@components/canvas/phaser/scenes/main/objects/EditableNineSlice'
+import {
+	EditableNineSlice,
+	EditableNineSliceJson,
+} from '@components/canvas/phaser/scenes/main/objects/EditableNineSlice'
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { EditableTextJson, EditableTextStyleJson } from '@components/canvas/phaser/scenes/main/objects/EditableText'
 import { Box, Collapse, Group, Text, UnstyledButton } from '@mantine/core'
@@ -22,12 +25,14 @@ type ObjectSectionDef =
 	| { type: 'obj-transform'; data: EditableObjectJson }
 	//
 	| { type: 'obj-image'; data: EditableImageJson }
+	| { type: 'obj-nine-slice'; data: EditableNineSliceJson }
 	| { type: 'obj-bitmap-text'; data: EditableBitmapTextJson }
 	| { type: 'obj-text'; data: EditableTextJson }
 	| { type: 'obj-text-shadow'; data: EditableTextStyleJson }
 	| { type: 'obj-text-stroke'; data: EditableTextStyleJson }
 	| { type: 'obj-nine-patch'; data: EditableNineSlice }
 	| { type: 'obj-container'; data: EditableContainerJson }
+	| { type: 'obj-container-grid'; data: EditableContainerJson }
 
 type SectionDefBase = AssetSectionDef | ObjectSectionDef
 

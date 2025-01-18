@@ -1,10 +1,7 @@
 import { IPatchesConfig, NinePatch } from '@koreez/phaser3-ninepatch'
-import {
-	CreateEditableObjectJson,
-	EDITABLE_SYMBOL,
-	IEditableObject,
-} from './EditableObject'
-import { proxy, subscribe } from 'valtio'
+import { proxy } from 'valtio'
+import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
+import { StateChangesEmitter } from './StateChangesEmitter'
 
 export class EditableNineSlice extends NinePatch implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
@@ -12,7 +9,7 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 	public readonly id: string
 	private _isLocked = false
 	private _stateObj: EditableNineSliceJson
-	private _stateUnsub: () => void
+	private _stateChanges: StateChangesEmitter<EditableNineSliceJson>
 
 	constructor(
 		scene: Phaser.Scene,
@@ -29,9 +26,36 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 
 		this._stateObj = proxy(this.toJson())
 
-		this._stateUnsub = subscribe(this._stateObj, (ops) => {
-			// console.log(`${this.id} (${this.kind}) state changed`, ops)
+		// state changes are reflected in the underlying Phaser object
+		this._stateChanges = new StateChangesEmitter(this._stateObj, {
+			name: (value) => (this.name = value),
+			visible: (value) => (this.visible = value),
+			locked: (value) => (this._isLocked = value),
+			angle: (value) => (this.angle = value),
+			x: (value) => (this.x = value),
+			y: (value) => (this.y = value),
+			alpha: (value) => (this.alpha = value),
+			tint: (value) => (this.tint = value),
+			tintFill: (value) => (this.tintFill = value),
+
+			// TODO implement frame and texture changes
+
+			// nine slice specific properties
+			width: (value) => this.resize(value, this.height),
+			height: (value) => this.resize(this.width, value),
 		})
+	}
+
+	/**
+	 * Use this method to change the state without applying these changes to the underlying Phaser object.
+	 */
+	private withoutEmits(fn: (state: this['stateObj']) => void): void {
+		if (!this._stateObj || !this._stateChanges) return
+
+		const prev = this._stateChanges.emitsEnabled
+		this._stateChanges.emitsEnabled = false
+		fn(this._stateObj)
+		this._stateChanges.emitsEnabled = prev
 	}
 
 	toJson(): EditableNineSliceJson {
@@ -54,9 +78,10 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 			tintFill: this.tintFill,
 			width: this.width,
 			height: this.height,
-			// @ts-expect-error
 			ninePatchConfig: this.config as IPatchesConfig,
 			angle: this.angle,
+			textureKey: this.originTexture.key,
+			frameKey: this.originFrame.name,
 		}
 	}
 
@@ -77,6 +102,11 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 			// TODO support different hitArea types, not just Rectangle
 			this.input.hitArea?.setSize(width, height)
 		}
+
+		this.withoutEmits((state) => {
+			state.width = width
+			state.height = height
+		})
 
 		return super.resize(width, height)
 	}
@@ -105,7 +135,7 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 	get name(): string {
 		return this._stateObj?.name || ''
 	}
-	
+
 	set name(value: string) {
 		if (this._stateObj) {
 			this._stateObj.name = value
@@ -117,8 +147,8 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 	}
 
 	override destroy(fromScene?: boolean): void {
-		this._stateUnsub()
-		
+		this._stateChanges.destroy()
+
 		super.destroy(fromScene)
 	}
 }
