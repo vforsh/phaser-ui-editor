@@ -28,6 +28,7 @@
 			"@url-params": ["./src/UrlParams.ts"],
 			"@components/*": ["./src/components/*"],
 			"@utils/*": ["./src/utils/*"],
+			"@hooks/*": ["./src/hooks/*"],
 		}
 	},
 	"include": ["src", "types"]
