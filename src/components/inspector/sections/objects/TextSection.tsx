@@ -46,6 +46,7 @@ export function TextSection({ data }: TextSectionProps) {
 				max={3}
 				step={0.25}
 				size="xs"
+				decimalScale={2}
 			/>
 
 			<Group grow>
