@@ -153,7 +153,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		this.setScale(this.scaleX, value)
 	}
 
-	/* override setName(value: string): this {
+	override setName(value: string): this {
 		super.setName(value)
 		
 		this.withoutEmits((state) => {
@@ -163,7 +163,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		return this
 	}
 	
-	override setFontSize(value: number) {
+	/* override setFontSize(value: number) {
 		super.setFontSize(value)
 		
 		this.withoutEmits((state) => {

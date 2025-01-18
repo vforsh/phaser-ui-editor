@@ -1,6 +1,6 @@
 import { ActionIcon, alpha, Group, Text, Tooltip, useMantineTheme } from '@mantine/core'
 import { state } from '@state/State'
-import { ChevronDown, Eye, EyeOff, Folder, Image, ImageUpscale, Lock, TextQuote, Type, Unlock } from 'lucide-react'
+import { ChevronDown, Eye, EyeOff, Folder, Image, ImageUpscale, Lock, Type, TypeOutline, Unlock } from 'lucide-react'
 import { useState } from 'react'
 import { match } from 'ts-pattern'
 import { useSnapshot } from 'valtio'
@@ -44,8 +44,8 @@ export default function HierarchyItem({
 			.with({ type: 'Container' }, () => <Folder size={16} />)
 			.with({ type: 'Image' }, () => <Image size={16} />)
 			.with({ type: 'NineSlice' }, () => <ImageUpscale size={16} />)
-			.with({ type: 'BitmapText' }, () => <Type size={16} />)
-			.with({ type: 'Text' }, () => <TextQuote size={16} />)
+			.with({ type: 'BitmapText' }, () => <TypeOutline size={16} />)
+			.with({ type: 'Text' }, () => <Type size={16} />)
 			.exhaustive()
 	}
 

@@ -1,7 +1,7 @@
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { ScrollArea, Stack } from '@mantine/core'
 import { state } from '@state/State'
-import { Eye, Image, Info, Move, Type } from 'lucide-react'
+import { Eye, Image, Info, Move, Type, TypeOutline } from 'lucide-react'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import { useSnapshot } from 'valtio'
@@ -13,6 +13,7 @@ import { GraphicAssetPreviewSection } from './sections/assets/GraphicAssetPrevie
 import { BitmapTextSection } from './sections/objects/BitmapTextSection'
 import { DisplaySection } from './sections/objects/DisplaySection'
 import { ImageSection } from './sections/objects/ImageSection'
+import { NineSliceSection } from './sections/objects/NineSliceSection'
 import { ObjectSection } from './sections/objects/ObjectSection'
 import { TextSection } from './sections/objects/TextSection'
 import { TextShadowSection } from './sections/objects/TextShadowSection'
@@ -158,12 +159,24 @@ function getObjectSections(obj: EditableObjectJson): InspectorSectionDef[] {
 				},
 			]
 		})
+		.with({ type: 'NineSlice' }, (nineSlice) => {
+			return [
+				{
+					type: 'obj-nine-slice',
+					title: 'NineSlice',
+					icon: Image,
+					data: nineSlice,
+					content: <NineSliceSection data={nineSlice} />,
+					defaultExpanded: true,
+				},
+			]
+		})
 		.with({ type: 'BitmapText' }, (bitmapText) => {
 			return [
 				{
 					type: 'obj-bitmap-text',
 					title: 'Bitmap Text',
-					icon: Type,
+					icon: TypeOutline,
 					data: bitmapText,
 					content: <BitmapTextSection data={bitmapText} />,
 					defaultExpanded: true,
@@ -200,8 +213,7 @@ function getObjectSections(obj: EditableObjectJson): InspectorSectionDef[] {
 
 			return textSections
 		})
-		// TODO replace with exhaustive()
-		.otherwise(() => [])
+		.exhaustive()
 
 	const componentSections: InspectorSectionDef[] = []
 

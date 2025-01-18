@@ -60,6 +60,12 @@ export type AssetTreeImageData = {
 	name: string
 	path: string
 	size: { w: number; h: number }
+	scale9Borders?: {
+		x: number
+		y: number
+		w: number
+		h: number
+	}
 }
 
 export type AssetTreePrefabData = {
