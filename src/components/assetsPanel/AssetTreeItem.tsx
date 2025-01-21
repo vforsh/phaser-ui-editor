@@ -1,5 +1,6 @@
 import { logger } from '@logs/logs'
-import { Group, Stack, Text, UnstyledButton, useMantineTheme } from '@mantine/core'
+import { alpha, Group, Stack, Text, UnstyledButton, useMantineTheme } from '@mantine/core'
+import { state } from '@state/State'
 import {
 	ChevronDown,
 	File,
@@ -14,7 +15,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { match } from 'ts-pattern'
-import { Snapshot } from 'valtio'
+import { Snapshot, useSnapshot } from 'valtio'
 import { useDragAndDrop } from '../../hooks/useDragAndDrop'
 import { isDraggableAsset, type AssetTreeItemData } from '../../types/assets'
 
@@ -29,7 +30,7 @@ interface AssetTreeItemProps {
 	onToggle: (id: string) => void
 	onSelect: (item: Snapshot<AssetTreeItemData>) => void
 	onContextMenu: (item: Snapshot<AssetTreeItemData>, position: { x: number; y: number }) => void
-	selectedItem?: Snapshot<AssetTreeItemData> | null
+	isSelected?: boolean
 	isLastChild?: boolean
 	isOpen?: boolean
 	openFolders: Set<string>
@@ -41,14 +42,14 @@ export default function AssetTreeItem({
 	onToggle,
 	onSelect,
 	onContextMenu,
-	selectedItem,
+	isSelected = false,
 	isLastChild = false,
 	isOpen = false,
 	openFolders,
 }: AssetTreeItemProps) {
-	const [isHovered, setIsHovered] = useState(false)
 	const theme = useMantineTheme()
-	const isSelected = selectedItem === item
+	const assetsSelectionSnap = useSnapshot(state.assets.selection)
+	const [isHovered, setIsHovered] = useState(false)
 	const dragAndDropLogger = logger.getOrCreate('assets')
 	const { dragState, handleDragStart, handleDragEnd } = useDragAndDrop({ logger: dragAndDropLogger })
 	const isDraggable = isDraggableAsset(item.type)
@@ -117,7 +118,7 @@ export default function AssetTreeItem({
 					width: '100%',
 					height: ITEM_HEIGHT,
 					backgroundColor: isSelected
-						? theme.colors.dark[5]
+						? alpha(theme.colors.blue[9], 0.5)
 						: isHovered
 							? theme.colors.dark[6]
 							: 'transparent',
@@ -198,7 +199,7 @@ export default function AssetTreeItem({
 					<Text
 						size="sm"
 						style={{
-							color: isSelected || isHovered ? theme.white : theme.colors.gray[4],
+							color: isSelected ? theme.white : isHovered ? theme.colors.gray[1] : theme.colors.gray[4],
 							transition: 'color 100ms ease',
 							whiteSpace: 'nowrap',
 							overflow: 'hidden',
@@ -222,7 +223,7 @@ export default function AssetTreeItem({
 						onToggle={onToggle}
 						onSelect={onSelect}
 						onContextMenu={onContextMenu}
-						selectedItem={selectedItem}
+						isSelected={assetsSelectionSnap.includes(child.id)}
 						isLastChild={index === arr.length - 1}
 						isOpen={openFolders.has(child.id)}
 						openFolders={openFolders}

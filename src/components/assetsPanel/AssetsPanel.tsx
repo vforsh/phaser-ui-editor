@@ -156,7 +156,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 								onToggle={toggleFolder}
 								onSelect={handleSelect}
 								onContextMenu={handleContextMenu}
-								selectedItem={assetsSnap.selection.includes(asset.id) ? asset : null}
+								isSelected={assetsSnap.selection.includes(asset.id)}
 								isLastChild={index === assetsSnap.items.length - 1}
 								isOpen={openFolders.has(asset.id)}
 								openFolders={openFolders}
