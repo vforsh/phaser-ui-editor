@@ -5,7 +5,7 @@ import { Eye, Image, Info, Move, Type, TypeOutline } from 'lucide-react'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import { useSnapshot } from 'valtio'
-import { isGraphicAsset, type AssetTreeItemData } from '../../types/assets'
+import { getAssetById, isGraphicAsset, type AssetTreeItemData } from '../../types/assets'
 import { InspectorSection, InspectorSectionDef } from './InspectorSection'
 import { NoSelection } from './NoSelection'
 import { AssetSection } from './sections/assets/AssetSection'
@@ -30,8 +30,10 @@ interface InspectorPanelProps {
 
 export default function InspectorPanel({ logger }: InspectorPanelProps) {
 	const canvasSnap = useSnapshot(state.canvas)
+	const assetsSnap = useSnapshot(state.assets)
 
-	if (canvasSnap.selection.length !== 1 || !canvasSnap.objectById) {
+	// Don't show anything if multiple items are selected
+	if (assetsSnap.selection.length > 1 || canvasSnap.selection.length > 1) {
 		return (
 			<Stack gap="xs" p="xs">
 				<NoSelection />
@@ -39,35 +41,67 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 		)
 	}
 
-	const canvasObjState = canvasSnap.objectById(canvasSnap.selection[0])
-	if (!canvasObjState) {
-		return (
-			<Stack gap="xs" p="xs">
-				<NoSelection />
-			</Stack>
-		)
+	const selectedAssetId = assetsSnap.selection[0]
+	const selectedObjectId = canvasSnap.selection[0]
+
+	// To determine what to display based on most recent selection
+	const assetChangedAt = assetsSnap.selectionChangedAt || 0
+	const objectChangedAt = canvasSnap.selectionChangedAt || 0
+
+	// Show most recently selected item
+	if (selectedAssetId && (!selectedObjectId || assetChangedAt > objectChangedAt)) {
+		// Find selected asset
+		const selectedAsset = getAssetById(assetsSnap.items as AssetTreeItemData[], selectedAssetId)
+		if (selectedAsset) {
+			const sections = createSections({ type: 'asset', data: selectedAsset })
+			return (
+				<ScrollArea style={{ flex: 1 }}>
+					<Stack gap="xs" p="xs">
+						{sections.map((section) => (
+							<InspectorSection
+								key={section.type}
+								type={section.type}
+								title={section.title}
+								icon={section.icon}
+								content={section.content}
+								defaultExpanded={section.defaultExpanded}
+							/>
+						))}
+					</Stack>
+				</ScrollArea>
+			)
+		}
 	}
 
-	const selectedItem = { type: 'object' as const, data: canvasObjState }
-	const sections = createSections(selectedItem)
+	// Show selected object if no asset is selected or object was selected more recently
+	if (selectedObjectId && canvasSnap.objectById) {
+		const selectedObject = canvasSnap.objectById(selectedObjectId)
+		if (selectedObject) {
+			const sections = createSections({ type: 'object', data: selectedObject })
+			return (
+				<ScrollArea style={{ flex: 1 }}>
+					<Stack gap="xs" p="xs">
+						{sections.map((section) => (
+							<InspectorSection
+								key={section.type}
+								type={section.type}
+								title={section.title}
+								icon={section.icon}
+								content={section.content}
+								defaultExpanded={section.defaultExpanded}
+							/>
+						))}
+					</Stack>
+				</ScrollArea>
+			)
+		}
+	}
 
+	// No selection
 	return (
-		<ScrollArea style={{ flex: 1 }}>
-			<Stack gap="xs" p="xs">
-				{sections.map((section) => {
-					return (
-						<InspectorSection
-							key={section.type}
-							type={section.type}
-							title={section.title}
-							icon={section.icon}
-							content={section.content}
-							defaultExpanded={section.defaultExpanded}
-						/>
-					)
-				})}
-			</Stack>
-		</ScrollArea>
+		<Stack gap="xs" p="xs">
+			<NoSelection />
+		</Stack>
 	)
 }
 

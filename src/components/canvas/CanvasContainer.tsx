@@ -105,7 +105,7 @@ export default function CanvasContainer() {
 	// use memo to prevent re-rendering of the canvas element
 	const canvas = useMemo(() => {
 		// Only create canvas if we have all required props
-		if (!snap.project || !snap.app?.events || !snap.app?.commands) {
+		if (!snap.project || !snap.app?.events || !snap.app?.commands || !snap.assets) {
 			return null
 		}
 

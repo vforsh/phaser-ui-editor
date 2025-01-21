@@ -223,7 +223,7 @@ export class MainScene extends BaseScene {
 	private async addTestObjects(): Promise<void> {
 		const context = this.editContexts.current!
 
-		const nineSliceAsset = getAssetsOfType(state.assets, 'spritesheet-frame').find(
+		const nineSliceAsset = getAssetsOfType(state.assets.items, 'spritesheet-frame').find(
 			(frame) => frame.name === 'popup_back.png'
 		)
 		if (nineSliceAsset) {
@@ -237,7 +237,7 @@ export class MainScene extends BaseScene {
 			}
 		}
 
-		const chefCherryFrame = getAssetsOfType(state.assets, 'spritesheet-frame').find(
+		const chefCherryFrame = getAssetsOfType(state.assets.items, 'spritesheet-frame').find(
 			(frame) => frame.name === 'Chef Cherry'
 		)
 		if (chefCherryFrame) {
@@ -516,7 +516,7 @@ export class MainScene extends BaseScene {
 
 	private async loadTextureAtlas(asset: AssetTreeSpritesheetFrameData): Promise<Phaser.Textures.Texture | null> {
 		const spritesheetId = asset.parentId!
-		const spritesheetAsset = getAssetById(state.assets, spritesheetId)
+		const spritesheetAsset = getAssetById(state.assets.items, spritesheetId)
 		if (!spritesheetAsset || spritesheetAsset.type !== 'spritesheet') {
 			return null
 		}

@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { Logger } from 'tslog'
 import { isDraggableAsset, type AssetTreeItemData } from '../types/assets'
+import { Snapshot } from 'valtio'
 
 interface DragState {
 	isDragging: boolean
-	item: AssetTreeItemData | null
+	item: Snapshot<AssetTreeItemData> | null
 }
 
 const MAX_PREVIEW_DIMENSION = 512
@@ -33,7 +34,7 @@ export function useDragAndDrop({ logger }: DragAndDropProps) {
 		item: null,
 	})
 
-	const handleDragStart = (item: AssetTreeItemData, event: React.DragEvent) => {
+	const handleDragStart = (item: Snapshot<AssetTreeItemData>, event: React.DragEvent) => {
 		if (!isDraggableAsset(item.type)) {
 			logger.warn(`${item.path} (${item.type}) is not draggable!`)
 			return

@@ -16,16 +16,43 @@ type AlignType = (typeof ALIGN_OPTIONS)[number]['value']
 
 interface BitmapTextSectionProps extends BaseSectionProps<EditableBitmapTextJson> {}
 
+async function loadFontData(fontDataPath: string | undefined) {
+	// if (!fontDataPath) return null
+	// const response = await fetch(fontDataPath)
+	// return response.json()
+	return Promise.resolve({
+		chars: ['a', 'b', 'c'],
+	})
+}
+
 export function BitmapTextSection({ data }: BitmapTextSectionProps) {
-	const assetsSnap = useSnapshot(state.assets)
-	const fonts = uniq(getAssetsOfType(assetsSnap as State['assets'], 'bitmap-font').map((asset) => asset.name)).sort()
+	const assetsSnap = useSnapshot(state.assets.items)
+	const fontAssets = getAssetsOfType(assetsSnap as State['assets']['items'], 'bitmap-font')
+	const fontNames = uniq(fontAssets.map((asset) => asset.name)).sort()
 
 	const snap = useSnapshot(data)
 
-	console.log(snap)
+	// const fontDataPath = useMemo(
+	// 	() => fontAssets.find((asset) => asset.name === snap.font)?.data.path,
+	// 	[fontAssets, snap.font]
+	// )
+
+	// const { data: fontData, isLoading, error } = useAsync(() => loadFontData(fontDataPath), true)
 
 	return (
 		<Stack gap="xs">
+			{/* {isLoading && (
+				<Text size="xs" c="dimmed">
+					Loading font data...
+				</Text>
+			)} */}
+
+			{/* {error && (
+				<Text size="xs" c="red">
+					Error loading font data
+				</Text>
+			)} */}
+
 			<TextInput
 				label="Content"
 				value={snap.text}
@@ -41,7 +68,7 @@ export function BitmapTextSection({ data }: BitmapTextSectionProps) {
 					// - emit command to load the font
 					// - display a loading indicator
 					onChange={(value) => value !== null && (data.font = value)}
-					data={fonts.map((font) => ({ label: font, value: font }))}
+					data={fontNames.map((font) => ({ label: font, value: font }))}
 					size="xs"
 				/>
 
@@ -89,6 +116,8 @@ export function BitmapTextSection({ data }: BitmapTextSectionProps) {
 					size="xs"
 				/>
 			</Group>
+
+			{/* {fontData && <pre>{JSON.stringify(fontData, null, 2)}</pre>} */}
 		</Stack>
 	)
 }

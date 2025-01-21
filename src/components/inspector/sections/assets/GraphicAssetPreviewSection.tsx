@@ -173,7 +173,6 @@ export function GraphicAssetPreviewSection({ data }: GraphicAssetPreviewSectionP
 				<Stack gap={4}>
 					<MetadataRow label="Dimensions" value={`${imageDimensions.w} × ${imageDimensions.h}px`} />
 					<MetadataRow label="Size" value={imageFileSize ? prettyBytes(imageFileSize) : '???'} />
-					<MetadataRow label="Type" value={data.type} />
 				</Stack>
 			</Stack>
 		</Stack>

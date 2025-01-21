@@ -7,10 +7,10 @@ import { BaseSectionProps } from '../BaseSection'
 interface ImageSectionProps extends BaseSectionProps<EditableImageJson> {}
 
 export function ImageSection({ data }: ImageSectionProps) {
-	const stateSnap = useSnapshot(state)
+	const assetsSnap = useSnapshot(state.assets.items)
 
-	const images = getAssetsOfType(stateSnap.assets as State['assets'], 'image')
-	const spritesheets = getAssetsOfType(stateSnap.assets as State['assets'], 'spritesheet')
+	const images = getAssetsOfType(assetsSnap as State['assets']['items'], 'image')
+	const spritesheets = getAssetsOfType(assetsSnap as State['assets']['items'], 'spritesheet')
 	const textures = [...images, ...spritesheets]
 	const texture = textures.find((texture) => texture.path.endsWith(data.textureKey))
 

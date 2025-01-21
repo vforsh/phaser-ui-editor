@@ -19,10 +19,10 @@ export type TextAlignType = (typeof TEXT_ALIGN_TYPES)[number]
 interface TextSectionProps extends BaseSectionProps<EditableTextJson> {}
 
 export function TextSection({ data }: TextSectionProps) {
-	const assetsSnap = useSnapshot(state.assets)
+	const assetsSnap = useSnapshot(state.assets.items)
 
 	const fontFamilies = uniq(
-		getAssetsOfType(assetsSnap as State['assets'], 'web-font').map((asset) => asset.fontFamily)
+		getAssetsOfType(assetsSnap as State['assets']['items'], 'web-font').map((asset) => asset.fontFamily)
 	).sort()
 
 	const snap = useSnapshot(data)

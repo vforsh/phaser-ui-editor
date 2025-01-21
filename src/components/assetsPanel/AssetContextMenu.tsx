@@ -1,9 +1,10 @@
 import { Menu } from '@mantine/core'
 import { ExternalLink, FileJson, FolderOpen, Image, TextCursorInput, Trash2 } from 'lucide-react'
+import type { Snapshot } from 'valtio'
 import type { AssetTreeItemData } from '../../types/assets'
 
 interface AssetContextMenuProps {
-	asset: AssetTreeItemData | null
+	asset: Snapshot<AssetTreeItemData> | null
 	opened: boolean
 	position: { x: number; y: number }
 	onClose: () => void

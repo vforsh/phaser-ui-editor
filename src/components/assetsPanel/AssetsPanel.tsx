@@ -1,5 +1,5 @@
 import { Paper, ScrollArea, Stack } from '@mantine/core'
-import { state } from '@state/State'
+import { state, useSnapshot } from '@state/State'
 import path from 'path-browserify-esm'
 import { useEffect, useState } from 'react'
 import { Logger } from 'tslog'
@@ -8,21 +8,20 @@ import { removeAssetById, type AssetTreeItemData } from '../../types/assets'
 import { PanelTitle } from './../PanelTitle'
 import AssetContextMenu from './AssetContextMenu'
 import AssetTreeItem from './AssetTreeItem'
+import { Snapshot } from 'valtio'
 
 interface ContextMenuState {
 	opened: boolean
 	position: { x: number; y: number }
-	asset: AssetTreeItemData | null
+	asset: Snapshot<AssetTreeItemData> | null
 }
 
 interface AssetsPanelProps {
 	logger: Logger<{}>
-	onSelectAsset: (item: AssetTreeItemData | null) => void
-	assets: AssetTreeItemData[]
 }
 
-export default function AssetsPanel({ logger, onSelectAsset, assets }: AssetsPanelProps) {
-	const [selectedItem, setSelectedItem] = useState<AssetTreeItemData | null>(null)
+export default function AssetsPanel({ logger }: AssetsPanelProps) {
+	const assetsSnap = useSnapshot(state.assets)
 	const [openFolders, setOpenFolders] = useState<Set<string>>(new Set())
 	const [contextMenu, setContextMenu] = useState<ContextMenuState>({
 		opened: false,
@@ -41,9 +40,9 @@ export default function AssetsPanel({ logger, onSelectAsset, assets }: AssetsPan
 				}
 			})
 		}
-		collectFolderPaths(assets)
+		collectFolderPaths(assetsSnap.items as AssetTreeItemData[])
 		setOpenFolders(folders)
-	}, [assets])
+	}, [assetsSnap.items])
 
 	const toggleFolder = (folderId: string) => {
 		setOpenFolders((prev) => {
@@ -57,13 +56,13 @@ export default function AssetsPanel({ logger, onSelectAsset, assets }: AssetsPan
 		})
 	}
 
-	const handleSelect = (item: AssetTreeItemData) => {
-		setSelectedItem(item)
-		onSelectAsset(item)
+	const handleSelect = (item: Snapshot<AssetTreeItemData>) => {
+		state.assets.selection = [item.id]
+		state.assets.selectionChangedAt = Date.now()
 		logger.info(`selected '${item.name}' (${item.type})`, item)
 	}
 
-	const handleContextMenu = (item: AssetTreeItemData, position: { x: number; y: number }) => {
+	const handleContextMenu = (item: Snapshot<AssetTreeItemData>, position: { x: number; y: number }) => {
 		setContextMenu({
 			opened: true,
 			position,
@@ -125,7 +124,7 @@ export default function AssetsPanel({ logger, onSelectAsset, assets }: AssetsPan
 					event.ctrlKey || event.metaKey || confirm(`Are you sure you want to delete ${asset.name}?`)
 				if (shouldDelete) {
 					await trpc.trash.mutate({ path: asset.path })
-					removeAssetById(state.assets, asset.id)
+					removeAssetById(state.assets.items, asset.id)
 				}
 				break
 		}
@@ -150,15 +149,15 @@ export default function AssetsPanel({ logger, onSelectAsset, assets }: AssetsPan
 				<PanelTitle title="Assets" />
 				<ScrollArea style={{ flex: 1 }}>
 					<Stack gap={0}>
-						{assets.map((asset, index) => (
+						{assetsSnap.items.map((asset, index) => (
 							<AssetTreeItem
 								key={asset.path}
 								item={asset}
 								onToggle={toggleFolder}
 								onSelect={handleSelect}
 								onContextMenu={handleContextMenu}
-								selectedItem={selectedItem}
-								isLastChild={index === assets.length - 1}
+								selectedItem={assetsSnap.selection.includes(asset.id) ? asset : null}
+								isLastChild={index === assetsSnap.items.length - 1}
 								isOpen={openFolders.has(asset.id)}
 								openFolders={openFolders}
 							/>

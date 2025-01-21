@@ -12,7 +12,7 @@ import { buildAssetTree } from './assetsPanel/build-asset-tree'
 import CanvasContainer from './canvas/CanvasContainer'
 import OpenProjectDialog from './dialogs/OpenProjectDialog'
 import HierarchyPanel from './hierarchyPanel/HierarchyPanel'
-import InspectorPanel, { ItemToInspect } from './inspector/InspectorPanel'
+import InspectorPanel from './inspector/InspectorPanel'
 import ResizableDivider from './ResizableDivider'
 
 const MIN_PANEL_WIDTH = 200
@@ -28,7 +28,6 @@ export default function EditorLayout() {
 	const [rightPanelWidth, setRightPanelWidth] = useState(rpw)
 	const [hierarchyHeight, setHierarchyHeight] = useState(hh || Math.round(window.innerHeight / 2) - 6)
 	const [openProjectDialogOpen, setOpenProjectDialogOpen] = useState(false)
-	const [itemToInspect, setItemToInspect] = useState<ItemToInspect | null>(null)
 
 	const handleLeftResize = useCallback((delta: number) => {
 		setLeftPanelWidth((prev) => {
@@ -119,7 +118,7 @@ export default function EditorLayout() {
 
 		const assetTree = await buildAssetTree(assets, openedProject.assetsDir)
 		// console.log('assetTree', assetTree)
-		state.assets = stateSchema.shape.assets.parse(assetTree)
+		state.assets.items = stateSchema.shape.assets.shape.items.parse(assetTree)
 
 		state.lastOpenedProjectDir = projectDirPath
 
@@ -236,13 +235,7 @@ export default function EditorLayout() {
 									flexDirection: 'column',
 								}}
 							>
-								<AssetsPanel
-									logger={logger.getOrCreate('assets')}
-									onSelectAsset={(item) =>
-										setItemToInspect(item ? { type: 'asset', data: item } : null)
-									}
-									assets={state.assets}
-								/>
+								<AssetsPanel logger={logger.getOrCreate('assets')} />
 							</Box>
 						)}
 					</Stack>

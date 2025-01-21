@@ -32,7 +32,11 @@ export const stateSchema = z.object({
 	}),
 	projectDir: absolutePathSchema.nullable(),
 	project: projectConfigSchema.nullable(),
-	assets: z.array(z.unknown()) as z.ZodType<AssetTreeItemData[]>,
+	assets: z.object({
+		selection: z.array(z.string()),
+		selectionChangedAt: z.number().int().positive().optional(),
+		items: z.array(z.unknown()) as z.ZodType<AssetTreeItemData[]>,
+	}),
 	canvas: z.object({
 		camera: z.object({
 			zoom: z.number().positive(),
@@ -79,7 +83,10 @@ const initialStateParsed = merge(
 		},
 		projectDir: null,
 		project: null,
-		assets: [],
+		assets: {
+			selection: [],
+			items: [],
+		},
 		canvas: {
 			camera: {
 				zoom: 1,

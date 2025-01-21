@@ -14,12 +14,12 @@ import { NumberInputCustom } from '../common/NumberInputCustom'
 interface NineSliceSectionProps extends BaseSectionProps<EditableNineSliceJson> {}
 
 export function NineSliceSection({ data }: NineSliceSectionProps) {
-	const stateSnap = useSnapshot(state)
+	const assetsSnap = useSnapshot(state.assets.items)
 
-	const images = getAssetsOfType(stateSnap.assets as State['assets'], 'image').filter((item) =>
+	const images = getAssetsOfType(assetsSnap as State['assets']['items'], 'image').filter((item) =>
 		isNineSliceImage(item)
 	)
-	const spritesheets = getAssetsOfType(stateSnap.assets as State['assets'], 'spritesheet').filter((item) =>
+	const spritesheets = getAssetsOfType(assetsSnap as State['assets']['items'], 'spritesheet').filter((item) =>
 		hasNineSliceFrames(item)
 	)
 	const textures = [...images, ...spritesheets]

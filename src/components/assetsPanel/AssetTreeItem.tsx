@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { match } from 'ts-pattern'
+import { Snapshot } from 'valtio'
 import { useDragAndDrop } from '../../hooks/useDragAndDrop'
 import { isDraggableAsset, type AssetTreeItemData } from '../../types/assets'
 
@@ -23,12 +24,12 @@ const ITEM_HEIGHT = 28
 const BASE_PADDING = 3
 
 interface AssetTreeItemProps {
-	item: AssetTreeItemData
+	item: Snapshot<AssetTreeItemData>
 	level?: number
 	onToggle: (id: string) => void
-	onSelect: (item: AssetTreeItemData) => void
-	onContextMenu: (item: AssetTreeItemData, position: { x: number; y: number }) => void
-	selectedItem?: AssetTreeItemData | null
+	onSelect: (item: Snapshot<AssetTreeItemData>) => void
+	onContextMenu: (item: Snapshot<AssetTreeItemData>, position: { x: number; y: number }) => void
+	selectedItem?: Snapshot<AssetTreeItemData> | null
 	isLastChild?: boolean
 	isOpen?: boolean
 	openFolders: Set<string>
@@ -85,7 +86,7 @@ export default function AssetTreeItem({
 		onContextMenu(item, { x: e.clientX, y: e.clientY })
 	}
 
-	const hasChildren = (item: AssetTreeItemData): boolean => {
+	const hasChildren = (item: Snapshot<AssetTreeItemData>): boolean => {
 		return match(item)
 			.with({ type: 'folder' }, (item) => item.children.length > 0)
 			.with({ type: 'spritesheet' }, (item) => item.frames.length > 0)
@@ -93,7 +94,7 @@ export default function AssetTreeItem({
 			.otherwise(() => false)
 	}
 
-	const getChildren = (item: AssetTreeItemData) => {
+	const getChildren = (item: Snapshot<AssetTreeItemData>) => {
 		return match(item)
 			.with({ type: 'folder' }, (item) => item.children)
 			.with({ type: 'spritesheet' }, (item) => item.frames)
