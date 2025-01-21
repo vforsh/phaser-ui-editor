@@ -23,6 +23,7 @@ interface AssetsPanelProps {
 export default function AssetsPanel({ logger }: AssetsPanelProps) {
 	const assetsSnap = useSnapshot(state.assets)
 	const [openFolders, setOpenFolders] = useState<Set<string>>(new Set())
+	const [lastSelectedId, setLastSelectedId] = useState<string | null>(null)
 	const [contextMenu, setContextMenu] = useState<ContextMenuState>({
 		opened: false,
 		position: { x: 0, y: 0 },
@@ -56,10 +57,59 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		})
 	}
 
-	const handleSelect = (item: Snapshot<AssetTreeItemData>) => {
-		state.assets.selection = [item.id]
+	const handleSelect = (item: Snapshot<AssetTreeItemData>, event: React.MouseEvent) => {
+		const isCtrlPressed = event.ctrlKey || event.metaKey
+		const isShiftPressed = event.shiftKey
+
+		if (isCtrlPressed) {
+			// Toggle selection of clicked item
+			const newSelection = assetsSnap.selection.includes(item.id)
+				? assetsSnap.selection.filter(id => id !== item.id)
+				: [...assetsSnap.selection, item.id]
+			
+			state.assets.selection = newSelection
+			setLastSelectedId(item.id)
+		} else if (isShiftPressed && lastSelectedId) {
+			// Find all items between last selected and current
+			const allItems = getAllItems(assetsSnap.items as AssetTreeItemData[])
+			const lastSelectedIndex = allItems.findIndex(i => i.id === lastSelectedId)
+			const currentIndex = allItems.findIndex(i => i.id === item.id)
+			
+			if (lastSelectedIndex !== -1 && currentIndex !== -1) {
+				const start = Math.min(lastSelectedIndex, currentIndex)
+				const end = Math.max(lastSelectedIndex, currentIndex)
+				const itemsToSelect = allItems.slice(start, end + 1)
+				
+				state.assets.selection = itemsToSelect.map(i => i.id)
+			}
+		} else {
+			// Regular single selection
+			state.assets.selection = [item.id]
+			setLastSelectedId(item.id)
+		}
+
 		state.assets.selectionChangedAt = Date.now()
 		logger.info(`selected '${item.name}' (${item.type})`, item)
+	}
+
+	// Helper function to flatten the asset tree
+	const getAllItems = (items: AssetTreeItemData[]): AssetTreeItemData[] => {
+		const result: AssetTreeItemData[] = []
+		
+		const traverse = (items: AssetTreeItemData[]) => {
+			items.forEach(item => {
+				result.push(item)
+				if ('children' in item && Array.isArray(item.children)) {
+					traverse(item.children)
+				}
+				if ('frames' in item && Array.isArray(item.frames)) {
+					traverse(item.frames)
+				}
+			})
+		}
+		
+		traverse(items)
+		return result
 	}
 
 	const handleContextMenu = (item: Snapshot<AssetTreeItemData>, position: { x: number; y: number }) => {

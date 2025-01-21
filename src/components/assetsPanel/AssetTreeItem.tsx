@@ -28,7 +28,7 @@ interface AssetTreeItemProps {
 	item: Snapshot<AssetTreeItemData>
 	level?: number
 	onToggle: (id: string) => void
-	onSelect: (item: Snapshot<AssetTreeItemData>) => void
+	onSelect: (item: Snapshot<AssetTreeItemData>, event: React.MouseEvent) => void
 	onContextMenu: (item: Snapshot<AssetTreeItemData>, position: { x: number; y: number }) => void
 	isSelected?: boolean
 	isLastChild?: boolean
@@ -79,7 +79,7 @@ export default function AssetTreeItem({
 			.with({ type: 'folder' }, () => onToggle(item.id))
 			.with({ type: 'spritesheet' }, () => onToggle(item.id))
 			.with({ type: 'spritesheet-folder' }, () => onToggle(item.id))
-			.otherwise(() => onSelect(item))
+			.otherwise(() => onSelect(item, e))
 	}
 
 	const handleContextMenu = (e: React.MouseEvent) => {
