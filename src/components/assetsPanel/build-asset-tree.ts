@@ -473,10 +473,10 @@ const doBuildAssetTree = async (
  * Adds an id to the asset.
  * @note it mutates the asset object
  */
-function addAssetId<T extends AssetTreeItemData>(asset: Omit<T, 'id'>): T & { id: string } {
+export function addAssetId<T extends AssetTreeItemData>(asset: Omit<T, 'id'>): T & { id: string } {
 	return Object.assign(asset, { id: getAssetId(asset.type) }) as T & { id: string }
 }
 
-function getAssetId(assetType: AssetTreeItemDataType): string {
+export function getAssetId(assetType: AssetTreeItemDataType): string {
 	return nanoid(10)
 }

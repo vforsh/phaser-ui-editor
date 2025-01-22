@@ -1,14 +1,18 @@
 import { Paper, ScrollArea, Stack } from '@mantine/core'
 import { state, useSnapshot } from '@state/State'
+import { ChevronRight } from 'lucide-react'
+import { ContextMenuProvider, useContextMenu } from 'mantine-contextmenu'
+import { nanoid } from 'nanoid'
 import path from 'path-browserify-esm'
 import { useEffect, useState } from 'react'
 import { Logger } from 'tslog'
+import { Snapshot } from 'valtio'
 import trpc from '../../trpc'
-import { removeAssetById, type AssetTreeItemData } from '../../types/assets'
+import { AssetTreeFolderData, removeAssetById, type AssetTreeItemData } from '../../types/assets'
 import { PanelTitle } from './../PanelTitle'
 import AssetContextMenu from './AssetContextMenu'
 import AssetTreeItem from './AssetTreeItem'
-import { Snapshot } from 'valtio'
+import { addAssetId } from './build-asset-tree'
 
 interface ContextMenuState {
 	opened: boolean
@@ -24,6 +28,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 	const assetsSnap = useSnapshot(state.assets)
 	const [openFolders, setOpenFolders] = useState<Set<string>>(new Set())
 	const [lastSelectedId, setLastSelectedId] = useState<string | null>(null)
+	const { showContextMenu } = useContextMenu()
 	const [contextMenu, setContextMenu] = useState<ContextMenuState>({
 		opened: false,
 		position: { x: 0, y: 0 },
@@ -31,19 +36,19 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 	})
 
 	// Initialize all folders as open
-	useEffect(() => {
-		const folders = new Set<string>()
-		const collectFolderPaths = (items: AssetTreeItemData[]) => {
-			items.forEach((item) => {
-				if (item.type === 'folder') {
-					folders.add(item.id)
-					collectFolderPaths(item.children)
-				}
-			})
-		}
-		collectFolderPaths(assetsSnap.items as AssetTreeItemData[])
-		setOpenFolders(folders)
-	}, [assetsSnap.items])
+	// useEffect(() => {
+	// 	const folders = new Set<string>()
+	// 	const collectFolderPaths = (items: AssetTreeItemData[]) => {
+	// 		items.forEach((item) => {
+	// 			if (item.type === 'folder') {
+	// 				folders.add(item.id)
+	// 				collectFolderPaths(item.children)
+	// 			}
+	// 		})
+	// 	}
+	// 	collectFolderPaths(assetsSnap.items as AssetTreeItemData[])
+	// 	setOpenFolders(folders)
+	// }, [assetsSnap.items])
 
 	const toggleFolder = (folderId: string) => {
 		setOpenFolders((prev) => {
@@ -64,23 +69,23 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		if (isCtrlPressed) {
 			// Toggle selection of clicked item
 			const newSelection = assetsSnap.selection.includes(item.id)
-				? assetsSnap.selection.filter(id => id !== item.id)
+				? assetsSnap.selection.filter((id) => id !== item.id)
 				: [...assetsSnap.selection, item.id]
-			
+
 			state.assets.selection = newSelection
 			setLastSelectedId(item.id)
 		} else if (isShiftPressed && lastSelectedId) {
 			// Find all items between last selected and current
 			const allItems = getAllItems(assetsSnap.items as AssetTreeItemData[])
-			const lastSelectedIndex = allItems.findIndex(i => i.id === lastSelectedId)
-			const currentIndex = allItems.findIndex(i => i.id === item.id)
-			
+			const lastSelectedIndex = allItems.findIndex((i) => i.id === lastSelectedId)
+			const currentIndex = allItems.findIndex((i) => i.id === item.id)
+
 			if (lastSelectedIndex !== -1 && currentIndex !== -1) {
 				const start = Math.min(lastSelectedIndex, currentIndex)
 				const end = Math.max(lastSelectedIndex, currentIndex)
 				const itemsToSelect = allItems.slice(start, end + 1)
-				
-				state.assets.selection = itemsToSelect.map(i => i.id)
+
+				state.assets.selection = itemsToSelect.map((i) => i.id)
 			}
 		} else {
 			// Regular single selection
@@ -95,9 +100,9 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 	// Helper function to flatten the asset tree
 	const getAllItems = (items: AssetTreeItemData[]): AssetTreeItemData[] => {
 		const result: AssetTreeItemData[] = []
-		
+
 		const traverse = (items: AssetTreeItemData[]) => {
-			items.forEach(item => {
+			items.forEach((item) => {
 				result.push(item)
 				if ('children' in item && Array.isArray(item.children)) {
 					traverse(item.children)
@@ -107,7 +112,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 				}
 			})
 		}
-		
+
 		traverse(items)
 		return result
 	}
@@ -193,36 +198,86 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		return () => window.removeEventListener('click', onClick)
 	}, [contextMenu.opened])
 
-	return (
-		<Paper style={{ height: '100%', display: 'flex', flexDirection: 'column' }} radius="sm">
-			<Stack gap="xs" p="xs" style={{ height: '100%', minHeight: 0 }}>
-				<PanelTitle title="Assets" />
-				<ScrollArea style={{ flex: 1 }}>
-					<Stack gap={0}>
-						{assetsSnap.items.map((asset, index) => (
-							<AssetTreeItem
-								key={asset.path}
-								item={asset}
-								onToggle={toggleFolder}
-								onSelect={handleSelect}
-								onContextMenu={handleContextMenu}
-								isSelected={assetsSnap.selection.includes(asset.id)}
-								isLastChild={index === assetsSnap.items.length - 1}
-								isOpen={openFolders.has(asset.id)}
-								openFolders={openFolders}
-							/>
-						))}
-					</Stack>
-				</ScrollArea>
-			</Stack>
+	const rootContextMenu = [
+		{
+			key: 'create',
+			title: 'Create',
+			iconRight: <ChevronRight size={14} />,
+			items: [
+				{
+					key: 'create-folder',
+					title: 'Folder',
+					onClick: () => {
+						const folderName = nanoid(5)
+						const folderAsset: AssetTreeFolderData = addAssetId({
+							type: 'folder',
+							name: folderName,
+							path: path.join(state.project!.assetsDir, folderName),
+							children: [],
+						})
 
-			<AssetContextMenu
-				asset={contextMenu.asset}
-				opened={contextMenu.opened}
-				position={contextMenu.position}
-				onClose={() => setContextMenu({ ...contextMenu, opened: false })}
-				onAction={handleContextMenuAction}
-			/>
-		</Paper>
+						// enter folder rename mode immediately after creation
+
+						// add folder to filesystem via trpc
+
+						state.assets.items.push(folderAsset)
+						state.assets.items.sort()
+					},
+				},
+			],
+		},
+		{
+			key: 'refresh',
+			title: 'Refresh',
+			onClick: () => {
+				logger.info('refresh')
+			},
+		},
+	]
+
+	return (
+		<ContextMenuProvider>
+			<Paper style={{ height: '100%', display: 'flex', flexDirection: 'column' }} radius="sm">
+				<Stack gap="xs" p="xs" style={{ height: '100%', minHeight: 0 }}>
+					<PanelTitle title="Assets" />
+					<ScrollArea
+						style={{ flex: 1 }}
+						id="assets-panel-scroll-area"
+						onContextMenu={(event) => {
+							// display root context menu only if clicked on the scroll area
+							if ((event.target as HTMLElement).parentElement?.id !== 'assets-panel-scroll-area') {
+								return
+							}
+
+							showContextMenu(rootContextMenu)(event)
+						}}
+					>
+						<Stack gap={0}>
+							{assetsSnap.items.map((asset, index) => (
+								<AssetTreeItem
+									key={asset.path}
+									item={asset}
+									onToggle={toggleFolder}
+									onSelect={handleSelect}
+									onContextMenu={handleContextMenu}
+									isSelected={assetsSnap.selection.includes(asset.id)}
+									isLastChild={index === assetsSnap.items.length - 1}
+									isOpen={openFolders.has(asset.id)}
+									openFolders={openFolders}
+								/>
+							))}
+						</Stack>
+					</ScrollArea>
+				</Stack>
+
+				<AssetContextMenu
+					asset={contextMenu.asset}
+					opened={contextMenu.opened}
+					position={contextMenu.position}
+					onClose={() => setContextMenu({ ...contextMenu, opened: false })}
+					onAction={handleContextMenuAction}
+				/>
+			</Paper>
+		</ContextMenuProvider>
 	)
 }

@@ -1,5 +1,10 @@
-import { AppShell, MantineProvider, createTheme } from '@mantine/core'
 import '@mantine/core/styles.css'
+import 'mantine-contextmenu/styles.css'
+import './layout.css'
+
+import { AppShell, MantineProvider, createTheme } from '@mantine/core'
+import { urlParams } from '@url-params'
+import { ContextMenuProvider } from 'mantine-contextmenu'
 import { ref } from 'valtio'
 import { AppCommands } from './AppCommands'
 import { AppEvents } from './AppEvents'
@@ -7,7 +12,6 @@ import { TypedEventEmitter } from './components/canvas/phaser/robowhale/phaser3/
 import { CommandEmitter } from './components/canvas/phaser/robowhale/utils/events/CommandEmitter'
 import EditorLayout from './components/EditorLayout'
 import { state } from './state/State'
-import { urlParams } from '@url-params'
 
 const theme = createTheme({
 	primaryColor: 'blue',
@@ -35,9 +39,11 @@ function App() {
 
 	return (
 		<MantineProvider theme={theme} defaultColorScheme="dark">
-			<AppShell>
-				<EditorLayout />
-			</AppShell>
+			<ContextMenuProvider zIndex={5000} shadow="md" borderRadius="md" submenuDelay={0}>
+				<AppShell>
+					<EditorLayout />
+				</AppShell>
+			</ContextMenuProvider>
 		</MantineProvider>
 	)
 }
