@@ -14,9 +14,11 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 		super(scene, x, y, texture, frame)
 
 		this.id = id
-		
+		this.x = x
+		this.y = y
+
 		this._stateObj = proxy(this.toJson())
-		
+
 		// state changes are reflected in the underlying Phaser object
 		this._stateChanges = new StateChangesEmitter(this._stateObj, {
 			'name': (value) => (this.name = value),
