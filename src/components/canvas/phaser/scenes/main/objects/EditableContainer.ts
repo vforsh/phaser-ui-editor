@@ -228,6 +228,17 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		return this
 	}
 
+	override setDisplaySize(width: number, height: number): this {
+		super.setDisplaySize(width, height)
+
+		this.withoutEmits((state) => {
+			state.scale.x = this.scaleX
+			state.scale.y = this.scaleY
+		})
+
+		return this
+	}
+
 	override setAngle(angle: number): this {
 		super.setAngle(angle)
 
