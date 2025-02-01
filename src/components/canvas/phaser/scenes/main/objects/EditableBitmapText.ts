@@ -148,6 +148,12 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		const scaleX = displayWidth / this.width
 		const scaleY = displayHeight / this.height
 		this.setScale(scaleX, scaleY)
+
+		this.withoutEmits((state) => {
+			state.scale.x = scaleX
+			state.scale.y = scaleY
+		})
+
 		return this
 	}
 
