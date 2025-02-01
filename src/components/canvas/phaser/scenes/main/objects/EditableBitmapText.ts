@@ -45,14 +45,46 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 			'frameKey': (value) => this.setFrame(value),
 
 			// bitmap text specific properties
-			'text': (value) => (this.text = value),
-			'font': (value) => this.setFont(value),
-			'fontSize': (value) => (this.fontSize = value),
-			'align': (value) => (this.align = value),
-			'maxWidth': (value) => (this.maxWidth = value),
-			'letterSpacing': (value) => (this.letterSpacing = value),
-			'lineSpacing': (value) => (this.lineSpacing = value),
+			'text': (value) => {
+				this.text = value
+				this.updateInputHitArea()
+			},
+			'font': (value) => {
+				this.setFont(value)
+				this.updateInputHitArea()
+			},
+			'fontSize': (value) => {
+				this.fontSize = value
+				this.updateInputHitArea()
+			},
+			'align': (value) => {
+				this.align = value
+				this.updateInputHitArea()
+			},
+			'maxWidth': (value) => {
+				this.maxWidth = value
+				this.updateInputHitArea()
+			},
+			'letterSpacing': (value) => {
+				this.letterSpacing = value
+				this.updateInputHitArea()
+			},
+			'lineSpacing': (value) => {
+				this.lineSpacing = value
+				this.updateInputHitArea()
+			},
 		})
+	}
+
+	private updateInputHitArea(): this {
+		const bounds = this.getTextBounds(false)
+
+		if (this.input) {
+			// TODO support different hitArea types, not just Rectangle
+			this.input.hitArea?.setSize(bounds.local.width, bounds.local.height)
+		}
+
+		return this
 	}
 
 	/**
@@ -103,7 +135,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 	}
 
 	get isResizable() {
-		return false
+		return true
 	}
 
 	/**
@@ -135,6 +167,14 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		this.setScaleY(scale)
 	}
 
+	private setScaleX(value: number) {
+		this.setScale(value, this.scaleY)
+	}
+
+	private setScaleY(value: number) {
+		this.setScale(this.scaleX, value)
+	}
+
 	get displayWidth(): number {
 		return this.width
 	}
@@ -154,33 +194,15 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		return this
 	}
 
-	private setScaleX(value: number) {
-		this.setScale(value, this.scaleY)
-	}
-
-	private setScaleY(value: number) {
-		this.setScale(this.scaleX, value)
-	}
-
 	override setName(value: string): this {
 		super.setName(value)
-		
+
 		this.withoutEmits((state) => {
 			state.name = value
 		})
-		
+
 		return this
 	}
-	
-	/* override setFontSize(value: number) {
-		super.setFontSize(value)
-		
-		this.withoutEmits((state) => {
-			state.fontSize = value
-		})
-		
-		return this
-	} */
 
 	get stateObj() {
 		return this._stateObj
