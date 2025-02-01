@@ -1,5 +1,5 @@
 import { EditableTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableText'
-import { ColorInput, Group, Stack, TextInput } from '@mantine/core'
+import { ColorInput, Group, Stack, Textarea, TextInput } from '@mantine/core'
 import { State, state, useSnapshot } from '@state/State'
 import { uniq } from 'es-toolkit'
 import { getAssetsOfType } from '../../../../types/assets'
@@ -7,6 +7,7 @@ import { BaseSectionProps } from '../BaseSection'
 import { CheckboxCustom } from '../common/CheckboxCustom'
 import { NumberInputCustom } from '../common/NumberInputCustom'
 import { SelectCustom } from '../common/SelectCustom'
+import { TextareaCustom } from '../common/TextareaCustom'
 
 const TEXT_ALIGN_TYPES = ['left', 'right', 'center', 'justify'] as const
 
@@ -29,7 +30,8 @@ export function TextSection({ data }: TextSectionProps) {
 
 	return (
 		<Stack gap="xs">
-			<TextInput
+			<TextareaCustom
+				rows={3}
 				label="Content"
 				value={snap.text}
 				onChange={(e) => (data.text = e.currentTarget.value)}

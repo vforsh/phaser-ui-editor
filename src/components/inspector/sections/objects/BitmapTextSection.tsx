@@ -1,10 +1,12 @@
 import { EditableBitmapTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableBitmapText'
-import { Group, NumberInput, Select, Stack, TextInput } from '@mantine/core'
+import { Group, Stack } from '@mantine/core'
 import { state, State, useSnapshot } from '@state/State'
 import { uniq } from 'es-toolkit'
 import { getAssetsOfType } from '../../../../types/assets'
 import { BaseSectionProps } from '../BaseSection'
 import { NumberInputCustom } from '../common/NumberInputCustom'
+import { SelectCustom } from '../common/SelectCustom'
+import { TextareaCustom } from '../common/TextareaCustom'
 
 const ALIGN_OPTIONS = [
 	{ value: 0, label: 'Left' },
@@ -53,7 +55,8 @@ export function BitmapTextSection({ data }: BitmapTextSectionProps) {
 				</Text>
 			)} */}
 
-			<TextInput
+			<TextareaCustom
+				rows={3}
 				label="Content"
 				value={snap.text}
 				onChange={(e) => (data.text = e.currentTarget.value)}
@@ -61,7 +64,7 @@ export function BitmapTextSection({ data }: BitmapTextSectionProps) {
 			/>
 
 			<Group grow>
-				<Select
+				<SelectCustom
 					label="Font"
 					value={snap.font}
 					// TODO handle font change
@@ -82,7 +85,7 @@ export function BitmapTextSection({ data }: BitmapTextSectionProps) {
 				/>
 			</Group>
 
-			<Select
+			<SelectCustom
 				label="Text Align"
 				value={snap.align.toString()}
 				onChange={(value) => (data.align = Number(value) as AlignType)}
@@ -90,12 +93,12 @@ export function BitmapTextSection({ data }: BitmapTextSectionProps) {
 				size="xs"
 			/>
 
-			<NumberInput
+			<NumberInputCustom
 				label="Max Width"
 				value={snap.maxWidth}
 				onChange={(value) => (data.maxWidth = value as number)}
 				min={0}
-				step={10}
+				step={1}
 				size="xs"
 			/>
 
