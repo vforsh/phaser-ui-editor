@@ -68,7 +68,7 @@ export abstract class BaseScene extends Phaser.Scene {
 			`keydown-${key}`,
 			(e: KeyboardEvent) => {
 				if (this.isGameCanvasFocused()) {
-					callback(e)
+					callback.call(context, e)
 				}
 			},
 			context,
@@ -81,7 +81,7 @@ export abstract class BaseScene extends Phaser.Scene {
 			`keydown-${key}`,
 			(e: KeyboardEvent) => {
 				if (this.isGameCanvasFocused()) {
-					callback(e)
+					callback.call(context, e)
 				}
 			},
 			context,
