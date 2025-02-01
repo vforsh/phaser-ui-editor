@@ -157,8 +157,8 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		image.setRotation(json.rotation)
 		image.setDepth(json.depth)
 		image.setBlendMode(json.blendMode)
-		image.setScale(json['scale.x'], json['scale.y'])
-		image.setOrigin(json['origin.x'], json['origin.y'])
+		image.setScale(json.scale.x, json.scale.y)
+		image.setOrigin(json.originX, json.originY)
 
 		return image
 	}
@@ -190,7 +190,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		text.setDepth(json.depth)
 		text.setBlendMode(json.blendMode)
 		text.setScale(json.scale.x, json.scale.y)
-		text.setOrigin(json.origin.x, json.origin.y)
+		text.setOrigin(json.originX, json.originY)
 		text.locked = json.locked
 
 		return text
@@ -208,7 +208,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		bitmapText.setDepth(json.depth)
 		bitmapText.setBlendMode(json.blendMode)
 		bitmapText.setScale(json.scale.x, json.scale.y)
-		bitmapText.setOrigin(json.origin.x, json.origin.y)
+		bitmapText.setOrigin(json.originX, json.originY)
 		bitmapText.setMaxWidth(json.maxWidth)
 		bitmapText.locked = json.locked
 

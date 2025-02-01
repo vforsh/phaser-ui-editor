@@ -69,10 +69,8 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 				x: this.scaleX,
 				y: this.scaleY,
 			},
-			origin: {
-				x: this.originX,
-				y: this.originY,
-			},
+			originX: this.originX,
+			originY: this.originY,
 			locked: this.locked,
 			tint: this.tint,
 			tintFill: this.tintFill,
@@ -111,6 +109,7 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 		return super.resize(width, height)
 	}
 
+	// #region displayWidth and displayHeight hacks
 	// we override the displayWidth and displayHeight for selection and transform controls to work properly
 
 	// @ts-expect-error
@@ -130,6 +129,8 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 	set displayHeight(value: number) {
 		this.resize(this.width, value)
 	}
+
+	// #endregion
 
 	// @ts-expect-error
 	get name(): string {
@@ -159,7 +160,8 @@ export type EditableNineSliceJson = CreateEditableObjectJson<{
 	depth: number
 	blendMode: string | Phaser.BlendModes | number
 	scale: { x: number; y: number }
-	origin: { x: number; y: number }
+	originX: number
+	originY: number
 	locked: boolean
 	tint: number
 	tintFill: boolean

@@ -777,16 +777,30 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	private resizeBorders(selection: Selection) {
-		const width = selection.width
-		const height = selection.height
+		let width = selection.width
+		let height = selection.height
 
+		if (selection.count === 1) {
+			const obj = selection.objects[0]
+			width = obj.displayWidth
+			height = obj.displayHeight
+		}
+
+		// top border has origin at (0, 0.5)
+		// so when we increase its width, it expands to the right
 		this.topBorder.displayWidth = width
 
+		// bottom border has origin at (0, 0.5)
+		// so when we increase its width, it expands to the right
 		this.bottomBorder.displayWidth = width
 		this.bottomBorder.y = height
 
+		// left border has origin at (0.5, 0)
+		// so when we increase its height, it expands to the bottom
 		this.leftBorder.displayHeight = height
 
+		// right border has origin at (0.5, 0)
+		// so when we increase its height, it expands to the bottom
 		this.rightBorder.displayHeight = height
 		this.rightBorder.x = width
 	}
@@ -822,7 +836,19 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	private adjustToSelectionOrigin(selection: Selection): void {
-		const { originX, originY, width, height } = selection
+		let width = selection.width
+		let height = selection.height
+		let originX = selection.originX
+		let originY = selection.originY
+
+		if (selection.count === 1) {
+			const obj = selection.objects[0]
+			width = obj.displayWidth
+			height = obj.displayHeight
+			originX = obj.originX
+			originY = obj.originY
+		}
+
 		const offsetX = -width * originX
 		const offsetY = -height * originY
 		this.innerContainer.setPosition(offsetX, offsetY)
@@ -839,12 +865,12 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	private adjustToSelectionPosition(selection: Selection): void {
-		if (selection.objects.length === 1) {
-			const obj = selection.objects[0]
-			this.setPosition(obj.x, obj.y)
-		} else {
-			this.setPosition(selection.x, selection.y)
-		}
+		// if (selection.objects.length === 1) {
+		// 	const obj = selection.objects[0]
+		// 	this.setPosition(obj.x, obj.y)
+		// } else {
+		this.setPosition(selection.x, selection.y)
+		// }
 	}
 
 	private onUpdate(time: number, deltaMs: number): void {

@@ -1,4 +1,4 @@
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { canChangeOrigin, EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { NumberInputCustom } from '@components/inspector/sections/common/NumberInputCustom'
 import { Group, Stack } from '@mantine/core'
 import { useSnapshot } from 'valtio'
@@ -31,23 +31,25 @@ export function TransformSection({ data }: TransformSectionProps) {
 			<Group grow>
 				<NumberInputCustom
 					label="Origin X"
-					value={snap['origin.x']}
-					onChange={(val) => (data['origin.x'] = val)}
+					value={snap.originX}
+					onChange={(val) => (data.originX = val)}
 					decimalScale={2}
 					min={0}
 					max={1}
 					step={0.01}
 					size="xs"
+					disabled={!canChangeOrigin(data.type)}
 				/>
 				<NumberInputCustom
 					label="Origin Y"
-					value={snap['origin.y']}
-					onChange={(val) => (data['origin.y'] = val)}
+					value={snap.originY}
+					onChange={(val) => (data.originY = val)}
 					decimalScale={2}
 					min={0}
 					max={1}
 					step={0.01}
 					size="xs"
+					disabled={!canChangeOrigin(data.type)}
 				/>
 			</Group>
 

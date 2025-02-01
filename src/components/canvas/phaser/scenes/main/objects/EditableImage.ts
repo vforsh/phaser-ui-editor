@@ -25,8 +25,8 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 			'angle': (value) => (this.angle = value),
 			'x': (value) => (this.x = value),
 			'y': (value) => (this.y = value),
-			'origin.x': (value) => this.setOrigin(value, this.originY),
-			'origin.y': (value) => this.setOrigin(this.originX, value),
+			'originX': (value) => this.setOrigin(value, this.originY),
+			'originY': (value) => this.setOrigin(this.originX, value),
 			'scale.x': (value) => (this.scaleX = value),
 			'scale.y': (value) => (this.scaleY = value),
 			'alpha': (value) => (this.alpha = value),
@@ -63,6 +63,8 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 			tint: this.tint,
 			tintFill: this.tintFill,
 			angle: this.angle,
+			originX: this.originX,
+			originY: this.originY,
 		}
 	}
 
@@ -103,8 +105,8 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 		super.setOrigin(x, y)
 
 		this.withoutEmits((state) => {
-			state['origin.x'] = this.originX
-			state['origin.y'] = this.originY
+			state.originX = this.originX
+			state.originY = this.originY
 		})
 
 		return this
@@ -207,4 +209,6 @@ export type EditableImageJson = CreateEditableObjectJson<{
 	tint: number
 	tintFill: boolean
 	angle: number
+	originX: number
+	originY: number
 }>

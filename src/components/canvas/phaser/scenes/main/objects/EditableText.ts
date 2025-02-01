@@ -30,8 +30,8 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 				'angle': (value) => (this.angle = value),
 				'x': (value) => (this.x = value),
 				'y': (value) => (this.y = value),
-				'origin.x': (value) => this.setOrigin(value, this.originY),
-				'origin.y': (value) => this.setOrigin(this.originX, value),
+				'originX': (value) => this.setOrigin(value, this.originY),
+				'originY': (value) => this.setOrigin(this.originX, value),
 				'scale.x': (value) => (this.scaleX = value),
 				'scale.y': (value) => (this.scaleY = value),
 				'alpha': (value) => (this.alpha = value),
@@ -108,10 +108,8 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 				x: this.scaleX,
 				y: this.scaleY,
 			},
-			origin: {
-				x: this.originX,
-				y: this.originY,
-			},
+			originX: this.originX,
+			originY: this.originY,
 			locked: this.locked,
 			text: this.text,
 			style: this.style.toJSON() as EditableTextStyleJson,
@@ -148,6 +146,17 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 		if (this._stateObj) {
 			this._stateObj.name = value
 		}
+	}
+
+	override setOrigin(x?: number, y?: number): this {
+		super.setOrigin(x, y)
+
+		this.withoutEmits((state) => {
+			state.originX = this.originX
+			state.originY = this.originY
+		})
+
+		return this
 	}
 
 	override setStroke(color: string, thickness: number): this {
@@ -200,7 +209,8 @@ export type EditableTextJson = CreateEditableObjectJson<{
 	depth: number
 	blendMode: string | Phaser.BlendModes | number
 	scale: { x: number; y: number }
-	origin: { x: number; y: number }
+	originX: number
+	originY: number
 	locked: boolean
 	text: string
 	style: EditableTextStyleJson

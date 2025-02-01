@@ -35,8 +35,8 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 			'angle': (value) => (this.angle = value),
 			'x': (value) => (this.x = value),
 			'y': (value) => (this.y = value),
-			'origin.x': (value) => this.setOrigin(value, this.originY),
-			'origin.y': (value) => this.setOrigin(this.originX, value),
+			'originX': (value) => this.setOrigin(value, this.originY),
+			'originY': (value) => this.setOrigin(this.originX, value),
 			'scale.x': (value) => (this.scaleX = value),
 			'scale.y': (value) => (this.scaleY = value),
 			'alpha': (value) => (this.alpha = value),
@@ -78,10 +78,8 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 				x: this.scaleX,
 				y: this.scaleY,
 			},
-			origin: {
-				x: this.originX,
-				y: this.originY,
-			},
+			originX: this.originX,
+			originY: this.originY,
 			locked: this.locked,
 			text: this.text,
 			font: this.font,
@@ -145,6 +143,17 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		return this.height
 	}
 
+	override setOrigin(x?: number, y?: number): this {
+		super.setOrigin(x, y)
+
+		this.withoutEmits((state) => {
+			state.originX = this.originX
+			state.originY = this.originY
+		})
+
+		return this
+	}
+
 	private setScaleX(value: number) {
 		this.setScale(value, this.scaleY)
 	}
@@ -190,7 +199,8 @@ export type EditableBitmapTextJson = CreateEditableObjectJson<{
 	depth: number
 	blendMode: string | Phaser.BlendModes | number
 	scale: { x: number; y: number }
-	origin: { x: number; y: number }
+	originX: number
+	originY: number
 	locked: boolean
 	text: string
 	font: string

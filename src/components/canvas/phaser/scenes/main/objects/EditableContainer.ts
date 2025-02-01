@@ -130,6 +130,8 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 			scale: { x: this.scaleX, y: this.scaleY },
 			locked: this.locked,
 			angle: this.angle,
+			originX: this.originX,
+			originY: this.originY,
 		}
 	}
 
@@ -205,4 +207,6 @@ export type EditableContainerJson = CreateEditableObjectJson<{
 	scale: { x: number; y: number }
 	locked: boolean
 	angle: number
+	originX: number
+	originY: number
 }>

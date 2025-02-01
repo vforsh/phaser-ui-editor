@@ -1,3 +1,4 @@
+import { match } from 'ts-pattern'
 import { EditableBitmapText, EditableBitmapTextJson } from './EditableBitmapText'
 import { EditableContainer, EditableContainerJson } from './EditableContainer'
 import { EditableImage, EditableImageJson } from './EditableImage'
@@ -55,4 +56,14 @@ export type EditableObjectJsonType = EditableObjectJson['type']
 
 export function isTintable(obj: EditableObject): obj is EditableObject & { tint: number; tintFill: boolean } {
 	return 'tint' in obj && typeof obj.tint === 'number' && 'tintFill' in obj && typeof obj.tintFill === 'boolean'
+}
+
+export function canChangeOrigin(type: EditableObjectJsonType): boolean {
+	return match(type)
+		.with('Container', () => false)
+		.with('NineSlice', () => false)
+		.with('Image', () => true)
+		.with('Text', () => true)
+		.with('BitmapText', () => true)
+		.exhaustive()
 }
