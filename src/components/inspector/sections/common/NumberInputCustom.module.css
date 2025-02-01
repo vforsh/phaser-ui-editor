@@ -2,7 +2,7 @@
 	transition: border-color 100ms ease;
 }
 
-.input:hover {
+.input:not([data-disabled]):hover {
 	border-color: var(--mantine-color-blue-9);
 }
 
