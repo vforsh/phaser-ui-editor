@@ -87,10 +87,10 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		height: number,
 		texture: string,
 		frame?: string | number,
-		config?: IPatchesConfig
+		patchesConfig?: IPatchesConfig
 	): EditableNineSlice {
 		const id = this.getObjectId()
-		const nineSlice = new EditableNineSlice(this.scene, id, width, height, texture, frame, config)
+		const nineSlice = new EditableNineSlice(this.scene, id, width, height, texture, frame, patchesConfig)
 		this.register(nineSlice)
 		return nineSlice
 	}
@@ -165,8 +165,17 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 
 	private createNineSliceFromJson(json: EditableNineSliceJson): EditableNineSlice {
 		const id = this.getObjectId()
-		const nineSlice = new EditableNineSlice(this.scene, id, json.width, json.height, json.textureKey, json.frameKey)
+		const nineSlice = new EditableNineSlice(
+			this.scene,
+			id,
+			json.width,
+			json.height,
+			json.textureKey,
+			json.frameKey,
+			json.ninePatchConfig
+		)
 
+		nineSlice.setPosition(json.x, json.y)
 		nineSlice.setName(json.name)
 		nineSlice.setVisible(json.visible)
 		nineSlice.setAlpha(json.alpha)
