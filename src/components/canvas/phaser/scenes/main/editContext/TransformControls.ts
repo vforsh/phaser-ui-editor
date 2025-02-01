@@ -501,6 +501,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 				selectedTransforms.forEach((transform, obj) => {
 					// keep the aspect ratio if shift is pressed
 					const _dy = pointer.event.shiftKey ? dx / transform.aspectRatio : dy
+					// WTF is 16?
 					obj.setDisplaySize(Math.max(transform.width + dx, 16), Math.max(transform.height + _dy, 16))
 				})
 
