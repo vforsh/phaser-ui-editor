@@ -1,4 +1,8 @@
-import { canChangeOrigin, EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import {
+	canChangeOrigin,
+	canChangeScale,
+	EditableObjectJson,
+} from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { NumberInputCustom } from '@components/inspector/sections/common/NumberInputCustom'
 import { Group, Stack } from '@mantine/core'
 import { useSnapshot } from 'valtio'
@@ -62,6 +66,7 @@ export function TransformSection({ data }: TransformSectionProps) {
 					min={0}
 					step={0.01}
 					size="xs"
+					disabled={!canChangeScale(data.type)}
 				/>
 				<NumberInputCustom
 					label="Scale Y"
@@ -71,6 +76,7 @@ export function TransformSection({ data }: TransformSectionProps) {
 					min={0}
 					step={0.01}
 					size="xs"
+					disabled={!canChangeScale(data.type)}
 				/>
 			</Group>
 

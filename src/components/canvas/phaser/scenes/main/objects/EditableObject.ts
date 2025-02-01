@@ -67,3 +67,13 @@ export function canChangeOrigin(type: EditableObjectJsonType): boolean {
 		.with('BitmapText', () => true)
 		.exhaustive()
 }
+
+export function canChangeScale(type: EditableObjectJsonType): boolean {
+	return match(type)
+		.with('Container', () => true)
+		.with('NineSlice', () => false)
+		.with('Image', () => true)
+		.with('Text', () => true)
+		.with('BitmapText', () => true)
+		.exhaustive()
+}
