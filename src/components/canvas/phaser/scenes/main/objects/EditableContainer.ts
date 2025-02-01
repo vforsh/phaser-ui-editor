@@ -1,5 +1,5 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
-import { proxy, subscribe } from 'valtio'
+import { proxy } from 'valtio'
 import {
 	CreateEditableObjectJson,
 	EDITABLE_SYMBOL,
@@ -8,6 +8,7 @@ import {
 	IEditableObject,
 	isEditable,
 } from './EditableObject'
+import { StateChangesEmitter } from './StateChangesEmitter'
 
 type Events = {
 	'editable-added': (child: EditableObject) => void
@@ -26,7 +27,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 	private _editablesCopy: EditableObject[] = []
 	private _isLocked = false
 	private _stateObj: EditableContainerJson
-	private _stateUnsub: () => void
+	private _stateChanges: StateChangesEmitter<EditableContainerJson>
 
 	constructor(scene: Phaser.Scene, id: string, x = 0, y = 0, children: Phaser.GameObjects.GameObject[] = []) {
 		super(scene, x, y)
@@ -39,8 +40,22 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 
 		this._stateObj = proxy(this.toJson())
 
-		this._stateUnsub = subscribe(this._stateObj, (ops) => {
-			// console.log(`${this.id} (${this.kind}) state changed`, ops)
+		// state changes are reflected in the underlying Phaser object
+		this._stateChanges = new StateChangesEmitter(this._stateObj as Omit<EditableContainerJson, 'children'>, {
+			'name': (value) => (this.name = value),
+			'visible': (value) => (this.visible = value),
+			'locked': (value) => (this._isLocked = value),
+			'angle': (value) => (this.angle = value),
+			'x': (value) => (this.x = value),
+			'y': (value) => (this.y = value),
+			// 'originX': (value) => this.setOrigin(value, this.originY),
+			// 'originY': (value) => this.setOrigin(this.originX, value),
+			'scale.x': (value) => (this.scaleX = value),
+			'scale.y': (value) => (this.scaleY = value),
+			'alpha': (value) => (this.alpha = value),
+			// 'tint': (value) => (this.tint = value),
+			// 'tintFill': (value) => (this.tintFill = value),
+			// 'frameKey': (value) => this.setFrame(value),
 		})
 
 		this.checkForHierarchyChanges()
@@ -114,6 +129,18 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		return `[${items.map((e) => e.type).join(', ')}] (${items.length})`
 	}
 
+	/**
+	 * Use this method to change the state without applying these changes to the underlying Phaser object.
+	 */
+	private withoutEmits(fn: (state: EditableContainerJson) => void): void {
+		if (!this._stateObj || !this._stateChanges) return
+
+		const prev = this._stateChanges.emitsEnabled
+		this._stateChanges.emitsEnabled = false
+		fn(this._stateObj)
+		this._stateChanges.emitsEnabled = prev
+	}
+
 	toJson(): EditableContainerJson {
 		const children = this.editables.map((child) => child.toJson())
 
@@ -150,7 +177,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 	override destroy(fromScene?: boolean): void {
 		this._preDestroyController.abort()
 
-		this._stateUnsub()
+		this._stateChanges.destroy()
 
 		super.destroy(fromScene)
 
@@ -188,6 +215,27 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		if (this._stateObj) {
 			this._stateObj.name = value
 		}
+	}
+
+	override setPosition(x?: number, y?: number): this {
+		super.setPosition(x, y)
+
+		this.withoutEmits((state) => {
+			state.x = x ?? this.x
+			state.y = y ?? this.y
+		})
+
+		return this
+	}
+
+	override setAngle(angle: number): this {
+		super.setAngle(angle)
+
+		this.withoutEmits((state) => {
+			state.angle = angle
+		})
+
+		return this
 	}
 
 	get stateObj() {

@@ -88,7 +88,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	/**
 	 * Use this method to change the state without applying these changes to the underlying Phaser object.
 	 */
-	private withoutCallbacks(fn: (state: this['stateObj']) => void): void {
+	private withoutEmits(fn: (state: this['stateObj']) => void): void {
 		if (!this._stateObj || !this._stateChanges) return
 
 		const prev = this._stateChanges.emitsEnabled
@@ -151,7 +151,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	override setDisplaySize(width: number, height: number): this {
 		super.setDisplaySize(width, height)
 
-		this.withoutCallbacks((state) => {
+		this.withoutEmits((state) => {
 			state.scale.x = this.scaleX
 			state.scale.y = this.scaleY
 		})
@@ -162,9 +162,30 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	override setOrigin(x?: number, y?: number): this {
 		super.setOrigin(x, y)
 
-		this.withoutCallbacks((state) => {
+		this.withoutEmits((state) => {
 			state.originX = this.originX
 			state.originY = this.originY
+		})
+
+		return this
+	}
+
+	override setPosition(x?: number, y?: number): this {
+		super.setPosition(x, y)
+
+		this.withoutEmits((state) => {
+			state.x = x ?? this.x
+			state.y = y ?? this.y
+		})
+
+		return this
+	}
+
+	override setAngle(angle: number): this {
+		super.setAngle(angle)
+
+		this.withoutEmits((state) => {
+			state.angle = angle
 		})
 
 		return this
@@ -173,7 +194,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	override setStroke(color: string, thickness: number): this {
 		super.setStroke(color, thickness)
 
-		this.withoutCallbacks((state) => {
+		this.withoutEmits((state) => {
 			state.style.stroke = color
 			state.style.strokeThickness = thickness
 		})
@@ -191,7 +212,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	): this {
 		super.setShadow(offsetX, offsetY, color, blur, stroke, fill)
 
-		this.withoutCallbacks((state) => {
+		this.withoutEmits((state) => {
 			state.style.shadowOffsetX = offsetX
 			state.style.shadowOffsetY = offsetY
 			state.style.shadowColor = color

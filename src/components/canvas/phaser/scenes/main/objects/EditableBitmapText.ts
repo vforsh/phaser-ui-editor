@@ -194,6 +194,27 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		return this
 	}
 
+	override setPosition(x?: number, y?: number): this {
+		super.setPosition(x, y)
+
+		this.withoutEmits((state) => {
+			state.x = x ?? this.x
+			state.y = y ?? this.y
+		})
+
+		return this
+	}
+
+	override setAngle(angle: number): this {
+		super.setAngle(angle)
+
+		this.withoutEmits((state) => {
+			state.angle = angle
+		})
+
+		return this
+	}
+
 	override setName(value: string): this {
 		super.setName(value)
 
