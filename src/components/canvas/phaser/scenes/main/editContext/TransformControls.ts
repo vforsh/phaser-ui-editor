@@ -480,6 +480,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 
 		this.events.emit('transform-start', 'resize')
 
+		// actually resizing is done here, on pointer move
 		this.scene.input.on(
 			Phaser.Input.Events.POINTER_MOVE,
 			(pointer: Phaser.Input.Pointer) => {
