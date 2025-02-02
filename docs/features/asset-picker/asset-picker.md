@@ -19,6 +19,12 @@ It should look like this, notice the part that outlined in red:
 
 ![Asset Input](./input.png)
 
+### Error State
+
+When the asset is not found, the input should be red and the tooltip should show the error message.
+
+Also, the corresponding item in Hiearchy Panel should have a warning icon. It is not a part of the asset picker featuer, but should be implemented in the future.
+
 
 ## Select Menu
 
