@@ -479,9 +479,6 @@ type AssetWithoutId<T extends AssetTreeItemData> = Omit<T, 'id'>
  */
 export function addAssetId<T extends AssetTreeItemData>(asset: AssetWithoutId<T>): T & { id: string } {
 	const assetId = createAssetId(asset)
-
-	console.log(asset.path, asset.type, assetId)
-
 	return Object.assign(asset, { id: assetId }) as T & { id: string }
 }
 
