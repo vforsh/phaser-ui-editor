@@ -68,7 +68,6 @@ export default function HierarchyItem({
 	return (
 		<>
 			<div
-				onClick={handleToggle}
 				onMouseEnter={() => setIsHovered(true)}
 				onMouseLeave={() => setIsHovered(false)}
 				style={{
@@ -121,6 +120,7 @@ export default function HierarchyItem({
 				<Group gap="xs" wrap="nowrap">
 					{snap.type === 'Container' && (
 						<div
+							onClick={handleToggle}
 							style={{
 								transition: 'transform 33ms ease',
 								transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
