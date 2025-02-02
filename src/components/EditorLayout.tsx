@@ -56,6 +56,17 @@ export default function EditorLayout() {
 	// open project dialog
 	useEffect(() => {
 		const onKeyDown = (event: KeyboardEvent) => {
+			const activeElement = document.activeElement
+			const isInputFocused =
+				activeElement instanceof HTMLElement &&
+				(activeElement.tagName === 'INPUT' ||
+					activeElement.tagName === 'TEXTAREA' ||
+					activeElement.isContentEditable)
+
+			if (isInputFocused) {
+				return
+			}
+
 			if (event.key === 'p' || event.key === 'P') {
 				setOpenProjectDialogOpen(true)
 			}
