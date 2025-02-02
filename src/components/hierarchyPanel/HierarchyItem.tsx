@@ -1,6 +1,17 @@
 import { ActionIcon, alpha, Group, Text, Tooltip, useMantineTheme } from '@mantine/core'
 import { state } from '@state/State'
-import { ChevronDown, Eye, EyeOff, Folder, Image, ImageUpscale, Lock, Type, TypeOutline, Unlock } from 'lucide-react'
+import {
+	ChevronDown,
+	Eye,
+	EyeOff,
+	Group as GroupIcon,
+	Image,
+	ImageUpscale,
+	Lock,
+	Type,
+	TypeOutline,
+	Unlock,
+} from 'lucide-react'
 import { useState } from 'react'
 import { match } from 'ts-pattern'
 import { useSnapshot } from 'valtio'
@@ -41,7 +52,7 @@ export default function HierarchyItem({
 
 	const getIcon = () => {
 		return match(snap)
-			.with({ type: 'Container' }, () => <Folder size={16} />)
+			.with({ type: 'Container' }, () => <GroupIcon size={16} />)
 			.with({ type: 'Image' }, () => <Image size={16} />)
 			.with({ type: 'NineSlice' }, () => <ImageUpscale size={16} />)
 			.with({ type: 'BitmapText' }, () => <TypeOutline size={16} />)
@@ -71,7 +82,7 @@ export default function HierarchyItem({
 				onMouseEnter={() => setIsHovered(true)}
 				onMouseLeave={() => setIsHovered(false)}
 				style={{
-					padding: '0.5rem 0',
+					padding: '0.3rem 0',
 					paddingLeft: level * INDENT_SIZE + ICON_MARGIN,
 					borderRadius: theme.radius.sm,
 					backgroundColor: isSelectedInCanvas
@@ -109,7 +120,7 @@ export default function HierarchyItem({
 							position: 'absolute',
 							left: (level - 1) * INDENT_SIZE + ICON_MARGIN * 2 + gridLineThickness,
 							top: '50%',
-							width: INDENT_SIZE - ICON_MARGIN,
+							width: snap.type === 'Container' ? INDENT_SIZE - ICON_MARGIN : INDENT_SIZE + 4,
 							height: `${gridLineThickness}px`,
 							backgroundColor: theme.colors.dark[2],
 							opacity: 0.33,
@@ -118,23 +129,26 @@ export default function HierarchyItem({
 				)}
 
 				<Group gap="xs" wrap="nowrap">
-					{snap.type === 'Container' && (
-						<div
-							onClick={handleToggle}
-							style={{
-								transition: 'transform 33ms ease',
-								transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
-								color: isHovered ? theme.colors.blue[4] : 'inherit',
-								width: 16,
-								height: 16,
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-							}}
-						>
-							<ChevronDown size={14} />
-						</div>
-					)}
+					{/* Add placeholder space for non-container items to maintain alignment */}
+					<div style={{ width: 16, height: 16 }}>
+						{snap.type === 'Container' && (
+							<div
+								onClick={handleToggle}
+								style={{
+									transition: 'transform 33ms ease',
+									transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
+									color: isHovered ? theme.colors.blue[4] : 'inherit',
+									width: '100%',
+									height: '100%',
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+								}}
+							>
+								<ChevronDown size={14} />
+							</div>
+						)}
+					</div>
 					<div
 						style={{
 							transition: 'color 33ms ease',
