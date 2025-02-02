@@ -1,9 +1,10 @@
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
-import { ActionIcon, Checkbox, Stack, TextInput, useMantineTheme } from '@mantine/core'
+import { ActionIcon, Stack, TextInput, useMantineTheme } from '@mantine/core'
 import { copyToClipboard } from '@utils/copy-to-clipboard'
 import { Copy } from 'lucide-react'
 import { useSnapshot } from 'valtio'
 import { BaseSectionProps } from '../BaseSection'
+import { CheckboxCustom } from '../common/CheckboxCustom'
 
 interface ObjectSectionProps extends BaseSectionProps<EditableObjectJson> {}
 
@@ -61,11 +62,10 @@ export function ObjectSection({ data }: ObjectSectionProps) {
 
 			<TextInput label="Type" value={snap.type} size="xs" disabled />
 
-			<Checkbox
+			<CheckboxCustom
 				label="Locked"
 				checked={snap.locked}
-				onChange={(e) => (data.locked = e.currentTarget.checked)}
-				size="xs"
+				onChange={(checked) => (data.locked = checked)}
 			/>
 		</Stack>
 	)

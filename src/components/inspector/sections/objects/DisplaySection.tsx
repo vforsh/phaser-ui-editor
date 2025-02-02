@@ -1,7 +1,8 @@
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
-import { Checkbox, ColorInput, Stack } from '@mantine/core'
+import { ColorInput, Stack } from '@mantine/core'
 import { Snapshot, useSnapshot } from 'valtio'
 import { BaseSectionProps } from '../BaseSection'
+import { CheckboxCustom } from '../common/CheckboxCustom'
 import { NumberInputCustom } from '../common/NumberInputCustom'
 
 export type BlendMode = 'NORMAL' | 'ADD' | 'MULTIPLY' | 'SCREEN' | 'ERASE'
@@ -33,11 +34,7 @@ export function DisplaySection({ data }: DisplaySectionProps) {
 
 	return (
 		<Stack gap="xs">
-			<Checkbox
-				label="Visible"
-				checked={snap.visible}
-				onChange={(e) => (data.visible = e.currentTarget.checked)}
-			/>
+			<CheckboxCustom label="Visible" checked={snap.visible} onChange={(checked) => (data.visible = checked)} />
 
 			<NumberInputCustom
 				label="Alpha"
@@ -69,11 +66,10 @@ export function DisplaySection({ data }: DisplaySectionProps) {
 			)}
 
 			{hasTintFill(data) && hasTintFill(snap) && (
-				<Checkbox
+				<CheckboxCustom
 					label="Tint Fill"
 					checked={snap.tintFill}
-					onChange={(e) => (data.tintFill = e.currentTarget.checked)}
-					// size="xs"
+					onChange={(checked) => (data.tintFill = checked)}
 				/>
 			)}
 		</Stack>
