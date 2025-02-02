@@ -1,4 +1,6 @@
-import { EditableObjectJsonBasic } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+// @ts-nocheck
+
+import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import type { HierarchyItemData } from '../types/hierarchy'
 
 // keep it to use in bolt.dev
@@ -49,7 +51,7 @@ export const mockHierarchy: HierarchyItemData[] = addHierarchyPaths([
 	},
 ])
 
-export function addHierarchyPaths(items: EditableObjectJsonBasic[], parentPath = ''): HierarchyItemData[] {
+export function addHierarchyPaths(items: EditableObjectJson[], parentPath = ''): HierarchyItemData[] {
 	return items.map((item) => {
 		const path = parentPath ? `${parentPath}/${item.name}` : item.name
 
