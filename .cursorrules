@@ -34,3 +34,4 @@ The project uses the following libraries:
 -   Follow the Mantine UI component library's design system and patterns
 -   Utilize TypeScript for type safety and code completion
 -   Use ts-pattern instead of switch statements for pattern matching, use `match().exhaustive()` whenever possible
+-   Always use icons from `lucide-react` instead of `@tabler/icons-react`
