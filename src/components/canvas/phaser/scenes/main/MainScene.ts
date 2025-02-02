@@ -237,21 +237,30 @@ export class MainScene extends BaseScene {
 			}
 		}
 
+		let chefCherry_1: EditableImage | undefined
+		let chefCherry_2: EditableImage | undefined
+
 		const chefCherryFrame = getAssetsOfType(state.assets.items, 'spritesheet-frame').find(
 			(frame) => frame.name === 'Chef Cherry'
 		)
 		if (chefCherryFrame) {
-			const chefCherry_1 = (await this.addTestImage(chefCherryFrame, -400, -400)) as EditableImage
+			chefCherry_1 = (await this.addTestImage(chefCherryFrame, -400, -400)) as EditableImage
 			chefCherry_1?.setName(this.getNewObjectName(context, chefCherry_1!, 'chefCherry_topLeft'))
 			chefCherry_1?.setOrigin(0)
 		}
 
 		if (chefCherryFrame) {
-			const chefCherry_2 = (await this.addTestImage(chefCherryFrame, 400, -400)) as EditableImage
+			chefCherry_2 = (await this.addTestImage(chefCherryFrame, 400, -400)) as EditableImage
 			chefCherry_2?.setName(this.getNewObjectName(context, chefCherry_2!, 'chefCherry_topRight'))
 			chefCherry_2?.setOrigin(1, 0)
 		}
 
+		if (chefCherry_1 && chefCherry_2) {
+			const selection = context.setSelection([chefCherry_1, chefCherry_2])
+			this.group(selection, context)
+		}
+
+		// TODO get asset by id or by patch
 		const bitmapFontAsset: AssetTreeBitmapFontData = {
 			type: 'bitmap-font',
 			id: 'test',
@@ -285,26 +294,29 @@ export class MainScene extends BaseScene {
 			this.logger.error('failed to load bitmapFont')
 		}
 
-		const fontAsset: AssetTreeWebFontData = {
+		// TODO get asset by id or by patch
+		const webFontAsset: AssetTreeWebFontData = {
 			type: 'web-font',
 			id: 'test',
 			fontFamily: 'PoetsenOne',
 			name: 'PoetsenOne-Regular.woff2',
 			path: '/Users/vlad/dev/papa-cherry-2/dev/assets/fonts/web/PoetsenOne-Regular.woff2',
 		}
-		const font = await this.loadWebFont(fontAsset)
+		const font = await this.loadWebFont(webFontAsset)
 		if (font) {
-			const text = this.objectsFactory.text(font.familyName, {
+			const text = this.objectsFactory.text(font.familyName + `\nYo Poetsen One Two Three Four`, {
 				fontFamily: font.familyName,
 				fontSize: '60px',
 				color: '#ffffff',
 				resolution: 2,
 			})
 			text.setName(this.getNewObjectName(context, text, 'text'))
-			text.setPosition(0, 300)
+			text.setPosition(this.projectSizeFrame.width / 2, this.projectSizeFrame.height + 100)
 			text.setStroke('#ff0000', 6)
 			text.setShadow(0, 10, 'rgba(0, 0, 0, 0.33)', 0, true, false)
 			this.root.add(text)
+
+			this.editContexts.current!.setSelection([text])
 		} else {
 			this.logger.error('failed to load font')
 		}
@@ -323,7 +335,7 @@ export class MainScene extends BaseScene {
 		// chefCherry_5?.setOrigin(0.5)
 		// chefCherry_5?.setAngle(90)
 
-		// context.setSelection([chefCherry_5!])
+		// context.setSelection([chefCherry_2!])
 
 		// const selection_1 = context.createSelection([chefCherry_1!, chefCherry_2!])
 		// const group_1 = this.group(selection_1, context)
