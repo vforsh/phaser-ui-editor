@@ -1,35 +1,35 @@
-import { EditableBitmapTextJsonBasic } from '@components/canvas/phaser/scenes/main/objects/EditableBitmapText'
-import { EditableContainerJsonBasic } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
-import { EditableImageJsonBasic } from '@components/canvas/phaser/scenes/main/objects/EditableImage'
-import { EditableNineSliceJsonBasic } from '@components/canvas/phaser/scenes/main/objects/EditableNineSlice'
-import { EditableTextJsonBasic } from '@components/canvas/phaser/scenes/main/objects/EditableText'
+import { EditableBitmapTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableBitmapText'
+import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
+import { EditableImageJson } from '@components/canvas/phaser/scenes/main/objects/EditableImage'
+import { EditableNineSliceJson } from '@components/canvas/phaser/scenes/main/objects/EditableNineSlice'
+import { EditableTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableText'
 
-type HierarchyImage = EditableImageJsonBasic & {
+type HierarchyImage = EditableImageJson & {
 	path: string
 	isSelected?: boolean
 	isHovered?: boolean
 }
 
-type HierarchyNineSlice = EditableNineSliceJsonBasic & {
+type HierarchyNineSlice = EditableNineSliceJson & {
 	path: string
 	isSelected?: boolean
 	isHovered?: boolean
 }
 
-type HierarchyContainer = Omit<EditableContainerJsonBasic, 'children'> & {
+type HierarchyContainer = Omit<EditableContainerJson, 'children'> & {
 	path: string
 	isSelected?: boolean
 	isHovered?: boolean
 	children: HierarchyItemData[]
 }
 
-type HierarchyText = EditableTextJsonBasic & {
+type HierarchyText = EditableTextJson & {
 	path: string
 	isSelected?: boolean
 	isHovered?: boolean
 }
 
-type HierarchyBitmapText = EditableBitmapTextJsonBasic & {
+type HierarchyBitmapText = EditableBitmapTextJson & {
 	path: string
 	isSelected?: boolean
 	isHovered?: boolean
