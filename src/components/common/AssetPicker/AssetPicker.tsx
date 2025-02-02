@@ -42,6 +42,8 @@ export function AssetPicker({
 	return (
 		<>
 			<Input.Wrapper label={label} error={error} size={size}>
+				{/* TODO replace with Button.Group */}
+				{/* https://mantine.dev/core/button/#buttongroup */}
 				<Box onClick={open} className={clsx(classes.container, error && classes.error)}>
 					<Text size="xs" c={selectedAsset ? undefined : 'dimmed'}>
 						{selectedAsset ? getAssetLabel(selectedAsset) : 'Select asset...'}
