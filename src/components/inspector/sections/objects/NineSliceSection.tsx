@@ -1,8 +1,9 @@
 import { EditableNineSliceJson } from '@components/canvas/phaser/scenes/main/objects/EditableNineSlice'
-import { Group, Select, Stack, TextInput } from '@mantine/core'
+import { Group, Stack, TextInput } from '@mantine/core'
 import { useSnapshot } from '@state/State'
 import { useNineSliceAssets } from '../../../../hooks/useNineSliceAssets'
-import { getAssetById, getAssetRelativePath } from '../../../../types/assets'
+import { getAssetById } from '../../../../types/assets'
+import { AssetPicker } from '../../../common/AssetPicker/AssetPicker'
 import { BaseSectionProps } from '../BaseSection'
 import { NumberInputCustom } from '../common/NumberInputCustom'
 
@@ -36,23 +37,26 @@ export function NineSliceSection({ data }: NineSliceSectionProps) {
 	// TODO add button "Open in TexturePacker" if it's a spritesheet
 	return (
 		<Stack gap="xs">
-			<Select
+			<AssetPicker
 				label="Texture"
-				value={texture?.id}
-				onChange={(value) => value && setTexture(value)}
-				data={textures.map((texture) => {
-					const relPath = getAssetRelativePath(texture.path)
-					return { label: `${relPath} (${texture.type})`, value: texture.id }
-				})}
-				size="xs"
+				assetIds={textures.map((t) => t.id)}
+				selectedAssetId={texture?.id ?? null}
+				onSelect={setTexture}
+				onClear={() => setTexture('')}
+				onLocate={() => {
+					/* TODO: implement locate texture in assets panel */
+				}}
 			/>
 
-			<Select
+			<AssetPicker
 				label="Frame"
-				value={frame?.id}
-				onChange={(value) => value && setFrame(value)}
-				data={frames.map((frame) => ({ label: frame.pathInHierarchy, value: frame.id }))}
-				size="xs"
+				assetIds={frames.map((f) => f.id)}
+				selectedAssetId={frame?.id ?? null}
+				onSelect={setFrame}
+				onClear={() => setFrame('')}
+				onLocate={() => {
+					/* TODO: implement locate frame in assets panel */
+				}}
 			/>
 
 			<Group grow>

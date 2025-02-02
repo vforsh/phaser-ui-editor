@@ -19,6 +19,7 @@ export interface AssetPickerProps {
 	modalTitle?: string
 	error?: string
 	size?: MantineSize | (string & {})
+	// TODO add disabled prop
 }
 
 export function AssetPicker({
