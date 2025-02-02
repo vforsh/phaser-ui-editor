@@ -32,6 +32,7 @@
 		"derive-valtio": "^0.2.0",
 		"dot-path-value": "^0.0.11",
 		"es-toolkit": "^1.29.0",
+		"fzf": "^0.5.2",
 		"json5": "^2.2.3",
 		"lucide-react": "^0.471.0",
 		"mantine-contextmenu": "^7.15.3",

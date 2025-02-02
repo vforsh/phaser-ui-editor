@@ -1,7 +1,8 @@
 import { EditableImageJson } from '@components/canvas/phaser/scenes/main/objects/EditableImage'
-import { Select, Stack } from '@mantine/core'
+import { Stack } from '@mantine/core'
 import { State, state, useSnapshot } from '@state/State'
-import { getAssetById, getAssetRelativePath, getAssetsOfType } from '../../../../types/assets'
+import { getAssetById, getAssetsOfType } from '../../../../types/assets'
+import { AssetPicker } from '../../../common/AssetPicker/AssetPicker'
 import { BaseSectionProps } from '../BaseSection'
 
 interface ImageSectionProps extends BaseSectionProps<EditableImageJson> {}
@@ -26,6 +27,11 @@ export function ImageSection({ data }: ImageSectionProps) {
 		// - don't forget to update the frameKey in the state object
 	}
 
+	const clearTexture = () => {
+		data.textureKey = ''
+		data.frameKey = ''
+	}
+
 	const setFrame = (frameId: string) => {
 		const frame = getAssetById(frames, frameId)
 		if (frame && frame.type === 'spritesheet-frame') {
@@ -33,27 +39,31 @@ export function ImageSection({ data }: ImageSectionProps) {
 		}
 	}
 
+	const clearFrame = () => {
+		data.frameKey = ''
+	}
+
 	// TODO allow to drag and drop texture or frame from the assets panel (like in Cocos Creator)
 	// TODO add button "Open in TexturePacker" if it's a spritesheet
 	return (
 		<Stack gap="xs">
-			<Select
+			<AssetPicker
 				label="Texture"
-				value={texture?.id}
-				onChange={(value) => value && setTexture(value)}
-				data={textures.map((texture) => {
-					const relPath = getAssetRelativePath(texture.path)
-					return { label: `${relPath} (${texture.type})`, value: texture.id }
-				})}
-				size="xs"
+				assetIds={textures.map((t) => t.id)}
+				selectedAssetId={texture?.id ?? null}
+				onSelect={setTexture}
+				onClear={clearTexture}
+				onLocate={() => console.log(`locate texture in AssetsPanel`)}
 			/>
 
-			<Select
+			<AssetPicker
 				label="Frame"
-				value={frame?.id}
-				onChange={(value) => value && setFrame(value)}
-				data={frames.map((frame) => ({ label: frame.pathInHierarchy, value: frame.id }))}
-				size="xs"
+				assetIds={frames.map((f) => f.id)}
+				selectedAssetId={frame?.id ?? null}
+				onSelect={setFrame}
+				onClear={clearFrame}
+				onLocate={() => console.log(`locate frame in AssetsPanel`)}
+				error={texture?.type === 'spritesheet' && !frame ? 'Frame not found' : undefined}
 			/>
 		</Stack>
 	)

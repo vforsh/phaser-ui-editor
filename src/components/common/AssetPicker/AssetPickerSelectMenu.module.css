@@ -1,0 +1,30 @@
+.assetItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    border-radius: 4px;
+    background-color: var(--mantine-color-dark-7);
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background-color 100ms ease;
+}
+
+.assetItem:hover {
+    background-color: var(--mantine-color-dark-6);
+}
+
+.assetPreview {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--mantine-color-dark-8);
+    border-radius: 4px;
+}
+
+.assetPath {
+    flex: 1;
+    color: var(--mantine-color-gray-4);
+} 
