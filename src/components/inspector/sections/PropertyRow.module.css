@@ -1,0 +1,12 @@
+.valueText {
+  flex: 1;
+  text-align: right;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background-color 150ms ease;
+  cursor: pointer;
+}
+
+.valueText:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+} 
