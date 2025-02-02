@@ -95,15 +95,15 @@ export type AssetTreeBitmapFontData = {
 	/**
 	 * Additional image metadata from the bitmap font data file.
 	 * **Only present when the font texture is a part of a spritesheet.**
-	 * 
+	 *
 	 * - atlas: Path to the spritesheet JSON file
-	 * - texture: Path to the spritesheet image file  
+	 * - texture: Path to the spritesheet image file
 	 * - texturePacker: Path to the TexturePacker project file (e.g. `.tps`)
 	 */
-	imageExtra?: { 
+	imageExtra?: {
 		atlas: string
 		texture: string
-		texturePacker: string 
+		texturePacker: string
 	}
 	data: AssetTreeJsonData | AssetTreeXmlData
 }
@@ -134,7 +134,7 @@ export type AssetTreeSpritesheetFolderData = {
 	/**
 	 * Virtual path that combines the spritesheet image path and the folder path
 	 * (e.g. `/Users/user/game/assets/graphics/gameplay_gui.png/pause_screen`)
-	 * 
+	 *
 	 * Note: This is a virtual path that can be used for React keys and hierarchy representation.
 	 * It **does not** correspond to an actual file on disk.
 	 */
@@ -163,7 +163,7 @@ export type AssetTreeSpritesheetFrameData = {
 	/**
 	 * Virtual path that combines the spritesheet image path and the frame path in hierarchy
 	 * (e.g. `/Users/user/game/assets/graphics/gameplay_gui.png/pause_screen/button_graphics_quality`)
-	 * 
+	 *
 	 * Note: This is a virtual path that can be used for React keys and hierarchy representation.
 	 * It **does not** correspond to an actual file on disk.
 	 */

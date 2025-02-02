@@ -2,7 +2,7 @@ import { IPatchesConfig } from '@koreez/phaser3-ninepatch'
 import { state } from '@state/State'
 import { urlParams } from '@url-params'
 import { once } from 'es-toolkit'
-import { err, ok } from 'neverthrow'
+import { err, ok, Result } from 'neverthrow'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import WebFont from 'webfontloader'
@@ -21,6 +21,7 @@ import {
 	getAssetRelativePath,
 	getAssetsOfType,
 	GraphicAssetData,
+	isAssetOfType,
 } from '../../../../../types/assets'
 import { parseJsonBitmapFont } from '../../robowhale/phaser3/gameObjects/bitmap-text/parse-json-bitmap-font'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
@@ -223,6 +224,37 @@ export class MainScene extends BaseScene {
 	private async addTestObjects(): Promise<void> {
 		const context = this.editContexts.current!
 
+		const chefCherryFrame = getAssetsOfType(state.assets.items, 'spritesheet-frame').find(
+			(frame) => frame.name === 'Chef Cherry'
+		)
+
+		let chefCherry_1: EditableImage | undefined
+		if (chefCherryFrame) {
+			chefCherry_1 = (await this.addTestImage(chefCherryFrame, -400, -600)) as EditableImage
+			chefCherry_1?.setName(this.getNewObjectName(context, chefCherry_1!, 'chefCherry_topLeft'))
+			chefCherry_1?.setOrigin(0)
+		}
+
+		let chefCherry_2: EditableImage | undefined
+		if (chefCherryFrame) {
+			chefCherry_2 = (await this.addTestImage(chefCherryFrame, 400, -600)) as EditableImage
+			chefCherry_2?.setName(this.getNewObjectName(context, chefCherry_2!, 'chefCherry_topRight'))
+			chefCherry_2?.setOrigin(1, 0)
+		}
+
+		if (chefCherry_1 && chefCherry_2) {
+			const selection = context.setSelection([chefCherry_1, chefCherry_2])
+			const group = this.group(selection, context)
+			group.setPosition(group.x, group.y - 150)
+		}
+
+		if (chefCherryFrame) {
+			const chefCherry_3 = (await this.addTestImage(chefCherryFrame, -250, -30)) as EditableImage
+			chefCherry_3?.setName(this.getNewObjectName(context, chefCherry_3!, 'chefCherry_bottomLeft'))
+			chefCherry_3?.setOrigin(0.5, 0.5)
+			chefCherry_3?.setAngle(90)
+		}
+
 		const nineSliceAsset = getAssetsOfType(state.assets.items, 'spritesheet-frame').find(
 			(frame) => frame.name === 'popup_back.png'
 		)
@@ -233,132 +265,38 @@ export class MainScene extends BaseScene {
 			})
 			if (nineSlice && nineSlice.kind === 'NineSlice') {
 				nineSlice.resize(500, 400)
-				nineSlice.setPosition(this.projectSizeFrame.width / 2, this.projectSizeFrame.height / 2)
+				nineSlice.setPosition(this.projectSizeFrame.width / 2 + 250, this.projectSizeFrame.height / 2 - 30)
 			}
 		}
 
-		let chefCherry_1: EditableImage | undefined
-		let chefCherry_2: EditableImage | undefined
-
-		const chefCherryFrame = getAssetsOfType(state.assets.items, 'spritesheet-frame').find(
-			(frame) => frame.name === 'Chef Cherry'
-		)
-		if (chefCherryFrame) {
-			chefCherry_1 = (await this.addTestImage(chefCherryFrame, -400, -400)) as EditableImage
-			chefCherry_1?.setName(this.getNewObjectName(context, chefCherry_1!, 'chefCherry_topLeft'))
-			chefCherry_1?.setOrigin(0)
-		}
-
-		if (chefCherryFrame) {
-			chefCherry_2 = (await this.addTestImage(chefCherryFrame, 400, -400)) as EditableImage
-			chefCherry_2?.setName(this.getNewObjectName(context, chefCherry_2!, 'chefCherry_topRight'))
-			chefCherry_2?.setOrigin(1, 0)
-		}
-
-		if (chefCherry_1 && chefCherry_2) {
-			const selection = context.setSelection([chefCherry_1, chefCherry_2])
-			this.group(selection, context)
-		}
-
-		// TODO get asset by id or by patch
-		const bitmapFontAsset: AssetTreeBitmapFontData = {
-			type: 'bitmap-font',
-			id: 'test',
-			name: 'test',
-			path: '/Users/vlad/dev/papa-cherry-2/dev/assets/fonts/bitmap',
-			image: {
-				type: 'image',
-				id: 'test',
-				name: 'test.png',
-				path: '/Users/vlad/dev/papa-cherry-2/dev/assets/fonts/bitmap/test.png',
-				size: {
-					w: 385,
-					h: 75,
-				},
-			},
-			data: {
-				type: 'json',
-				id: 'test',
-				name: 'test.json',
-				path: '/Users/vlad/dev/papa-cherry-2/dev/assets/fonts/bitmap/test.json',
-			},
-		}
-		const bitmapFont = await this.loadBitmapFont(bitmapFontAsset)
+		const bitmapFont = await this.initBitmapFont_DEBUG('5cbc7ed7df')
 		if (bitmapFont.isOk()) {
-			this.logger.info('bitmap font loaded', bitmapFont.value)
 			const bmFont = bitmapFont.value
-			const bmText = this.objectsFactory.bitmapText(bmFont.key, '1234567890', bmFont.data.size)
+			const bmText = this.objectsFactory.bitmapText(bmFont.key, '1234567890', 100)
 			bmText.setName(this.getNewObjectName(context, bmText, 'bitmap-text'))
+			bmText.setPosition(this.projectSizeFrame.width / 2, this.projectSizeFrame.height - 70)
 			this.root.add(bmText)
 		} else {
-			this.logger.error('failed to load bitmapFont')
+			this.logger.warn(`failed to load bitmap font (${bitmapFont.error})`)
 		}
 
-		// TODO get asset by id or by patch
-		const webFontAsset: AssetTreeWebFontData = {
-			type: 'web-font',
-			id: 'test',
-			fontFamily: 'PoetsenOne',
-			name: 'PoetsenOne-Regular.woff2',
-			path: '/Users/vlad/dev/papa-cherry-2/dev/assets/fonts/web/PoetsenOne-Regular.woff2',
-		}
-		const font = await this.loadWebFont(webFontAsset)
-		if (font) {
-			const text = this.objectsFactory.text(font.familyName + `\nYo Poetsen One Two Three Four`, {
-				fontFamily: font.familyName,
-				fontSize: '60px',
+		const webFont = await this.initWebFont_DEBUG('e97f56cb27')
+		if (webFont) {
+			const text = this.objectsFactory.text(webFont.familyName + `\nYo Poetsen One Two Three Four`, {
+				fontFamily: webFont.familyName,
+				fontSize: '50px',
 				color: '#ffffff',
 				resolution: 2,
+				align: 'center',
 			})
 			text.setName(this.getNewObjectName(context, text, 'text'))
 			text.setPosition(this.projectSizeFrame.width / 2, this.projectSizeFrame.height + 100)
 			text.setStroke('#ff0000', 6)
 			text.setShadow(0, 10, 'rgba(0, 0, 0, 0.33)', 0, true, false)
 			this.root.add(text)
-
-			this.editContexts.current!.setSelection([text])
 		} else {
-			this.logger.error('failed to load font')
+			this.logger.warn('failed to load web font')
 		}
-
-		// const chefCherry_3 = await this.addTestImage(chefCherryFrame, 400, 500)
-		// chefCherry_3?.setName(this.getNewObjectName(context, chefCherry_3!, 'chefCherry_bottomRight'))
-		// chefCherry_3?.setOrigin(1)
-
-		// const chefCherry_4 = await this.addTestImage(chefCherryFrame, -400, 500)
-		// chefCherry_4?.setName(this.getNewObjectName(context, chefCherry_4!, 'chefCherry_bottomLeft'))
-		// chefCherry_4?.setOrigin(0, 1)
-		// chefCherry_4?.setAngle(45)
-
-		// const chefCherry_5 = await this.addTestImage(chefCherryFrame, 0, 800)
-		// chefCherry_5?.setName(this.getNewObjectName(context, chefCherry_5!, 'chefCherry_center'))
-		// chefCherry_5?.setOrigin(0.5)
-		// chefCherry_5?.setAngle(90)
-
-		// context.setSelection([chefCherry_2!])
-
-		// const selection_1 = context.createSelection([chefCherry_1!, chefCherry_2!])
-		// const group_1 = this.group(selection_1, context)
-
-		// const selection_2 = context.createSelection([chefCherry_3!, chefCherry_4!])
-		// const group_2 = this.group(selection_2, context)
-
-		// const selection_3 = context.createSelection([group_1, group_2])
-		// const group_3 = this.group(selection_3, context)
-
-		// const selection = context.createSelection([chefCherry_3!, chefCherry_4!])
-		// context.transformControls.startFollow(selection)
-
-		// const group_1 = this.group(selection, context)
-		// group_1.setAngle(-15)
-
-		// if (isSerializableGameObject(group_1)) {
-		// 	const group_2 = this.objectsFactory.clone(group_1)
-		// 	group_2.setPosition(group_1.x + 0, group_1.y + 500)
-		// 	group_2.setName(this.getNewObjectName(this.editContexts.current!, group_2))
-		// 	this.root.add(group_2)
-		// 	this.editContexts.current!.setSelection([group_2])
-		// }
 	}
 
 	// TODO move to ObjectsFactory
@@ -418,7 +356,7 @@ export class MainScene extends BaseScene {
 	 * @returns The created editable object or null if the object could not be created.
 	 */
 	private async handleAssetDrop(data: { asset: AssetTreeItemData; position: { x: number; y: number } }) {
-		const obj = await this.createEditableFromAsset(data.asset)
+		const obj = await this.createObjectFromAsset(data.asset)
 		if (!obj) {
 			return null
 		}
@@ -438,7 +376,7 @@ export class MainScene extends BaseScene {
 		return obj
 	}
 
-	private createEditableFromAsset(asset: AssetTreeItemData) {
+	private createObjectFromAsset(asset: AssetTreeItemData) {
 		return match(asset)
 			.with({ type: 'image' }, async (image) => {
 				let texture: Phaser.Textures.Texture | null = this.textures.get(image.id)
@@ -568,6 +506,21 @@ export class MainScene extends BaseScene {
 		})
 	}
 
+	private initWebFont_DEBUG(assetId: string): Promise<WebFontParsed | undefined> {
+		const asset = getAssetById(state.assets.items, assetId)
+		if (!asset) {
+			this.logger.warn(`failed to find web font asset with id '${assetId}'`)
+			return Promise.resolve(undefined)
+		}
+
+		if (!isAssetOfType(asset, 'web-font')) {
+			this.logger.warn(`asset '${asset.name}' (${asset.id}) is not a web font asset (actual type: ${asset.type})`)
+			return Promise.resolve(undefined)
+		}
+
+		return this.loadWebFont(asset)
+	}
+
 	private async loadWebFont(asset: AssetTreeWebFontData) {
 		// it only supports WOFF, WOFF2 and TTF formats
 		const webFontParsed = await trpc.parseWebFont.query({ path: asset.path })
@@ -605,7 +558,22 @@ export class MainScene extends BaseScene {
 		return css
 	}
 
-	private async loadBitmapFont(asset: AssetTreeBitmapFontData) {
+	private async initBitmapFont_DEBUG(assetId: string) {
+		const asset = getAssetById(state.assets.items, assetId)
+		if (!asset) {
+			return err(`failed to find asset with id '${assetId}'`)
+		}
+
+		if (!isAssetOfType(asset, 'bitmap-font')) {
+			return err(`asset '${asset.name}' (${asset.id}) is not a bitmap font asset (actual type: ${asset.type})`)
+		}
+
+		return this.loadBitmapFont(asset)
+	}
+
+	private async loadBitmapFont(
+		asset: AssetTreeBitmapFontData
+	): Promise<Result<{ key: string; data: PhaserBmfontData }, string>> {
 		const fontKey = asset.name
 
 		let bmFont = this.sys.cache.bitmapFont.get(fontKey) as { data: PhaserBmfontData } | undefined

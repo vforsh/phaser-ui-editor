@@ -196,7 +196,7 @@ const extractSpritesheetFrames = async (
 		const frameAsset: AssetTreeSpritesheetFrameData = addAssetId({
 			type: 'spritesheet-frame',
 			name: data.filename,
-			path: imagePath,
+			path: path.join(imagePath, data.filename),
 			size: { w: data.frame.w, h: data.frame.h },
 			anchor: data.anchor ? { x: data.anchor.x, y: data.anchor.y } : { x: 0.5, y: 0.5 },
 			scale9Borders: data.scale9Borders,
@@ -212,6 +212,9 @@ const extractSpritesheetFrames = async (
 	return frames
 }
 
+// TODO there is a bug with the folder path
+// e.g. `/goal_items/candy_bottle/candy` converted to `/candy_bottle/candy`
+// notice that `goal_items` is missing
 function groupFramesByFolders(
 	frames: AssetTreeSpritesheetFrameData[],
 	tpsProject?: TexturePackerProject
@@ -416,7 +419,7 @@ const doBuildAssetTree = async (
 						const bitmapFont: AssetTreeBitmapFontData = addAssetId({
 							type: 'bitmap-font',
 							name: path.basename(fileTreeItem.name, path.extname(fileTreeItem.name)),
-							path: path.dirname(fileTreeItem.path),
+							path: xmlFile.path,
 							image,
 							data,
 						})
@@ -476,9 +479,12 @@ type AssetWithoutId<T extends AssetTreeItemData> = Omit<T, 'id'>
  */
 export function addAssetId<T extends AssetTreeItemData>(asset: AssetWithoutId<T>): T & { id: string } {
 	const assetId = createAssetId(asset)
+
+	console.log(asset.path, asset.type, assetId)
+
 	return Object.assign(asset, { id: assetId }) as T & { id: string }
 }
 
 function createAssetId(asset: AssetWithoutId<AssetTreeItemData>): string {
-	return md5(asset.path + '__' + asset.type).slice(0, 10)
+	return md5(asset.path + '__' + asset.name + '__' + asset.type).slice(0, 10)
 }
