@@ -76,9 +76,12 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 			tintFill: this.tintFill,
 			width: this.width,
 			height: this.height,
+			// @ts-ignore
 			ninePatchConfig: this.config as IPatchesConfig,
 			angle: this.angle,
+			// @ts-ignore
 			textureKey: this.originTexture.key,
+			// @ts-ignore
 			frameKey: this.originFrame.name,
 		}
 	}
