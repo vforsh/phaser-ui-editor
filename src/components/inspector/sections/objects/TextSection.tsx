@@ -1,7 +1,7 @@
 import { EditableTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableText'
+import { AssetPicker } from '@components/common/AssetPicker/AssetPicker'
 import { ColorInput, Group, Stack } from '@mantine/core'
 import { State, state, useSnapshot } from '@state/State'
-import { uniq } from 'es-toolkit'
 import { getAssetsOfType } from '../../../../types/assets'
 import { BaseSectionProps } from '../BaseSection'
 import { CheckboxCustom } from '../common/CheckboxCustom'
@@ -21,10 +21,8 @@ interface TextSectionProps extends BaseSectionProps<EditableTextJson> {}
 
 export function TextSection({ data }: TextSectionProps) {
 	const assetsSnap = useSnapshot(state.assets.items)
-
-	const fontFamilies = uniq(
-		getAssetsOfType(assetsSnap as State['assets']['items'], 'web-font').map((asset) => asset.fontFamily)
-	).sort()
+	const webFontAssets = getAssetsOfType(assetsSnap as State['assets']['items'], 'web-font')
+	const webFontAssetIds = webFontAssets.map((asset) => asset.id)
 
 	const snap = useSnapshot(data)
 
@@ -50,11 +48,22 @@ export function TextSection({ data }: TextSectionProps) {
 			/>
 
 			<Group grow>
-				<SelectCustom
+				<AssetPicker
 					label="Font Family"
-					value={snap.style.fontFamily}
-					onChange={(value) => (data.style.fontFamily = value)}
-					data={fontFamilies.map((font) => ({ label: font, value: font }))}
+					assetIds={webFontAssetIds}
+					selectedAssetId={
+						webFontAssets.find((asset) => asset.fontFamily === snap.style.fontFamily)?.id ?? null
+					}
+					onSelect={(assetId) => {
+						const asset = webFontAssets.find((asset) => asset.id === assetId)
+						if (asset) {
+							data.style.fontFamily = asset.fontFamily
+						}
+					}}
+					onClear={() => {
+						data.style.fontFamily = 'Arial'
+					}}
+					onLocate={() => {}}
 					size="xs"
 				/>
 

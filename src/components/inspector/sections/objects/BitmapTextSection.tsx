@@ -2,7 +2,8 @@ import { EditableBitmapTextJson } from '@components/canvas/phaser/scenes/main/ob
 import { Group, Stack } from '@mantine/core'
 import { state, State, useSnapshot } from '@state/State'
 import { uniq } from 'es-toolkit'
-import { getAssetsOfType } from '../../../../types/assets'
+import { getAssetById, getAssetsOfType } from '../../../../types/assets'
+import { AssetPicker } from '../../../common/AssetPicker/AssetPicker'
 import { BaseSectionProps } from '../BaseSection'
 import { NumberInputCustom } from '../common/NumberInputCustom'
 import { SelectCustom } from '../common/SelectCustom'
@@ -31,15 +32,19 @@ export function BitmapTextSection({ data }: BitmapTextSectionProps) {
 	const assetsSnap = useSnapshot(state.assets.items)
 	const fontAssets = getAssetsOfType(assetsSnap as State['assets']['items'], 'bitmap-font')
 	const fontNames = uniq(fontAssets.map((asset) => asset.name)).sort()
+	const selectedFont = fontAssets.find((asset) => asset.name === data.font)
 
 	const snap = useSnapshot(data)
 
-	// const fontDataPath = useMemo(
-	// 	() => fontAssets.find((asset) => asset.name === snap.font)?.data.path,
-	// 	[fontAssets, snap.font]
-	// )
+	const setFont = (fontId: string) => {
+		const font = getAssetById(fontAssets, fontId)
+		if (!font) return
+		data.font = font.name
+	}
 
-	// const { data: fontData, isLoading, error } = useAsync(() => loadFontData(fontDataPath), true)
+	const clearFont = () => {
+		data.font = ''
+	}
 
 	return (
 		<Stack gap="xs">
@@ -64,14 +69,14 @@ export function BitmapTextSection({ data }: BitmapTextSectionProps) {
 			/>
 
 			<Group grow>
-				<SelectCustom
+				<AssetPicker
+					modalTitle="Select bitmap font"
 					label="Font"
-					value={snap.font}
-					// TODO handle font change
-					// - emit command to load the font
-					// - display a loading indicator
-					onChange={(value) => value !== null && (data.font = value)}
-					data={fontNames.map((font) => ({ label: font, value: font }))}
+					assetIds={fontAssets.map((f) => f.id)}
+					selectedAssetId={selectedFont?.id ?? null}
+					onSelect={setFont}
+					onClear={clearFont}
+					onLocate={() => console.log(`locate font in AssetsPanel`)}
 					size="xs"
 				/>
 

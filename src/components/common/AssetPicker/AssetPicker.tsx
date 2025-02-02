@@ -1,10 +1,11 @@
-import { Box, Button, Input, Text, useMantineTheme } from '@mantine/core'
+import { Box, Button, Input, MantineSize, Text, useMantineTheme } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { State, state, useSnapshot } from '@state/State'
 import { clsx } from 'clsx'
 import { LocateFixed, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { getAssetById } from '../../../types/assets'
+import { match } from 'ts-pattern'
+import { AssetTreeItemData, getAssetById } from '../../../types/assets'
 import classes from './AssetPicker.module.css'
 import { AssetPickerSelectMenu } from './AssetPickerSelectMenu'
 
@@ -15,7 +16,9 @@ export interface AssetPickerProps {
 	onClear: () => void
 	onLocate: () => void
 	label?: string
+	modalTitle?: string
 	error?: string
+	size?: MantineSize | (string & {})
 }
 
 export function AssetPicker({
@@ -26,6 +29,8 @@ export function AssetPicker({
 	onLocate,
 	label,
 	error,
+	size = 'xs',
+	modalTitle,
 }: AssetPickerProps) {
 	const theme = useMantineTheme()
 	const [opened, { open, close }] = useDisclosure(false)
@@ -36,10 +41,10 @@ export function AssetPicker({
 
 	return (
 		<>
-			<Input.Wrapper label={label} error={error} size="xs">
+			<Input.Wrapper label={label} error={error} size={size}>
 				<Box onClick={open} className={clsx(classes.container, error && classes.error)}>
 					<Text size="xs" c={selectedAsset ? undefined : 'dimmed'}>
-						{selectedAsset ? selectedAsset.name : 'Select asset...'}
+						{selectedAsset ? getAssetLabel(selectedAsset) : 'Select asset...'}
 					</Text>
 					<div className={classes.buttonGroup}>
 						{selectedAssetId && (
@@ -52,7 +57,7 @@ export function AssetPicker({
 								}}
 								className={classes.button}
 							>
-								<Trash2 size={16} color={theme.colors.gray[5]} />
+								<Trash2 size={14} color={theme.colors.gray[5]} />
 							</Button>
 						)}
 						<Button
@@ -65,7 +70,7 @@ export function AssetPicker({
 							className={classes.button}
 							disabled={!selectedAssetId}
 						>
-							<LocateFixed size={16} color={theme.colors.gray[5]} />
+							<LocateFixed size={14} color={theme.colors.gray[5]} />
 						</Button>
 					</div>
 				</Box>
@@ -79,8 +84,16 @@ export function AssetPicker({
 				search={search}
 				onSearchChange={setSearch}
 				selectedAssetId={selectedAssetId}
-				title={`Select ${label?.toLowerCase() ?? 'asset'}`}
+				title={modalTitle ?? `Select ${label?.toLowerCase() ?? 'asset'}`}
 			/>
 		</>
 	)
+}
+
+function getAssetLabel(asset: AssetTreeItemData) {
+	return match(asset)
+		.with({ type: 'bitmap-font' }, (asset) => asset.name)
+		.with({ type: 'web-font' }, (asset) => asset.fontFamily)
+		.with({ type: 'spritesheet-frame' }, (asset) => asset.pathInHierarchy)
+		.otherwise(() => asset.name)
 }
