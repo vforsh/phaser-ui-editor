@@ -58,6 +58,8 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 			// 'frameKey': (value) => this.setFrame(value),
 		})
 
+		this.scene.events.on(Phaser.Scenes.Events.UPDATE, this.checkForHierarchyChanges, this, this.preDestroySignal)
+
 		this.checkForHierarchyChanges()
 	}
 
@@ -89,8 +91,6 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		if (isEditable(gameObject)) {
 			this.events.emit('editable-added', gameObject)
 
-			// this._stateObj.children.push(gameObject.stateObj)
-
 			// every change in child container will propagate to parent container
 			if (gameObject instanceof EditableContainer) {
 				gameObject.events.on(
@@ -108,11 +108,6 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 
 		if (isEditable(gameObject)) {
 			this.events.emit('editable-removed', gameObject)
-
-			// const stateIndex = this._stateObj.children.findIndex((child) => child.id === gameObject.id)
-			// if (stateIndex !== -1) {
-			// 	this._stateObj.children.splice(stateIndex, 1)
-			// }
 
 			if (gameObject instanceof EditableContainer) {
 				gameObject.events.offByContext(this, 'hierarchy-changed')
@@ -168,10 +163,6 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		super.setSize(width, height)
 		this.events.emit('size-changed', width, height, prevWidth, prevHeight)
 		return this
-	}
-
-	public preUpdate(time: number, deltaMs: number): void {
-		this.checkForHierarchyChanges()
 	}
 
 	override destroy(fromScene?: boolean): void {
