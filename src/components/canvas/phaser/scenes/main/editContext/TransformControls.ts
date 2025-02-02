@@ -867,12 +867,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	private adjustToSelectionPosition(selection: Selection): void {
-		// if (selection.objects.length === 1) {
-		// 	const obj = selection.objects[0]
-		// 	this.setPosition(obj.x, obj.y)
-		// } else {
 		this.setPosition(selection.x, selection.y)
-		// }
 	}
 
 	private onUpdate(time: number, deltaMs: number): void {
