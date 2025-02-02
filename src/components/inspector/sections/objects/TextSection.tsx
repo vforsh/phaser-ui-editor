@@ -1,5 +1,5 @@
 import { EditableTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableText'
-import { ColorInput, Group, Stack, Textarea, TextInput } from '@mantine/core'
+import { ColorInput, Group, Stack } from '@mantine/core'
 import { State, state, useSnapshot } from '@state/State'
 import { uniq } from 'es-toolkit'
 import { getAssetsOfType } from '../../../../types/assets'
