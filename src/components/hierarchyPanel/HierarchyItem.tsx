@@ -60,9 +60,13 @@ export default function HierarchyItem({
 			.exhaustive()
 	}
 
-	const handleToggle = () => {
+	const toggleOpen = (e: React.MouseEvent<HTMLDivElement>) => {
 		if (snap.type === 'Container') {
-			setIsOpen(!isOpen)
+			if (e.shiftKey) {
+				// TODO recursively toggle open/close all children
+			} else {
+				setIsOpen(!isOpen)
+			}
 		}
 	}
 
@@ -133,7 +137,7 @@ export default function HierarchyItem({
 					<div style={{ width: 16, height: 16 }}>
 						{snap.type === 'Container' && (
 							<div
-								onClick={handleToggle}
+								onClick={toggleOpen}
 								style={{
 									transition: 'transform 33ms ease',
 									transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
