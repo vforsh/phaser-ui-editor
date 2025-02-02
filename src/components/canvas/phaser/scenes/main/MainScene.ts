@@ -253,6 +253,7 @@ export class MainScene extends BaseScene {
 			chefCherry_3?.setName(this.getNewObjectName(context, chefCherry_3!, 'chefCherry_bottomLeft'))
 			chefCherry_3?.setOrigin(0.5, 0.5)
 			chefCherry_3?.setAngle(90)
+			context.setSelection([chefCherry_3])
 		}
 
 		const nineSliceAsset = getAssetsOfType(state.assets.items, 'spritesheet-frame').find(
