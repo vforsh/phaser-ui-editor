@@ -24,16 +24,16 @@ export function ReadonlyPropertyRow({ label, value, maxValueLength: maxLength = 
 	const tooltipLabel = clipboard.copied ? `${label} copied` : shouldTruncate ? stringValue : 'Click to copy'
 
 	return (
-		<Group justify="space-between" wrap="nowrap">
-			<Text size="sm" c="dimmed" style={{ minWidth: 80 }}>
-				{label}
-			</Text>
-			<Tooltip label={tooltipLabel}>
-				<Text size="sm" className={classes.valueText} onClick={handleClick}>
+		<Tooltip label={tooltipLabel}>
+			<Group justify="space-between" wrap="nowrap" className={classes.row} onClick={handleClick}>
+				<Text size="sm" c="dimmed" style={{ minWidth: 80 }}>
+					{label}
+				</Text>
+				<Text size="sm" className={classes.valueText}>
 					{displayValue}
 				</Text>
-			</Tooltip>
-		</Group>
+			</Group>
+		</Tooltip>
 	)
 }
 
