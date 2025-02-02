@@ -1,5 +1,5 @@
 import { state } from '@state/State'
-import { nanoid } from 'nanoid'
+import md5 from 'blueimp-md5'
 import path from 'path-browserify-esm'
 import { match } from 'ts-pattern'
 import trpc from '../../trpc'
@@ -9,7 +9,6 @@ import {
 	AssetTreeFolderData,
 	AssetTreeImageData,
 	AssetTreeItemData,
-	AssetTreeItemDataType,
 	AssetTreeSpritesheetData,
 	AssetTreeSpritesheetFolderData,
 	AssetTreeSpritesheetFrameData,
@@ -469,15 +468,17 @@ const doBuildAssetTree = async (
 	return assets
 }
 
+type AssetWithoutId<T extends AssetTreeItemData> = Omit<T, 'id'>
+
 /**
  * Adds an id to the asset.
  * @note it mutates the asset object
  */
-export function addAssetId<T extends AssetTreeItemData>(asset: Omit<T, 'id'>): T & { id: string } {
-	const assetId = createAssetId(asset.type)
+export function addAssetId<T extends AssetTreeItemData>(asset: AssetWithoutId<T>): T & { id: string } {
+	const assetId = createAssetId(asset)
 	return Object.assign(asset, { id: assetId }) as T & { id: string }
 }
 
-function createAssetId(assetType: AssetTreeItemDataType): string {
-	return nanoid(10)
+function createAssetId(asset: AssetWithoutId<AssetTreeItemData>): string {
+	return md5(asset.path + '__' + asset.type).slice(0, 10)
 }
