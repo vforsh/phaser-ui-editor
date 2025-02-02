@@ -1,5 +1,5 @@
 import { logger } from '@logs/logs'
-import { alpha, Group, Stack, Text, UnstyledButton, useMantineTheme } from '@mantine/core'
+import { alpha, Group, Stack, Text, TextInput, UnstyledButton, useMantineTheme } from '@mantine/core'
 import { state } from '@state/State'
 import {
 	ChevronDown,
@@ -13,7 +13,7 @@ import {
 	Images,
 	LayoutGrid,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { match } from 'ts-pattern'
 import { Snapshot, useSnapshot } from 'valtio'
 import { useDragAndDrop } from '../../hooks/useDragAndDrop'
@@ -30,6 +30,8 @@ interface AssetTreeItemProps {
 	onToggle: (id: string) => void
 	onSelect: (item: Snapshot<AssetTreeItemData>, event: React.MouseEvent) => void
 	onContextMenu: (item: Snapshot<AssetTreeItemData>, position: { x: number; y: number }) => void
+	onRename?: (item: Snapshot<AssetTreeItemData>, newName: string) => void
+	renamedAssetId: string | null
 	isSelected?: boolean
 	isLastChild?: boolean
 	isOpen?: boolean
@@ -42,6 +44,8 @@ export default function AssetTreeItem({
 	onToggle,
 	onSelect,
 	onContextMenu,
+	onRename,
+	renamedAssetId,
 	isSelected = false,
 	isLastChild = false,
 	isOpen = false,
@@ -53,6 +57,16 @@ export default function AssetTreeItem({
 	const dragAndDropLogger = logger.getOrCreate('assets')
 	const { dragState, handleDragStart, handleDragEnd } = useDragAndDrop({ logger: dragAndDropLogger })
 	const isDraggable = isDraggableAsset(item.type)
+	const [isEditing, setIsEditing] = useState(false)
+	const [editValue, setEditValue] = useState('')
+	const inputRef = useRef<HTMLInputElement>(null)
+
+	useEffect(() => {
+		if (renamedAssetId === item.id) {
+			setEditValue(item.name)
+			setIsEditing(true)
+		}
+	}, [renamedAssetId, item])
 
 	const GRID_LINE_COLOR = theme.colors.gray[7]
 
@@ -102,6 +116,38 @@ export default function AssetTreeItem({
 			.with({ type: 'spritesheet-folder' }, (item) => item.children)
 			.otherwise(() => [])
 	}
+
+	const handleRename = () => {
+		if (!editValue.trim()) {
+			setIsEditing(false)
+			return
+		}
+
+		const extension = item.type === 'folder' ? '' : item.name.slice(item.name.lastIndexOf('.'))
+		const newName = editValue.trim() + extension
+
+		if (newName !== item.name && onRename) {
+			onRename(item, newName)
+		}
+
+		setIsEditing(false)
+	}
+
+	const handleKeyDown = (e: React.KeyboardEvent) => {
+		if (e.key === 'Enter') {
+			handleRename()
+		} else if (e.key === 'Escape') {
+			setIsEditing(false)
+		}
+		e.stopPropagation()
+	}
+
+	useEffect(() => {
+		if (isEditing && inputRef.current) {
+			inputRef.current.focus()
+			inputRef.current.select()
+		}
+	}, [isEditing])
 
 	return (
 		<Stack gap={0}>
@@ -196,19 +242,47 @@ export default function AssetTreeItem({
 					</div>
 
 					{/* Item name */}
-					<Text
-						size="sm"
-						style={{
-							color: isSelected ? theme.white : isHovered ? theme.colors.gray[1] : theme.colors.gray[4],
-							transition: 'color 100ms ease',
-							whiteSpace: 'nowrap',
-							overflow: 'hidden',
-							textOverflow: 'ellipsis',
-							userSelect: 'none',
-						}}
-					>
-						{item.name}
-					</Text>
+					{isEditing ? (
+						<TextInput
+							ref={inputRef}
+							value={editValue}
+							onChange={(e) => setEditValue(e.target.value)}
+							onKeyDown={handleKeyDown}
+							onBlur={handleRename}
+							onClick={(e) => e.stopPropagation()}
+							styles={{
+								input: {
+									height: 24,
+									minHeight: 24,
+									padding: '0 6px',
+									backgroundColor: theme.colors.dark[7],
+									border: `1px solid ${theme.colors.blue[8]}`,
+									color: theme.white,
+								},
+								wrapper: {
+									width: '100%',
+								},
+							}}
+						/>
+					) : (
+						<Text
+							size="sm"
+							style={{
+								color: isSelected
+									? theme.white
+									: isHovered
+										? theme.colors.gray[1]
+										: theme.colors.gray[4],
+								transition: 'color 100ms ease',
+								whiteSpace: 'nowrap',
+								overflow: 'hidden',
+								textOverflow: 'ellipsis',
+								userSelect: 'none',
+							}}
+						>
+							{item.name}
+						</Text>
+					)}
 				</Group>
 			</UnstyledButton>
 
@@ -223,6 +297,8 @@ export default function AssetTreeItem({
 						onToggle={onToggle}
 						onSelect={onSelect}
 						onContextMenu={onContextMenu}
+						onRename={onRename}
+						renamedAssetId={renamedAssetId}
 						isSelected={assetsSelectionSnap.includes(child.id)}
 						isLastChild={index === arr.length - 1}
 						isOpen={openFolders.has(child.id)}

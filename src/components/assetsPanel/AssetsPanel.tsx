@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react'
 import { Logger } from 'tslog'
 import { Snapshot } from 'valtio'
 import trpc from '../../trpc'
-import { AssetTreeFolderData, removeAssetById, type AssetTreeItemData } from '../../types/assets'
+import { AssetTreeFolderData, getAssetById, removeAssetById, type AssetTreeItemData } from '../../types/assets'
 import { PanelTitle } from './../PanelTitle'
 import AssetContextMenu from './AssetContextMenu'
 import AssetTreeItem from './AssetTreeItem'
@@ -26,9 +26,10 @@ interface AssetsPanelProps {
 
 export default function AssetsPanel({ logger }: AssetsPanelProps) {
 	const assetsSnap = useSnapshot(state.assets)
+	const { showContextMenu } = useContextMenu()
+	const [itemToRename, setItemToRename] = useState<string | null>(null)
 	const [openFolders, setOpenFolders] = useState<Set<string>>(new Set())
 	const [lastSelectedId, setLastSelectedId] = useState<string | null>(null)
-	const { showContextMenu } = useContextMenu()
 	const [contextMenu, setContextMenu] = useState<ContextMenuState>({
 		opened: false,
 		position: { x: 0, y: 0 },
@@ -156,23 +157,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 				}
 				break
 			case 'rename':
-				// TODO allow to rename inplace (without opening a dialog)
-				const extension = path.extname(asset.path)
-				const newName = prompt(`Enter new name for '${asset.name}'`, asset.name.replace(extension, ''))
-				if (newName) {
-					// const { error } = await until(() =>
-					// 	trpc.rename.mutate({ oldPath: asset.path, newPath: newName + extension })
-					// )
-					// if (error) {
-					// 	logger.error(
-					// 		`failed to rename '${asset.name}' to '${newName + extension}' (${getErrorLog(error)})`
-					// 	)
-					// } else {
-					// 	logger.info(`renamed '${asset.name}' to '${newName + extension}'`)
-					// }
-
-					logger.info(`renamed '${asset.name}' to '${newName + extension}'`)
-				}
+				setItemToRename(asset.id)
 				break
 			case 'delete':
 				const shouldDelete =
@@ -195,8 +180,30 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		}
 
 		window.addEventListener('click', onClick)
+
 		return () => window.removeEventListener('click', onClick)
 	}, [contextMenu.opened])
+
+	const handleRename = async (item: Snapshot<AssetTreeItemData>, newName: string) => {
+		const oldPath = item.path
+		const newPath = path.join(path.dirname(item.path), newName)
+
+		// TODO handle renaming for assets that "consist" of multiple files like bitmap fonts and spritesheets
+
+		// Update filesystem via trpc, it may fail - account for that
+		// await trpc.rename.mutate({ oldPath, newPath })
+
+		// Update state
+		const asset = getAssetById(state.assets.items, item.id)
+		if (asset) {
+			asset.name = newName
+			asset.path = newPath
+		}
+
+		setItemToRename(null)
+
+		logger.info(`renamed '${item.name}' to '${newName}'`)
+	}
 
 	const rootContextMenu = [
 		{
@@ -208,7 +215,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 					key: 'create-folder',
 					title: 'Folder',
 					onClick: () => {
-						const folderName = nanoid(5)
+						const folderName = 'folder-' + nanoid(5)
 						const folderAsset: AssetTreeFolderData = addAssetId({
 							type: 'folder',
 							name: folderName,
@@ -216,12 +223,13 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 							children: [],
 						})
 
-						// enter folder rename mode immediately after creation
-
-						// add folder to filesystem via trpc
+						// add folder to filesystem via trpc, it may fail - account for that
 
 						state.assets.items.push(folderAsset)
 						state.assets.items.sort()
+
+						// enter folder rename mode immediately after creation
+						setItemToRename(folderAsset.id)
 					},
 				},
 			],
@@ -260,6 +268,8 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 									onToggle={toggleFolder}
 									onSelect={handleSelect}
 									onContextMenu={handleContextMenu}
+									onRename={handleRename}
+									renamedAssetId={itemToRename}
 									isSelected={assetsSnap.selection.includes(asset.id)}
 									isLastChild={index === assetsSnap.items.length - 1}
 									isOpen={openFolders.has(asset.id)}

@@ -1,5 +1,6 @@
 import { Menu } from '@mantine/core'
 import { ExternalLink, FileJson, FolderOpen, Image, TextCursorInput, Trash2 } from 'lucide-react'
+import { match } from 'ts-pattern'
 import type { Snapshot } from 'valtio'
 import type { AssetTreeItemData } from '../../types/assets'
 
@@ -55,7 +56,11 @@ export default function AssetContextMenu({ asset, opened, position, onClose, onA
 						</Menu.Item>
 					</>
 				)}
-				<Menu.Item leftSection={<TextCursorInput size={16} />} onClick={(event) => onAction('rename', event)}>
+				<Menu.Item
+					leftSection={<TextCursorInput size={16} />}
+					onClick={(event) => onAction('rename', event)}
+					disabled={canBeRenamed(asset) === false}
+				>
 					Rename
 				</Menu.Item>
 				<Menu.Item
@@ -68,4 +73,20 @@ export default function AssetContextMenu({ asset, opened, position, onClose, onA
 			</Menu.Dropdown>
 		</Menu>
 	)
+}
+
+function canBeRenamed(asset: Snapshot<AssetTreeItemData>) {
+	return match(asset.type)
+		.with('folder', () => true)
+		.with('spritesheet', () => false)
+		.with('spritesheet-folder', () => false)
+		.with('spritesheet-frame', () => false)
+		.with('image', () => false)
+		.with('json', () => false)
+		.with('xml', () => false)
+		.with('prefab', () => false)
+		.with('web-font', () => false)
+		.with('bitmap-font', () => false)
+		.with('file', () => false)
+		.exhaustive()
 }
