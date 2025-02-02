@@ -367,7 +367,7 @@ const doBuildAssetTree = async (
 								const spritesheet: AssetTreeSpritesheetData = addAssetId({
 									type: 'spritesheet',
 									name: image.name,
-									path: image.path,
+									path: jsonFile.path,
 									image,
 									json: addAssetId({
 										type: 'json',
@@ -387,7 +387,7 @@ const doBuildAssetTree = async (
 								const bitmapFont: AssetTreeBitmapFontData = addAssetId({
 									type: 'bitmap-font',
 									name: path.basename(fileTreeItem.name, path.extname(fileTreeItem.name)),
-									path: path.dirname(fileTreeItem.path),
+									path: jsonFile.path,
 									image,
 									imageExtra: bitmapFontData.extra,
 									data: addAssetId({
@@ -474,9 +474,10 @@ const doBuildAssetTree = async (
  * @note it mutates the asset object
  */
 export function addAssetId<T extends AssetTreeItemData>(asset: Omit<T, 'id'>): T & { id: string } {
-	return Object.assign(asset, { id: getAssetId(asset.type) }) as T & { id: string }
+	const assetId = createAssetId(asset.type)
+	return Object.assign(asset, { id: assetId }) as T & { id: string }
 }
 
-export function getAssetId(assetType: AssetTreeItemDataType): string {
+function createAssetId(assetType: AssetTreeItemDataType): string {
 	return nanoid(10)
 }

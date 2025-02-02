@@ -23,7 +23,6 @@ export type AssetTreeItemDataType = AssetTreeItemData['type']
 
 export type AssetTreeItemDataOfType<T extends AssetTreeItemDataType> = Extract<AssetTreeItemData, { type: T }>
 
-// Common types
 export type AssetTreeFolderData = {
 	type: 'folder'
 	id: string
@@ -39,7 +38,6 @@ export type AssetTreeFileData = {
 	path: string
 }
 
-// Specific types
 export type AssetTreeJsonData = {
 	type: 'json'
 	id: string
@@ -87,9 +85,26 @@ export type AssetTreeBitmapFontData = {
 	type: 'bitmap-font'
 	id: string
 	name: string
+	/**
+	 * Absolute path to the bitmap font data file (JSON or XML)
+	 * (e.g. `/Users/user/game/assets/fonts/arial.json` or `/Users/user/game/assets/fonts/arial.xml`)
+	 * @note The image file path is stored in the `image` property
+	 */
 	path: string
 	image: AssetTreeImageData
-	imageExtra?: { atlas: string; texture: string; texturePacker: string }
+	/**
+	 * Additional image metadata from the bitmap font data file.
+	 * **Only present when the font texture is a part of a spritesheet.**
+	 * 
+	 * - atlas: Path to the spritesheet JSON file
+	 * - texture: Path to the spritesheet image file  
+	 * - texturePacker: Path to the TexturePacker project file (e.g. `.tps`)
+	 */
+	imageExtra?: { 
+		atlas: string
+		texture: string
+		texturePacker: string 
+	}
 	data: AssetTreeJsonData | AssetTreeXmlData
 }
 
@@ -98,7 +113,9 @@ export type AssetTreeSpritesheetData = {
 	id: string
 	name: string
 	/**
-	 * Absolute path to the image file (e.g. `/Users/user/game/assets/graphics/gameplay_gui.png`)
+	 * Absolute path to the spritesheet JSON file
+	 * (e.g. `/Users/user/game/assets/graphics/gameplay_gui.json`)
+	 * @note The image file path is stored in the `image` property
 	 */
 	path: string
 	image: AssetTreeImageData
@@ -110,11 +127,17 @@ export type AssetTreeSpritesheetData = {
 	project?: string
 }
 
-// virtual folder
 export type AssetTreeSpritesheetFolderData = {
 	type: 'spritesheet-folder'
 	id: string
 	name: string
+	/**
+	 * Virtual path that combines the spritesheet image path and the folder path
+	 * (e.g. `/Users/user/game/assets/graphics/gameplay_gui.png/pause_screen`)
+	 * 
+	 * Note: This is a virtual path that can be used for React keys and hierarchy representation.
+	 * It **does not** correspond to an actual file on disk.
+	 */
 	path: string
 	children: AssetTreeSpritesheetFrameData[]
 	/**
@@ -128,20 +151,26 @@ export type AssetTreeSpritesheetFrameData = {
 	id: string
 	name: string
 	/**
-	 * Absolute path to the image file (e.g. `/Users/user/game/assets/graphics/gameplay_gui.png`)
+	 * Absolute path to the spritesheet image file
+	 * (e.g. `/Users/user/game/assets/graphics/gameplay_gui.png`)
 	 */
 	imagePath: string
 	/**
-	 * Absolute path to the JSON file (e.g. `/Users/user/game/assets/graphics/gameplay_gui.json`)
+	 * Absolute path to the spritesheet JSON file
+	 * (e.g. `/Users/user/game/assets/graphics/gameplay_gui.json`)
 	 */
 	jsonPath: string
 	/**
-	 * Absolute path to the frame (e.g. `/Users/user/game/assets/graphics/gameplay_gui.png/pause_screen/button_graphics_quality`)
-	 * Used as a key in React
+	 * Virtual path that combines the spritesheet image path and the frame path in hierarchy
+	 * (e.g. `/Users/user/game/assets/graphics/gameplay_gui.png/pause_screen/button_graphics_quality`)
+	 * 
+	 * Note: This is a virtual path that can be used for React keys and hierarchy representation.
+	 * It **does not** correspond to an actual file on disk.
 	 */
 	path: string
 	/**
-	 * Path inside of the spritesheet hierarchy (e.g. `pause_screen/button_graphics_quality`)
+	 * Frame path within the spritesheet hierarchy, used as frame key in the atlas JSON
+	 * (e.g. `pause_screen/button_graphics_quality`)
 	 */
 	pathInHierarchy: string
 	size: { w: number; h: number }
@@ -153,11 +182,12 @@ export type AssetTreeSpritesheetFrameData = {
 		h: number
 	}
 	/**
-	 * Absolute path to the TexturePacker project file (e.g. `/Users/user/game/assets/graphics/gameplay_gui.tps`)
+	 * Absolute path to the TexturePacker project file
+	 * (e.g. `/Users/user/game/assets/graphics/gameplay_gui.tps`)
 	 */
 	project?: string
 	/**
-	 * Id of the parent spritesheet
+	 * ID of the parent spritesheet asset
 	 */
 	parentId?: string
 }
