@@ -369,7 +369,7 @@ const doBuildAssetTree = async (
 								const spritesheet: AssetTreeSpritesheetData = addAssetId({
 									type: 'spritesheet',
 									name: image.name,
-									path: jsonFile.path,
+									path: image.path,
 									image,
 									json: addAssetId({
 										type: 'json',

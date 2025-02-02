@@ -113,9 +113,9 @@ export type AssetTreeSpritesheetData = {
 	id: string
 	name: string
 	/**
-	 * Absolute path to the spritesheet JSON file
-	 * (e.g. `/Users/user/game/assets/graphics/gameplay_gui.json`)
-	 * @note The image file path is stored in the `image` property
+	 * Absolute path to the spritesheet texture file
+	 * (e.g. `/Users/user/game/assets/graphics/gameplay_gui.png`)
+	 * @note The json file path is stored in the `json` property
 	 */
 	path: string
 	image: AssetTreeImageData
