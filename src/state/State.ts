@@ -101,6 +101,7 @@ const initialStateParsed = merge(
 		app: null,
 		phaser: null,
 	} satisfies PartialDeep<State>,
+	// @ts-expect-error
 	JSON.parse(localStorage.getItem('state') || '{}')
 )
 

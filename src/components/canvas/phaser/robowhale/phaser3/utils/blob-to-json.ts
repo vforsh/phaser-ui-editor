@@ -2,6 +2,7 @@ export function blobToJson(blob: Blob): Promise<object> {
 	return new Promise<object>((resolve, reject) => {
 		try {
 			let reader = new FileReader()
+			// @ts-expect-error
 			reader.onload = () => resolve(JSON.parse(reader.result as string))
 			reader.readAsText(blob)
 		} catch (error) {
