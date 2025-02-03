@@ -178,8 +178,7 @@ function createKernings(glyphs: Phaser.GameObjects.Text[], font: Font, fontSize:
 	})
 
 	let fontScale = (1 / font.unitsPerEm) * fontSize
-	
-	// @ts-expect-error
+
 	let list: BmFontKerning[] = pairs
 		.map(([left, right]) => {
 			const leftChar = glyphIndexToCharMap.get(left)

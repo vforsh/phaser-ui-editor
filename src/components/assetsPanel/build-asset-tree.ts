@@ -170,10 +170,12 @@ const isSpritesheetOrBitmapFont = async (
 	const jsonFileRaw = (await trpc.readText.query({ path: jsonPath })).content
 	const json = JSON.parse(jsonFileRaw)
 
+	// @ts-expect-error
 	if ('textures' in json) {
 		return 'spritesheet'
 	}
 
+	// @ts-expect-error
 	if ('chars' in json && 'pages' in json) {
 		return 'bitmap-font'
 	}
