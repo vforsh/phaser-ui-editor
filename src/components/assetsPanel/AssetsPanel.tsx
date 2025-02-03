@@ -1,4 +1,4 @@
-import { Paper, ScrollArea, Stack } from '@mantine/core'
+import { Paper, ScrollArea, Stack, Group } from '@mantine/core'
 import { state, useSnapshot } from '@state/State'
 import { ChevronRight } from 'lucide-react'
 import { ContextMenuProvider, useContextMenu } from 'mantine-contextmenu'
@@ -13,6 +13,7 @@ import { PanelTitle } from './../PanelTitle'
 import AssetContextMenu from './AssetContextMenu'
 import AssetTreeItem from './AssetTreeItem'
 import { addAssetId } from './build-asset-tree'
+import { AssetsSearch } from './AssetsSearch'
 
 interface ContextMenuState {
 	opened: boolean
@@ -30,6 +31,8 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 	const [itemToRename, setItemToRename] = useState<string | null>(null)
 	const [openFolders, setOpenFolders] = useState<Set<string>>(new Set())
 	const [lastSelectedId, setLastSelectedId] = useState<string | null>(null)
+	const [searchResults, setSearchResults] = useState<AssetTreeItemData[]>([])
+	const [isSearchMode, setIsSearchMode] = useState(false)
 	const [contextMenu, setContextMenu] = useState<ContextMenuState>({
 		opened: false,
 		position: { x: 0, y: 0 },
@@ -247,7 +250,14 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		<ContextMenuProvider>
 			<Paper style={{ height: '100%', display: 'flex', flexDirection: 'column' }} radius="sm">
 				<Stack gap="xs" p="xs" style={{ height: '100%', minHeight: 0 }}>
-					<PanelTitle title="Assets" />
+					<Group justify="space-between" wrap="nowrap">
+						{!isSearchMode && <PanelTitle title="Assets" />}
+						<AssetsSearch 
+							assets={assetsSnap.items as AssetTreeItemData[]} 
+							onSearchChange={setSearchResults}
+							onSearchModeChange={setIsSearchMode}
+						/>
+					</Group>
 					<ScrollArea
 						style={{ flex: 1 }}
 						id="assets-panel-scroll-area"
@@ -261,21 +271,39 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 						}}
 					>
 						<Stack gap={0}>
-							{assetsSnap.items.map((asset, index) => (
-								<AssetTreeItem
-									key={asset.path}
-									item={asset}
-									onToggle={toggleFolder}
-									onSelect={handleSelect}
-									onContextMenu={handleContextMenu}
-									onRename={handleRename}
-									renamedAssetId={itemToRename}
-									isSelected={assetsSnap.selection.includes(asset.id)}
-									isLastChild={index === assetsSnap.items.length - 1}
-									isOpen={openFolders.has(asset.id)}
-									openFolders={openFolders}
-								/>
-							))}
+							{isSearchMode ? (
+								searchResults.map((asset) => (
+									<AssetTreeItem
+										key={asset.path}
+										item={asset}
+										onToggle={toggleFolder}
+										onSelect={handleSelect}
+										onContextMenu={handleContextMenu}
+										onRename={handleRename}
+										renamedAssetId={itemToRename}
+										isSelected={assetsSnap.selection.includes(asset.id)}
+										isLastChild={false}
+										isOpen={openFolders.has(asset.id)}
+										openFolders={openFolders}
+									/>
+								))
+							) : (
+								assetsSnap.items.map((asset, index) => (
+									<AssetTreeItem
+										key={asset.path}
+										item={asset}
+										onToggle={toggleFolder}
+										onSelect={handleSelect}
+										onContextMenu={handleContextMenu}
+										onRename={handleRename}
+										renamedAssetId={itemToRename}
+										isSelected={assetsSnap.selection.includes(asset.id)}
+										isLastChild={index === assetsSnap.items.length - 1}
+										isOpen={openFolders.has(asset.id)}
+										openFolders={openFolders}
+									/>
+								))
+							)}
 						</Stack>
 					</ScrollArea>
 				</Stack>
