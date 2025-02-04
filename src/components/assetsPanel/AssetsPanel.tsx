@@ -1,19 +1,19 @@
-import { Paper, ScrollArea, Stack, Group } from '@mantine/core'
+import { Group, Paper, ScrollArea, Stack } from '@mantine/core'
 import { state, useSnapshot } from '@state/State'
 import { ChevronRight } from 'lucide-react'
 import { ContextMenuProvider, useContextMenu } from 'mantine-contextmenu'
 import { nanoid } from 'nanoid'
 import path from 'path-browserify-esm'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Logger } from 'tslog'
 import { Snapshot } from 'valtio'
 import trpc from '../../trpc'
 import { AssetTreeFolderData, getAssetById, removeAssetById, type AssetTreeItemData } from '../../types/assets'
 import { PanelTitle } from './../PanelTitle'
 import AssetContextMenu from './AssetContextMenu'
+import { AssetsSearch } from './AssetsSearch'
 import AssetTreeItem from './AssetTreeItem'
 import { addAssetId } from './build-asset-tree'
-import { AssetsSearch } from './AssetsSearch'
 
 interface ContextMenuState {
 	opened: boolean
@@ -23,6 +23,26 @@ interface ContextMenuState {
 
 interface AssetsPanelProps {
 	logger: Logger<{}>
+}
+
+// Helper function to flatten the asset tree - moved outside component for better performance
+const getAllItems = (items: AssetTreeItemData[]): AssetTreeItemData[] => {
+	const result: AssetTreeItemData[] = []
+
+	const traverse = (items: AssetTreeItemData[]) => {
+		items.forEach((item) => {
+			result.push(item)
+			if ('children' in item && Array.isArray(item.children)) {
+				traverse(item.children)
+			}
+			if ('frames' in item && Array.isArray(item.frames)) {
+				traverse(item.frames)
+			}
+		})
+	}
+
+	traverse(items)
+	return result
 }
 
 export default function AssetsPanel({ logger }: AssetsPanelProps) {
@@ -38,6 +58,9 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		position: { x: 0, y: 0 },
 		asset: null,
 	})
+
+	// Memoize flattened items for better search performance
+	const allItems = useMemo(() => getAllItems(assetsSnap.items as AssetTreeItemData[]), [assetsSnap.items])
 
 	// Initialize all folders as open
 	// useEffect(() => {
@@ -80,7 +103,6 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 			setLastSelectedId(item.id)
 		} else if (isShiftPressed && lastSelectedId) {
 			// Find all items between last selected and current
-			const allItems = getAllItems(assetsSnap.items as AssetTreeItemData[])
 			const lastSelectedIndex = allItems.findIndex((i) => i.id === lastSelectedId)
 			const currentIndex = allItems.findIndex((i) => i.id === item.id)
 
@@ -99,26 +121,6 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 
 		state.assets.selectionChangedAt = Date.now()
 		logger.info(`selected '${item.name}' (${item.type})`, item)
-	}
-
-	// Helper function to flatten the asset tree
-	const getAllItems = (items: AssetTreeItemData[]): AssetTreeItemData[] => {
-		const result: AssetTreeItemData[] = []
-
-		const traverse = (items: AssetTreeItemData[]) => {
-			items.forEach((item) => {
-				result.push(item)
-				if ('children' in item && Array.isArray(item.children)) {
-					traverse(item.children)
-				}
-				if ('frames' in item && Array.isArray(item.frames)) {
-					traverse(item.frames)
-				}
-			})
-		}
-
-		traverse(items)
-		return result
 	}
 
 	const handleContextMenu = (item: Snapshot<AssetTreeItemData>, position: { x: number; y: number }) => {
@@ -252,8 +254,8 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 				<Stack gap="xs" p="xs" style={{ height: '100%', minHeight: 0 }}>
 					<Group justify="space-between" wrap="nowrap">
 						{!isSearchMode && <PanelTitle title="Assets" />}
-						<AssetsSearch 
-							assets={assetsSnap.items as AssetTreeItemData[]} 
+						<AssetsSearch
+							flatAssets={allItems}
 							onSearchChange={setSearchResults}
 							onSearchModeChange={setIsSearchMode}
 						/>
@@ -271,39 +273,37 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 						}}
 					>
 						<Stack gap={0}>
-							{isSearchMode ? (
-								searchResults.map((asset) => (
-									<AssetTreeItem
-										key={asset.path}
-										item={asset}
-										onToggle={toggleFolder}
-										onSelect={handleSelect}
-										onContextMenu={handleContextMenu}
-										onRename={handleRename}
-										renamedAssetId={itemToRename}
-										isSelected={assetsSnap.selection.includes(asset.id)}
-										isLastChild={false}
-										isOpen={openFolders.has(asset.id)}
-										openFolders={openFolders}
-									/>
-								))
-							) : (
-								assetsSnap.items.map((asset, index) => (
-									<AssetTreeItem
-										key={asset.path}
-										item={asset}
-										onToggle={toggleFolder}
-										onSelect={handleSelect}
-										onContextMenu={handleContextMenu}
-										onRename={handleRename}
-										renamedAssetId={itemToRename}
-										isSelected={assetsSnap.selection.includes(asset.id)}
-										isLastChild={index === assetsSnap.items.length - 1}
-										isOpen={openFolders.has(asset.id)}
-										openFolders={openFolders}
-									/>
-								))
-							)}
+							{isSearchMode
+								? searchResults.map((asset) => (
+										<AssetTreeItem
+											key={asset.path}
+											item={asset}
+											onToggle={toggleFolder}
+											onSelect={handleSelect}
+											onContextMenu={handleContextMenu}
+											onRename={handleRename}
+											renamedAssetId={itemToRename}
+											isSelected={assetsSnap.selection.includes(asset.id)}
+											isLastChild={false}
+											isOpen={openFolders.has(asset.id)}
+											openFolders={openFolders}
+										/>
+									))
+								: assetsSnap.items.map((asset, index) => (
+										<AssetTreeItem
+											key={asset.path}
+											item={asset}
+											onToggle={toggleFolder}
+											onSelect={handleSelect}
+											onContextMenu={handleContextMenu}
+											onRename={handleRename}
+											renamedAssetId={itemToRename}
+											isSelected={assetsSnap.selection.includes(asset.id)}
+											isLastChild={index === assetsSnap.items.length - 1}
+											isOpen={openFolders.has(asset.id)}
+											openFolders={openFolders}
+										/>
+									))}
 						</Stack>
 					</ScrollArea>
 				</Stack>

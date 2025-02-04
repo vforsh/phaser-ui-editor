@@ -1,5 +1,4 @@
 import { ActionIcon, Checkbox, Group, Menu, Stack, TextInput, useMantineTheme } from '@mantine/core'
-import { useDebouncedValue } from '@mantine/hooks'
 import { Fzf } from 'fzf'
 import { Search, Settings2, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -17,47 +16,53 @@ const ASSET_TYPES: { label: string; value: SearchAssetType }[] = [
 	{ label: 'JSON', value: 'json' },
 	{ label: 'XML', value: 'xml' },
 	{ label: 'Prefab', value: 'prefab' },
-	// { label: 'Folder', value: 'folder' },
 ]
 
+const PERMANENTLY_EXCLUDED_TYPES = ['folder', 'spritesheet-folder'] as const satisfies AssetTreeItemDataType[]
+
 interface AssetsSearchProps {
-	assets: AssetTreeItemData[]
+	flatAssets: AssetTreeItemData[]
 	onSearchChange: (results: AssetTreeItemData[]) => void
 	onSearchModeChange: (isSearchMode: boolean) => void
 }
 
-export function AssetsSearch({ onSearchChange, assets, onSearchModeChange }: AssetsSearchProps) {
+export function AssetsSearch({ onSearchChange, flatAssets, onSearchModeChange }: AssetsSearchProps) {
 	const theme = useMantineTheme()
 	const [isExpanded, setIsExpanded] = useState(false)
 	const [searchQuery, setSearchQuery] = useState('')
-	const [debouncedQuery] = useDebouncedValue(searchQuery, 100)
 	const [settingsOpened, setSettingsOpened] = useState(false)
-	const [selectedTypes, setSelectedTypes] = useState<Set<SearchAssetType>>(getAllTypeValues())
-
-	// Memoize the flattened assets array
-	const flatAssets = useMemo(() => flattenAssetTree(assets), [assets])
+	const [selectedTypes, setSelectedTypes] = useState<Set<SearchAssetType>>(getAllAssetTypes())
 
 	// Memoize filtered assets based on selected types
 	const filteredAssets = useMemo(() => {
-		if (!debouncedQuery.trim() || selectedTypes.size === 0) {
+		const query = searchQuery.trim()
+		if (query.length <= 1 || selectedTypes.size === 0) {
 			return []
 		}
 
-		return selectedTypes.has('all') ? flatAssets : flatAssets.filter((asset) => selectedTypes.has(asset.type))
-	}, [flatAssets, selectedTypes, debouncedQuery])
+		return selectedTypes.has('all')
+			? flatAssets.filter((asset) => !PERMANENTLY_EXCLUDED_TYPES.includes(asset.type))
+			: flatAssets.filter((asset) => selectedTypes.has(asset.type))
+	}, [flatAssets, selectedTypes, searchQuery])
 
-	// Memoize the fzf instance and search results
-	const searchResults = useMemo(() => {
-		if (!debouncedQuery.trim() || filteredAssets.length === 0) {
-			return []
-		}
-
-		const fzfInstance = new Fzf(filteredAssets, {
+	// Memoize the fzf instance
+	const fzfInstance = useMemo(() => {
+		return new Fzf(filteredAssets, {
 			selector: (item: AssetTreeItemData) => item.name,
+			limit: 15,
 		})
+	}, [filteredAssets])
 
-		return fzfInstance.find(debouncedQuery).map((result) => result.item)
-	}, [filteredAssets, debouncedQuery])
+	// Memoize search results
+	const searchResults = useMemo(() => {
+		if (!searchQuery.trim() || !fzfInstance) {
+			return []
+		}
+
+		const results = fzfInstance.find(searchQuery).map((result) => result.item)
+
+		return results
+	}, [fzfInstance, searchQuery])
 
 	// Update search results when they change
 	useEffect(() => {
@@ -70,7 +75,7 @@ export function AssetsSearch({ onSearchChange, assets, onSearchModeChange }: Ass
 
 	const handleExpand = () => {
 		setIsExpanded(true)
-		setSelectedTypes(getAllTypeValues())
+		setSelectedTypes(getAllAssetTypes())
 		onSearchModeChange(true)
 	}
 
@@ -161,27 +166,6 @@ export function AssetsSearch({ onSearchChange, assets, onSearchModeChange }: Ass
 	)
 }
 
-function getAllTypeValues() {
+function getAllAssetTypes() {
 	return new Set(ASSET_TYPES.map((type) => type.value))
-}
-
-// Helper function to flatten the asset tree
-function flattenAssetTree(items: AssetTreeItemData[]): AssetTreeItemData[] {
-	const result: AssetTreeItemData[] = []
-
-	const traverse = (items: AssetTreeItemData[]) => {
-		items.forEach((item) => {
-			result.push(item)
-			if ('children' in item && Array.isArray(item.children)) {
-				traverse(item.children)
-			}
-			if ('frames' in item && Array.isArray(item.frames)) {
-				traverse(item.frames)
-			}
-		})
-	}
-
-	traverse(items)
-
-	return result
 }
