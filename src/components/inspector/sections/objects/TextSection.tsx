@@ -63,7 +63,6 @@ export function TextSection({ data }: TextSectionProps) {
 					onClear={() => {
 						data.style.fontFamily = 'Arial'
 					}}
-					onLocate={() => {}}
 					size="xs"
 				/>
 

@@ -37,6 +37,7 @@ export const stateSchema = z.object({
 		selectionChangedAt: z.number().int().positive().optional(),
 		items: z.array(z.unknown()) as z.ZodType<AssetTreeItemData[]>,
 		searchHistory: z.array(z.string()).default([]),
+		locateAsset: z.function().args(z.string()).optional(),
 	}),
 	canvas: z.object({
 		camera: z.object({

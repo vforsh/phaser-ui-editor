@@ -14,7 +14,7 @@ export interface AssetPickerProps {
 	selectedAssetId: string | null
 	onSelect: (assetId: string) => void
 	onClear: () => void
-	onLocate: () => void
+	onLocate?: (assetId: string) => void
 	label?: string
 	modalTitle?: string
 	error?: string
@@ -37,6 +37,7 @@ export function AssetPicker({
 	const [opened, { open, close }] = useDisclosure(false)
 	const [search, setSearch] = useState('')
 	const assetsSnap = useSnapshot(state.assets.items)
+	const { locateAsset } = useSnapshot(state.assets)
 
 	const selectedAsset = selectedAssetId ? getAssetById(assetsSnap as State['assets']['items'], selectedAssetId) : null
 
@@ -68,7 +69,13 @@ export function AssetPicker({
 							size="compact-xs"
 							onClick={(e) => {
 								e.stopPropagation()
-								onLocate()
+								if (selectedAssetId) {
+									if (onLocate) {
+										onLocate(selectedAssetId)
+									} else if (locateAsset) {
+										locateAsset(selectedAssetId)
+									}
+								}
 							}}
 							className={classes.button}
 							disabled={!selectedAssetId}

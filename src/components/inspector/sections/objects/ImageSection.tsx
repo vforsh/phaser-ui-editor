@@ -53,7 +53,6 @@ export function ImageSection({ data }: ImageSectionProps) {
 				selectedAssetId={texture?.id ?? null}
 				onSelect={setTexture}
 				onClear={clearTexture}
-				onLocate={() => console.log(`locate texture in AssetsPanel`)}
 			/>
 
 			<AssetPicker
@@ -62,7 +61,6 @@ export function ImageSection({ data }: ImageSectionProps) {
 				selectedAssetId={frame?.id ?? null}
 				onSelect={setFrame}
 				onClear={clearFrame}
-				onLocate={() => console.log(`locate frame in AssetsPanel`)}
 				error={texture?.type === 'spritesheet' && !frame ? 'Frame not found' : undefined}
 			/>
 		</Stack>

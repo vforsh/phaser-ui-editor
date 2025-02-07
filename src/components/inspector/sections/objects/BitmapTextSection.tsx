@@ -76,7 +76,6 @@ export function BitmapTextSection({ data }: BitmapTextSectionProps) {
 					selectedAssetId={selectedFont?.id ?? null}
 					onSelect={setFont}
 					onClear={clearFont}
-					onLocate={() => console.log(`locate font in AssetsPanel`)}
 					size="xs"
 				/>
 

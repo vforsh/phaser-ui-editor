@@ -46,6 +46,39 @@ const getAllItems = (items: AssetTreeItemData[]): AssetTreeItemData[] => {
 	return result
 }
 
+// Helper function to get all parent folder IDs for an asset
+const getParentFolderIds = (assets: AssetTreeItemData[], targetId: string): Set<string> => {
+	const folderIds = new Set<string>()
+
+	const findParents = (items: AssetTreeItemData[], targetId: string): boolean => {
+		for (const item of items) {
+			if (item.id === targetId) {
+				return true
+			}
+
+			if ('children' in item) {
+				if (findParents(item.children, targetId)) {
+					folderIds.add(item.id)
+					return true
+				}
+			}
+
+			if ('frames' in item) {
+				if (findParents(item.frames, targetId)) {
+					folderIds.add(item.id)
+					return true
+				}
+			}
+		}
+
+		return false
+	}
+
+	findParents(assets, targetId)
+
+	return folderIds
+}
+
 export default function AssetsPanel({ logger }: AssetsPanelProps) {
 	const assetsSnap = useSnapshot(state.assets)
 	const { showContextMenu } = useContextMenu()
@@ -341,6 +374,37 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		}
 	}
 
+	// Expose locateAsset through state
+	useEffect(() => {
+		state.assets.locateAsset = (assetId: string) => {
+			// Get all parent folder IDs that need to be expanded
+			const parentFoldersIds = getParentFolderIds(state.assets.items, assetId)
+
+			// Expand all parent folders
+			setOpenFolders((prev) => {
+				const next = new Set(prev)
+				parentFoldersIds.forEach((id) => next.add(id))
+				return next
+			})
+
+			// Select the asset
+			state.assets.selection = [assetId]
+			state.assets.selectionChangedAt = Date.now()
+
+			// Scroll the item into view
+			setTimeout(() => {
+				const element = document.getElementById(`asset-item-${assetId}`)
+				if (element) {
+					element.scrollIntoView({ block: 'center', behavior: 'instant' })
+				}
+			}, 100) // Small delay to ensure DOM is updated
+		}
+
+		return () => {
+			state.assets.locateAsset = undefined
+		}
+	}, [])
+
 	return (
 		<ContextMenuProvider>
 			<Paper style={{ height: '100%', display: 'flex', flexDirection: 'column' }} radius="sm">
@@ -383,13 +447,14 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 											isLastChild={false}
 											isOpen={openFolders.has(asset.id)}
 											openFolders={openFolders}
-											id={`asset-item-${asset.id}`}
+											id={getAssetItemId(asset.id)}
 											isFocused={focusedIndex === index}
 										/>
 									))
 								: assetsSnap.items.map((asset, index) => (
 										<AssetTreeItem
 											key={asset.path}
+											id={getAssetItemId(asset.id)}
 											item={asset}
 											onToggle={toggleFolder}
 											onSelect={handleSelect}
@@ -416,4 +481,11 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 			</Paper>
 		</ContextMenuProvider>
 	)
+}
+
+/**
+ * Creates the id (for the DOM element) of the asset item element
+ */
+export function getAssetItemId(assetId: string) {
+	return `asset-item-${assetId}`
 }

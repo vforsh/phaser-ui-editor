@@ -18,6 +18,7 @@ import { match } from 'ts-pattern'
 import { Snapshot, useSnapshot } from 'valtio'
 import { useDragAndDrop } from '../../hooks/useDragAndDrop'
 import { isDraggableAsset, type AssetTreeItemData } from '../../types/assets'
+import { getAssetItemId } from './AssetsPanel'
 
 const INDENT_SIZE = 20
 const ICON_SIZE = 16
@@ -36,7 +37,7 @@ interface AssetTreeItemProps {
 	isLastChild?: boolean
 	isOpen?: boolean
 	openFolders: Set<string>
-	id?: string
+	id: string
 	isFocused?: boolean
 }
 
@@ -171,10 +172,10 @@ export default function AssetTreeItem({
 					backgroundColor: isSelected
 						? alpha(theme.colors.blue[9], 0.5)
 						: isFocused
-						? alpha(theme.colors.blue[9], 0.3)
-						: isHovered
-							? theme.colors.dark[6]
-							: 'transparent',
+							? alpha(theme.colors.blue[9], 0.3)
+							: isHovered
+								? theme.colors.dark[6]
+								: 'transparent',
 					transition: 'background-color 100ms ease',
 					cursor: isDraggable ? 'grab' : 'pointer',
 					opacity: dragState.isDragging && dragState.item === item ? 0.5 : 1,
@@ -310,7 +311,7 @@ export default function AssetTreeItem({
 						isLastChild={index === arr.length - 1}
 						isOpen={openFolders.has(child.id)}
 						openFolders={openFolders}
-						id={child.id}
+						id={getAssetItemId(child.id)}
 						isFocused={assetsSelectionSnap.includes(child.id)}
 					/>
 				))}

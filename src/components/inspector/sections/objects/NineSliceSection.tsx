@@ -43,9 +43,6 @@ export function NineSliceSection({ data }: NineSliceSectionProps) {
 				selectedAssetId={texture?.id ?? null}
 				onSelect={setTexture}
 				onClear={() => setTexture('')}
-				onLocate={() => {
-					/* TODO: implement locate texture in assets panel */
-				}}
 			/>
 
 			<AssetPicker
@@ -54,9 +51,6 @@ export function NineSliceSection({ data }: NineSliceSectionProps) {
 				selectedAssetId={frame?.id ?? null}
 				onSelect={setFrame}
 				onClear={() => setFrame('')}
-				onLocate={() => {
-					/* TODO: implement locate frame in assets panel */
-				}}
 			/>
 
 			<Group grow>
