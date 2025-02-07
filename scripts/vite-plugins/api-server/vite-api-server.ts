@@ -10,6 +10,9 @@ import sharp from 'sharp'
 import { Plugin } from 'vite'
 import { z } from 'zod'
 import trash from 'trash';
+import xml2js from 'xml2js';
+// @ts-expect-error
+import parseBmfontXml from 'parse-bmfont-xml';
 
 const t = initTRPC.create()
 
@@ -108,6 +111,18 @@ const appRouter = t.router({
 	readJson: t.procedure.input(z.object({ path: absPathSchema })).query(async ({ input }) => {
 		const { path } = input
 		const json = await fse.readJson(path)
+		return json
+	}),
+	readXmlToJson: t.procedure.input(z.object({ path: absPathSchema })).query(async ({ input }) => {
+		const { path } = input
+		const xml = await fse.readFile(path, 'utf-8')
+		const json = await xml2js.parseStringPromise(xml)
+		return json
+	}),
+	readBmfontXml: t.procedure.input(z.object({ path: absPathSchema })).query(async ({ input }) => {
+		const { path } = input
+		const xml = await fse.readFile(path, 'utf-8')
+		const json = await parseBmfontXml(xml)
 		return json
 	}),
 	readText: t.procedure.input(z.object({ path: absPathSchema })).query(async ({ input }) => {

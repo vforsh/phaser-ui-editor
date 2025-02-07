@@ -11,6 +11,7 @@ import { Box, Collapse, Group, Text, UnstyledButton } from '@mantine/core'
 import { ChevronRight, LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import { ValueOf } from 'type-fest'
+import { AssetTreeBitmapFontData } from '../../types/assets'
 import classes from './InspectorSection.module.css'
 import { AssetSectionData } from './sections/assets/AssetSection'
 import { GraphicAssetPreviewSectionData } from './sections/assets/GraphicAssetPreviewSection'
@@ -18,6 +19,7 @@ import { GraphicAssetPreviewSectionData } from './sections/assets/GraphicAssetPr
 type AssetSectionDef =
 	| { type: 'asset-info'; data: AssetSectionData }
 	| { type: 'asset-graphic-preview'; data: GraphicAssetPreviewSectionData }
+	| { type: 'asset-bitmap-font'; data: AssetTreeBitmapFontData }
 
 type ObjectSectionDef =
 	| { type: 'obj-info'; data: EditableObjectJson }

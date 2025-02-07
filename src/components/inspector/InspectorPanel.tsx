@@ -9,6 +9,7 @@ import { getAssetById, isGraphicAsset, type AssetTreeItemData } from '../../type
 import { InspectorSection, InspectorSectionDef } from './InspectorSection'
 import { NoSelection } from './NoSelection'
 import { AssetSection } from './sections/assets/AssetSection'
+import { BitmapFontSection } from './sections/assets/BitmapFontSection'
 import { GraphicAssetPreviewSection } from './sections/assets/GraphicAssetPreviewSection'
 import { BitmapTextSection } from './sections/objects/BitmapTextSection'
 import { DisplaySection } from './sections/objects/DisplaySection'
@@ -113,7 +114,7 @@ function createSections(item: ItemToInspect): InspectorSectionDef[] {
 		.exhaustive()
 }
 
-function getAssetSections(item: AssetTreeItemData) {
+function getAssetSections(item: AssetTreeItemData): InspectorSectionDef[] {
 	const sections: InspectorSectionDef[] = [
 		{
 			type: 'asset-info',
@@ -137,13 +138,23 @@ function getAssetSections(item: AssetTreeItemData) {
 		})
 	}
 
-	// Add asset-specific sections
-	switch (item.type) {
-		default:
-			break
-	}
+	const assetTypeSections = match(item)
+		.returnType<InspectorSectionDef[]>()
+		.with({ type: 'bitmap-font' }, (bitmapFont) => {
+			return [
+				{
+					type: 'asset-bitmap-font',
+					title: 'Bitmap Font',
+					icon: TypeOutline,
+					data: bitmapFont,
+					content: <BitmapFontSection data={bitmapFont} />,
+					defaultExpanded: true,
+				},
+			]
+		})
+		.otherwise(() => [])
 
-	return sections
+	return [...sections, ...assetTypeSections]
 }
 
 function getObjectSections(obj: EditableObjectJson): InspectorSectionDef[] {
