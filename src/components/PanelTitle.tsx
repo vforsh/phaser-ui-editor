@@ -1,18 +1,16 @@
-import { Text, Box, Title, Divider, Space } from "@mantine/core";
-import React from "react";
+import { Box, Title } from '@mantine/core'
+import React from 'react'
 
 interface PanelTitleProps {
-  title: string;
+	title: string
 }
 
 export const PanelTitle: React.FC<PanelTitleProps> = ({ title }) => {
-  return (
-    <Box w="100%">
-      <Title order={5} ml="4px" ta="left">
-        {title}
-      </Title>
-      <Space h="xs" />
-      <Divider />
-    </Box>
-  );
-};
+	return (
+		<Box w="100%">
+			<Title order={5} ml="4px" ta="left">
+				{title}
+			</Title>
+		</Box>
+	)
+}

@@ -1,4 +1,4 @@
-import { Group, Paper, ScrollArea, Stack } from '@mantine/core'
+import { Divider, Group, Paper, ScrollArea, Stack } from '@mantine/core'
 import { state, useSnapshot } from '@state/State'
 import { ChevronRight } from 'lucide-react'
 import { ContextMenuProvider, useContextMenu } from 'mantine-contextmenu'
@@ -260,6 +260,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 							onSearchModeChange={setIsSearchMode}
 						/>
 					</Group>
+					<Divider />
 					<ScrollArea
 						style={{ flex: 1 }}
 						id="assets-panel-scroll-area"

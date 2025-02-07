@@ -1,5 +1,5 @@
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
-import { Paper, ScrollArea, Stack } from '@mantine/core'
+import { Paper, ScrollArea, Stack, Divider, Space } from '@mantine/core'
 import { state, useSnapshot } from '@state/State'
 import { Logger } from 'tslog'
 import { PanelTitle } from '../PanelTitle'
@@ -23,6 +23,7 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 		<Paper style={{ height: '100%', display: 'flex', flexDirection: 'column' }} radius="sm">
 			<Stack gap="xs" p="xs" style={{ height: '100%', minHeight: 0 }}>
 				<PanelTitle title="Hierarchy" />
+				<Divider />
 				<ScrollArea style={{ flex: 1 }}>
 					<Stack gap={0}>
 						{canvasSnap.objects && (
