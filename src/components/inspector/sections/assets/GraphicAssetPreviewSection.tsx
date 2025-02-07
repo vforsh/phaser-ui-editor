@@ -1,4 +1,5 @@
 import { Box, Image, Stack, Text } from '@mantine/core'
+import { until } from '@open-draft/until'
 import { randomInt } from 'es-toolkit'
 import path from 'path-browserify-esm'
 import prettyBytes from 'pretty-bytes'
@@ -113,7 +114,15 @@ export function GraphicAssetPreviewSection({ data }: GraphicAssetPreviewSectionP
 		const ac = new AbortController()
 
 		const fetchData = async () => {
-			const imageData = await readImageData(data, ac.signal)
+			const { data: imageData, error } = await until(() => readImageData(data, ac.signal))
+			if (error) {
+				if (error.message.includes('aborted')) {
+					return
+				}
+
+				throw error
+			}
+
 			const imageType = detectImageType(data)
 			const imageUrl = imageDataToUrl(imageData.data, imageType)
 			setImageUrl(imageUrl)
