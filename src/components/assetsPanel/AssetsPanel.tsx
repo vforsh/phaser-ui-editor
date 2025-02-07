@@ -5,7 +5,7 @@ import { ChevronRight } from 'lucide-react'
 import { ContextMenuProvider, useContextMenu } from 'mantine-contextmenu'
 import { nanoid } from 'nanoid'
 import path from 'path-browserify-esm'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Logger } from 'tslog'
 import { Snapshot } from 'valtio'
 import trpc from '../../trpc'
@@ -60,6 +60,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		asset: null,
 	})
 	const [focusedIndex, setFocusedIndex] = useState<number>(-1)
+	const searchRef = useRef<{ handleExpand: () => void } | null>(null)
 
 	// Memoize flattened items for better search performance
 	const allItems = useMemo(() => getAllItems(assetsSnap.items as AssetTreeItemData[]), [assetsSnap.items])
@@ -293,6 +294,26 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		})
 	})
 
+	// Handle keyboard shortcuts
+	useWindowEvent('keydown', (event) => {
+		const activeElement = document.activeElement
+		const isInputFocused =
+			activeElement instanceof HTMLElement &&
+			(activeElement.tagName === 'INPUT' ||
+				activeElement.tagName === 'TEXTAREA' ||
+				activeElement.isContentEditable)
+
+		if (isInputFocused) {
+			return
+		}
+
+		// Handle Ctrl/Command + F
+		if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f') {
+			event.preventDefault()
+			searchRef.current?.handleExpand()
+		}
+	})
+
 	return (
 		<ContextMenuProvider>
 			<Paper style={{ height: '100%', display: 'flex', flexDirection: 'column' }} radius="sm">
@@ -300,6 +321,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 					<Group justify="space-between" wrap="nowrap">
 						{!isSearchMode && <PanelTitle title="Assets" />}
 						<AssetsSearch
+							ref={searchRef}
 							flatAssets={allItems}
 							onSearchChange={setSearchResults}
 							onSearchModeChange={setIsSearchMode}
