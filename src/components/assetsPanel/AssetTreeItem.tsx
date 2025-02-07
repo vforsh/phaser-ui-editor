@@ -36,6 +36,8 @@ interface AssetTreeItemProps {
 	isLastChild?: boolean
 	isOpen?: boolean
 	openFolders: Set<string>
+	id?: string
+	isFocused?: boolean
 }
 
 export default function AssetTreeItem({
@@ -50,6 +52,8 @@ export default function AssetTreeItem({
 	isLastChild = false,
 	isOpen = false,
 	openFolders,
+	id,
+	isFocused = false,
 }: AssetTreeItemProps) {
 	const theme = useMantineTheme()
 	const assetsSelectionSnap = useSnapshot(state.assets.selection)
@@ -152,6 +156,7 @@ export default function AssetTreeItem({
 	return (
 		<Stack gap={0}>
 			<UnstyledButton
+				id={id}
 				onClick={handleClick}
 				onContextMenu={handleContextMenu}
 				onMouseEnter={() => setIsHovered(true)}
@@ -165,6 +170,8 @@ export default function AssetTreeItem({
 					height: ITEM_HEIGHT,
 					backgroundColor: isSelected
 						? alpha(theme.colors.blue[9], 0.5)
+						: isFocused
+						? alpha(theme.colors.blue[9], 0.3)
 						: isHovered
 							? theme.colors.dark[6]
 							: 'transparent',
@@ -303,6 +310,8 @@ export default function AssetTreeItem({
 						isLastChild={index === arr.length - 1}
 						isOpen={openFolders.has(child.id)}
 						openFolders={openFolders}
+						id={child.id}
+						isFocused={assetsSelectionSnap.includes(child.id)}
 					/>
 				))}
 		</Stack>

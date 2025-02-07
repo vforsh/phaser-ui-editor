@@ -1,4 +1,5 @@
 import { Divider, Group, Paper, ScrollArea, Stack } from '@mantine/core'
+import { useWindowEvent } from '@mantine/hooks'
 import { state, useSnapshot } from '@state/State'
 import { ChevronRight } from 'lucide-react'
 import { ContextMenuProvider, useContextMenu } from 'mantine-contextmenu'
@@ -58,6 +59,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		position: { x: 0, y: 0 },
 		asset: null,
 	})
+	const [focusedIndex, setFocusedIndex] = useState<number>(-1)
 
 	// Memoize flattened items for better search performance
 	const allItems = useMemo(() => getAllItems(assetsSnap.items as AssetTreeItemData[]), [assetsSnap.items])
@@ -248,6 +250,49 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		},
 	]
 
+	// Reset focused index when search results change or search mode changes
+	useEffect(() => {
+		setFocusedIndex(-1)
+	}, [searchResults, isSearchMode])
+
+	// Handle keyboard navigation using Mantine's useWindowEvent hook
+	useWindowEvent('keydown', (event) => {
+		if (!isSearchMode) {
+			return
+		}
+
+		if (!['ArrowUp', 'ArrowDown'].includes(event.key)) {
+			return
+		}
+
+		event.preventDefault()
+
+		setFocusedIndex((prevIndex) => {
+			let newIndex = prevIndex
+
+			if (event.key === 'ArrowDown') {
+				newIndex = prevIndex < searchResults.length - 1 ? prevIndex + 1 : prevIndex
+			} else if (event.key === 'ArrowUp') {
+				newIndex = prevIndex > 0 ? prevIndex - 1 : prevIndex
+			}
+
+			// Select the focused item
+			if (newIndex !== -1 && newIndex !== prevIndex) {
+				const focusedItem = searchResults[newIndex]
+				state.assets.selection = [focusedItem.id]
+				state.assets.selectionChangedAt = Date.now()
+
+				// Scroll the item into view
+				const element = document.getElementById(`asset-item-${focusedItem.id}`)
+				if (element) {
+					element.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+				}
+			}
+
+			return newIndex
+		})
+	})
+
 	return (
 		<ContextMenuProvider>
 			<Paper style={{ height: '100%', display: 'flex', flexDirection: 'column' }} radius="sm">
@@ -275,7 +320,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 					>
 						<Stack gap={0}>
 							{isSearchMode
-								? searchResults.map((asset) => (
+								? searchResults.map((asset, index) => (
 										<AssetTreeItem
 											key={asset.path}
 											item={asset}
@@ -288,6 +333,8 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 											isLastChild={false}
 											isOpen={openFolders.has(asset.id)}
 											openFolders={openFolders}
+											id={`asset-item-${asset.id}`}
+											isFocused={focusedIndex === index}
 										/>
 									))
 								: assetsSnap.items.map((asset, index) => (
