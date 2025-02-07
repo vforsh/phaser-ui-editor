@@ -36,6 +36,7 @@ export const stateSchema = z.object({
 		selection: z.array(z.string()),
 		selectionChangedAt: z.number().int().positive().optional(),
 		items: z.array(z.unknown()) as z.ZodType<AssetTreeItemData[]>,
+		searchHistory: z.array(z.string()).default([]),
 	}),
 	canvas: z.object({
 		camera: z.object({
@@ -86,6 +87,7 @@ const initialStateParsed = merge(
 		assets: {
 			selection: [],
 			items: [],
+			searchHistory: [],
 		},
 		canvas: {
 			camera: {

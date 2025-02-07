@@ -60,7 +60,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		asset: null,
 	})
 	const [focusedIndex, setFocusedIndex] = useState<number>(-1)
-	const searchRef = useRef<{ handleExpand: () => void } | null>(null)
+	const searchRef = useRef<{ handleExpand: () => void; blur: () => void; focus: () => void } | null>(null)
 
 	// Memoize flattened items for better search performance
 	const allItems = useMemo(() => getAllItems(assetsSnap.items as AssetTreeItemData[]), [assetsSnap.items])
@@ -262,6 +262,13 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 			return
 		}
 
+		if (event.key === 'Escape' && focusedIndex !== -1) {
+			event.preventDefault()
+			setFocusedIndex(-1)
+			searchRef.current?.focus()
+			return
+		}
+
 		if (!['ArrowUp', 'ArrowDown'].includes(event.key)) {
 			return
 		}
@@ -314,6 +321,26 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		}
 	})
 
+	const handleSearchTabPress = () => {
+		if (searchResults.length <= 0) {
+			return
+		}
+
+		searchRef.current?.blur()
+
+		setFocusedIndex(0)
+
+		const firstItem = searchResults[0]
+		state.assets.selection = [firstItem.id]
+		state.assets.selectionChangedAt = Date.now()
+
+		// Scroll the item into view
+		const element = document.getElementById(`asset-item-${firstItem.id}`)
+		if (element) {
+			element.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+		}
+	}
+
 	return (
 		<ContextMenuProvider>
 			<Paper style={{ height: '100%', display: 'flex', flexDirection: 'column' }} radius="sm">
@@ -325,6 +352,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 							flatAssets={allItems}
 							onSearchChange={setSearchResults}
 							onSearchModeChange={setIsSearchMode}
+							onTabPress={handleSearchTabPress}
 						/>
 					</Group>
 					<Divider />
