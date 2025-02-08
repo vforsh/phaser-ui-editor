@@ -10,9 +10,6 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 	private _stateObj: EditableBitmapTextJson
 	private _stateChanges: StateChangesEmitter<EditableBitmapTextJson>
 
-	// it is set in the super constructor
-	private _bounds!: Phaser.Types.GameObjects.BitmapText.BitmapTextSize
-
 	constructor(
 		scene: Phaser.Scene,
 		id: string,
