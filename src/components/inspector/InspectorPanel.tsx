@@ -49,7 +49,7 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 	const assetChangedAt = assetsSnap.selectionChangedAt || 0
 	const objectChangedAt = canvasSnap.selectionChangedAt || 0
 
-	// Show most recently selected item
+	// Show most recently selected asset item
 	if (selectedAssetId && (!selectedObjectId || assetChangedAt > objectChangedAt)) {
 		// Find selected asset
 		const selectedAsset = getAssetById(assetsSnap.items as AssetTreeItemData[], selectedAssetId)
@@ -74,7 +74,7 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 		}
 	}
 
-	// Show selected object if no asset is selected or object was selected more recently
+	// Show selected canvas object if no asset is selected or object was selected more recently
 	if (selectedObjectId && canvasSnap.objectById) {
 		const selectedObject = canvasSnap.objectById(selectedObjectId)
 		if (selectedObject) {
