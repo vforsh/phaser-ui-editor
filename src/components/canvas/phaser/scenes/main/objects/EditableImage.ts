@@ -11,7 +11,7 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 	private _isLocked = false
 	private _stateObj: EditableImageJson
 	private _stateChanges: StateChangesEmitter<EditableImageJson>
-	private _components = new ComponentsManager(this)
+	private _components: ComponentsManager
 
 	constructor(scene: Phaser.Scene, id: string, x: number, y: number, texture: string, frame?: string | number) {
 		super(scene, x, y, texture, frame)
@@ -19,6 +19,10 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 		this.id = id
 		this.x = x
 		this.y = y
+
+		this._components = new ComponentsManager(this)
+		this._components.on('component-added', this.onComponentsListChanged, this)
+		this._components.on('component-removed', this.onComponentsListChanged, this)
 
 		this._stateObj = proxy(this.toJson())
 
@@ -39,6 +43,10 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 			'tintFill': (value) => (this.tintFill = value),
 			'frameKey': (value) => this.setFrame(value),
 		})
+	}
+
+	private onComponentsListChanged(): void {
+		this._stateObj.components = this._components.items.map((c) => c.toJson())
 	}
 
 	/**

@@ -1,4 +1,5 @@
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { EditableComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/EditableComponent'
 import { ScrollArea, Stack } from '@mantine/core'
 import { state } from '@state/State'
 import { Eye, Image, Info, Move, Type, TypeOutline } from 'lucide-react'
@@ -11,6 +12,9 @@ import { NoSelection } from './NoSelection'
 import { AssetSection } from './sections/assets/AssetSection'
 import { BitmapFontSection } from './sections/assets/BitmapFontSection'
 import { GraphicAssetPreviewSection } from './sections/assets/GraphicAssetPreviewSection'
+import { ComponentSection } from './sections/components/ComponentSection'
+import { ComponentsListData } from './sections/components/ComponentsListData'
+import { PinnerSection } from './sections/components/PinnerSection'
 import { BitmapTextSection } from './sections/objects/BitmapTextSection'
 import { DisplaySection } from './sections/objects/DisplaySection'
 import { ImageSection } from './sections/objects/ImageSection'
@@ -58,16 +62,29 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 			return (
 				<ScrollArea style={{ flex: 1 }}>
 					<Stack gap="xs" p="xs">
-						{sections.map((section) => (
-							<InspectorSection
-								key={section.type}
-								type={section.type}
-								title={section.title}
-								icon={section.icon}
-								content={section.content}
-								defaultExpanded={section.defaultExpanded}
-							/>
-						))}
+						{sections.map((section) => {
+							if (section.type.startsWith('comp-')) {
+								const componentData = section.data as EditableComponentJson
+								return (
+									<ComponentSection
+										key={section.type}
+										data={componentData}
+										content={section.content}
+									/>
+								)
+							}
+
+							return (
+								<InspectorSection
+									key={section.type}
+									type={section.type}
+									title={section.title}
+									icon={section.icon}
+									content={section.content}
+									defaultExpanded={section.defaultExpanded}
+								/>
+							)
+						})}
 					</Stack>
 				</ScrollArea>
 			)
@@ -82,16 +99,29 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 			return (
 				<ScrollArea style={{ flex: 1 }}>
 					<Stack gap="xs" p="xs">
-						{sections.map((section) => (
-							<InspectorSection
-								key={section.type}
-								type={section.type}
-								title={section.title}
-								icon={section.icon}
-								content={section.content}
-								defaultExpanded={section.defaultExpanded}
-							/>
-						))}
+						{sections.map((section) => {
+							if (section.type.startsWith('comp-')) {
+								const componentData = section.data as EditableComponentJson
+								return (
+									<ComponentSection
+										key={section.type}
+										data={componentData}
+										content={section.content}
+									/>
+								)
+							}
+
+							return (
+								<InspectorSection
+									key={section.type}
+									type={section.type}
+									title={section.title}
+									icon={section.icon}
+									content={section.content}
+									defaultExpanded={section.defaultExpanded}
+								/>
+							)
+						})}
 					</Stack>
 				</ScrollArea>
 			)
@@ -260,7 +290,27 @@ function getObjectSections(obj: EditableObjectJson): InspectorSectionDef[] {
 		})
 		.exhaustive()
 
-	const componentSections: InspectorSectionDef[] = []
+	const componentSections: InspectorSectionDef[] = getComponentSections(obj)
 
 	return [...baseSections, ...objectTypeSections, ...componentSections]
+}
+
+function getComponentSections(obj: EditableObjectJson): InspectorSectionDef[] {
+	return obj.components.map((component) => {
+		const componentInfo = ComponentsListData[component.type]
+
+		return match(component)
+			.returnType<InspectorSectionDef>()
+			.with({ type: 'pinner' }, (pinner) => {
+				return {
+					type: 'comp-pinner',
+					title: componentInfo.title,
+					icon: componentInfo.icon,
+					data: pinner,
+					content: <PinnerSection data={pinner} />,
+					defaultExpanded: true,
+				}
+			})
+			.exhaustive()
+	})
 }

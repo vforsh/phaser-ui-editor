@@ -1,0 +1,25 @@
+/* Size of the extended clickable area around the checkbox */
+:root {
+	--checkbox-padding: 10px;
+}
+
+/* Base checkbox styles */
+.checkbox {
+	cursor: pointer;
+	position: relative;
+}
+
+/* Invisible extended clickable area */
+.checkbox::before {
+	content: '';
+	position: absolute;
+	top: calc(var(--checkbox-padding) * -1);
+	right: calc(var(--checkbox-padding) * -1);
+	bottom: calc(var(--checkbox-padding) * -1);
+	left: calc(var(--checkbox-padding) * -1);
+}
+
+/* Hover state */
+.checkbox:hover {
+	border-color: var(--mantine-color-gray-6);
+} 

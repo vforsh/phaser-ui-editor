@@ -1,3 +1,4 @@
+import { PinnerComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/EditablePinnerComponent'
 import { EditableBitmapTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableBitmapText'
 import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
 import { EditableImageJson } from '@components/canvas/phaser/scenes/main/objects/EditableImage'
@@ -36,7 +37,11 @@ type ObjectSectionDef =
 	| { type: 'obj-container'; data: EditableContainerJson }
 	| { type: 'obj-container-grid'; data: EditableContainerJson }
 
-type SectionDefBase = AssetSectionDef | ObjectSectionDef
+type ComponentSectionDef =
+	| { type: 'comp-pinner'; data: PinnerComponentJson }
+	| { type: 'comp-pinner'; data: PinnerComponentJson }
+
+type SectionDefBase = AssetSectionDef | ObjectSectionDef | ComponentSectionDef
 
 export type GetDefByType<T extends SectionDefBase['type']> = Extract<SectionDefBase, { type: T }>
 

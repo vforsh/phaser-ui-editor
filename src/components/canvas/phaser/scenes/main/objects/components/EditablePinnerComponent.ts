@@ -18,17 +18,43 @@ export class EditablePinnerComponent extends BaseEditableComponent {
 		this._stateChanges = new StateChangesEmitter(
 			this._state as PinnerComponentJson,
 			{
-				x: (value) => (this.x = value),
-				y: (value) => (this.y = value),
-				xOffset: (value) => (this.xOffset = value),
-				yOffset: (value) => (this.yOffset = value),
+				x: (value) => {
+					this.x = value
+					this.updateParentPosition()
+				},
+				y: (value) => {
+					this.y = value
+					this.updateParentPosition()
+				},
+				xOffset: (value) => {
+					this.xOffset = value
+					this.updateParentPosition()
+				},
+				yOffset: (value) => {
+					this.yOffset = value
+					this.updateParentPosition()
+				},
+				active: (value) => {
+					this._isActive = value
+				},
 			},
 			this.destroySignal
 		)
 	}
 
+	private updateParentPosition(): void {
+		if (!this.parent) {
+			return
+		}
+
+		console.log(`updateParentPosition: ${this.x}, ${this.y} (${this.xOffset}, ${this.yOffset})`)
+		// this.parent.setPosition(this.x, this.y)
+	}
+
 	public toJson(): PinnerComponentJson {
 		return {
+			type: 'pinner',
+			active: this._isActive,
 			x: this.x,
 			y: this.y,
 			xOffset: this.xOffset,
@@ -36,12 +62,16 @@ export class EditablePinnerComponent extends BaseEditableComponent {
 		}
 	}
 
-	protected onActivate(): void {}
+	protected onActivate(): void {
+		this.updateParentPosition()
+	}
 
 	protected onDeactivate(): void {}
 }
 
 export type PinnerComponentJson = {
+	type: 'pinner'
+	active: boolean
 	x: number
 	y: number
 	xOffset: string
