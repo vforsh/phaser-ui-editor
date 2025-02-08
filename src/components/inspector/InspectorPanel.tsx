@@ -1,8 +1,10 @@
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { EditableComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/EditableComponent'
 import { Divider, ScrollArea, Stack } from '@mantine/core'
+import { notifications } from '@mantine/notifications'
 import { state } from '@state/State'
 import { Eye, Image, Info, Move, Type, TypeOutline } from 'lucide-react'
+import { useCallback, useState } from 'react'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import { useSnapshot } from 'valtio'
@@ -38,6 +40,10 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 	const canvasSnap = useSnapshot(state.canvas)
 	const assetsSnap = useSnapshot(state.assets)
 
+	// TODO create custom reusable hook for force updates
+	const [, updateState] = useState<{}>()
+	const forceUpdate = useCallback(() => updateState({}), [])
+
 	// Don't show anything if multiple items are selected
 	if (assetsSnap.selection.length > 1 || canvasSnap.selection.length > 1) {
 		return (
@@ -64,17 +70,6 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 				<ScrollArea style={{ flex: 1 }}>
 					<Stack gap="xs" p="xs">
 						{sections.map((section) => {
-							if (section.type.startsWith('comp-')) {
-								const componentData = section.data as EditableComponentJson
-								return (
-									<ComponentSection
-										key={section.type}
-										data={componentData}
-										content={section.content}
-									/>
-								)
-							}
-
 							return (
 								<InspectorSection
 									key={section.type}
@@ -108,6 +103,66 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 										key={section.type}
 										data={componentData}
 										content={section.content}
+										onReset={() => {
+											// TODO components - implement reset functionality
+										}}
+										onMoveUp={() => {
+											const moveUpResult = state.app?.commands.emit('move-component-up', {
+												componentType: componentData.type,
+												objectId: selectedObjectId,
+											})!
+
+											if (moveUpResult.isOk()) {
+												forceUpdate()
+											} else {
+												notifications.show({
+													title: 'Failed to move component up',
+													message: `${moveUpResult.error}`,
+													color: 'red',
+													autoClose: 10_000,
+												})
+											}
+										}}
+										onMoveDown={() => {
+											const moveDownResult = state.app?.commands.emit('move-component-down', {
+												componentType: componentData.type,
+												objectId: selectedObjectId,
+											})!
+
+											if (moveDownResult.isOk()) {
+												forceUpdate()
+											} else {
+												notifications.show({
+													title: 'Failed to move component down',
+													message: `${moveDownResult.error}`,
+													color: 'red',
+													autoClose: 10_000,
+												})
+											}
+										}}
+										onRemove={() => {
+											const removeResult = state.app?.commands.emit('remove-component', {
+												componentType: componentData.type,
+												objectId: selectedObjectId,
+											})!
+
+											if (removeResult.isOk()) {
+												forceUpdate()
+											} else {
+												notifications.show({
+													title: 'Failed to remove component',
+													message: `${removeResult.error}`,
+													color: 'red',
+													autoClose: 10_000,
+												})
+											}
+										}}
+										onCopy={() => {
+											// TODO components - implement copy functionality
+										}}
+										onPaste={() => {
+											// TODO components - implement paste functionality
+										}}
 									/>
 								)
 							}
@@ -126,8 +181,21 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 						<Divider />
 						<AddComponentButton
 							onAddComponent={(type) => {
-								// TODO: Add component to the selected object
-								logger.debug('Adding component', { type })
+								const addResult = state.app?.commands.emit('add-component', {
+									componentType: type,
+									objectId: selectedObjectId,
+								})!
+
+								if (addResult.isOk()) {
+									forceUpdate()
+								} else {
+									notifications.show({
+										title: 'Failed to add component',
+										message: `${addResult.error}`,
+										color: 'red',
+										autoClose: 10_000,
+									})
+								}
 							}}
 						/>
 					</Stack>
@@ -144,7 +212,6 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 	)
 }
 
-// TODO  move to InspectorSectionsFactory
 function createSections(item: ItemToInspect): InspectorSectionDef[] {
 	return match(item)
 		.with({ type: 'asset' }, (asset) => getAssetSections(asset.data))

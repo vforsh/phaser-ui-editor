@@ -33,6 +33,9 @@ import { EditContextsManager } from './editContext/EditContextsManager'
 import { Selection } from './editContext/Selection'
 import { TransformControls } from './editContext/TransformControls'
 import { Grid } from './Grid'
+import { AddComponentResult, MoveComponentResult, RemoveComponentResult } from './objects/components/ComponentsManager'
+import { EditableComponentType } from './objects/components/EditableComponent'
+import { EditableComponentsFactory } from './objects/components/EditableComponentsFactory'
 import { EditableContainer } from './objects/EditableContainer'
 import { EditableImage } from './objects/EditableImage'
 import { EditableObject } from './objects/EditableObject'
@@ -70,6 +73,7 @@ export class MainScene extends BaseScene {
 	// TODO move to a separate class, it should emit events on resize
 	public projectSizeFrame!: Phaser.GameObjects.Graphics & { width: number; height: number }
 	public objectsFactory!: EditableObjectsFactory
+	private componentsFactory!: EditableComponentsFactory
 	private clipboard!: CanvasClipboard
 	private aligner!: Aligner
 
@@ -102,6 +106,8 @@ export class MainScene extends BaseScene {
 		this.add.existing(this.rulers)
 
 		this.initObjectsFactory()
+
+		this.initComponentsFactory()
 
 		this.initClipboard()
 
@@ -143,6 +149,12 @@ export class MainScene extends BaseScene {
 		this.objectsFactory = new EditableObjectsFactory({
 			scene: this,
 			logger: this.logger.getSubLogger({ name: ':objects-factory' }),
+		})
+	}
+
+	private initComponentsFactory() {
+		this.componentsFactory = new EditableComponentsFactory({
+			logger: this.logger.getSubLogger({ name: ':components-factory' }),
 		})
 	}
 
@@ -349,7 +361,53 @@ export class MainScene extends BaseScene {
 	private setupAppCommands() {
 		const appCommands = (this.game as PhaserGameExtra).appCommands as AppCommandsEmitter
 
+		appCommands.on('add-component', this.addComponent, this, false, this.shutdownSignal)
+		appCommands.on('remove-component', this.removeComponent, this, false, this.shutdownSignal)
+		appCommands.on('move-component-up', this.moveComponentUp, this, false, this.shutdownSignal)
+		appCommands.on('move-component-down', this.moveComponentDown, this, false, this.shutdownSignal)
+
 		appCommands.on('handle-asset-drop', this.handleAssetDrop, this, false, this.shutdownSignal)
+	}
+
+	private addComponent(data: { componentType: EditableComponentType; objectId: string }): AddComponentResult {
+		const obj = this.objectsFactory.getObjectById(data.objectId)
+		if (!obj) {
+			return err(`failed to find object with id '${data.objectId}'`)
+		}
+
+		const component = this.componentsFactory.create(data.componentType)
+		if (!component) {
+			return err(`failed to create component '${data.componentType}'`)
+		}
+
+		return obj.components.add(component)
+	}
+
+	private removeComponent(data: { componentType: EditableComponentType; objectId: string }): RemoveComponentResult {
+		const obj = this.objectsFactory.getObjectById(data.objectId)
+		if (!obj) {
+			return err(`failed to find object with id '${data.objectId}'`)
+		}
+
+		return obj.components.remove(data.componentType)
+	}
+
+	private moveComponentUp(data: { componentType: EditableComponentType; objectId: string }): MoveComponentResult {
+		const obj = this.objectsFactory.getObjectById(data.objectId)
+		if (!obj) {
+			return err(`failed to find object with id '${data.objectId}'`)
+		}
+
+		return obj.components.moveUp(data.componentType)
+	}
+
+	private moveComponentDown(data: { componentType: EditableComponentType; objectId: string }): MoveComponentResult {
+		const obj = this.objectsFactory.getObjectById(data.objectId)
+		if (!obj) {
+			return err(`failed to find object with id '${data.objectId}'`)
+		}
+
+		return obj.components.moveDown(data.componentType)
 	}
 
 	/**

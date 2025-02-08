@@ -1,16 +1,5 @@
 import { EditableComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/EditableComponent'
-import {
-	ActionIcon,
-	Box,
-	Checkbox,
-	Collapse,
-	Group,
-	Menu,
-	Text,
-	Tooltip,
-	UnstyledButton,
-	useMantineTheme,
-} from '@mantine/core'
+import { ActionIcon, Box, Checkbox, Collapse, Group, Menu, Text, Tooltip, useMantineTheme } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { ChevronRight, ClipboardPaste, Copy, HelpCircle, MoreVertical, RotateCcw, Trash } from 'lucide-react'
 import { useState } from 'react'
@@ -68,19 +57,45 @@ function ComponentMenu({ onReset, onMoveUp, onMoveDown, onRemove, onCopy, onPast
 
 interface ComponentSectionProps extends BaseSectionProps<EditableComponentJson> {
 	content: React.ReactNode
+	onReset: () => void
+	onMoveUp: () => void
+	onMoveDown: () => void
+	onRemove: () => void
+	onCopy: () => void
+	onPaste: () => void
 }
 
-export function ComponentSection({ data, content }: ComponentSectionProps) {
-	const type = data.type
+export function ComponentSection({
+	data,
+	content,
+	onReset,
+	onMoveUp,
+	onMoveDown,
+	onRemove,
+	onCopy,
+	onPaste,
+}: ComponentSectionProps) {
+	const componentType = data.type
 	const theme = useMantineTheme()
 	const [expanded, setExpanded] = useState(true)
-	const componentInfo = ComponentsListData[type]
+	const componentInfo = ComponentsListData[componentType]
 	const snap = useSnapshot(data)
 	const Icon = componentInfo.icon
 
 	return (
 		<Box>
-			<UnstyledButton onClick={() => setExpanded(!expanded)} className={sectionClasses.button}>
+			<div
+				role="button"
+				tabIndex={0}
+				onClick={() => setExpanded(!expanded)}
+				onKeyDown={(e) => {
+					if (e.key === 'Enter' || e.key === ' ') {
+						setExpanded(!expanded)
+					}
+				}}
+				className={sectionClasses.button}
+				style={{ cursor: 'pointer' }}
+			>
 				<Group gap="xs" justify="space-between">
 					<Group gap="xs">
 						<div
@@ -97,10 +112,7 @@ export function ComponentSection({ data, content }: ComponentSectionProps) {
 						</Text>
 						<Tooltip label={componentInfo?.description || 'No description available'}>
 							<ActionIcon variant="subtle" size="xs" onClick={(e) => e.stopPropagation()}>
-								<HelpCircle
-									size={16}
-									color={!snap.active ? theme.colors.dark[2] : theme.colors.gray[5]}
-								/>
+								<HelpCircle color={!snap.active ? theme.colors.dark[2] : theme.colors.gray[5]} />
 							</ActionIcon>
 						</Tooltip>
 					</Group>
@@ -118,28 +130,16 @@ export function ComponentSection({ data, content }: ComponentSectionProps) {
 							classNames={{ input: classes.checkbox }}
 						/>
 						<ComponentMenu
-							onReset={() => {
-								// TODO: Implement reset functionality
-							}}
-							onMoveUp={() => {
-								// TODO: Implement move up functionality
-							}}
-							onMoveDown={() => {
-								// TODO: Implement move down functionality
-							}}
-							onRemove={() => {
-								// TODO: Implement remove functionality
-							}}
-							onCopy={() => {
-								// TODO: Implement copy functionality
-							}}
-							onPaste={() => {
-								// TODO: Implement paste functionality
-							}}
+							onReset={onReset}
+							onMoveUp={onMoveUp}
+							onMoveDown={onMoveDown}
+							onRemove={onRemove}
+							onCopy={onCopy}
+							onPaste={onPaste}
 						/>
 					</Group>
 				</Group>
-			</UnstyledButton>
+			</div>
 
 			<Collapse in={expanded} transitionDuration={30}>
 				<Box pt="xs" pb="sm" px="sm">

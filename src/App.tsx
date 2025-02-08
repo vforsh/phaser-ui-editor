@@ -1,8 +1,10 @@
 import '@mantine/core/styles.css'
+import '@mantine/notifications/styles.css'
 import 'mantine-contextmenu/styles.css'
 import './layout.css'
 
 import { AppShell, MantineProvider, createTheme } from '@mantine/core'
+import { Notifications } from '@mantine/notifications'
 import { urlParams } from '@url-params'
 import { ContextMenuProvider } from 'mantine-contextmenu'
 import { ref } from 'valtio'
@@ -39,6 +41,7 @@ function App() {
 
 	return (
 		<MantineProvider theme={theme} defaultColorScheme="dark">
+			<Notifications position="bottom-right" zIndex={5001} />
 			<ContextMenuProvider zIndex={5000} shadow="md" borderRadius="md" submenuDelay={0}>
 				<AppShell>
 					<EditorLayout />

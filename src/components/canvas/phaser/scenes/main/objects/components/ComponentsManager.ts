@@ -2,11 +2,16 @@ import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/T
 import { err, ok, Result } from 'neverthrow'
 import { EditableObject } from '../EditableObject'
 import { BaseEditableComponent } from './BaseEditableComponent'
+import { EditableComponentType } from './EditableComponent'
 
 type Events = {
 	'component-added': (component: BaseEditableComponent) => void
 	'component-removed': (component: BaseEditableComponent) => void
 }
+
+export type AddComponentResult = Result<{}, string>
+export type RemoveComponentResult = Result<{}, string>
+export type MoveComponentResult = Result<{}, string>
 
 export class ComponentsManager extends TypedEventEmitter<Events> {
 	private readonly _components: BaseEditableComponent[] = []
@@ -19,9 +24,9 @@ export class ComponentsManager extends TypedEventEmitter<Events> {
 		return this._components.slice()
 	}
 
-	public add(comp: BaseEditableComponent): Result<{}, string> {
+	public add(comp: BaseEditableComponent): AddComponentResult {
 		if (this._components.some((c) => c.type === comp.type)) {
-			return err(`component ${comp.type} already exists`)
+			return err(`component '${comp.type}' already exists on ${this.parent.name} (id: ${this.parent.id})`)
 		}
 
 		const result = comp.canBeAddedTo(this.parent)
@@ -38,10 +43,10 @@ export class ComponentsManager extends TypedEventEmitter<Events> {
 		return ok({})
 	}
 
-	public remove(type: string): Result<{}, string> {
+	public remove(type: EditableComponentType): RemoveComponentResult {
 		const index = this._components.findIndex((c) => c.type === type)
 		if (index === -1) {
-			return err(`component ${type} does not exist`)
+			return err(`component '${type}' does not exist on ${this.parent.name} (id: ${this.parent.id})`)
 		}
 
 		const comp = this._components[index]
@@ -54,10 +59,10 @@ export class ComponentsManager extends TypedEventEmitter<Events> {
 		return ok({})
 	}
 
-	public moveUp(type: string): Result<{}, string> {
+	public moveUp(type: EditableComponentType): MoveComponentResult {
 		const index = this._components.findIndex((c) => c.type === type)
 		if (index === -1) {
-			return err(`component ${type} does not exist`)
+			return err(`component '${type}' does not exist on ${this.parent.name} (id: ${this.parent.id})`)
 		}
 
 		if (index === 0) {
@@ -71,10 +76,10 @@ export class ComponentsManager extends TypedEventEmitter<Events> {
 		return ok({})
 	}
 
-	public moveDown(type: string): Result<{}, string> {
+	public moveDown(type: EditableComponentType): MoveComponentResult {
 		const index = this._components.findIndex((c) => c.type === type)
 		if (index === -1) {
-			return err(`component ${type} does not exist`)
+			return err(`component '${type}' does not exist on ${this.parent.name} (id: ${this.parent.id})`)
 		}
 
 		if (index === this._components.length - 1) {
@@ -88,7 +93,7 @@ export class ComponentsManager extends TypedEventEmitter<Events> {
 		return ok({})
 	}
 
-	public get(type: string): BaseEditableComponent | undefined {
+	public get(type: EditableComponentType): BaseEditableComponent | undefined {
 		return this._components.find((c) => c.type === type)
 	}
 

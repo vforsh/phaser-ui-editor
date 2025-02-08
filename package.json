@@ -19,6 +19,7 @@
 		"@koreez/phaser3-ninepatch": "^2.0.2",
 		"@mantine/core": "^7.6.1",
 		"@mantine/hooks": "^7.6.1",
+		"@mantine/notifications": "^7.16.3",
 		"@open-draft/deferred-promise": "^2.2.0",
 		"@open-draft/until": "^2.1.0",
 		"@robowhale/phaser3-ninepatch-types-fix": "^1.0.4",
