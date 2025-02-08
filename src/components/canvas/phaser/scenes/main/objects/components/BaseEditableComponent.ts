@@ -8,6 +8,11 @@ import { EditableComponentJson } from './EditableComponent'
  */
 type PreAddCheck = (parent: EditableObject) => Result<{}, string>
 
+// TODO create PreAddCheckFactory that can create different kinds of checks
+// - comp can be added to the specific type of parent (e.g. `Layout` comps can be added only to containers)
+// - comp can be added only if there is no component of the specific type on the parent (e.g. `VerticalLayout` comp can be added only if there is no `HorizontalLayout` comp on the parent)
+// - comp can be added only if there is already another component of the specific type on the parent
+
 export abstract class BaseEditableComponent {
 	public abstract readonly type: string
 	protected _parent: EditableObject | undefined
@@ -82,5 +87,3 @@ export abstract class BaseEditableComponent {
 		this._parent = undefined
 	}
 }
-
-
