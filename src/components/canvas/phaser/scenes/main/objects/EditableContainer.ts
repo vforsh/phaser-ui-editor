@@ -41,6 +41,10 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		// we do it here instead of in `super()` because `__events` is not initialized yet in `super()`
 		this.add(children)
 
+		this._components = new ComponentsManager(this)
+		this._components.on('component-added', this.onComponentsListChanged, this)
+		this._components.on('component-removed', this.onComponentsListChanged, this)
+
 		this._stateObj = proxy(this.toJson())
 
 		// state changes are reflected in the underlying Phaser object
@@ -60,10 +64,6 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 			// 'tintFill': (value) => (this.tintFill = value),
 			// 'frameKey': (value) => this.setFrame(value),
 		})
-
-		this._components = new ComponentsManager(this)
-		this._components.on('component-added', this.onComponentsListChanged, this)
-		this._components.on('component-removed', this.onComponentsListChanged, this)
 
 		this.scene.events.on(Phaser.Scenes.Events.UPDATE, this.checkForHierarchyChanges, this, this.preDestroySignal)
 
