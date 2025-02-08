@@ -1,6 +1,6 @@
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { EditableComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/EditableComponent'
-import { ScrollArea, Stack } from '@mantine/core'
+import { Divider, ScrollArea, Stack } from '@mantine/core'
 import { state } from '@state/State'
 import { Eye, Image, Info, Move, Type, TypeOutline } from 'lucide-react'
 import { match } from 'ts-pattern'
@@ -12,6 +12,7 @@ import { NoSelection } from './NoSelection'
 import { AssetSection } from './sections/assets/AssetSection'
 import { BitmapFontSection } from './sections/assets/BitmapFontSection'
 import { GraphicAssetPreviewSection } from './sections/assets/GraphicAssetPreviewSection'
+import { AddComponentButton } from './sections/components/AddComponentButton'
 import { ComponentSection } from './sections/components/ComponentSection'
 import { ComponentsListData } from './sections/components/ComponentsListData'
 import { PinnerSection } from './sections/components/PinnerSection'
@@ -122,6 +123,13 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 								/>
 							)
 						})}
+						<Divider />
+						<AddComponentButton
+							onAddComponent={(type) => {
+								// TODO: Add component to the selected object
+								logger.debug('Adding component', { type })
+							}}
+						/>
 					</Stack>
 				</ScrollArea>
 			)

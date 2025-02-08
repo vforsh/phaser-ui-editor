@@ -1,0 +1,18 @@
+.componentItem {
+	padding: var(--mantine-spacing-xs);
+	border-radius: var(--mantine-radius-sm);
+	cursor: pointer;
+}
+
+.componentItem:hover {
+	background-color: color-mix(in srgb, var(--mantine-color-gray-5) 15%, transparent);
+}
+
+.componentItem[data-selected='true'] {
+	background-color: color-mix(in srgb, var(--mantine-color-blue-5) 30%, transparent);
+	color: var(--mantine-color-white);
+}
+
+.componentItem[data-selected='true']:hover {
+	background-color: color-mix(in srgb, var(--mantine-color-blue-5) 100%, transparent);
+}
