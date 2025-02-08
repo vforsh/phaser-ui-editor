@@ -38,30 +38,31 @@ export function BitmapFontSection({ data: asset }: BitmapFontSectionProps) {
 
 	return (
 		<Stack gap="xs">
-			<TextInput label="Font Face" value={fontData.info.face} size="xs" />
+			<TextInput label="Font Face" value={fontData.info.face} size="xs" readOnly />
 
 			<Textarea
 				rows={3}
 				label="Chars"
 				value={chars.map((char) => String.fromCharCode(char.id)).join('')}
 				size="xs"
+				readOnly
 			/>
 
 			<Group>
-				<NumberInput label="Size" value={fontData.info.size} size="xs" />
-				<NumberInput label="Line Height" value={fontData.common.lineHeight} size="xs" />
+				<NumberInput label="Size" value={fontData.info.size} size="xs" readOnly />
+				<NumberInput label="Line Height" value={fontData.common.lineHeight} size="xs" readOnly />
 			</Group>
 
 			<Group grow>
-				<NumberInput label="Pad Up" value={fontData.info.padding[0]} size="xs" />
-				<NumberInput label="Pad Right" value={fontData.info.padding[1]} size="xs" />
-				<NumberInput label="Pad Down" value={fontData.info.padding[2]} size="xs" />
-				<NumberInput label="Pad Left" value={fontData.info.padding[3]} size="xs" />
+				<NumberInput label="Pad Up" value={fontData.info.padding[0]} size="xs" readOnly />
+				<NumberInput label="Pad Right" value={fontData.info.padding[1]} size="xs" readOnly />
+				<NumberInput label="Pad Down" value={fontData.info.padding[2]} size="xs" readOnly />
+				<NumberInput label="Pad Left" value={fontData.info.padding[3]} size="xs" readOnly />
 			</Group>
 
 			<Group grow>
-				<NumberInput label="Spacing X" value={fontData.info.spacing[0]} size="xs" />
-				<NumberInput label="Spacing Y" value={fontData.info.spacing[1]} size="xs" />
+				<NumberInput label="Spacing X" value={fontData.info.spacing[0]} size="xs" readOnly />
+				<NumberInput label="Spacing Y" value={fontData.info.spacing[1]} size="xs" readOnly />
 			</Group>
 		</Stack>
 	)
