@@ -2,6 +2,8 @@ import { IPatchesConfig, NinePatch } from '@koreez/phaser3-ninepatch'
 import { proxy } from 'valtio'
 import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
+import { ComponentsManager } from './components/ComponentsManager'
+import { EditableComponentJson } from './components/EditableComponent'
 
 export class EditableNineSlice extends NinePatch implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
@@ -10,6 +12,7 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 	private _isLocked = false
 	private _stateObj: EditableNineSliceJson
 	private _stateChanges: StateChangesEmitter<EditableNineSliceJson>
+	private _components = new ComponentsManager(this)
 
 	constructor(
 		scene: Phaser.Scene,
@@ -83,6 +86,7 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 			textureKey: this.originTexture.key,
 			// @ts-ignore
 			frameKey: this.originFrame.name,
+			components: this._components.items.map((c) => c.toJson()),
 		}
 	}
 
@@ -174,7 +178,13 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 	override destroy(fromScene?: boolean): void {
 		this._stateChanges.destroy()
 
+		this._components.destroy()
+
 		super.destroy(fromScene)
+	}
+
+	get components() {
+		return this._components
 	}
 }
 
@@ -193,4 +203,5 @@ export type EditableNineSliceJson = CreateEditableObjectJson<{
 	height: number
 	ninePatchConfig: IPatchesConfig
 	angle: number
+	components: EditableComponentJson[]
 }>

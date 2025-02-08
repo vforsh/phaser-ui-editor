@@ -4,6 +4,8 @@ import { EditableContainer, EditableContainerJson } from './EditableContainer'
 import { EditableImage, EditableImageJson } from './EditableImage'
 import { EditableNineSlice, EditableNineSliceJson } from './EditableNineSlice'
 import { EditableText, EditableTextJson } from './EditableText'
+import { EditableComponentJson } from './components/EditableComponent'
+import { ComponentsManager } from './components/ComponentsManager'
 
 export const EDITABLE_SYMBOL = Symbol('EditableObject')
 
@@ -31,9 +33,7 @@ export interface IEditableObject {
 
 	get stateObj(): EditableObjectJson
 
-	// addComponent(component: EditableObjectComponent): void
-	// removeComponent(component: EditableObjectComponent): void
-	// getComponent<T extends typeof EditableObjectComponent>(component: T): InstanceType<T>
+	get components(): ComponentsManager
 }
 
 export type EditableObject = EditableContainer | EditableImage | EditableNineSlice | EditableText | EditableBitmapText
@@ -41,8 +41,9 @@ export type EditableObject = EditableContainer | EditableImage | EditableNineSli
 export type EditableObjectType = EditableObject['kind']
 
 // #region JSON
-export type CreateEditableObjectJson<T extends { readonly type: string; locked: boolean }> =
-	Phaser.Types.GameObjects.JSONGameObject & T
+export type CreateEditableObjectJson<
+	T extends { readonly type: string; locked: boolean; components: EditableComponentJson[] },
+> = Phaser.Types.GameObjects.JSONGameObject & T
 
 export type EditableObjectJson =
 	| EditableContainerJson

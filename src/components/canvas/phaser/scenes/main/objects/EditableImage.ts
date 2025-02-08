@@ -1,6 +1,8 @@
 import { proxy } from 'valtio'
 import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
+import { ComponentsManager } from './components/ComponentsManager'
+import { EditableComponentJson } from './components/EditableComponent'
 
 export class EditableImage extends Phaser.GameObjects.Image implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
@@ -9,6 +11,7 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 	private _isLocked = false
 	private _stateObj: EditableImageJson
 	private _stateChanges: StateChangesEmitter<EditableImageJson>
+	private _components = new ComponentsManager(this)
 
 	constructor(scene: Phaser.Scene, id: string, x: number, y: number, texture: string, frame?: string | number) {
 		super(scene, x, y, texture, frame)
@@ -67,6 +70,7 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 			angle: this.angle,
 			originX: this.originX,
 			originY: this.originY,
+			components: this._components.items.map((c) => c.toJson()),
 		}
 	}
 
@@ -197,7 +201,13 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 	override destroy(fromScene?: boolean): void {
 		this._stateChanges.destroy()
 
+		this._components.destroy()
+
 		super.destroy(fromScene)
+	}
+
+	get components() {
+		return this._components
 	}
 }
 
@@ -213,4 +223,5 @@ export type EditableImageJson = CreateEditableObjectJson<{
 	angle: number
 	originX: number
 	originY: number
+	components: EditableComponentJson[]
 }>

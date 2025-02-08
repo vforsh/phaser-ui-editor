@@ -1,6 +1,8 @@
 import { proxy } from 'valtio'
 import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
+import { EditableComponentJson } from './components/EditableComponent'
+import { ComponentsManager } from './components/ComponentsManager'
 
 export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
@@ -9,9 +11,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 	private _isLocked = false
 	private _stateObj: EditableBitmapTextJson
 	private _stateChanges: StateChangesEmitter<EditableBitmapTextJson>
-
-	// it is set in the super constructor
-	private _bounds!: Phaser.Types.GameObjects.BitmapText.BitmapTextSize
+	private _components = new ComponentsManager(this)
 
 	constructor(
 		scene: Phaser.Scene,
@@ -123,6 +123,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 			tint: this.tint,
 			tintFill: this.tintFill,
 			angle: this.angle,
+			components: this._components.items.map((c) => c.toJson()),
 		}
 	}
 
@@ -235,8 +236,14 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		return this._stateObj
 	}
 
+	get components(): ComponentsManager {
+		return this._components
+	}
+
 	override destroy(fromScene?: boolean): void {
 		this._stateChanges.destroy()
+
+		this._components.destroy()
 
 		super.destroy(fromScene)
 	}
@@ -261,4 +268,5 @@ export type EditableBitmapTextJson = CreateEditableObjectJson<{
 	tint: number
 	tintFill: boolean
 	angle: number
+	components: EditableComponentJson[]
 }>

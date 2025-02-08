@@ -2,6 +2,8 @@ import { signalFromEvent } from '@components/canvas/phaser/robowhale/utils/event
 import { proxy } from 'valtio'
 import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
+import { ComponentsManager } from './components/ComponentsManager'
+import { EditableComponentJson } from './components/EditableComponent'
 
 export class EditableText extends Phaser.GameObjects.Text implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
@@ -10,6 +12,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	private _isLocked = false
 	private _stateObj: EditableTextJson
 	private _stateChanges: StateChangesEmitter<EditableTextJson>
+	private _components = new ComponentsManager(this)
 
 	constructor(scene: Phaser.Scene, id: string, x: number, y: number, text: string, style: EditableTextStyleJson) {
 		super(scene, x, y, text, style as Phaser.Types.GameObjects.Text.TextStyle)
@@ -122,6 +125,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 			paddingY: this.padding.y || 0,
 			wordWrapWidth: this.style.wordWrapWidth || 0,
 			wordWrapUseAdvanced: this.style.wordWrapUseAdvanced,
+			components: this._components.items.map((c) => c.toJson()),
 		}
 	}
 
@@ -231,7 +235,13 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	override destroy(fromScene?: boolean): void {
 		this._stateChanges.destroy()
 
+		this._components.destroy()
+
 		super.destroy(fromScene)
+	}
+
+	get components() {
+		return this._components
 	}
 }
 
@@ -255,6 +265,7 @@ export type EditableTextJson = CreateEditableObjectJson<{
 	paddingY: number
 	wordWrapWidth: number
 	wordWrapUseAdvanced: boolean
+	components: EditableComponentJson[]
 }>
 
 export type EditableTextStyleJson = Partial<{

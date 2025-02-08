@@ -9,6 +9,8 @@ import {
 	isEditable,
 } from './EditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
+import { ComponentsManager } from './components/ComponentsManager'
+import { EditableComponentJson } from './components/EditableComponent'
 
 type Events = {
 	'editable-added': (child: EditableObject) => void
@@ -28,6 +30,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 	private _isLocked = false
 	private _stateObj: EditableContainerJson
 	private _stateChanges: StateChangesEmitter<EditableContainerJson>
+	private _components = new ComponentsManager(this)
 
 	constructor(scene: Phaser.Scene, id: string, x = 0, y = 0, children: Phaser.GameObjects.GameObject[] = []) {
 		super(scene, x, y)
@@ -154,6 +157,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 			angle: this.angle,
 			originX: this.originX,
 			originY: this.originY,
+			components: this._components.items.map((c) => c.toJson()),
 		}
 	}
 
@@ -169,6 +173,8 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		this._preDestroyController.abort()
 
 		this._stateChanges.destroy()
+
+		this._components.destroy()
 
 		super.destroy(fromScene)
 
@@ -243,6 +249,10 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 	get stateObj() {
 		return this._stateObj
 	}
+
+	get components() {
+		return this._components
+	}
 }
 
 export type EditableContainerJson = CreateEditableObjectJson<{
@@ -259,4 +269,5 @@ export type EditableContainerJson = CreateEditableObjectJson<{
 	angle: number
 	originX: number
 	originY: number
+	components: EditableComponentJson[]
 }>

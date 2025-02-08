@@ -1,11 +1,9 @@
-import { EditableObjectComponentJson } from './EditableComponent'
-
-import { EditableComponent } from './EditableComponent'
+import { EditableComponent, EditableComponentJson } from './EditableComponent'
 
 export class EditableComponentsFactory {
 	constructor() {}
 
-	public fromJson(json: EditableObjectComponentJson): EditableComponent {
+	public fromJson(json: EditableComponentJson): EditableComponent {
 		// TODO implement
 
 		// @ts-expect-error
