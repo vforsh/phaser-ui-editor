@@ -1,6 +1,6 @@
 import { ReadonlyDeep } from 'type-fest'
 import { TypedEventEmitter } from '../../../robowhale/phaser3/TypedEventEmitter'
-import { EditableObject } from '../objects/EditableObject'
+import { EditableObject } from '../objects/IEditableObject'
 import { calculateBounds } from './Transformable'
 
 type Events = {

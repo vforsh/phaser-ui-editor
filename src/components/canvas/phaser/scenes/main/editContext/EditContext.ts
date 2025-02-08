@@ -2,7 +2,7 @@ import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/T
 import { Logger } from 'tslog'
 import { MainScene } from '../MainScene'
 import { EditableContainer } from '../objects/EditableContainer'
-import { EditableObject, isEditable } from '../objects/EditableObject'
+import { EditableObject, isEditable } from '../objects/IEditableObject'
 import { AdjustableRect } from './AdjustableRect'
 import { Selection } from './Selection'
 import { SelectionRect } from './SelectionRect'

@@ -1,6 +1,6 @@
 import { signalFromEvent } from '@components/canvas/phaser/robowhale/utils/events/create-abort-signal-from-event'
 import { proxy } from 'valtio'
-import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
+import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './IEditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
 
 export class EditableText extends Phaser.GameObjects.Text implements IEditableObject {

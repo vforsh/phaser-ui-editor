@@ -1,4 +1,4 @@
-import { EditableObject } from '../objects/EditableObject'
+import { EditableObject } from '../objects/IEditableObject'
 
 export function calculateBounds(objects: EditableObject[], rect?: Phaser.Geom.Rectangle): Phaser.Geom.Rectangle {
 	if (objects.length === 1) {

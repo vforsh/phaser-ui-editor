@@ -35,7 +35,7 @@ import { TransformControls } from './editContext/TransformControls'
 import { Grid } from './Grid'
 import { EditableContainer } from './objects/EditableContainer'
 import { EditableImage } from './objects/EditableImage'
-import { EditableObject } from './objects/EditableObject'
+import { EditableObject } from './objects/IEditableObject'
 import { EditableObjectsFactory } from './objects/EditableObjectsFactory'
 import { Rulers } from './Rulers'
 type PhaserBmfontData = Phaser.Types.GameObjects.BitmapText.BitmapFontData

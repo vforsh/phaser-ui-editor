@@ -1,6 +1,6 @@
 import { IPatchesConfig, NinePatch } from '@koreez/phaser3-ninepatch'
 import { proxy } from 'valtio'
-import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
+import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './IEditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
 
 export class EditableNineSlice extends NinePatch implements IEditableObject {

@@ -1,5 +1,5 @@
 import { TypedEventEmitter } from './robowhale/phaser3/TypedEventEmitter'
-import { EditableObjectJson } from './scenes/main/objects/EditableObject'
+import { EditableObjectJson } from './scenes/main/objects/IEditableObject'
 
 // Events to notify parent React app about changes in PhaserApp
 export type PhaserAppEvents = {

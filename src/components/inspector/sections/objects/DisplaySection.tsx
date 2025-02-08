@@ -1,4 +1,4 @@
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/IEditableObject'
 import { ColorInput, Stack } from '@mantine/core'
 import { Snapshot, useSnapshot } from 'valtio'
 import { BaseSectionProps } from '../BaseSection'

@@ -1,6 +1,6 @@
 // @ts-nocheck
 
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/IEditableObject'
 import type { HierarchyItemData } from '../types/hierarchy'
 
 // keep it to use in bolt.dev

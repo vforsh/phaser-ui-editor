@@ -1,5 +1,5 @@
 import { JsonValue } from 'type-fest'
-import { EditableObject } from '../EditableObject'
+import { EditableObject } from '../IEditableObject'
 
 export abstract class EditableComponent {
 	public abstract readonly name: string

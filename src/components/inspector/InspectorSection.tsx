@@ -5,7 +5,7 @@ import {
 	EditableNineSlice,
 	EditableNineSliceJson,
 } from '@components/canvas/phaser/scenes/main/objects/EditableNineSlice'
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/IEditableObject'
 import { EditableTextJson, EditableTextStyleJson } from '@components/canvas/phaser/scenes/main/objects/EditableText'
 import { Box, Collapse, Group, Text, UnstyledButton } from '@mantine/core'
 import { ChevronRight, LucideIcon } from 'lucide-react'

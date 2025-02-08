@@ -2,7 +2,7 @@ import {
 	canChangeOrigin,
 	canChangeScale,
 	EditableObjectJson,
-} from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+} from '@components/canvas/phaser/scenes/main/objects/IEditableObject'
 import { NumberInputCustom } from '@components/inspector/sections/common/NumberInputCustom'
 import { Group, Stack } from '@mantine/core'
 import { useSnapshot } from 'valtio'

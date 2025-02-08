@@ -7,7 +7,7 @@ import { EditableBitmapText, EditableBitmapTextJson } from './EditableBitmapText
 import { EditableContainer, EditableContainerJson } from './EditableContainer'
 import { EditableImage, EditableImageJson } from './EditableImage'
 import { EditableNineSlice, EditableNineSliceJson } from './EditableNineSlice'
-import { EditableObject, EditableObjectJson } from './EditableObject'
+import { EditableObject, EditableObjectJson } from './IEditableObject'
 import { EditableText, EditableTextJson, EditableTextStyleJson } from './EditableText'
 
 type Events = {

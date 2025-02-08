@@ -7,7 +7,7 @@ import {
 	EditableObjectJson,
 	IEditableObject,
 	isEditable,
-} from './EditableObject'
+} from './IEditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
 
 type Events = {

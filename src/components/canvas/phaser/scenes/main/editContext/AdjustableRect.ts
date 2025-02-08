@@ -1,4 +1,4 @@
-import { EditableObject } from '../objects/EditableObject'
+import { EditableObject } from '../objects/IEditableObject'
 
 export type AdjustableRectOptions = {
 	thickness: number

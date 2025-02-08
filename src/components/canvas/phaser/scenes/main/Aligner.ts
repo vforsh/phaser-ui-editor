@@ -4,7 +4,7 @@ import { TypedEventEmitter } from '../../robowhale/phaser3/TypedEventEmitter'
 import { EditContext } from './editContext/EditContext'
 import { calculateBounds } from './editContext/Transformable'
 import { MainScene } from './MainScene'
-import { EditableObject } from './objects/EditableObject'
+import { EditableObject } from './objects/IEditableObject'
 
 const ALIGN_TYPES = [
 	'top',

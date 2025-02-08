@@ -1,4 +1,4 @@
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/IEditableObject'
 import { Paper, ScrollArea, Stack, Divider, Space } from '@mantine/core'
 import { state, useSnapshot } from '@state/State'
 import { Logger } from 'tslog'

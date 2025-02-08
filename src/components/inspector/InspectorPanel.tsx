@@ -1,4 +1,4 @@
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/IEditableObject'
 import { ScrollArea, Stack } from '@mantine/core'
 import { state } from '@state/State'
 import { Eye, Image, Info, Move, Type, TypeOutline } from 'lucide-react'

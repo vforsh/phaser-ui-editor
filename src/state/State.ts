@@ -1,4 +1,4 @@
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/IEditableObject'
 import { derive } from 'derive-valtio'
 import { debounce, merge } from 'es-toolkit'
 import { PartialDeep } from 'type-fest'

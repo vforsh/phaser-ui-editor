@@ -1,5 +1,5 @@
 import { proxy } from 'valtio'
-import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
+import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './IEditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
 
 export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements IEditableObject {
