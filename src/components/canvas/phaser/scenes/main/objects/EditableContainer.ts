@@ -30,7 +30,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 	private _isLocked = false
 	private _stateObj: EditableContainerJson
 	private _stateChanges: StateChangesEmitter<EditableContainerJson>
-	private _components = new ComponentsManager(this)
+	private _components: ComponentsManager
 
 	constructor(scene: Phaser.Scene, id: string, x = 0, y = 0, children: Phaser.GameObjects.GameObject[] = []) {
 		super(scene, x, y)
@@ -61,9 +61,17 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 			// 'frameKey': (value) => this.setFrame(value),
 		})
 
+		this._components = new ComponentsManager(this)
+		this._components.on('component-added', this.onComponentsListChanged, this)
+		this._components.on('component-removed', this.onComponentsListChanged, this)
+
 		this.scene.events.on(Phaser.Scenes.Events.UPDATE, this.checkForHierarchyChanges, this, this.preDestroySignal)
 
 		this.checkForHierarchyChanges()
+	}
+
+	private onComponentsListChanged(): void {
+		this._stateObj.components = this._components.items.map((c) => c.toJson())
 	}
 
 	/**

@@ -12,12 +12,16 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	private _isLocked = false
 	private _stateObj: EditableTextJson
 	private _stateChanges: StateChangesEmitter<EditableTextJson>
-	private _components = new ComponentsManager(this)
+	private _components: ComponentsManager
 
 	constructor(scene: Phaser.Scene, id: string, x: number, y: number, text: string, style: EditableTextStyleJson) {
 		super(scene, x, y, text, style as Phaser.Types.GameObjects.Text.TextStyle)
 
 		this.id = id
+
+		this._components = new ComponentsManager(this)
+		this._components.on('component-added', this.onComponentsListChanged, this)
+		this._components.on('component-removed', this.onComponentsListChanged, this)
 
 		const signal = signalFromEvent(this, 'destroy')
 
@@ -86,6 +90,10 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 			},
 			signal
 		)
+	}
+
+	private onComponentsListChanged(): void {
+		this._stateObj.components = this._components.items.map((c) => c.toJson())
 	}
 
 	/**

@@ -1,8 +1,8 @@
 import { proxy } from 'valtio'
 import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
-import { EditableComponentJson } from './components/EditableComponent'
 import { ComponentsManager } from './components/ComponentsManager'
+import { EditableComponentJson } from './components/EditableComponent'
 
 export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
@@ -11,7 +11,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 	private _isLocked = false
 	private _stateObj: EditableBitmapTextJson
 	private _stateChanges: StateChangesEmitter<EditableBitmapTextJson>
-	private _components = new ComponentsManager(this)
+	private _components: ComponentsManager
 
 	constructor(
 		scene: Phaser.Scene,
@@ -24,6 +24,10 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		super(scene, 0, 0, font, text, size, align)
 
 		this.id = id
+
+		this._components = new ComponentsManager(this)
+		this._components.on('component-added', this.onComponentsListChanged, this)
+		this._components.on('component-removed', this.onComponentsListChanged, this)
 
 		this._stateObj = proxy(this.toJson())
 
@@ -74,6 +78,10 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 				this.updateInputHitArea()
 			},
 		})
+	}
+
+	private onComponentsListChanged(): void {
+		this._stateObj.components = this._components.items.map((c) => c.toJson())
 	}
 
 	private updateInputHitArea(): this {

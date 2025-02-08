@@ -12,7 +12,7 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 	private _isLocked = false
 	private _stateObj: EditableNineSliceJson
 	private _stateChanges: StateChangesEmitter<EditableNineSliceJson>
-	private _components = new ComponentsManager(this)
+	private _components: ComponentsManager
 
 	constructor(
 		scene: Phaser.Scene,
@@ -26,6 +26,10 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 		super(scene, 0, 0, width, height, texture, frame, ninePatchConfig)
 
 		this.id = id
+
+		this._components = new ComponentsManager(this)
+		this._components.on('component-added', this.onComponentsListChanged, this)
+		this._components.on('component-removed', this.onComponentsListChanged, this)
 
 		this._stateObj = proxy(this.toJson())
 
@@ -47,6 +51,10 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 			width: (value) => this.resize(value, this.height),
 			height: (value) => this.resize(this.width, value),
 		})
+	}
+
+	private onComponentsListChanged(): void {
+		this._stateObj.components = this._components.items.map((c) => c.toJson())
 	}
 
 	/**
