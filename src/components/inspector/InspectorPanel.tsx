@@ -1,10 +1,10 @@
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { EditableComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/EditableComponent'
 import { Divider, ScrollArea, Stack } from '@mantine/core'
+import { useForceUpdate } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
 import { state } from '@state/State'
 import { Eye, Image, Info, Move, Type, TypeOutline } from 'lucide-react'
-import { useCallback, useState } from 'react'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import { useSnapshot } from 'valtio'
@@ -37,12 +37,9 @@ interface InspectorPanelProps {
 }
 
 export default function InspectorPanel({ logger }: InspectorPanelProps) {
+	const forceUpdate = useForceUpdate()
 	const canvasSnap = useSnapshot(state.canvas)
 	const assetsSnap = useSnapshot(state.assets)
-
-	// TODO create custom reusable hook for force updates
-	const [, updateState] = useState<{}>()
-	const forceUpdate = useCallback(() => updateState({}), [])
 
 	// Don't show anything if multiple items are selected
 	if (assetsSnap.selection.length > 1 || canvasSnap.selection.length > 1) {
