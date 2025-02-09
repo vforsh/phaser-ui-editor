@@ -1,7 +1,8 @@
 import { EditableContainer } from '../EditableContainer'
+import { EditableObject } from '../EditableObject'
+import { PHASER_ALIGN, PhaserAlignKey } from '../PhaserAlign'
 import { StateChangesEmitter } from '../StateChangesEmitter'
 import { BaseEditableComponent } from './base/BaseEditableComponent'
-import { PHASER_ALIGN, PhaserAlignKey } from '../PhaserAlign'
 
 export class EditableGridLayoutComponent extends BaseEditableComponent {
 	public readonly type = 'grid-layout'
@@ -62,7 +63,7 @@ export class EditableGridLayoutComponent extends BaseEditableComponent {
 	}
 
 	private updateLayout(): void {
-		if (!this._parent) {
+		if (!this._parent || !this._isActive) {
 			return
 		}
 
@@ -76,9 +77,6 @@ export class EditableGridLayoutComponent extends BaseEditableComponent {
 			x: this.startX,
 			y: this.startY,
 		})
-
-		console.log(`updateLayout: ${this.startY}`)
-		// this.parent.setPosition(this.x, this.y)
 	}
 
 	public toJson(): GridLayoutComponentJson {
@@ -94,6 +92,15 @@ export class EditableGridLayoutComponent extends BaseEditableComponent {
 			startX: this.startX,
 			startY: this.startY,
 		}
+	}
+
+	override onAdded(parent: EditableObject): void {
+		super.onAdded(parent)
+
+		this._parent.on('editable-added', this.updateLayout, this, this.destroySignal)
+		this._parent.on('editable-removed', this.updateLayout, this, this.destroySignal)
+
+		this.updateLayout()
 	}
 
 	protected onActivate(): void {

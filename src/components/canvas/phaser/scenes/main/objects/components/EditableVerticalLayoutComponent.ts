@@ -1,7 +1,8 @@
 import { EditableContainer } from '../EditableContainer'
+import { EditableObject } from '../EditableObject'
+import { PHASER_ALIGN, PhaserAlignKey } from '../PhaserAlign'
 import { StateChangesEmitter } from '../StateChangesEmitter'
 import { BaseEditableComponent } from './base/BaseEditableComponent'
-import { PHASER_ALIGN, PhaserAlignKey } from '../PhaserAlign'
 
 export class EditableVerticalLayoutComponent extends BaseEditableComponent {
 	public readonly type = 'vertical-layout'
@@ -59,7 +60,7 @@ export class EditableVerticalLayoutComponent extends BaseEditableComponent {
 	}
 
 	private updateLayout(): void {
-		if (!this._parent) {
+		if (!this._parent || !this._isActive) {
 			return
 		}
 
@@ -71,9 +72,6 @@ export class EditableVerticalLayoutComponent extends BaseEditableComponent {
 			// spacingY: this.spacingY,
 			y: this.startY,
 		})
-
-		console.log(`updateLayout: ${this.startY}`)
-		// this.parent.setPosition(this.x, this.y)
 	}
 
 	public toJson(): VerticalLayoutComponentJson {
@@ -86,6 +84,15 @@ export class EditableVerticalLayoutComponent extends BaseEditableComponent {
 			spacingY: this.spacingY,
 			startY: this.startY,
 		}
+	}
+
+	override onAdded(parent: EditableObject): void {
+		super.onAdded(parent)
+
+		this._parent.on('editable-added', this.updateLayout, this, this.destroySignal)
+		this._parent.on('editable-removed', this.updateLayout, this, this.destroySignal)
+
+		this.updateLayout()
 	}
 
 	protected onActivate(): void {

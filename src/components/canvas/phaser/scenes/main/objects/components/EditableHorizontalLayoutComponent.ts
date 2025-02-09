@@ -1,8 +1,8 @@
-import { unproxy } from '@state/valtio-utils'
 import { EditableContainer } from '../EditableContainer'
+import { EditableObject } from '../EditableObject'
+import { PHASER_ALIGN, PhaserAlignKey } from '../PhaserAlign'
 import { StateChangesEmitter } from '../StateChangesEmitter'
 import { BaseEditableComponent } from './base/BaseEditableComponent'
-import { PhaserAlignKey, PHASER_ALIGN } from '../PhaserAlign'
 
 export class EditableHorizontalLayoutComponent extends BaseEditableComponent {
 	public readonly type = 'horizontal-layout'
@@ -60,7 +60,7 @@ export class EditableHorizontalLayoutComponent extends BaseEditableComponent {
 	}
 
 	private updateLayout(): void {
-		if (!this._parent) {
+		if (!this._parent || !this._isActive) {
 			return
 		}
 
@@ -72,8 +72,6 @@ export class EditableHorizontalLayoutComponent extends BaseEditableComponent {
 			// spacingX: this.spacingX,
 			x: this.startX,
 		})
-
-		console.log(`updateLayout`, unproxy(this._state))
 	}
 
 	public toJson(): HorizontalLayoutComponentJson {
@@ -86,6 +84,15 @@ export class EditableHorizontalLayoutComponent extends BaseEditableComponent {
 			spacingX: this.spacingX,
 			startX: this.startX,
 		}
+	}
+
+	override onAdded(parent: EditableObject): void {
+		super.onAdded(parent)
+
+		this._parent.on('editable-added', this.updateLayout, this, this.destroySignal)
+		this._parent.on('editable-removed', this.updateLayout, this, this.destroySignal)
+
+		this.updateLayout()
 	}
 
 	protected onActivate(): void {
