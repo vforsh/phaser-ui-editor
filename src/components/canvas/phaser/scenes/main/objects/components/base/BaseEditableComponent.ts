@@ -11,6 +11,7 @@ export abstract class BaseEditableComponent<TJson extends EditableComponentJson 
 	protected _state!: TJson
 	protected _preAddChecksFactory = new PreAddChecksFactory()
 	protected _preAddChecks: PreAddCheck[] = []
+	private _deactivateController: AbortController | undefined
 	private _destroyController = new AbortController()
 
 	protected createState(): TJson {
@@ -34,6 +35,10 @@ export abstract class BaseEditableComponent<TJson extends EditableComponentJson 
 
 	public onAdded(parent: EditableObject): void {
 		this._parent = parent
+
+		this._deactivateController = new AbortController()
+
+		this.onActivate(this._deactivateController.signal, true)
 	}
 
 	public onRemoved(): void {
@@ -47,10 +52,12 @@ export abstract class BaseEditableComponent<TJson extends EditableComponentJson 
 
 		this._isActive = true
 
-		this.onActivate()
+		this._deactivateController = new AbortController()
+
+		this.onActivate(this._deactivateController.signal, false)
 	}
 
-	protected abstract onActivate(): void
+	protected abstract onActivate(deactivateSignal: AbortSignal, firstTime: boolean): void
 
 	public deactivate(): void {
 		if (this._isActive === false) {
@@ -58,6 +65,9 @@ export abstract class BaseEditableComponent<TJson extends EditableComponentJson 
 		}
 
 		this._isActive = false
+
+		this._deactivateController?.abort()
+		this._deactivateController = undefined
 
 		this.onDeactivate()
 	}
