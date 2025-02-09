@@ -9,6 +9,9 @@ export type ComponentListItemData = {
 	icon: LucideIcon
 }
 
+/**
+ * Data we use to display the list of components when adding a component to an object.
+ */
 export const ComponentsListData = {
 	'pinner': {
 		type: 'pinner',
@@ -20,14 +23,14 @@ export const ComponentsListData = {
 	'horizontal-layout': {
 		type: 'horizontal-layout',
 		title: 'Horizontal Layout',
-		description: 'Horizontal Layout Component (row)',
+		description: 'Align items horizontally (in a row)',
 		group: 'Layout',
 		icon: Columns3,
 	},
 	'vertical-layout': {
 		type: 'vertical-layout',
 		title: 'Vertical Layout',
-		description: 'Vertical Layout Component (column)',
+		description: 'Align items vertically (in a column)',
 		group: 'Layout',
 		icon: Rows3,
 	},
