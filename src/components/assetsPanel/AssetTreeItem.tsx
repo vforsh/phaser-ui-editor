@@ -3,6 +3,7 @@ import { alpha, Group, Stack, Text, TextInput, UnstyledButton, useMantineTheme }
 import { state } from '@state/State'
 import {
 	ChevronDown,
+	Cuboid,
 	File,
 	FileJson,
 	FileSpreadsheet,
@@ -87,7 +88,7 @@ export default function AssetTreeItem({
 			.with({ type: 'spritesheet-folder' }, () => <FolderTree size={ICON_SIZE} />)
 			.with({ type: 'spritesheet-frame' }, () => <LayoutGrid size={ICON_SIZE} />)
 			.with({ type: 'file' }, () => <File size={ICON_SIZE} />)
-			.with({ type: 'prefab' }, () => <File size={ICON_SIZE} />)
+			.with({ type: 'prefab' }, () => <Cuboid size={ICON_SIZE} />)
 			.exhaustive()
 	}
 

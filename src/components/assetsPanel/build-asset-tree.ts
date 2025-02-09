@@ -9,6 +9,7 @@ import {
 	AssetTreeFolderData,
 	AssetTreeImageData,
 	AssetTreeItemData,
+	AssetTreePrefabData,
 	AssetTreeSpritesheetData,
 	AssetTreeSpritesheetFolderData,
 	AssetTreeSpritesheetFrameData,
@@ -161,6 +162,10 @@ const isJsonFile = (filename: string): boolean => {
 const isWebFontFile = (filename: string): boolean => {
 	const webFontExtensions = ['.woff', '.woff2', '.ttf', '.otf', '.eot']
 	return webFontExtensions.some((ext) => filename.toLowerCase().endsWith(ext))
+}
+
+const isPrefabFile = (filename: string): boolean => {
+	return filename.endsWith('prefab.json') || filename.endsWith('.prefab')
 }
 
 const isSpritesheetOrBitmapFont = async (
@@ -430,6 +435,14 @@ const doBuildAssetTree = async (
 					}
 
 					return image
+				} else if (isPrefabFile(fileTreeItem.name)) {
+					const prefab: AssetTreePrefabData = addAssetId({
+						type: 'prefab',
+						name: fileTreeItem.name,
+						path: fileTreeItem.path,
+					})
+
+					return prefab
 				} else if (isJsonFile(fileTreeItem.name)) {
 					return addAssetId({
 						type: 'json',
