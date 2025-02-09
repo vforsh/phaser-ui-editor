@@ -1,5 +1,5 @@
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
-import { EditableComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/EditableComponent'
+import { EditableComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/base/EditableComponent'
 import { Divider, ScrollArea, Stack } from '@mantine/core'
 import { useForceUpdate } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
@@ -17,7 +17,10 @@ import { GraphicAssetPreviewSection } from './sections/assets/GraphicAssetPrevie
 import { AddComponentButton } from './sections/components/AddComponentButton'
 import { ComponentSection } from './sections/components/ComponentSection'
 import { ComponentsListData } from './sections/components/ComponentsListData'
+import { GridLayoutSection } from './sections/components/GridLayoutSection'
+import { HorizontalLayoutSection } from './sections/components/HorizontalLayoutSection'
 import { PinnerSection } from './sections/components/PinnerSection'
+import { VerticalLayoutSection } from './sections/components/VerticalLayoutSection'
 import { BitmapTextSection } from './sections/objects/BitmapTextSection'
 import { DisplaySection } from './sections/objects/DisplaySection'
 import { ImageSection } from './sections/objects/ImageSection'
@@ -380,6 +383,36 @@ function getComponentSections(obj: EditableObjectJson): InspectorSectionDef[] {
 					icon: componentInfo.icon,
 					data: pinner,
 					content: <PinnerSection data={pinner} />,
+					defaultExpanded: true,
+				}
+			})
+			.with({ type: 'horizontal-layout' }, (horizontalLayout) => {
+				return {
+					type: 'comp-horizontal-layout',
+					title: componentInfo.title,
+					icon: componentInfo.icon,
+					data: horizontalLayout,
+					content: <HorizontalLayoutSection data={horizontalLayout} />,
+					defaultExpanded: true,
+				}
+			})
+			.with({ type: 'vertical-layout' }, (verticalLayout) => {
+				return {
+					type: 'comp-vertical-layout',
+					title: componentInfo.title,
+					icon: componentInfo.icon,
+					data: verticalLayout,
+					content: <VerticalLayoutSection data={verticalLayout} />,
+					defaultExpanded: true,
+				}
+			})
+			.with({ type: 'grid-layout' }, (gridLayout) => {
+				return {
+					type: 'comp-grid-layout',
+					title: componentInfo.title,
+					icon: componentInfo.icon,
+					data: gridLayout,
+					content: <GridLayoutSection data={gridLayout} />,
 					defaultExpanded: true,
 				}
 			})

@@ -1,0 +1,93 @@
+import { GridLayoutComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/EditableGridLayoutComponent'
+import {
+	PHASER_ALIGN,
+	PhaserAlignKey
+} from '@components/canvas/phaser/scenes/main/objects/PhaserAlign'
+import { Group, Stack } from '@mantine/core'
+import { useSnapshot } from 'valtio'
+import { BaseSectionProps } from '../BaseSection'
+import { NumberInputCustom } from '../common/NumberInputCustom'
+import { SelectCustom } from '../common/SelectCustom'
+
+interface GridLayoutSectionProps extends BaseSectionProps<GridLayoutComponentJson> {}
+
+export function GridLayoutSection({ data }: GridLayoutSectionProps) {
+	const snap = useSnapshot(data)
+
+	return (
+		<Stack gap="xs">
+			<NumberInputCustom
+				label="Columns"
+				value={snap.columns}
+				onChange={(value) => (data.columns = value)}
+				min={1}
+				step={1}
+				size="xs"
+			/>
+
+			<Group grow>
+				<NumberInputCustom
+					label="Cell Width"
+					value={snap.cellWidth}
+					onChange={(value) => (data.cellWidth = value)}
+					min={0}
+					step={1}
+					size="xs"
+				/>
+
+				<NumberInputCustom
+					label="Cell Height"
+					value={snap.cellHeight}
+					onChange={(value) => (data.cellHeight = value)}
+					min={0}
+					step={1}
+					size="xs"
+				/>
+			</Group>
+
+			<SelectCustom
+				label="Align"
+				value={snap.cellPosition}
+				onChange={(value) => (data.cellPosition = value as PhaserAlignKey)}
+				data={Object.entries(PHASER_ALIGN).map(([key, value]) => ({ label: key, value: key }))}
+				size="xs"
+			/>
+
+			<Group grow>
+				<NumberInputCustom
+					label="Spacing X"
+					value={snap.spacingX}
+					onChange={(value) => (data.spacingX = value)}
+					step={1}
+					size="xs"
+				/>
+
+				<NumberInputCustom
+					label="Spacing Y"
+					value={snap.spacingY}
+					onChange={(value) => (data.spacingY = value)}
+					step={1}
+					size="xs"
+				/>
+			</Group>
+
+			<Group grow>
+				<NumberInputCustom
+					label="Start X"
+					value={snap.startX}
+					onChange={(value) => (data.startX = value)}
+					step={1}
+					size="xs"
+				/>
+
+				<NumberInputCustom
+					label="Start Y"
+					value={snap.startY}
+					onChange={(value) => (data.startY = value)}
+					step={1}
+					size="xs"
+				/>
+			</Group>
+		</Stack>
+	)
+}

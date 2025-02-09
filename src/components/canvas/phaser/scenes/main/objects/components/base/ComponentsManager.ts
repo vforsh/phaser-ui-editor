@@ -1,6 +1,6 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { err, ok, Result } from 'neverthrow'
-import { EditableObject } from '../EditableObject'
+import { EditableObject } from '../../EditableObject'
 import { BaseEditableComponent } from './BaseEditableComponent'
 import { EditableComponentType } from './EditableComponent'
 

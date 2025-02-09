@@ -1,4 +1,4 @@
-import { EditableComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/EditableComponent'
+import { EditableComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/base/EditableComponent'
 import { ActionIcon, Box, Checkbox, Collapse, Group, Menu, Text, Tooltip, useMantineTheme } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { ChevronRight, ClipboardPaste, Copy, HelpCircle, MoreVertical, RotateCcw, Trash } from 'lucide-react'

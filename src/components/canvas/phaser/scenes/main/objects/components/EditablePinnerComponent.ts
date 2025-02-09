@@ -1,5 +1,5 @@
 import { StateChangesEmitter } from '../StateChangesEmitter'
-import { BaseEditableComponent } from './BaseEditableComponent'
+import { BaseEditableComponent } from './base/BaseEditableComponent'
 
 export class EditablePinnerComponent extends BaseEditableComponent {
 	public readonly type = 'pinner'

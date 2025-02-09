@@ -1,7 +1,10 @@
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import { EditableComponent, EditableComponentJson, EditableComponentType } from './EditableComponent'
-import { EditablePinnerComponent } from './EditablePinnerComponent'
+import { EditableGridLayoutComponent } from '../EditableGridLayoutComponent'
+import { EditableHorizontalLayoutComponent } from '../EditableHorizontalLayoutComponent'
+import { EditablePinnerComponent } from '../EditablePinnerComponent'
+import { EditableVerticalLayoutComponent } from '../EditableVerticalLayoutComponent'
 
 interface EditableComponentsFactoryOptions {
 	logger: Logger<{}>
@@ -35,19 +38,19 @@ export class EditableComponentsFactory {
 	}
 
 	private horizontalLayout() {
-		return null as any
+		return new EditableHorizontalLayoutComponent()
 	}
 
 	private verticalLayout() {
-		return null as any
+		return new EditableVerticalLayoutComponent()
 	}
 
 	private gridLayout() {
-		return null as any
+		return new EditableGridLayoutComponent()
 	}
 
 	public fromJson(json: EditableComponentJson): EditableComponent {
-		// TODO implement
+		// TODO components - implement create from json
 
 		// @ts-expect-error
 		return null

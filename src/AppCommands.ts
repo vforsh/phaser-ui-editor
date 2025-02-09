@@ -3,8 +3,8 @@ import {
 	AddComponentResult,
 	MoveComponentResult,
 	RemoveComponentResult,
-} from '@components/canvas/phaser/scenes/main/objects/components/ComponentsManager'
-import { EditableComponentType } from '@components/canvas/phaser/scenes/main/objects/components/EditableComponent'
+} from '@components/canvas/phaser/scenes/main/objects/components/base/ComponentsManager'
+import { EditableComponentType } from '@components/canvas/phaser/scenes/main/objects/components/base/EditableComponent'
 import { CommandEmitter } from './components/canvas/phaser/robowhale/utils/events/CommandEmitter'
 import { AssetTreeItemData } from './types/assets'
 

@@ -2,7 +2,7 @@ import { ActionIcon, Group, Stack, Text, TextInput, UnstyledButton } from '@mant
 import { Fzf } from 'fzf'
 import { Search, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { EditableComponentType } from '../../../canvas/phaser/scenes/main/objects/components/EditableComponent'
+import { EditableComponentType } from '../../../canvas/phaser/scenes/main/objects/components/base/EditableComponent'
 import classes from './ComponentList.module.css'
 import { ComponentListItemData, ComponentsListData } from './ComponentsListData'
 

@@ -9,8 +9,8 @@ import {
 	isEditable,
 } from './EditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
-import { ComponentsManager } from './components/ComponentsManager'
-import { EditableComponentJson } from './components/EditableComponent'
+import { ComponentsManager } from './components/base/ComponentsManager'
+import { EditableComponentJson } from './components/base/EditableComponent'
 
 type Events = {
 	'editable-added': (child: EditableObject) => void
@@ -71,7 +71,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 	}
 
 	private onComponentsListChanged(): void {
-		this._stateObj.components = this._components.items.map((c) => c.toJson())
+		this._stateObj.components = this._components.items.map((c) => c.state)
 	}
 
 	/**

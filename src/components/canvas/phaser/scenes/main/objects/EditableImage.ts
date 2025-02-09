@@ -1,8 +1,8 @@
 import { proxy } from 'valtio'
 import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
-import { ComponentsManager } from './components/ComponentsManager'
-import { EditableComponentJson } from './components/EditableComponent'
+import { ComponentsManager } from './components/base/ComponentsManager'
+import { EditableComponentJson } from './components/base/EditableComponent'
 
 export class EditableImage extends Phaser.GameObjects.Image implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true

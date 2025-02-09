@@ -4,8 +4,8 @@ import { EditableContainer, EditableContainerJson } from './EditableContainer'
 import { EditableImage, EditableImageJson } from './EditableImage'
 import { EditableNineSlice, EditableNineSliceJson } from './EditableNineSlice'
 import { EditableText, EditableTextJson } from './EditableText'
-import { EditableComponentJson } from './components/EditableComponent'
-import { ComponentsManager } from './components/ComponentsManager'
+import { EditableComponentJson } from './components/base/EditableComponent'
+import { ComponentsManager } from './components/base/ComponentsManager'
 
 export const EDITABLE_SYMBOL = Symbol('EditableObject')
 
