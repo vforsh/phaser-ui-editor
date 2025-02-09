@@ -44,7 +44,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		this._components = new ComponentsManager(this)
 		this._components.on('component-added', this.onComponentsListChanged, this)
 		this._components.on('component-removed', this.onComponentsListChanged, this)
-
+		this._components.on('component-moved', this.onComponentsListChanged, this)
 		this._stateObj = proxy(this.toJson())
 
 		// state changes are reflected in the underlying Phaser object

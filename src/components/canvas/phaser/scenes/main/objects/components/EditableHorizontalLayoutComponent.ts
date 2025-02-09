@@ -4,7 +4,7 @@ import { PHASER_ALIGN, PhaserAlignKey } from '../PhaserAlign'
 import { StateChangesEmitter } from '../StateChangesEmitter'
 import { BaseEditableComponent } from './base/BaseEditableComponent'
 
-export class EditableHorizontalLayoutComponent extends BaseEditableComponent {
+export class EditableHorizontalLayoutComponent extends BaseEditableComponent<HorizontalLayoutComponentJson> {
 	public readonly type = 'horizontal-layout'
 
 	protected declare _parent: EditableContainer
@@ -23,7 +23,7 @@ export class EditableHorizontalLayoutComponent extends BaseEditableComponent {
 		this._state = this.createState()
 
 		this._stateChanges = new StateChangesEmitter(
-			this._state as HorizontalLayoutComponentJson,
+			this._state,
 			{
 				active: (value) => {
 					this._isActive = value

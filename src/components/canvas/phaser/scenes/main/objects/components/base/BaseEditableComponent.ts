@@ -4,16 +4,16 @@ import { EditableObject } from '../../EditableObject'
 import { EditableComponentJson } from './EditableComponent'
 import { PreAddCheck, PreAddChecksFactory } from './PreAddChecksFactory'
 
-export abstract class BaseEditableComponent {
+export abstract class BaseEditableComponent<TJson extends EditableComponentJson = EditableComponentJson> {
 	public abstract readonly type: string
 	protected _parent: EditableObject | undefined
 	protected _isActive = true
-	protected _state!: EditableComponentJson
+	protected _state!: TJson
 	protected _preAddChecksFactory = new PreAddChecksFactory()
 	protected _preAddChecks: PreAddCheck[] = []
 	private _destroyController = new AbortController()
 
-	protected createState(): EditableComponentJson {
+	protected createState(): TJson {
 		return proxy(this.toJson())
 	}
 
@@ -64,7 +64,7 @@ export abstract class BaseEditableComponent {
 
 	protected abstract onDeactivate(): void
 
-	public abstract toJson(): EditableComponentJson
+	public abstract toJson(): TJson
 
 	public get parent(): EditableObject | undefined {
 		return this._parent
@@ -79,7 +79,7 @@ export abstract class BaseEditableComponent {
 		this._parent = undefined
 	}
 
-	public get state(): EditableComponentJson {
+	public get state(): TJson {
 		return this._state
 	}
 }

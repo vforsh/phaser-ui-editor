@@ -4,7 +4,7 @@ import { PHASER_ALIGN, PhaserAlignKey } from '../PhaserAlign'
 import { StateChangesEmitter } from '../StateChangesEmitter'
 import { BaseEditableComponent } from './base/BaseEditableComponent'
 
-export class EditableVerticalLayoutComponent extends BaseEditableComponent {
+export class EditableVerticalLayoutComponent extends BaseEditableComponent<VerticalLayoutComponentJson> {
 	public readonly type = 'vertical-layout'
 
 	protected declare _parent: EditableContainer
@@ -23,7 +23,7 @@ export class EditableVerticalLayoutComponent extends BaseEditableComponent {
 		this._state = this.createState()
 
 		this._stateChanges = new StateChangesEmitter(
-			this._state as VerticalLayoutComponentJson,
+			this._state,
 			{
 				active: (value) => {
 					this._isActive = value

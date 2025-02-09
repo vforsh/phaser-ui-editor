@@ -23,6 +23,7 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 		this._components = new ComponentsManager(this)
 		this._components.on('component-added', this.onComponentsListChanged, this)
 		this._components.on('component-removed', this.onComponentsListChanged, this)
+		this._components.on('component-moved', this.onComponentsListChanged, this)
 
 		this._stateObj = proxy(this.toJson())
 
@@ -46,7 +47,7 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 	}
 
 	private onComponentsListChanged(): void {
-		this._stateObj.components = this._components.items.map((c) => c.toJson())
+		this._stateObj.components = this._components.items.map((c) => c.state)
 	}
 
 	/**

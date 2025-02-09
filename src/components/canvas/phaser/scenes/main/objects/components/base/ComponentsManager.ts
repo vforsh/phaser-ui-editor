@@ -7,6 +7,7 @@ import { EditableComponentType } from './EditableComponent'
 type Events = {
 	'component-added': (component: BaseEditableComponent) => void
 	'component-removed': (component: BaseEditableComponent) => void
+	'component-moved': (component: BaseEditableComponent, newIndex: number, oldIndex: number) => void
 }
 
 export type AddComponentResult = Result<{}, string>
@@ -69,9 +70,11 @@ export class ComponentsManager extends TypedEventEmitter<Events> {
 			return ok({})
 		}
 
-		const temp = this._components[index]
+		const comp = this._components[index]
 		this._components[index] = this._components[index - 1]
-		this._components[index - 1] = temp
+		this._components[index - 1] = comp
+
+		this.emit('component-moved', comp, index - 1, index)
 
 		return ok({})
 	}
@@ -86,9 +89,11 @@ export class ComponentsManager extends TypedEventEmitter<Events> {
 			return ok({})
 		}
 
-		const temp = this._components[index]
+		const comp = this._components[index]
 		this._components[index] = this._components[index + 1]
-		this._components[index + 1] = temp
+		this._components[index + 1] = comp
+
+		this.emit('component-moved', comp, index + 1, index)
 
 		return ok({})
 	}

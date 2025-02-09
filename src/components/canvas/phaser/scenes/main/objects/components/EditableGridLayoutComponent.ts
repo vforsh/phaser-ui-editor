@@ -4,7 +4,7 @@ import { PHASER_ALIGN, PhaserAlignKey } from '../PhaserAlign'
 import { StateChangesEmitter } from '../StateChangesEmitter'
 import { BaseEditableComponent } from './base/BaseEditableComponent'
 
-export class EditableGridLayoutComponent extends BaseEditableComponent {
+export class EditableGridLayoutComponent extends BaseEditableComponent<GridLayoutComponentJson> {
 	public readonly type = 'grid-layout'
 
 	protected declare _parent: EditableContainer
@@ -26,7 +26,7 @@ export class EditableGridLayoutComponent extends BaseEditableComponent {
 		this._state = this.createState()
 
 		this._stateChanges = new StateChangesEmitter(
-			this._state as GridLayoutComponentJson,
+			this._state,
 			{
 				active: (value) => {
 					this._isActive = value

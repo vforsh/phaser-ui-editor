@@ -1,7 +1,8 @@
+import { unproxy } from '@state/valtio-utils'
 import { StateChangesEmitter } from '../StateChangesEmitter'
 import { BaseEditableComponent } from './base/BaseEditableComponent'
 
-export class EditablePinnerComponent extends BaseEditableComponent {
+export class EditablePinnerComponent extends BaseEditableComponent<PinnerComponentJson> {
 	public readonly type = 'pinner'
 
 	private x = 0
@@ -16,7 +17,7 @@ export class EditablePinnerComponent extends BaseEditableComponent {
 		this._state = this.createState()
 
 		this._stateChanges = new StateChangesEmitter(
-			this._state as PinnerComponentJson,
+			this._state,
 			{
 				x: (value) => {
 					this.x = value
@@ -43,12 +44,11 @@ export class EditablePinnerComponent extends BaseEditableComponent {
 	}
 
 	private updateParentPosition(): void {
-		if (!this.parent) {
+		if (!this.parent || !this._isActive) {
 			return
 		}
 
-		console.log(`updateParentPosition: ${this.x}, ${this.y} (${this.xOffset}, ${this.yOffset})`)
-		// this.parent.setPosition(this.x, this.y)
+		console.log(`pinner update`, unproxy(this._state))
 	}
 
 	public toJson(): PinnerComponentJson {

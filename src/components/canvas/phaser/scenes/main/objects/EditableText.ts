@@ -22,7 +22,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 		this._components = new ComponentsManager(this)
 		this._components.on('component-added', this.onComponentsListChanged, this)
 		this._components.on('component-removed', this.onComponentsListChanged, this)
-
+		this._components.on('component-moved', this.onComponentsListChanged, this)
 		const signal = signalFromEvent(this, 'destroy')
 
 		this._stateObj = proxy(this.toJson())
@@ -93,7 +93,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	}
 
 	private onComponentsListChanged(): void {
-		this._stateObj.components = this._components.items.map((c) => c.toJson())
+		this._stateObj.components = this._components.items.map((c) => c.state)
 	}
 
 	/**
