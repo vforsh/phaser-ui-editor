@@ -41,9 +41,10 @@ export abstract class BaseEditableComponent<TJson extends EditableComponentJson 
 	public onAdded(parent: EditableObject): void {
 		this._parent = parent
 
-		this._deactivateController = new AbortController()
-
-		this.onActivate(this._deactivateController.signal, true)
+		if (this._isActive) {
+			this._deactivateController = new AbortController()
+			this.onActivate(this._deactivateController.signal, true)
+		}
 	}
 
 	public onRemoved(): void {

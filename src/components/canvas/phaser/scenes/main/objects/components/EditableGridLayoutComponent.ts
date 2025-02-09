@@ -6,7 +6,7 @@ import { BaseEditableComponent } from './base/BaseEditableComponent'
 
 export class EditableGridLayoutComponent extends BaseEditableComponent<GridLayoutComponentJson> {
 	public readonly type = 'grid-layout'
-
+	private _stateChanges: StateChangesEmitter<GridLayoutComponentJson>
 	protected declare _parent: EditableContainer
 
 	private columns = 3
@@ -18,10 +18,20 @@ export class EditableGridLayoutComponent extends BaseEditableComponent<GridLayou
 	private startX = 0
 	private startY = 0
 
-	private _stateChanges: StateChangesEmitter<GridLayoutComponentJson>
-
-	constructor(id: string) {
+	constructor(id: string, initialState?: GridLayoutComponentJson) {
 		super(id)
+
+		if (initialState) {
+			this._isActive = initialState.active
+			this.columns = initialState.columns
+			this.cellWidth = initialState.cellWidth
+			this.cellHeight = initialState.cellHeight
+			this.cellPosition = initialState.cellPosition
+			this.spacingX = initialState.spacingX
+			this.spacingY = initialState.spacingY
+			this.startX = initialState.startX
+			this.startY = initialState.startY
+		}
 
 		this._state = this.createState()
 
@@ -82,6 +92,7 @@ export class EditableGridLayoutComponent extends BaseEditableComponent<GridLayou
 	public toJson(): GridLayoutComponentJson {
 		return {
 			type: 'grid-layout',
+			id: this.id,
 			active: this._isActive,
 			columns: this.columns,
 			cellWidth: this.cellWidth,
@@ -112,6 +123,7 @@ export class EditableGridLayoutComponent extends BaseEditableComponent<GridLayou
 
 export type GridLayoutComponentJson = {
 	type: 'grid-layout'
+	id: string
 	active: boolean
 	columns: number
 	cellWidth: number

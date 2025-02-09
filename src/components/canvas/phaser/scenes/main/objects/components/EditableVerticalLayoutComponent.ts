@@ -6,7 +6,7 @@ import { BaseEditableComponent } from './base/BaseEditableComponent'
 
 export class EditableVerticalLayoutComponent extends BaseEditableComponent<VerticalLayoutComponentJson> {
 	public readonly type = 'vertical-layout'
-
+	private _stateChanges: StateChangesEmitter<VerticalLayoutComponentJson>
 	protected declare _parent: EditableContainer
 
 	private cellWidth = 100
@@ -15,10 +15,17 @@ export class EditableVerticalLayoutComponent extends BaseEditableComponent<Verti
 	private spacingY = 0
 	private startY = 0
 
-	private _stateChanges: StateChangesEmitter<VerticalLayoutComponentJson>
-
-	constructor(id: string) {
+	constructor(id: string, initialState?: VerticalLayoutComponentJson) {
 		super(id)
+
+		if (initialState) {
+			this._isActive = initialState.active
+			this.cellWidth = initialState.cellWidth
+			this.cellHeight = initialState.cellHeight
+			this.cellPosition = initialState.cellPosition
+			this.spacingY = initialState.spacingY
+			this.startY = initialState.startY
+		}
 
 		this._state = this.createState()
 
@@ -77,6 +84,7 @@ export class EditableVerticalLayoutComponent extends BaseEditableComponent<Verti
 	public toJson(): VerticalLayoutComponentJson {
 		return {
 			type: 'vertical-layout',
+			id: this.id,
 			active: this._isActive,
 			cellWidth: this.cellWidth,
 			cellHeight: this.cellHeight,
@@ -104,6 +112,7 @@ export class EditableVerticalLayoutComponent extends BaseEditableComponent<Verti
 
 export type VerticalLayoutComponentJson = {
 	type: 'vertical-layout'
+	id: string
 	active: boolean
 	cellWidth: number
 	cellHeight: number

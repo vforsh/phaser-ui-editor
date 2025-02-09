@@ -1,17 +1,44 @@
+import { nanoid } from 'nanoid'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
+import { EditableGridLayoutComponent, GridLayoutComponentJson } from '../EditableGridLayoutComponent'
+import { EditableHorizontalLayoutComponent, HorizontalLayoutComponentJson } from '../EditableHorizontalLayoutComponent'
+import { EditablePinnerComponent, PinnerComponentJson } from '../EditablePinnerComponent'
+import { EditableVerticalLayoutComponent, VerticalLayoutComponentJson } from '../EditableVerticalLayoutComponent'
 import { EditableComponent, EditableComponentJson, EditableComponentType } from './EditableComponent'
-import { EditableGridLayoutComponent } from '../EditableGridLayoutComponent'
-import { EditableHorizontalLayoutComponent } from '../EditableHorizontalLayoutComponent'
-import { EditablePinnerComponent } from '../EditablePinnerComponent'
-import { EditableVerticalLayoutComponent } from '../EditableVerticalLayoutComponent'
 
 interface EditableComponentsFactoryOptions {
 	logger: Logger<{}>
 }
 
 export class EditableComponentsFactory {
+	private ids = new Set<string>()
+
 	constructor(private readonly options: EditableComponentsFactoryOptions) {}
+
+	private getOrCreateId(initialState?: EditableComponentJson): string {
+		if (initialState?.id) {
+			if (this.ids.has(initialState.id)) {
+				throw new Error(`Duplicate id: ${initialState.id}`)
+			}
+			this.ids.add(initialState.id)
+			return initialState.id
+		}
+
+		const id = this.createId()
+		this.ids.add(id)
+		return id
+	}
+
+	private createId(): string {
+		const idLength = 10
+		let id = nanoid(idLength)
+		while (this.ids.has(id)) {
+			id = nanoid(idLength)
+		}
+		this.ids.add(id)
+		return id
+	}
 
 	public create(type: EditableComponentType): EditableComponent {
 		return match(type)
@@ -24,8 +51,9 @@ export class EditableComponentsFactory {
 			.exhaustive()
 	}
 
-	private pinner() {
-		const pinner = new EditablePinnerComponent()
+	private pinner(initialState?: PinnerComponentJson) {
+		const id = this.getOrCreateId(initialState)
+		const pinner = new EditablePinnerComponent(id, initialState)
 		return pinner
 	}
 
@@ -37,22 +65,34 @@ export class EditableComponentsFactory {
 		return null as any
 	}
 
-	private horizontalLayout() {
-		return new EditableHorizontalLayoutComponent()
+	private horizontalLayout(initialState?: HorizontalLayoutComponentJson) {
+		const id = this.getOrCreateId(initialState)
+		const horizontalLayout = new EditableHorizontalLayoutComponent(id, initialState)
+		return horizontalLayout
 	}
 
-	private verticalLayout() {
-		return new EditableVerticalLayoutComponent()
+	private verticalLayout(initialState?: VerticalLayoutComponentJson) {
+		const id = this.getOrCreateId(initialState)
+		const verticalLayout = new EditableVerticalLayoutComponent(id, initialState)
+		return verticalLayout
 	}
 
-	private gridLayout() {
-		return new EditableGridLayoutComponent()
+	private gridLayout(initialState?: GridLayoutComponentJson) {
+		const id = this.getOrCreateId(initialState)
+		const gridLayout = new EditableGridLayoutComponent(id, initialState)
+		return gridLayout
 	}
 
 	public fromJson(json: EditableComponentJson): EditableComponent {
-		// TODO components - implement create from json
+		return match(json)
+			.with({ type: 'pinner' }, (json) => this.pinner(json))
+			.with({ type: 'horizontal-layout' }, (json) => this.horizontalLayout(json))
+			.with({ type: 'vertical-layout' }, (json) => this.verticalLayout(json))
+			.with({ type: 'grid-layout' }, (json) => this.gridLayout(json))
+			.exhaustive()
+	}
 
-		// @ts-expect-error
-		return null
+	public destroy(): void {
+		this.ids.clear()
 	}
 }

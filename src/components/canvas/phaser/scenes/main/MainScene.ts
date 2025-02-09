@@ -33,7 +33,11 @@ import { EditContextsManager } from './editContext/EditContextsManager'
 import { Selection } from './editContext/Selection'
 import { TransformControls } from './editContext/TransformControls'
 import { Grid } from './Grid'
-import { AddComponentResult, MoveComponentResult, RemoveComponentResult } from './objects/components/base/ComponentsManager'
+import {
+	AddComponentResult,
+	MoveComponentResult,
+	RemoveComponentResult,
+} from './objects/components/base/ComponentsManager'
 import { EditableComponentType } from './objects/components/base/EditableComponent'
 import { EditableComponentsFactory } from './objects/components/base/EditableComponentsFactory'
 import { EditableContainer } from './objects/EditableContainer'
@@ -1287,6 +1291,10 @@ export class MainScene extends BaseScene {
 
 		state.canvas.objects = null
 		state.canvas.objectById = () => undefined
+
+		this.objectsFactory.destroy()
+
+		this.componentsFactory.destroy()
 
 		this.logger.debug(`${this.scene.key} shutdown - complete`)
 	}

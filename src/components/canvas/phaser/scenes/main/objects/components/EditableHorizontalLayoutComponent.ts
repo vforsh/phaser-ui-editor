@@ -6,7 +6,7 @@ import { BaseEditableComponent } from './base/BaseEditableComponent'
 
 export class EditableHorizontalLayoutComponent extends BaseEditableComponent<HorizontalLayoutComponentJson> {
 	public readonly type = 'horizontal-layout'
-
+	private _stateChanges: StateChangesEmitter<HorizontalLayoutComponentJson>
 	protected declare _parent: EditableContainer
 
 	private cellWidth = 100
@@ -15,10 +15,17 @@ export class EditableHorizontalLayoutComponent extends BaseEditableComponent<Hor
 	private spacingX = 0
 	private startX = 0
 
-	private _stateChanges: StateChangesEmitter<HorizontalLayoutComponentJson>
-
-	constructor(id: string) {
+	constructor(id: string, initialState?: HorizontalLayoutComponentJson) {
 		super(id)
+
+		if (initialState) {
+			this._isActive = initialState.active
+			this.cellWidth = initialState.cellWidth
+			this.cellHeight = initialState.cellHeight
+			this.cellPosition = initialState.cellPosition
+			this.spacingX = initialState.spacingX
+			this.startX = initialState.startX
+		}
 
 		this._state = this.createState()
 
@@ -77,6 +84,7 @@ export class EditableHorizontalLayoutComponent extends BaseEditableComponent<Hor
 	public toJson(): HorizontalLayoutComponentJson {
 		return {
 			type: 'horizontal-layout',
+			id: this.id,
 			active: this._isActive,
 			cellWidth: this.cellWidth,
 			cellHeight: this.cellHeight,
@@ -104,6 +112,7 @@ export class EditableHorizontalLayoutComponent extends BaseEditableComponent<Hor
 
 export type HorizontalLayoutComponentJson = {
 	type: 'horizontal-layout'
+	id: string
 	active: boolean
 	cellWidth: number
 	cellHeight: number
