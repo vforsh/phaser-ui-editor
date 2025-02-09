@@ -145,6 +145,7 @@ export function ComponentSection({
 				<Box pt="xs" pb="sm" px="sm">
 					{content}
 				</Box>
+				{/* TODO components - add copy and remove buttons */}
 			</Collapse>
 		</Box>
 	)

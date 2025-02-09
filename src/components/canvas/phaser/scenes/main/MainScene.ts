@@ -38,7 +38,7 @@ import {
 	MoveComponentResult,
 	RemoveComponentResult,
 } from './objects/components/base/ComponentsManager'
-import { EditableComponentType } from './objects/components/base/EditableComponent'
+import { EditableComponentJson, EditableComponentType } from './objects/components/base/EditableComponent'
 import { EditableComponentsFactory } from './objects/components/base/EditableComponentsFactory'
 import { EditableContainer } from './objects/EditableContainer'
 import { EditableImage } from './objects/EditableImage'
@@ -370,6 +370,7 @@ export class MainScene extends BaseScene {
 		appCommands.on('remove-component', this.removeComponent, this, false, this.shutdownSignal)
 		appCommands.on('move-component-up', this.moveComponentUp, this, false, this.shutdownSignal)
 		appCommands.on('move-component-down', this.moveComponentDown, this, false, this.shutdownSignal)
+		appCommands.on('paste-component', this.pasteComponent, this, false, this.shutdownSignal)
 
 		appCommands.on('handle-asset-drop', this.handleAssetDrop, this, false, this.shutdownSignal)
 	}
@@ -413,6 +414,20 @@ export class MainScene extends BaseScene {
 		}
 
 		return obj.components.moveDown(data.componentType)
+	}
+
+	private pasteComponent(data: { componentData: EditableComponentJson; objectId: string }): AddComponentResult {
+		const obj = this.objectsFactory.getObjectById(data.objectId)
+		if (!obj) {
+			return err(`failed to find object with id '${data.objectId}'`)
+		}
+
+		const component = this.componentsFactory.fromJson(data.componentData)
+		if (!component) {
+			return err(`failed to create component '${data.componentData.type}'`)
+		}
+
+		return obj.components.add(component)
 	}
 
 	/**

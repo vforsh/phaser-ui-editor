@@ -54,6 +54,9 @@ export const stateSchema = z.object({
 			.args(z.string())
 			.returns(z.unknown() as z.ZodType<EditableObjectJson | undefined>),
 	}),
+	inspector: z.object({
+		componentsClipboard: z.array(z.string()),
+	}),
 	// TODO move it out of state
 	app: z
 		.object({
@@ -100,6 +103,9 @@ const initialStateParsed = merge(
 			selection: [],
 			objects: null,
 			objectById: () => undefined,
+		},
+		inspector: {
+			componentsClipboard: [],
 		},
 		app: null,
 		phaser: null,

@@ -158,7 +158,7 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 											}
 										}}
 										onCopy={() => {
-											// TODO components - implement copy functionality
+											state.inspector.componentsClipboard.push(JSON.stringify(componentData))
 										}}
 										onPaste={() => {
 											// TODO components - implement paste functionality
@@ -179,6 +179,7 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 							)
 						})}
 						<Divider />
+						{/* TODO components - add paste component button */}
 						<AddComponentButton
 							onAddComponent={(type) => {
 								const addResult = state.app?.commands.emit('add-component', {
