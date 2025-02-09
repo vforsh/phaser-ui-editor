@@ -14,6 +14,7 @@ import {
 	Images,
 	LayoutGrid,
 } from 'lucide-react'
+import path from 'path-browserify-esm'
 import { useEffect, useRef, useState } from 'react'
 import { match } from 'ts-pattern'
 import { Snapshot, useSnapshot } from 'valtio'
@@ -26,12 +27,32 @@ const ICON_SIZE = 16
 const ITEM_HEIGHT = 28
 const BASE_PADDING = 3
 
+const getExtension = (item: Snapshot<AssetTreeItemData>) => {
+	return match(item)
+		.with({ type: 'folder' }, () => '')
+		.with({ type: 'image' }, () => path.extname(item.name))
+		.with({ type: 'json' }, () => path.extname(item.name))
+		.with({ type: 'xml' }, () => path.extname(item.name))
+		.with({ type: 'web-font' }, () => path.extname(item.name))
+		.with({ type: 'bitmap-font' }, () => path.extname(item.name))
+		.with({ type: 'spritesheet' }, () => path.extname(item.name))
+		.with({ type: 'spritesheet-folder' }, () => '')
+		.with({ type: 'spritesheet-frame' }, () => '')
+		.with({ type: 'file' }, () => path.extname(item.name))
+		.with({ type: 'prefab' }, () => (item.name.endsWith('.prefab.json') ? '.prefab.json' : path.extname(item.name)))
+		.exhaustive()
+}
+
+const getNameWithoutExtension = (item: Snapshot<AssetTreeItemData>) => {
+	return item.name.replace(getExtension(item), '')
+}
+
 interface AssetTreeItemProps {
 	item: Snapshot<AssetTreeItemData>
 	level?: number
 	onToggle: (id: string) => void
 	onSelect: (item: Snapshot<AssetTreeItemData>, event: React.MouseEvent) => void
-	onContextMenu: (item: Snapshot<AssetTreeItemData>, position: { x: number; y: number }) => void
+	onContextMenu: (event: React.MouseEvent, asset: Snapshot<AssetTreeItemData>) => void
 	onRename?: (item: Snapshot<AssetTreeItemData>, newName: string) => void
 	renamedAssetId: string | null
 	isSelected?: boolean
@@ -69,7 +90,7 @@ export default function AssetTreeItem({
 
 	useEffect(() => {
 		if (renamedAssetId === item.id) {
-			setEditValue(item.name)
+			setEditValue(getNameWithoutExtension(item))
 			setIsEditing(true)
 		}
 	}, [renamedAssetId, item])
@@ -102,9 +123,9 @@ export default function AssetTreeItem({
 			.otherwise(() => onSelect(item, e))
 	}
 
-	const handleContextMenu = (e: React.MouseEvent) => {
-		e.preventDefault()
-		onContextMenu(item, { x: e.clientX, y: e.clientY })
+	const handleContextMenu = (event: React.MouseEvent, asset: Snapshot<AssetTreeItemData>) => {
+		event.preventDefault()
+		onContextMenu(event, asset)
 	}
 
 	const hasChildren = (item: Snapshot<AssetTreeItemData>): boolean => {
@@ -123,13 +144,13 @@ export default function AssetTreeItem({
 			.otherwise(() => [])
 	}
 
-	const handleRename = () => {
+	const completeRename = () => {
 		if (!editValue.trim()) {
 			setIsEditing(false)
 			return
 		}
 
-		const extension = item.type === 'folder' ? '' : item.name.slice(item.name.lastIndexOf('.'))
+		const extension = item.type === 'folder' ? '' : getExtension(item)
 		const newName = editValue.trim() + extension
 
 		if (newName !== item.name && onRename) {
@@ -141,7 +162,7 @@ export default function AssetTreeItem({
 
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === 'Enter') {
-			handleRename()
+			completeRename()
 		} else if (e.key === 'Escape') {
 			setIsEditing(false)
 		}
@@ -160,7 +181,7 @@ export default function AssetTreeItem({
 			<UnstyledButton
 				id={id}
 				onClick={handleClick}
-				onContextMenu={handleContextMenu}
+				onContextMenu={(e) => handleContextMenu(e, item)}
 				onMouseEnter={() => setIsHovered(true)}
 				onMouseLeave={() => setIsHovered(false)}
 				draggable={isDraggable}
@@ -257,7 +278,7 @@ export default function AssetTreeItem({
 							value={editValue}
 							onChange={(e) => setEditValue(e.target.value)}
 							onKeyDown={handleKeyDown}
-							onBlur={handleRename}
+							onBlur={completeRename}
 							onClick={(e) => e.stopPropagation()}
 							styles={{
 								input: {
@@ -298,22 +319,22 @@ export default function AssetTreeItem({
 			{/* Children */}
 			{hasChildren(item) &&
 				isOpen &&
-				getChildren(item).map((child, index, arr) => (
+				getChildren(item).map((childAsset, index, arr) => (
 					<AssetTreeItem
-						key={child.id}
-						item={child}
+						key={childAsset.id}
+						item={childAsset}
 						level={level + 1}
 						onToggle={onToggle}
 						onSelect={onSelect}
 						onContextMenu={onContextMenu}
 						onRename={onRename}
 						renamedAssetId={renamedAssetId}
-						isSelected={assetsSelectionSnap.includes(child.id)}
+						isSelected={assetsSelectionSnap.includes(childAsset.id)}
 						isLastChild={index === arr.length - 1}
-						isOpen={openFolders.has(child.id)}
+						isOpen={openFolders.has(childAsset.id)}
 						openFolders={openFolders}
-						id={getAssetItemId(child.id)}
-						isFocused={assetsSelectionSnap.includes(child.id)}
+						id={getAssetItemId(childAsset.id)}
+						isFocused={assetsSelectionSnap.includes(childAsset.id)}
 					/>
 				))}
 		</Stack>

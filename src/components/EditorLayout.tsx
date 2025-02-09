@@ -123,7 +123,8 @@ export default function EditorLayout() {
 		)
 		const assets = await trpc.globby.query({
 			patterns: [assetsGlob],
-			options: { ignore: assetsToIgnore },
+			// TODO use objectMode
+			options: { ignore: assetsToIgnore, markDirectories: true },
 		})
 		// console.log('assets paths', assets)
 

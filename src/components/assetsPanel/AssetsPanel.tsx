@@ -1,48 +1,64 @@
 import { Divider, Group, Paper, ScrollArea, Stack } from '@mantine/core'
 import { useWindowEvent } from '@mantine/hooks'
+import { until } from '@open-draft/until'
 import { state, useSnapshot } from '@state/State'
-import { ChevronRight } from 'lucide-react'
-import { ContextMenuProvider, useContextMenu } from 'mantine-contextmenu'
+import { getErrorLog } from '@utils/error/utils'
+import {
+	ChevronRight,
+	Cuboid,
+	ExternalLink,
+	FileJson,
+	FilePlus2,
+	Folder,
+	FolderOpen,
+	Image,
+	RefreshCcw,
+	TextCursorInput,
+	Trash2,
+} from 'lucide-react'
+import { ContextMenuItemOptions, ContextMenuProvider, useContextMenu } from 'mantine-contextmenu'
 import { nanoid } from 'nanoid'
 import path from 'path-browserify-esm'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import { Snapshot } from 'valtio'
 import trpc from '../../trpc'
-import { AssetTreeFolderData, getAssetById, removeAssetById, type AssetTreeItemData } from '../../types/assets'
+import {
+	AssetTreeFolderData,
+	AssetTreePrefabData,
+	getAssetById,
+	getAssetChildren,
+	isAssetOfType,
+	removeAssetById,
+	type AssetTreeItemData,
+} from '../../types/assets'
 import { PanelTitle } from './../PanelTitle'
-import AssetContextMenu from './AssetContextMenu'
 import { AssetsSearch } from './AssetsSearch'
 import AssetTreeItem from './AssetTreeItem'
 import { addAssetId } from './build-asset-tree'
-
-interface ContextMenuState {
-	opened: boolean
-	position: { x: number; y: number }
-	asset: Snapshot<AssetTreeItemData> | null
-}
 
 interface AssetsPanelProps {
 	logger: Logger<{}>
 }
 
 // Helper function to flatten the asset tree - moved outside component for better performance
-const getAllItems = (items: AssetTreeItemData[]): AssetTreeItemData[] => {
-	const result: AssetTreeItemData[] = []
+const flattenAssets = (items: Snapshot<AssetTreeItemData>[]): Snapshot<AssetTreeItemData>[] => {
+	const result: Snapshot<AssetTreeItemData>[] = []
 
-	const traverse = (items: AssetTreeItemData[]) => {
+	const traverse = (items: Snapshot<AssetTreeItemData>[]) => {
 		items.forEach((item) => {
 			result.push(item)
-			if ('children' in item && Array.isArray(item.children)) {
-				traverse(item.children)
-			}
-			if ('frames' in item && Array.isArray(item.frames)) {
-				traverse(item.frames)
+
+			const children = getAssetChildren(item as AssetTreeItemData)
+			if (children) {
+				traverse(children)
 			}
 		})
 	}
 
 	traverse(items)
+
 	return result
 }
 
@@ -79,24 +95,39 @@ const getParentFolderIds = (assets: AssetTreeItemData[], targetId: string): Set<
 	return folderIds
 }
 
+const getParentFolder = (asset: Snapshot<AssetTreeItemData>, allAssetsFlattened: Snapshot<AssetTreeItemData>[]) => {
+	const parentFolderPath = match(asset)
+		.with({ type: 'folder' }, ({ path }) => path)
+		.with({ type: 'spritesheet' }, () => path.dirname(asset.path))
+		.with({ type: 'spritesheet-folder' }, ({ imagePath }) => path.dirname(imagePath))
+		.with({ type: 'spritesheet-frame' }, ({ imagePath }) => path.dirname(imagePath))
+		.with({ type: 'image' }, () => path.dirname(asset.path))
+		.with({ type: 'json' }, () => path.dirname(asset.path))
+		.with({ type: 'xml' }, () => path.dirname(asset.path))
+		.with({ type: 'prefab' }, () => path.dirname(asset.path))
+		.with({ type: 'web-font' }, () => path.dirname(asset.path))
+		.with({ type: 'bitmap-font' }, () => path.dirname(asset.path))
+		.with({ type: 'file' }, () => path.dirname(asset.path))
+		.exhaustive()
+
+	return allAssetsFlattened.find((item) => item.type === 'folder' && item.path === parentFolderPath) as
+		| Snapshot<AssetTreeFolderData>
+		| undefined
+}
+
 export default function AssetsPanel({ logger }: AssetsPanelProps) {
 	const assetsSnap = useSnapshot(state.assets)
 	const { showContextMenu } = useContextMenu()
 	const [itemToRename, setItemToRename] = useState<string | null>(null)
 	const [openFolders, setOpenFolders] = useState<Set<string>>(new Set())
 	const [lastSelectedId, setLastSelectedId] = useState<string | null>(null)
-	const [searchResults, setSearchResults] = useState<AssetTreeItemData[]>([])
+	const [searchResults, setSearchResults] = useState<Snapshot<AssetTreeItemData>[]>([])
 	const [isSearchMode, setIsSearchMode] = useState(false)
-	const [contextMenu, setContextMenu] = useState<ContextMenuState>({
-		opened: false,
-		position: { x: 0, y: 0 },
-		asset: null,
-	})
 	const [focusedIndex, setFocusedIndex] = useState<number>(-1)
 	const searchRef = useRef<{ handleExpand: () => void; blur: () => void; focus: () => void } | null>(null)
 
 	// Memoize flattened items for better search performance
-	const allItems = useMemo(() => getAllItems(assetsSnap.items as AssetTreeItemData[]), [assetsSnap.items])
+	const allAssetsFlattened = useMemo(() => flattenAssets(assetsSnap.items as AssetTreeItemData[]), [assetsSnap.items])
 
 	// Initialize all folders as open
 	// useEffect(() => {
@@ -139,13 +170,13 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 			setLastSelectedId(item.id)
 		} else if (isShiftPressed && lastSelectedId) {
 			// Find all items between last selected and current
-			const lastSelectedIndex = allItems.findIndex((i) => i.id === lastSelectedId)
-			const currentIndex = allItems.findIndex((i) => i.id === item.id)
+			const lastSelectedIndex = allAssetsFlattened.findIndex((i) => i.id === lastSelectedId)
+			const currentIndex = allAssetsFlattened.findIndex((i) => i.id === item.id)
 
 			if (lastSelectedIndex !== -1 && currentIndex !== -1) {
 				const start = Math.min(lastSelectedIndex, currentIndex)
 				const end = Math.max(lastSelectedIndex, currentIndex)
-				const itemsToSelect = allItems.slice(start, end + 1)
+				const itemsToSelect = allAssetsFlattened.slice(start, end + 1)
 
 				state.assets.selection = itemsToSelect.map((i) => i.id)
 			}
@@ -159,80 +190,212 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		logger.info(`selected '${item.name}' (${item.type})`, item)
 	}
 
-	const handleContextMenu = (item: Snapshot<AssetTreeItemData>, position: { x: number; y: number }) => {
-		setContextMenu({
-			opened: true,
-			position,
-			asset: item,
+	const getAssetContextMenuItems = (asset: Snapshot<AssetTreeItemData>) => {
+		const canBeRenamed = match(asset.type)
+			.with('folder', () => true)
+			.with('spritesheet', () => true)
+			.with('spritesheet-folder', () => false)
+			.with('spritesheet-frame', () => false)
+			.with('image', () => true)
+			.with('json', () => true)
+			.with('xml', () => true)
+			.with('prefab', () => true)
+			.with('web-font', () => true)
+			.with('bitmap-font', () => false)
+			.with('file', () => true)
+			.exhaustive()
+
+		const menuItems: ContextMenuItemOptions[] = [
+			{
+				key: 'create',
+				icon: <FilePlus2 size={16} />,
+				title: 'Create',
+				iconRight: <ChevronRight size={14} />,
+				items: [
+					{
+						key: 'create-folder',
+						icon: <Folder size={16} />,
+						title: 'Folder',
+						onClick: async () => {
+							const parentFolderAssetSnap =
+								asset.type === 'folder' ? asset : getParentFolder(asset, allAssetsFlattened)
+							if (!parentFolderAssetSnap) {
+								return
+							}
+
+							const parentFolderAsset = getAssetById(state.assets.items, parentFolderAssetSnap.id)
+							if (!parentFolderAsset || !isAssetOfType(parentFolderAsset, 'folder')) {
+								return
+							}
+
+							const folderName = 'folder-' + nanoid(5)
+							const folderAsset: AssetTreeFolderData = addAssetId({
+								type: 'folder',
+								name: folderName,
+								path: path.join(parentFolderAsset.path, folderName),
+								children: [],
+							})
+
+							const { error } = await until(() => trpc.createFolder.mutate({ path: folderAsset.path }))
+							if (error) {
+								logger.error(
+									`error creating folder at '${folderAsset.path}' (${getErrorLog(error)})`,
+									error
+								)
+								// TODO show error toast
+								return
+							}
+
+							parentFolderAsset.children.push(folderAsset)
+							// TODO sort folder children
+
+							logger.info(`created folder at '${folderAsset.path}'`)
+
+							// enter folder rename mode immediately after creation
+							startRename(folderAsset)
+						},
+					},
+					{
+						key: 'create-prefab',
+						title: 'Prefab',
+						icon: <Cuboid size={16} />,
+						onClick: async () => {
+							const folderAssetSnap =
+								asset.type === 'folder' ? asset : getParentFolder(asset, allAssetsFlattened)
+							if (!folderAssetSnap) {
+								return
+							}
+
+							const folderAsset = getAssetById(state.assets.items, folderAssetSnap.id)
+							if (!folderAsset || !isAssetOfType(folderAsset, 'folder')) {
+								return
+							}
+
+							const prefabNameTemp = `prefab-${nanoid(5)}.prefab.json`
+							const prefabAsset: AssetTreePrefabData = addAssetId({
+								type: 'prefab',
+								name: prefabNameTemp,
+								path: path.join(folderAsset.path, prefabNameTemp),
+							})
+
+							logger.info(`creating prefab at '${prefabAsset.path}'`)
+
+							const { error } = await until(() =>
+								trpc.createTextFile.mutate({ path: prefabAsset.path, content: '{}' })
+							)
+							if (error) {
+								logger.error(
+									`error creating prefab at '${prefabAsset.path}' (${getErrorLog(error)})`,
+									error
+								)
+								// TODO show error toast
+								return
+							}
+
+							folderAsset.children.push(prefabAsset)
+							// TODO sort folder children
+
+							// enter rename mode immediately after creation
+							startRename(prefabAsset)
+						},
+					},
+				],
+			},
+			{
+				key: 'open',
+				title: 'Open',
+				icon: asset.type === 'folder' ? <FolderOpen size={16} /> : <FileJson size={16} />,
+				onClick: async () => {
+					await trpc.open.query({ path: asset.path })
+				},
+			},
+			{
+				key: 'openInFiles',
+				title: 'Open in Files',
+				icon: <ExternalLink size={16} />,
+				onClick: async () => {
+					const pathToOpen = path.dirname(asset.path)
+					await trpc.open.query({ path: pathToOpen })
+				},
+			},
+			...(asset.type === 'spritesheet' ||
+			asset.type === 'spritesheet-folder' ||
+			asset.type === 'spritesheet-frame'
+				? [
+						{
+							key: 'openInTexturePacker',
+							title: 'Open in TexturePacker',
+							icon: <Image size={16} />,
+							onClick: async () => {
+								if (asset.project) {
+									await trpc.open.query({ path: asset.project })
+								}
+							},
+						},
+					]
+				: []),
+			{
+				key: 'rename',
+				title: 'Rename',
+				icon: <TextCursorInput size={16} />,
+				disabled: !canBeRenamed,
+				onClick: () => {
+					setItemToRename(asset.id)
+				},
+			},
+			{
+				key: 'delete',
+				title: 'Delete',
+				icon: <Trash2 size={16} />,
+				color: 'red',
+				onClick: async (event) => {
+					const shouldDelete =
+						event.ctrlKey || event.metaKey || confirm(`Are you sure you want to delete ${asset.name}?`)
+					if (shouldDelete) {
+						const absPath = path.join(state.projectDir!, asset.path)
+						const { error } = await until(() => trpc.trash.mutate({ path: absPath }))
+						if (error) {
+							logger.error(`error deleting asset at '${asset.path}' (${getErrorLog(error)})`, error)
+							// TODO show error toast
+							return
+						}
+
+						removeAssetById(state.assets.items, asset.id)
+						// forceUpdate()
+					}
+				},
+			},
+		]
+
+		return menuItems
+	}
+
+	const startRename = (item: Snapshot<AssetTreeItemData>) => {
+		const parentFolderIds = getParentFolderIds(state.assets.items, item.id)
+		setOpenFolders((prev) => {
+			const next = new Set(prev)
+			parentFolderIds.forEach((id) => next.add(id))
+			return next
 		})
+
+		setItemToRename(item.id)
 	}
 
-	const handleContextMenuAction = async (action: string, event: React.MouseEvent<HTMLButtonElement>) => {
-		const asset = contextMenu.asset
-		if (!asset) {
-			return
-		}
-
-		if (BOLT) {
-			console.log('Context menu action:', action, asset)
-			setContextMenu({ ...contextMenu, opened: false })
-			return
-		}
-
-		switch (action) {
-			case 'open':
-				await trpc.open.query({ path: asset.path })
-				break
-			case 'openInFiles':
-				const pathToOpen = path.dirname(asset.path)
-				await trpc.open.query({ path: pathToOpen })
-				break
-			case 'openInTexturePacker':
-				if (
-					(asset.type === 'spritesheet' ||
-						asset.type === 'spritesheet-folder' ||
-						asset.type === 'spritesheet-frame') &&
-					asset.project
-				) {
-					await trpc.open.query({ path: asset.project })
-				}
-				break
-			case 'rename':
-				setItemToRename(asset.id)
-				break
-			case 'delete':
-				const shouldDelete =
-					event.ctrlKey || event.metaKey || confirm(`Are you sure you want to delete ${asset.name}?`)
-				if (shouldDelete) {
-					await trpc.trash.mutate({ path: asset.path })
-					removeAssetById(state.assets.items, asset.id)
-				}
-				break
-		}
-
-		setContextMenu({ ...contextMenu, opened: false })
-	}
-
-	useEffect(() => {
-		const onClick = () => {
-			if (contextMenu.opened) {
-				setContextMenu({ ...contextMenu, opened: false })
-			}
-		}
-
-		window.addEventListener('click', onClick)
-
-		return () => window.removeEventListener('click', onClick)
-	}, [contextMenu.opened])
-
-	const handleRename = async (item: Snapshot<AssetTreeItemData>, newName: string) => {
+	const completeRename = async (item: Snapshot<AssetTreeItemData>, newName: string) => {
 		const oldPath = item.path
-		const newPath = path.join(path.dirname(item.path), newName)
+		const newPath =
+			item.type === 'folder' ? oldPath.replace(item.name, newName) : path.join(path.dirname(item.path), newName)
 
-		// TODO handle renaming for assets that "consist" of multiple files like bitmap fonts and spritesheets
+		logger.info(`renaming '${item.name}' to '${newName}', oldPath: '${oldPath}', newPath: '${newPath}'`)
 
-		// Update filesystem via trpc, it may fail - account for that
-		// await trpc.rename.mutate({ oldPath, newPath })
+		const oldPathAbs = path.join(state.projectDir!, oldPath)
+		const newPathAbs = path.join(state.projectDir!, newPath)
+		const { error } = await until(() => trpc.rename.mutate({ oldPath: oldPathAbs, newPath: newPathAbs }))
+		if (error) {
+			logger.error(`error renaming '${item.name}' to '${newName}' (${getErrorLog(error)})`, error)
+			// TODO show error toast
+			return
+		}
 
 		// Update state
 		const asset = getAssetById(state.assets.items, item.id)
@@ -246,16 +409,18 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		logger.info(`renamed '${item.name}' to '${newName}'`)
 	}
 
-	const rootContextMenu = [
+	const rootContextMenu: ContextMenuItemOptions[] = [
 		{
 			key: 'create',
 			title: 'Create',
+			icon: <FilePlus2 size={16} />,
 			iconRight: <ChevronRight size={14} />,
 			items: [
 				{
 					key: 'create-folder',
 					title: 'Folder',
-					onClick: () => {
+					icon: <Folder size={16} />,
+					onClick: async () => {
 						const folderName = 'folder-' + nanoid(5)
 						const folderAsset: AssetTreeFolderData = addAssetId({
 							type: 'folder',
@@ -264,13 +429,22 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 							children: [],
 						})
 
-						// add folder to filesystem via trpc, it may fail - account for that
+						const absPath = path.join(state.projectDir!, folderAsset.path)
+						const { error } = await until(() => trpc.createFolder.mutate({ path: absPath }))
+						if (error) {
+							logger.error(
+								`error creating folder at '${folderAsset.path}' (${getErrorLog(error)})`,
+								error
+							)
+							// TODO show error toast
+							return
+						}
 
 						state.assets.items.push(folderAsset)
 						state.assets.items.sort()
 
 						// enter folder rename mode immediately after creation
-						setItemToRename(folderAsset.id)
+						startRename(folderAsset)
 					},
 				},
 			],
@@ -278,8 +452,9 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		{
 			key: 'refresh',
 			title: 'Refresh',
-			onClick: () => {
-				logger.info('refresh')
+			icon: <RefreshCcw size={16} />,
+			onClick: async () => {
+				logger.info('refreshing assets')
 			},
 		},
 	]
@@ -413,7 +588,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 						{!isSearchMode && <PanelTitle title="Assets" />}
 						<AssetsSearch
 							ref={searchRef}
-							flatAssets={allItems}
+							flatAssets={allAssetsFlattened}
 							onSearchChange={setSearchResults}
 							onSearchModeChange={setIsSearchMode}
 							onTabPress={handleSearchTabPress}
@@ -440,8 +615,11 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 											item={asset}
 											onToggle={toggleFolder}
 											onSelect={handleSelect}
-											onContextMenu={handleContextMenu}
-											onRename={handleRename}
+											onContextMenu={(event, clickedAsset) => {
+												const contextMenuItems = getAssetContextMenuItems(clickedAsset)
+												showContextMenu(contextMenuItems)(event)
+											}}
+											onRename={completeRename}
 											renamedAssetId={itemToRename}
 											isSelected={assetsSnap.selection.includes(asset.id)}
 											isLastChild={false}
@@ -458,8 +636,11 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 											item={asset}
 											onToggle={toggleFolder}
 											onSelect={handleSelect}
-											onContextMenu={handleContextMenu}
-											onRename={handleRename}
+											onContextMenu={(event, clickedAsset) => {
+												const contextMenuItems = getAssetContextMenuItems(clickedAsset)
+												showContextMenu(contextMenuItems)(event)
+											}}
+											onRename={completeRename}
 											renamedAssetId={itemToRename}
 											isSelected={assetsSnap.selection.includes(asset.id)}
 											isLastChild={index === assetsSnap.items.length - 1}
@@ -470,14 +651,6 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 						</Stack>
 					</ScrollArea>
 				</Stack>
-
-				<AssetContextMenu
-					asset={contextMenu.asset}
-					opened={contextMenu.opened}
-					position={contextMenu.position}
-					onClose={() => setContextMenu({ ...contextMenu, opened: false })}
-					onAction={handleContextMenuAction}
-				/>
 			</Paper>
 		</ContextMenuProvider>
 	)

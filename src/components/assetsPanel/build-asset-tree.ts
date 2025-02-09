@@ -260,6 +260,8 @@ function groupFramesByFolders(
 			type: 'spritesheet-folder',
 			name: folderName,
 			path: folderFrames[0].imagePath + '/' + folderPath,
+			imagePath: folderFrames[0].imagePath,
+			jsonPath: folderFrames[0].jsonPath,
 			children: folderFrames,
 			project: tpsProject?.path,
 		})

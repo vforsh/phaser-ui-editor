@@ -13,6 +13,7 @@ import {
 } from 'react'
 import { state, useSnapshot } from '../../state/State'
 import { AssetTreeItemData, AssetTreeItemDataType } from '../../types/assets'
+import { Snapshot } from 'valtio'
 
 type SearchAssetType = AssetTreeItemDataType | 'all'
 
@@ -31,8 +32,8 @@ const ASSET_TYPES: { label: string; value: SearchAssetType }[] = [
 const PERMANENTLY_EXCLUDED_TYPES = ['folder', 'spritesheet-folder'] as const satisfies AssetTreeItemDataType[]
 
 interface AssetsSearchProps {
-	flatAssets: AssetTreeItemData[]
-	onSearchChange: (results: AssetTreeItemData[]) => void
+	flatAssets: Snapshot<AssetTreeItemData>[]
+	onSearchChange: (results: Snapshot<AssetTreeItemData>[]) => void
 	onSearchModeChange: (isSearchMode: boolean) => void
 	onTabPress?: () => void
 }

@@ -7,23 +7,33 @@ import sizeOf from 'image-size'
 import open from 'open'
 import path from 'path'
 import sharp from 'sharp'
+import trash from 'trash'
 import { Plugin } from 'vite'
+import xml2js from 'xml2js'
 import { z } from 'zod'
-import trash from 'trash';
-import xml2js from 'xml2js';
 // @ts-expect-error
-import parseBmfontXml from 'parse-bmfont-xml';
+import parseBmfontXml from 'parse-bmfont-xml'
 
 const t = initTRPC.create()
 
 const absPathSchema = z.string().refine((val) => path.isAbsolute(val), 'path should be absolute')
 
+/**
+ * https://github.com/sindresorhus/globby/tree/main?tab=readme-ov-file#options
+ * https://github.com/mrmlnc/fast-glob#options-3
+ */
 const globbyOptionsSchema = z
 	.object({
 		cwd: z.string(),
 		dot: z.boolean(),
 		gitignore: z.boolean(),
 		ignore: z.array(z.string()),
+		expandDirectories: z.boolean(),
+		onlyFiles: z.boolean(),
+		onlyDirectories: z.boolean(),
+		markDirectories: z.boolean(),
+		objectMode: z.boolean(),
+		stats: z.boolean(),
 	})
 	.partial()
 	.optional()
@@ -84,6 +94,23 @@ const appRouter = t.router({
 		await fse.remove(path)
 		return { success: true }
 	}),
+	createFolder: t.procedure.input(z.object({ path: absPathSchema })).mutation(async ({ input }) => {
+		const { path } = input
+		await fse.ensureDir(path)
+		return { success: true }
+	}),
+	createFile: t.procedure.input(z.object({ path: absPathSchema })).mutation(async ({ input }) => {
+		const { path } = input
+		await fse.ensureFile(path)
+		return { success: true }
+	}),
+	createTextFile: t.procedure
+		.input(z.object({ path: absPathSchema, content: z.string() }))
+		.mutation(async ({ input }) => {
+			const { path, content } = input
+			await fse.writeFile(path, content)
+			return { success: true }
+		}),
 	trash: t.procedure.input(z.object({ path: absPathSchema })).mutation(async ({ input }) => {
 		const { path } = input
 		await trash(path)

@@ -139,6 +139,16 @@ export type AssetTreeSpritesheetFolderData = {
 	 * It **does not** correspond to an actual file on disk.
 	 */
 	path: string
+	/**
+	 * Absolute path to the spritesheet image file
+	 * (e.g. `/Users/user/game/assets/graphics/gameplay_gui.png`)
+	 */
+	imagePath: string
+	/**
+	 * Absolute path to the spritesheet JSON file
+	 * (e.g. `/Users/user/game/assets/graphics/gameplay_gui.json`)
+	 */
+	jsonPath: string
 	children: AssetTreeSpritesheetFrameData[]
 	/**
 	 * Absolute path to the TexturePacker project file (e.g. `/Users/user/game/assets/graphics/gameplay_gui.tps`)
