@@ -11,8 +11,8 @@ export class EditablePinnerComponent extends BaseEditableComponent<PinnerCompone
 	private yOffset = '0'
 	private _stateChanges: StateChangesEmitter<PinnerComponentJson>
 
-	constructor() {
-		super()
+	constructor(id: string) {
+		super(id)
 
 		this._state = this.createState()
 

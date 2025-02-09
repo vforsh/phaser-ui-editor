@@ -17,8 +17,8 @@ export class EditableVerticalLayoutComponent extends BaseEditableComponent<Verti
 
 	private _stateChanges: StateChangesEmitter<VerticalLayoutComponentJson>
 
-	constructor() {
-		super()
+	constructor(id: string) {
+		super(id)
 
 		this._state = this.createState()
 

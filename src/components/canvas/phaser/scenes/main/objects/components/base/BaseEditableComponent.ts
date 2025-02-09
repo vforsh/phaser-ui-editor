@@ -6,6 +6,7 @@ import { PreAddCheck, PreAddChecksFactory } from './PreAddChecksFactory'
 
 export abstract class BaseEditableComponent<TJson extends EditableComponentJson = EditableComponentJson> {
 	public abstract readonly type: string
+	protected _id: string
 	protected _parent: EditableObject | undefined
 	protected _isActive = true
 	protected _state!: TJson
@@ -13,6 +14,10 @@ export abstract class BaseEditableComponent<TJson extends EditableComponentJson 
 	protected _preAddChecks: PreAddCheck[] = []
 	private _deactivateController: AbortController | undefined
 	private _destroyController = new AbortController()
+
+	constructor(id: string) {
+		this._id = id
+	}
 
 	protected createState(): TJson {
 		return proxy(this.toJson())
@@ -91,5 +96,9 @@ export abstract class BaseEditableComponent<TJson extends EditableComponentJson 
 
 	public get state(): TJson {
 		return this._state
+	}
+
+	public get id(): string {
+		return this._id
 	}
 }

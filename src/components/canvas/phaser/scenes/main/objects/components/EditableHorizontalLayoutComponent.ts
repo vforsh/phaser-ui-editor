@@ -17,8 +17,8 @@ export class EditableHorizontalLayoutComponent extends BaseEditableComponent<Hor
 
 	private _stateChanges: StateChangesEmitter<HorizontalLayoutComponentJson>
 
-	constructor() {
-		super()
+	constructor(id: string) {
+		super(id)
 
 		this._state = this.createState()
 

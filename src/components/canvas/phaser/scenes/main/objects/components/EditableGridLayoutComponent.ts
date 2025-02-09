@@ -20,8 +20,8 @@ export class EditableGridLayoutComponent extends BaseEditableComponent<GridLayou
 
 	private _stateChanges: StateChangesEmitter<GridLayoutComponentJson>
 
-	constructor() {
-		super()
+	constructor(id: string) {
+		super(id)
 
 		this._state = this.createState()
 
