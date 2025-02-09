@@ -109,9 +109,9 @@ export class MainScene extends BaseScene {
 		this.rulers.name = 'rulers'
 		this.add.existing(this.rulers)
 
-		this.initObjectsFactory()
-
 		this.initComponentsFactory()
+
+		this.initObjectsFactory()
 
 		this.initClipboard()
 
@@ -149,16 +149,17 @@ export class MainScene extends BaseScene {
 		state.canvas.objectById = (id: string) => this.objectsFactory.getObjectById(id)?.stateObj
 	}
 
+	private initComponentsFactory() {
+		this.componentsFactory = new EditableComponentsFactory({
+			logger: this.logger.getSubLogger({ name: ':components-factory' }),
+		})
+	}
+
 	private initObjectsFactory() {
 		this.objectsFactory = new EditableObjectsFactory({
 			scene: this,
 			logger: this.logger.getSubLogger({ name: ':objects-factory' }),
-		})
-	}
-
-	private initComponentsFactory() {
-		this.componentsFactory = new EditableComponentsFactory({
-			logger: this.logger.getSubLogger({ name: ':components-factory' }),
+			componentsFactory: this.componentsFactory,
 		})
 	}
 

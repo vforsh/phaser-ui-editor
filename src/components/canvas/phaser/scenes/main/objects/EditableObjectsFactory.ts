@@ -9,6 +9,8 @@ import { EditableImage, EditableImageJson } from './EditableImage'
 import { EditableNineSlice, EditableNineSliceJson } from './EditableNineSlice'
 import { EditableObject, EditableObjectJson } from './EditableObject'
 import { EditableText, EditableTextJson, EditableTextStyleJson } from './EditableText'
+import { EditableComponentJson } from './components/base/EditableComponent'
+import { EditableComponentsFactory } from './components/base/EditableComponentsFactory'
 
 type Events = {
 	// emitted after an object is created and has an id, but **not added to the scene**
@@ -24,11 +26,13 @@ export interface CloneOptions {
 export interface EditableObjectsFactoryOptions {
 	scene: Phaser.Scene
 	logger: Logger<{}>
+	componentsFactory: EditableComponentsFactory
 }
 
 export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 	private scene: Phaser.Scene
 	private logger: Logger<{}>
+	private componentsFactory: EditableComponentsFactory
 	private idsToObjects: Map<string, EditableObject> = new Map()
 	private destroyController = new AbortController()
 
@@ -37,6 +41,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 
 		this.scene = options.scene
 		this.logger = options.logger
+		this.componentsFactory = options.componentsFactory
 	}
 
 	private register(obj: EditableObject): void {
@@ -142,6 +147,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		container.setBlendMode(json.blendMode)
 		container.setSize(json.width, json.height)
 		container.locked = json.locked
+		this.initComponents(container, json.components)
 
 		return container
 	}
@@ -159,6 +165,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		image.setBlendMode(json.blendMode)
 		image.setScale(json.scale.x, json.scale.y)
 		image.setOrigin(json.originX, json.originY)
+		this.initComponents(image, json.components)
 
 		return image
 	}
@@ -184,6 +191,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		nineSlice.setBlendMode(json.blendMode)
 		nineSlice.setScale(json.scale.x, json.scale.y)
 		nineSlice.locked = json.locked
+		this.initComponents(nineSlice, json.components)
 
 		return nineSlice
 	}
@@ -201,6 +209,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		text.setScale(json.scale.x, json.scale.y)
 		text.setOrigin(json.originX, json.originY)
 		text.locked = json.locked
+		this.initComponents(text, json.components)
 
 		return text
 	}
@@ -220,8 +229,16 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		bitmapText.setOrigin(json.originX, json.originY)
 		bitmapText.setMaxWidth(json.maxWidth)
 		bitmapText.locked = json.locked
+		this.initComponents(bitmapText, json.components)
 
 		return bitmapText
+	}
+
+	private initComponents(obj: EditableObject, components: EditableComponentJson[]): void {
+		for (const componentJson of components) {
+			const component = this.componentsFactory.fromJson(componentJson)
+			obj.components.add(component)
+		}
 	}
 
 	public clone(obj: EditableObject, options?: CloneOptions): EditableObject {

@@ -18,9 +18,6 @@ export class EditableComponentsFactory {
 
 	private getOrCreateId(initialState?: EditableComponentJson): string {
 		if (initialState?.id) {
-			if (this.ids.has(initialState.id)) {
-				throw new Error(`Duplicate id: ${initialState.id}`)
-			}
 			this.ids.add(initialState.id)
 			return initialState.id
 		}
