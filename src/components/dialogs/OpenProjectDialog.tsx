@@ -15,7 +15,7 @@ export default function OpenProjectDialog({
   onClose, 
   onOpenProject 
 }: OpenProjectDialogProps) {
-  const [projectPath, setProjectPath] = useState('');
+  const [projectPath, setProjectPath] = useState('/Users/vlad/dev/papa-cherry-2');
   const { recentProjects, removeProject, checkProjectExists } = useRecentProjects();
 
   const handleSubmit = (e: React.FormEvent) => {
