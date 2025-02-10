@@ -617,7 +617,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 												const contextMenuItems = getAssetContextMenuItems(clickedAsset)
 												showContextMenu(contextMenuItems)(event)
 											}}
-											onRename={completeRename}
+											onRenameSubmit={completeRename}
 											renamedAssetId={itemToRename}
 											isSelected={assetsSnap.selection.includes(asset.id)}
 											isLastChild={false}
@@ -638,7 +638,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 												const contextMenuItems = getAssetContextMenuItems(clickedAsset)
 												showContextMenu(contextMenuItems)(event)
 											}}
-											onRename={completeRename}
+											onRenameSubmit={completeRename}
 											renamedAssetId={itemToRename}
 											isSelected={assetsSnap.selection.includes(asset.id)}
 											isLastChild={index === assetsSnap.items.length - 1}

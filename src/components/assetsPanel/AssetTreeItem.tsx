@@ -53,7 +53,7 @@ interface AssetTreeItemProps {
 	onToggle: (id: string) => void
 	onSelect: (item: Snapshot<AssetTreeItemData>, event: React.MouseEvent) => void
 	onContextMenu: (event: React.MouseEvent, asset: Snapshot<AssetTreeItemData>) => void
-	onRename?: (item: Snapshot<AssetTreeItemData>, newName: string) => void
+	onRenameSubmit: (item: Snapshot<AssetTreeItemData>, newName: string) => void
 	renamedAssetId: string | null
 	isSelected?: boolean
 	isLastChild?: boolean
@@ -69,7 +69,7 @@ export default function AssetTreeItem({
 	onToggle,
 	onSelect,
 	onContextMenu,
-	onRename,
+	onRenameSubmit,
 	renamedAssetId,
 	isSelected = false,
 	isLastChild = false,
@@ -92,8 +92,17 @@ export default function AssetTreeItem({
 		if (renamedAssetId === item.id) {
 			setEditValue(getNameWithoutExtension(item))
 			setIsEditing(true)
+		} else {
+			setIsEditing(false)
 		}
 	}, [renamedAssetId, item])
+
+	useEffect(() => {
+		if (isEditing && inputRef.current) {
+			inputRef.current.focus()
+			inputRef.current.select()
+		}
+	}, [isEditing])
 
 	const GRID_LINE_COLOR = theme.colors.gray[7]
 
@@ -144,6 +153,16 @@ export default function AssetTreeItem({
 			.otherwise(() => [])
 	}
 
+	const handleKeyDownOnRenameInput = (e: React.KeyboardEvent) => {
+		if (e.key === 'Enter') {
+			completeRename()
+		} else if (e.key === 'Escape') {
+			setIsEditing(false)
+		}
+
+		e.stopPropagation()
+	}
+
 	const completeRename = () => {
 		if (!editValue.trim()) {
 			setIsEditing(false)
@@ -153,28 +172,12 @@ export default function AssetTreeItem({
 		const extension = item.type === 'folder' ? '' : getExtension(item)
 		const newName = editValue.trim() + extension
 
-		if (newName !== item.name && onRename) {
-			onRename(item, newName)
+		if (newName !== item.name) {
+			onRenameSubmit(item, newName)
 		}
 
 		setIsEditing(false)
 	}
-
-	const handleKeyDown = (e: React.KeyboardEvent) => {
-		if (e.key === 'Enter') {
-			completeRename()
-		} else if (e.key === 'Escape') {
-			setIsEditing(false)
-		}
-		e.stopPropagation()
-	}
-
-	useEffect(() => {
-		if (isEditing && inputRef.current) {
-			inputRef.current.focus()
-			inputRef.current.select()
-		}
-	}, [isEditing])
 
 	return (
 		<Stack gap={0}>
@@ -277,7 +280,7 @@ export default function AssetTreeItem({
 							ref={inputRef}
 							value={editValue}
 							onChange={(e) => setEditValue(e.target.value)}
-							onKeyDown={handleKeyDown}
+							onKeyDown={handleKeyDownOnRenameInput}
 							onBlur={completeRename}
 							onClick={(e) => e.stopPropagation()}
 							styles={{
@@ -327,7 +330,7 @@ export default function AssetTreeItem({
 						onToggle={onToggle}
 						onSelect={onSelect}
 						onContextMenu={onContextMenu}
-						onRename={onRename}
+						onRenameSubmit={onRenameSubmit}
 						renamedAssetId={renamedAssetId}
 						isSelected={assetsSelectionSnap.includes(childAsset.id)}
 						isLastChild={index === arr.length - 1}
