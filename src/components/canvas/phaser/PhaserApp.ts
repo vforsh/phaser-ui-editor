@@ -73,6 +73,7 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 		this.appEvents = appEvents
 
 		this.appCommands = appCommands
+		this.appCommands.on('open-prefab', this.openPrefab, this, false, this.destroySignal)
 
 		this.resizeSensor = this.setupScaling()
 
@@ -89,6 +90,10 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 				project: new Project({ config: projectConfig }),
 			} satisfies MainSceneInitData)
 		}
+	}
+
+	private openPrefab(prefabAssetId: string) {
+		this.logger.info(`open-prefab: ${prefabAssetId}`)
 	}
 
 	private setupScaling() {

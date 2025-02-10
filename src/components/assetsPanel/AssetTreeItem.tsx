@@ -52,6 +52,7 @@ interface AssetTreeItemProps {
 	level?: number
 	onToggle: (id: string) => void
 	onSelect: (item: Snapshot<AssetTreeItemData>, event: React.MouseEvent) => void
+	onDoubleClick: (item: Snapshot<AssetTreeItemData>) => void
 	onContextMenu: (event: React.MouseEvent, asset: Snapshot<AssetTreeItemData>) => void
 	onRenameSubmit: (item: Snapshot<AssetTreeItemData>, newName: string) => void
 	renamedAssetId: string | null
@@ -68,6 +69,7 @@ export default function AssetTreeItem({
 	level = 0,
 	onToggle,
 	onSelect,
+	onDoubleClick,
 	onContextMenu,
 	onRenameSubmit,
 	renamedAssetId,
@@ -184,6 +186,7 @@ export default function AssetTreeItem({
 			<UnstyledButton
 				id={id}
 				onClick={handleClick}
+				onDoubleClick={() => onDoubleClick(item)}
 				onContextMenu={(e) => handleContextMenu(e, item)}
 				onMouseEnter={() => setIsHovered(true)}
 				onMouseLeave={() => setIsHovered(false)}
@@ -329,6 +332,7 @@ export default function AssetTreeItem({
 						level={level + 1}
 						onToggle={onToggle}
 						onSelect={onSelect}
+						onDoubleClick={onDoubleClick}
 						onContextMenu={onContextMenu}
 						onRenameSubmit={onRenameSubmit}
 						renamedAssetId={renamedAssetId}

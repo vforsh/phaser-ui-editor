@@ -221,6 +221,24 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		logger.info(`selected '${item.name}' (${item.type})`, item)
 	}
 
+	const openPrefab = (prefabAssetId: string) => {
+		// TODO check if currently edited prefab has no unsaved changes
+		// - if there are unsaved changes, show a confirmation dialog
+		// - if confirmed, save and then open the selected prefab
+		// - if cancelled, do nothing
+
+		state.app?.commands.emit('open-prefab', prefabAssetId)
+	}
+
+	const handleDoubleClick = (item: Snapshot<AssetTreeItemData>) => {
+		if (item.type === 'prefab') {
+			openPrefab(item.id)
+		} else if (getAssetChildren(item as AssetTreeItemData)) {
+			// Toggle folder open/closed state
+			toggleFolder(item.id)
+		}
+	}
+
 	const getAssetContextMenuItems = (asset: Snapshot<AssetTreeItemData>) => {
 		const canBeRenamed = canAssetBeRenamed(asset)
 
@@ -558,6 +576,16 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 			}
 		}
 
+		if (event.key === 'Enter') {
+			event.preventDefault()
+
+			const selectedAssetId = assetsSnap.selection[0]
+			const selectedAsset = allAssetsFlattened.find((asset) => asset.id === selectedAssetId)
+			if (selectedAsset && selectedAsset.type === 'prefab') {
+				openPrefab(selectedAsset.id)
+			}
+		}
+
 		// Handle arrow keys for navigation
 		if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
 			event.preventDefault()
@@ -720,6 +748,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 											item={asset}
 											onToggle={toggleFolder}
 											onSelect={handleSelect}
+											onDoubleClick={handleDoubleClick}
 											onContextMenu={(event, clickedAsset) => {
 												const contextMenuItems = getAssetContextMenuItems(clickedAsset)
 												showContextMenu(contextMenuItems)(event)
@@ -741,6 +770,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 											item={asset}
 											onToggle={toggleFolder}
 											onSelect={handleSelect}
+											onDoubleClick={handleDoubleClick}
 											onContextMenu={(event, clickedAsset) => {
 												const contextMenuItems = getAssetContextMenuItems(clickedAsset)
 												showContextMenu(contextMenuItems)(event)

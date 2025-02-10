@@ -19,6 +19,7 @@ export type AppCommands = {
 	'delete-object': (objPath: string) => void
 
 	// commands from assets panel
+	'open-prefab': (prefabAssetId: string) => void
 	'handle-asset-drop': (data: { asset: AssetTreeItemData; position: { x: number; y: number } }) => void
 
 	// commands from align controls
