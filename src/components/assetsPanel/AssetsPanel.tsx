@@ -388,9 +388,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 
 		logger.info(`renaming '${item.name}' to '${newName}', oldPath: '${oldPath}', newPath: '${newPath}'`)
 
-		const oldPathAbs = path.join(state.projectDir!, oldPath)
-		const newPathAbs = path.join(state.projectDir!, newPath)
-		const { error } = await until(() => trpc.rename.mutate({ oldPath: oldPathAbs, newPath: newPathAbs }))
+		const { error } = await until(() => trpc.rename.mutate({ oldPath, newPath }))
 		if (error) {
 			logger.error(`error renaming '${item.name}' to '${newName}' (${getErrorLog(error)})`, error)
 			// TODO show error toast

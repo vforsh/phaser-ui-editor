@@ -119,9 +119,11 @@ const buildFileTree = async (absoluteFilepaths: string[], baseDir: string): Prom
 		const relativePath = path.relative(baseDir, filePath)
 		const parts = relativePath.split(path.sep)
 		let currentLevel = tree
+		let currentPath = baseDir
 
 		for (let i = 0; i < parts.length; i++) {
 			const part = parts[i]
+			currentPath = path.join(currentPath, part)
 			const existingNode = currentLevel.find((node) => node.name === part)
 
 			if (existingNode) {
@@ -132,7 +134,7 @@ const buildFileTree = async (absoluteFilepaths: string[], baseDir: string): Prom
 				const isFile = i === parts.length - 1
 				const newNode: FileTreeItemData = isFile
 					? { type: 'file', name: part, path: filePath }
-					: { type: 'folder', name: part, path: path.dirname(filePath), children: [] }
+					: { type: 'folder', name: part, path: currentPath, children: [] }
 
 				currentLevel.push(newNode)
 
