@@ -308,6 +308,10 @@ const doBuildAssetTree = async (
 				const childAssets: AssetTreeItemData[] = []
 
 				const children = folder.children.slice().sort((a, b) => {
+					if (a.type === 'folder' && b.type === 'folder') {
+						return a.name.localeCompare(b.name)
+					}
+
 					// folders should be first
 					if (a.type === 'folder' && b.type === 'file') {
 						return -1
