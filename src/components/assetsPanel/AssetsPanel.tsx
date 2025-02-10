@@ -62,6 +62,25 @@ const flattenAssets = (items: Snapshot<AssetTreeItemData>[]): Snapshot<AssetTree
 	return result
 }
 
+/**
+ * Determines if an asset can be renamed based on its type
+ */
+const canAssetBeRenamed = (asset: Snapshot<AssetTreeItemData> | AssetTreeItemData): boolean => {
+	return match(asset.type)
+		.with('folder', () => true)
+		.with('spritesheet', () => true)
+		.with('spritesheet-folder', () => false)
+		.with('spritesheet-frame', () => false)
+		.with('image', () => true)
+		.with('json', () => true)
+		.with('xml', () => true)
+		.with('prefab', () => true)
+		.with('web-font', () => true)
+		.with('bitmap-font', () => false)
+		.with('file', () => true)
+		.exhaustive()
+}
+
 // Helper function to get all parent folder IDs for an asset
 const getParentFolderIds = (assets: AssetTreeItemData[], targetId: string): Set<string> => {
 	const folderIds = new Set<string>()
@@ -129,21 +148,6 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 	// Memoize flattened items for better search performance
 	const allAssetsFlattened = useMemo(() => flattenAssets(assetsSnap.items as AssetTreeItemData[]), [assetsSnap.items])
 
-	// Initialize all folders as open
-	// useEffect(() => {
-	// 	const folders = new Set<string>()
-	// 	const collectFolderPaths = (items: AssetTreeItemData[]) => {
-	// 		items.forEach((item) => {
-	// 			if (item.type === 'folder') {
-	// 				folders.add(item.id)
-	// 				collectFolderPaths(item.children)
-	// 			}
-	// 		})
-	// 	}
-	// 	collectFolderPaths(assetsSnap.items as AssetTreeItemData[])
-	// 	setOpenFolders(folders)
-	// }, [assetsSnap.items])
-
 	const toggleFolder = (folderId: string) => {
 		setOpenFolders((prev) => {
 			const next = new Set(prev)
@@ -191,19 +195,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 	}
 
 	const getAssetContextMenuItems = (asset: Snapshot<AssetTreeItemData>) => {
-		const canBeRenamed = match(asset.type)
-			.with('folder', () => true)
-			.with('spritesheet', () => true)
-			.with('spritesheet-folder', () => false)
-			.with('spritesheet-frame', () => false)
-			.with('image', () => true)
-			.with('json', () => true)
-			.with('xml', () => true)
-			.with('prefab', () => true)
-			.with('web-font', () => true)
-			.with('bitmap-font', () => false)
-			.with('file', () => true)
-			.exhaustive()
+		const canBeRenamed = canAssetBeRenamed(asset)
 
 		const menuItems: ContextMenuItemOptions[] = [
 			{
@@ -524,6 +516,21 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f') {
 			event.preventDefault()
 			searchRef.current?.handleExpand()
+		}
+
+		// Handle F2 for renaming selected asset
+		if (event.key === 'F2') {
+			event.preventDefault()
+
+			// Get the selected asset
+			if (assetsSnap.selection.length === 1) {
+				const selectedAssetId = assetsSnap.selection[0]
+				const selectedAsset = allAssetsFlattened.find((asset) => asset.id === selectedAssetId)
+
+				if (selectedAsset && canAssetBeRenamed(selectedAsset)) {
+					startRename(selectedAsset)
+				}
+			}
 		}
 	})
 
