@@ -134,6 +134,33 @@ const getParentFolder = (asset: Snapshot<AssetTreeItemData>, allAssetsFlattened:
 		| undefined
 }
 
+/**
+ * Returns a list of items that are currently visible in the tree view
+ * taking into account the open/closed state of folders
+ */
+const getVisibleItems = (
+	items: Snapshot<AssetTreeItemData>[],
+	openFolders: Set<string>
+): Snapshot<AssetTreeItemData>[] => {
+	const result: Snapshot<AssetTreeItemData>[] = []
+
+	const traverse = (items: Snapshot<AssetTreeItemData>[], parentIsVisible: boolean) => {
+		items.forEach((item) => {
+			if (!parentIsVisible) return
+
+			result.push(item)
+
+			const children = getAssetChildren(item as AssetTreeItemData)
+			if (children) {
+				traverse(children, openFolders.has(item.id))
+			}
+		})
+	}
+
+	traverse(items, true)
+	return result
+}
+
 export default function AssetsPanel({ logger }: AssetsPanelProps) {
 	const assetsSnap = useSnapshot(state.assets)
 	const { showContextMenu } = useContextMenu()
@@ -378,8 +405,6 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		const newPath =
 			item.type === 'folder' ? oldPath.replace(item.name, newName) : path.join(path.dirname(item.path), newName)
 
-		logger.info(`renaming '${item.name}' to '${newName}', oldPath: '${oldPath}', newPath: '${newPath}'`)
-
 		const { error } = await until(() => trpc.rename.mutate({ oldPath, newPath }))
 		if (error) {
 			logger.error(`error renaming '${item.name}' to '${newName}' (${getErrorLog(error)})`, error)
@@ -532,7 +557,82 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 				}
 			}
 		}
+
+		// Handle arrow keys for navigation
+		if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+			event.preventDefault()
+
+			// If in search mode, don't handle navigation
+			if (isSearchMode) {
+				return
+			}
+
+			const visibleItems = getVisibleItems(assetsSnap.items as AssetTreeItemData[], openFolders)
+			const currentSelection = assetsSnap.selection[0]
+
+			if (!currentSelection) {
+				// If nothing is selected, select the first item
+				if (visibleItems.length > 0) {
+					const firstItem = visibleItems[0]
+					state.assets.selection = [firstItem.id]
+					state.assets.selectionChangedAt = Date.now()
+					scrollItemIntoView(firstItem.id)
+				}
+				return
+			}
+
+			const currentIndex = visibleItems.findIndex((asset) => asset.id === currentSelection)
+			if (currentIndex === -1) return
+
+			const currentItem = visibleItems[currentIndex]
+
+			if (event.key === 'ArrowUp') {
+				// Move selection up
+				if (currentIndex > 0) {
+					const prevItem = visibleItems[currentIndex - 1]
+					state.assets.selection = [prevItem.id]
+					state.assets.selectionChangedAt = Date.now()
+					scrollItemIntoView(prevItem.id)
+				}
+			} else if (event.key === 'ArrowDown') {
+				// Move selection down
+				if (currentIndex < visibleItems.length - 1) {
+					const nextItem = visibleItems[currentIndex + 1]
+					state.assets.selection = [nextItem.id]
+					state.assets.selectionChangedAt = Date.now()
+					scrollItemIntoView(nextItem.id)
+				}
+			} else if (event.key === 'ArrowRight') {
+				// Expand folder if it's a folder and it's collapsed
+				if ('children' in currentItem || 'frames' in currentItem) {
+					if (!openFolders.has(currentItem.id)) {
+						toggleFolder(currentItem.id)
+					}
+				}
+			} else if (event.key === 'ArrowLeft') {
+				// If folder is expanded, collapse it
+				if (('children' in currentItem || 'frames' in currentItem) && openFolders.has(currentItem.id)) {
+					toggleFolder(currentItem.id)
+				}
+				// If it's not a folder or it's already collapsed, move to parent
+				else {
+					const parentFolder = getParentFolder(currentItem, allAssetsFlattened)
+					if (parentFolder) {
+						state.assets.selection = [parentFolder.id]
+						state.assets.selectionChangedAt = Date.now()
+						scrollItemIntoView(parentFolder.id)
+					}
+				}
+			}
+		}
 	})
+
+	const scrollItemIntoView = (itemId: string) => {
+		const element = document.getElementById(`asset-item-${itemId}`)
+		if (element) {
+			element.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+		}
+	}
 
 	const handleSearchTabPress = () => {
 		if (searchResults.length <= 0) {
