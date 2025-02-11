@@ -160,6 +160,7 @@ export class MainScene extends BaseScene {
 
 		state.canvas.objects = this.root.stateObj
 		state.canvas.objectById = (id: string) => this.objectsFactory.getObjectById(id)?.stateObj
+		state.canvas.hasUnsavedChanges = false
 
 		subscribe(
 			state.canvas.objects,
@@ -412,6 +413,8 @@ export class MainScene extends BaseScene {
 		appCommands.on('paste-component', this.pasteComponent, this, false, this.shutdownSignal)
 
 		appCommands.on('handle-asset-drop', this.handleAssetDrop, this, false, this.shutdownSignal)
+
+		appCommands.on('save-prefab', this.savePrefab, this, false, this.shutdownSignal)
 	}
 
 	private addComponent(data: { componentType: EditableComponentType; objectId: string }): AddComponentResult {

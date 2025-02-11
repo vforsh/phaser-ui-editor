@@ -17,6 +17,7 @@ import { AssetTreeItemData } from './types/assets'
 export type AppCommands = {
 	// commands from hierarchy panel
 	'delete-object': (objPath: string) => void
+	'save-prefab': () => void
 
 	// commands from assets panel
 	'open-prefab': (prefabAssetId: string) => void

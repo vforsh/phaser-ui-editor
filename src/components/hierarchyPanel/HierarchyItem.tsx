@@ -8,6 +8,7 @@ import {
 	Image,
 	ImageUpscale,
 	Lock,
+	Save,
 	Type,
 	TypeOutline,
 	Unlock,
@@ -21,6 +22,8 @@ const ICON_MARGIN = 8
 
 interface HierarchyItemProps {
 	objId: string
+	hasUnsavedChanges?: boolean
+	isRoot?: boolean
 	level?: number
 	selectedIds: readonly string[]
 	hoveredIds: readonly string[]
@@ -31,6 +34,8 @@ interface HierarchyItemProps {
 
 export default function HierarchyItem({
 	objId,
+	hasUnsavedChanges = false,
+	isRoot = false,
 	selectedIds,
 	hoveredIds,
 	level = 0,
@@ -176,48 +181,71 @@ export default function HierarchyItem({
 							textOverflow: 'ellipsis',
 							opacity: snap.visible ? 1 : 0.5,
 							userSelect: 'none',
+							fontWeight: hasUnsavedChanges ? 'bold' : 'normal',
+							flex: 1,
 						}}
 					>
-						{snap.name}
+						{hasUnsavedChanges ? snap.name + ' *' : snap.name}
 					</Text>
 
-					<Tooltip label={snap.visible ? 'Hide' : 'Show'}>
-						<ActionIcon
-							variant="subtle"
-							size="sm"
-							color={theme.colors.gray[5]}
-							onClick={(e) => {
-								e.stopPropagation()
-								setItemVisibility(!snap.visible)
-							}}
-							style={{
-								marginLeft: 'auto',
-								opacity: isHovered ? 1 : 0,
-								transition: 'opacity 33ms ease',
-							}}
-						>
-							{snap.visible ? <Eye size={14} /> : <EyeOff size={14} />}
-						</ActionIcon>
-					</Tooltip>
+					<Group gap="xs" wrap="nowrap" mr="xs">
+						{isRoot && (
+							<Tooltip label="Save">
+								<ActionIcon
+									variant="subtle"
+									size="sm"
+									color={theme.colors.gray[5]}
+									disabled={!hasUnsavedChanges}
+									onClick={(e) => {
+										e.stopPropagation()
+										state.app?.commands.emit('save-prefab')
+									}}
+									style={{
+										opacity: isHovered ? 1 : 0,
+										transition: 'opacity 33ms ease',
+									}}
+								>
+									<Save size={14} />
+								</ActionIcon>
+							</Tooltip>
+						)}
 
-					<Tooltip label={snap.locked ? 'Unlock' : 'Lock'}>
-						<ActionIcon
-							variant="subtle"
-							size="sm"
-							color={theme.colors.gray[5]}
-							onClick={(e) => {
-								e.stopPropagation()
-								setItemLock(!snap.locked)
-							}}
-							style={{
-								marginRight: '10px',
-								opacity: snap.locked ? 1 : isHovered ? 1 : 0,
-								transition: 'opacity 33ms ease',
-							}}
-						>
-							{snap.locked ? <Lock size={14} /> : <Unlock size={14} />}
-						</ActionIcon>
-					</Tooltip>
+						<Tooltip label={snap.visible ? 'Hide' : 'Show'}>
+							<ActionIcon
+								variant="subtle"
+								size="sm"
+								color={theme.colors.gray[5]}
+								onClick={(e) => {
+									e.stopPropagation()
+									setItemVisibility(!snap.visible)
+								}}
+								style={{
+									opacity: isHovered ? 1 : 0,
+									transition: 'opacity 33ms ease',
+								}}
+							>
+								{snap.visible ? <Eye size={14} /> : <EyeOff size={14} />}
+							</ActionIcon>
+						</Tooltip>
+
+						<Tooltip label={snap.locked ? 'Unlock' : 'Lock'}>
+							<ActionIcon
+								variant="subtle"
+								size="sm"
+								color={theme.colors.gray[5]}
+								onClick={(e) => {
+									e.stopPropagation()
+									setItemLock(!snap.locked)
+								}}
+								style={{
+									opacity: snap.locked ? 1 : isHovered ? 1 : 0,
+									transition: 'opacity 33ms ease',
+								}}
+							>
+								{snap.locked ? <Lock size={14} /> : <Unlock size={14} />}
+							</ActionIcon>
+						</Tooltip>
+					</Group>
 				</Group>
 			</div>
 
