@@ -11,9 +11,9 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { Snapshot } from 'valtio'
 import { state, useSnapshot } from '../../state/State'
 import { AssetTreeItemData, AssetTreeItemDataType } from '../../types/assets'
-import { Snapshot } from 'valtio'
 
 type SearchAssetType = AssetTreeItemDataType | 'all'
 
@@ -233,9 +233,11 @@ export const AssetsSearch = forwardRef<
 			</ActionIcon>
 		</Group>
 	) : (
-		<ActionIcon variant="subtle" onClick={handleExpand} size="sm" color={theme.colors.gray[5]}>
-			<Search size={18} />
-		</ActionIcon>
+		<Group gap="xs" wrap="nowrap">
+			<ActionIcon variant="subtle" onClick={handleExpand} size="sm" color={theme.colors.gray[5]}>
+				<Search size={18} />
+			</ActionIcon>
+		</Group>
 	)
 })
 
