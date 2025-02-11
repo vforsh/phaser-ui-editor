@@ -253,6 +253,11 @@ export class MainScene extends BaseScene {
 		}
 	}
 
+	/**
+	 * Calculates the assets that are used in the prefab. We need to do it prior to displaying the prefab in the UI.
+	 * @param prefabRoot Container that is the root of the prefab.
+	 * @returns Assets that are used in the prefab.
+	 */
 	private calculatePrefabAssets(prefabRoot: EditableContainerJson): PrefabAsset[] {
 		const assetIds = new Set<string>()
 		const assets: PrefabAsset[] = []
@@ -266,7 +271,15 @@ export class MainScene extends BaseScene {
 				return
 			}
 
-			const objectAssets = this.getObjectAssets(object)
+			// simplify - get rid of array
+			const objectAssets = match(object)
+				.returnType<PrefabAsset[]>()
+				.with({ type: 'Image' }, (image) => [image.asset])
+				.with({ type: 'Text' }, (text) => [text.asset])
+				.with({ type: 'BitmapText' }, (bitmapText) => [bitmapText.asset])
+				.with({ type: 'NineSlice' }, (nineSlice) => [])
+				.exhaustive()
+
 			for (const asset of objectAssets) {
 				if (assetIds.has(asset.id)) {
 					continue
@@ -282,27 +295,9 @@ export class MainScene extends BaseScene {
 		return assets
 	}
 
-	private getObjectAssets(object: EditableObjectJson): PrefabAsset[] {
-		return match(object)
-			.returnType<PrefabAsset[]>()
-			.with({ type: 'Image' }, (image) => {
-				return []
-			})
-			.with({ type: 'Container' }, (container) => {
-				return []
-			})
-			.with({ type: 'Text' }, (text) => {
-				return []
-			})
-			.with({ type: 'BitmapText' }, (bitmapText) => {
-				return [bitmapText.asset]
-			})
-			.with({ type: 'NineSlice' }, (nineSlice) => {
-				return []
-			})
-			.exhaustive()
-	}
-
+	/**
+	 * Saves the prefab to the file system.
+	 */
 	private async savePrefab() {
 		const prefabFilePath = this.initData.prefabAsset.path
 
