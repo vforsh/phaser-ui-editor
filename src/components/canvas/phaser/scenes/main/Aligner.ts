@@ -53,7 +53,7 @@ export class Aligner extends TypedEventEmitter<Events> {
 				objs.forEach((obj) => {
 					const bounds = this.getRotatedBounds(obj)
 					const offset = bounds.top - obj.y
-					obj.y = top - offset
+					obj.setY(top - offset)
 				})
 
 				return true
@@ -64,7 +64,7 @@ export class Aligner extends TypedEventEmitter<Events> {
 				objs.forEach((obj) => {
 					const bounds = this.getRotatedBounds(obj)
 					const offset = bounds.centerY - obj.y
-					obj.y = center - offset
+					obj.setY(center - offset)
 				})
 
 				return true
@@ -75,7 +75,7 @@ export class Aligner extends TypedEventEmitter<Events> {
 				objs.forEach((obj) => {
 					const bounds = this.getRotatedBounds(obj)
 					const offset = bounds.bottom - obj.y
-					obj.y = bottom - offset
+					obj.setY(bottom - offset)
 				})
 
 				return true
@@ -105,7 +105,7 @@ export class Aligner extends TypedEventEmitter<Events> {
 				// distribute CENTERS of objects vertically
 				sortedObjs.forEach((obj, index) => {
 					const centerY = firstCenter + spacing * index
-					obj.y = centerY - obj.displayHeight * (0.5 - obj.originY)
+					obj.setY(centerY - obj.displayHeight * (0.5 - obj.originY))
 				})
 
 				return true
@@ -116,7 +116,7 @@ export class Aligner extends TypedEventEmitter<Events> {
 				objs.forEach((obj) => {
 					const bounds = this.getRotatedBounds(obj)
 					const offset = bounds.left - obj.x
-					obj.x = left - offset
+					obj.setX(left - offset)
 				})
 
 				return true
@@ -127,7 +127,7 @@ export class Aligner extends TypedEventEmitter<Events> {
 				objs.forEach((obj) => {
 					const bounds = this.getRotatedBounds(obj)
 					const offset = bounds.centerX - obj.x
-					obj.x = center - offset
+					obj.setX(center - offset)
 				})
 
 				return true
@@ -138,7 +138,7 @@ export class Aligner extends TypedEventEmitter<Events> {
 				objs.forEach((obj) => {
 					const bounds = this.getRotatedBounds(obj)
 					const offset = bounds.right - obj.x
-					obj.x = right - offset
+					obj.setX(right - offset)
 				})
 
 				return true
@@ -168,7 +168,7 @@ export class Aligner extends TypedEventEmitter<Events> {
 				// distribute CENTERS of objects horizontally
 				sortedObjs.forEach((obj, index) => {
 					const centerX = firstCenter + spacing * index
-					obj.x = centerX - obj.displayWidth * (0.5 - obj.originX)
+					obj.setX(centerX - obj.displayWidth * (0.5 - obj.originX))
 				})
 
 				return true

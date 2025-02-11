@@ -186,6 +186,26 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 		return this
 	}
 
+	override setX(x: number): this {
+		super.setX(x)
+
+		this.withoutEmits((state) => {
+			state.x = x
+		})
+
+		return this
+	}
+
+	override setY(y: number): this {
+		super.setY(y)
+
+		this.withoutEmits((state) => {
+			state.y = y
+		})
+
+		return this
+	}
+
 	get stateObj() {
 		return this._stateObj
 	}
