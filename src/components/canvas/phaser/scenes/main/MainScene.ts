@@ -1,7 +1,7 @@
 import { getNameWithoutExtension } from '@components/assetsPanel/AssetTreeItem'
 import { IPatchesConfig } from '@koreez/phaser3-ninepatch'
 import { until } from '@open-draft/until'
-import { state } from '@state/State'
+import { state, subscribe } from '@state/State'
 import { urlParams } from '@url-params'
 import { getErrorLog } from '@utils/error/utils'
 import { once } from 'es-toolkit'
@@ -158,10 +158,16 @@ export class MainScene extends BaseScene {
 
 		this.setupAppCommands()
 
-		// this.addTestObjects()
-
 		state.canvas.objects = this.root.stateObj
 		state.canvas.objectById = (id: string) => this.objectsFactory.getObjectById(id)?.stateObj
+
+		subscribe(
+			state.canvas.objects,
+			() => {
+				state.canvas.hasUnsavedChanges = true
+			},
+			{ signal: this.shutdownSignal }
+		)
 	}
 
 	private initComponentsFactory() {
@@ -244,9 +250,7 @@ export class MainScene extends BaseScene {
 	}
 
 	/**
-	 * Calculates the assets that are used in the prefab. We need to do it prior to displaying the prefab in the UI.
-	 * @param prefabRoot Container that is the root of the prefab.
-	 * @returns Assets that are used in the prefab.
+	 * Calculates the assets that are needed to be loaded to display the prefab.
 	 */
 	private calculatePrefabAssets(prefabRoot: EditableContainerJson): PrefabAsset[] {
 		const assetIds = new Set<string>()
@@ -288,7 +292,12 @@ export class MainScene extends BaseScene {
 	/**
 	 * Saves the prefab to the file system.
 	 */
-	private async savePrefab() {
+	public async savePrefab(): Promise<Result<{}, string>> {
+		if (!state.canvas.hasUnsavedChanges) {
+			this.logger.info(`no changes in '${this.initData.prefabAsset.name}', skipping save`)
+			return ok({})
+		}
+
 		const prefabFilePath = this.initData.prefabAsset.path
 
 		const prefabContent = this.root.toJson()
@@ -302,12 +311,17 @@ export class MainScene extends BaseScene {
 			trpc.writeJson.mutate({ path: prefabFilePath, content: prefabFile, options: { spaces: '\t' } })
 		)
 		if (error) {
-			this.logger.error(`failed to save '${this.initData.prefabAsset.name}' prefab ${getErrorLog(error)}`)
+			const errorLog = getErrorLog(error)
+			this.logger.error(`failed to save '${this.initData.prefabAsset.name}' prefab (${errorLog})`)
 			// TODO prefabs: show mantine notification
-			return
+			return err(errorLog)
 		}
 
-		this.logger.info(`saved '${this.initData.prefabAsset.name}' at '${prefabFilePath}'`)
+		this.logger.info(`saved '${this.initData.prefabAsset.name}' at ${prefabFilePath}`)
+
+		state.canvas.hasUnsavedChanges = false
+
+		return ok({})
 	}
 
 	/**
