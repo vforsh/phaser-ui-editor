@@ -613,24 +613,6 @@ export class MainScene extends BaseScene {
 		return this.textures.get(textureKey)
 	}
 
-	private async loadSpritesheet(asset: AssetTreeSpritesheetData): Promise<Phaser.Textures.Texture | null> {
-		const img = await this.createImgForTexture(asset)
-		if (!img) {
-			return null
-		}
-
-		const json = await trpc.readJson.query({ path: asset.json.path })
-		if (!json) {
-			return null
-		}
-
-		const textureKey = getAssetRelativePath(asset.image.path)
-
-		this.textures.addAtlas(textureKey, img, json)
-
-		return this.textures.get(textureKey)
-	}
-
 	/**
 	 * Creates an `<img>` element that will be used as a Phaser texture source.
 	 * TODO return Result
