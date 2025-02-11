@@ -116,11 +116,42 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 			return
 		}
 
-		// TODO prefabs: check if the prefab file is already opened in MainScene
 		const mainScene = this.scene.getScene('MainScene') as MainScene
 		if (mainScene && mainScene.scene.isActive() && mainScene.initData?.prefabAsset.id === prefabAssetId) {
 			this.logger.info(`prefab '${prefabAsset.name}' (${prefabAsset.id}) is already opened`)
 			return
+		}
+
+		if (mainScene && mainScene.scene.isActive() && state.canvas.hasUnsavedChanges) {
+			// prefab that is currently opened
+			const editedPrefabName = mainScene.initData.prefabAsset.name
+
+			const shouldSave = confirm(`Save changes to '${editedPrefabName}'?`)
+			if (shouldSave) {
+				const saveResult = await mainScene.savePrefab()
+				if (saveResult.isErr()) {
+					return
+				}
+			}
+			
+			// TODO prefabs: use mantine modal instead of confirm
+			
+			/* const saveResult = await this.commands.emit('prompt-prefab-save', { prefabName })
+
+			if (saveResult === 'cancel') {
+				return
+			}
+
+			if (saveResult === 'dont-save') {
+				// continue to open the new prefab without saving
+			}
+
+			if (saveResult === 'save') {
+				const saveResult = await mainScene.savePrefab()
+				if (saveResult.isErr()) {
+					return
+				}
+			} */
 		}
 
 		const { error, data } = await until(() => trpc.readJson.query({ path: prefabAsset.path }))
