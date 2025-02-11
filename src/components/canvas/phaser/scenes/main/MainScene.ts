@@ -17,6 +17,7 @@ import trpc, { WebFontParsed } from '../../../../../trpc'
 import {
 	AssetTreeBitmapFontData,
 	AssetTreeItemData,
+	AssetTreeItemDataOfType,
 	AssetTreePrefabData,
 	AssetTreeSpritesheetData,
 	AssetTreeSpritesheetFrameData,
@@ -24,7 +25,6 @@ import {
 	fetchImageUrl,
 	getAssetById,
 	getAssetRelativePath,
-	getAssetsOfType,
 	GraphicAssetData,
 	isAssetOfType,
 } from '../../../../../types/assets'
@@ -55,7 +55,6 @@ import {
 import { EditableComponentJson, EditableComponentType } from './objects/components/base/EditableComponent'
 import { EditableComponentsFactory } from './objects/components/base/EditableComponentsFactory'
 import { EditableContainer, EditableContainerJson } from './objects/EditableContainer'
-import { EditableImage } from './objects/EditableImage'
 import { EditableObject, EditableObjectJson } from './objects/EditableObject'
 import { EditableObjectsFactory } from './objects/EditableObjectsFactory'
 import { Rulers } from './Rulers'
@@ -230,7 +229,7 @@ export class MainScene extends BaseScene {
 
 		// TODO prefabs: load assets in parallel
 		for (const assetDef of prefabAssets) {
-			const asset = getAssetById(state.assets.items, assetDef.id)
+			const asset = getAssetById(state.assets.items, assetDef.id) as AssetTreeItemDataOfType<typeof assetDef.type>
 			if (!asset) {
 				this.logger.warn(`failed to find ${assetDef.type} '${assetDef.name}' with id '${assetDef.id}'`)
 				continue
@@ -240,8 +239,8 @@ export class MainScene extends BaseScene {
 				.with({ type: 'image' }, async (image) => {
 					await this.loadTexture(image)
 				})
-				.with({ type: 'spritesheet' }, async (spritesheet) => {
-					await this.loadSpritesheet(spritesheet)
+				.with({ type: 'spritesheet-frame' }, async (spritesheetFrame) => {
+					await this.loadSpritesheetFrame(spritesheetFrame)
 				})
 				.with({ type: 'bitmap-font' }, async (bitmapFont) => {
 					await this.loadBitmapFont(bitmapFont)
@@ -249,7 +248,7 @@ export class MainScene extends BaseScene {
 				.with({ type: 'web-font' }, async (webFont) => {
 					await this.loadWebFont(webFont)
 				})
-				.run()
+				.exhaustive()
 		}
 	}
 
@@ -320,6 +319,10 @@ export class MainScene extends BaseScene {
 		this.logger.info(`saved '${this.initData.prefabAsset.name}' at '${prefabFilePath}'`)
 	}
 
+	/**
+	 * Calculates the asset pack for the prefab.
+	 * @note Asset pack is used in RUNTIME, not in EDITOR.
+	 */
 	private calculatePrefabAssetPack(prefabRoot: EditableContainerJson): PrefabFile['assetPack'] {
 		const assets = this.calculatePrefabAssets(prefabRoot)
 
@@ -368,85 +371,6 @@ export class MainScene extends BaseScene {
 		this.projectSizeFrame.height = size.height
 	}
 
-	private async addTestObjects(): Promise<void> {
-		const context = this.editContexts.current!
-
-		const chefCherryFrame = getAssetsOfType(state.assets.items, 'spritesheet-frame').find(
-			(frame) => frame.name === 'Chef Cherry'
-		)
-
-		let chefCherry_1: EditableImage | undefined
-		if (chefCherryFrame) {
-			chefCherry_1 = (await this.addTestImage(chefCherryFrame, -400, -600)) as EditableImage
-			chefCherry_1?.setName(this.getNewObjectName(context, chefCherry_1!, 'chefCherry_topLeft'))
-			chefCherry_1?.setOrigin(0)
-		}
-
-		let chefCherry_2: EditableImage | undefined
-		if (chefCherryFrame) {
-			chefCherry_2 = (await this.addTestImage(chefCherryFrame, 400, -600)) as EditableImage
-			chefCherry_2?.setName(this.getNewObjectName(context, chefCherry_2!, 'chefCherry_topRight'))
-			chefCherry_2?.setOrigin(1, 0)
-		}
-
-		if (chefCherry_1 && chefCherry_2) {
-			const selection = context.setSelection([chefCherry_1, chefCherry_2])
-			const group = this.group(selection, context)
-			group.setPosition(group.x, group.y - 150)
-		}
-
-		if (chefCherryFrame) {
-			const chefCherry_3 = (await this.addTestImage(chefCherryFrame, -250, -30)) as EditableImage
-			chefCherry_3?.setName(this.getNewObjectName(context, chefCherry_3!, 'chefCherry_bottomLeft'))
-			chefCherry_3?.setOrigin(0.5, 0.5)
-			chefCherry_3?.setAngle(90)
-			context.setSelection([chefCherry_3])
-		}
-
-		const nineSliceAsset = getAssetsOfType(state.assets.items, 'spritesheet-frame').find(
-			(frame) => frame.name === 'popup_back.png'
-		)
-		if (nineSliceAsset) {
-			const nineSlice = await this.handleAssetDrop({
-				asset: nineSliceAsset,
-				position: { x: -400, y: -400 },
-			})
-			if (nineSlice && nineSlice.kind === 'NineSlice') {
-				nineSlice.resize(500, 400)
-				nineSlice.setPosition(this.projectSizeFrame.width / 2 + 250, this.projectSizeFrame.height / 2 - 30)
-			}
-		}
-
-		/* const bitmapFont = await this.initBitmapFont_DEBUG('5cbc7ed7df')
-		if (bitmapFont.isOk()) {
-			const bmFont = bitmapFont.value
-			const bmText = this.objectsFactory.bitmapText(bmFont.key, '1234567890', 100)
-			bmText.setName(this.getNewObjectName(context, bmText, 'bitmap-text'))
-			bmText.setPosition(this.projectSizeFrame.width / 2, this.projectSizeFrame.height - 70)
-			this.root.add(bmText)
-		} else {
-			this.logger.warn(`failed to load bitmap font (${bitmapFont.error})`)
-		} */
-
-		/* const webFont = await this.initWebFont_DEBUG('e97f56cb27')
-		if (webFont) {
-			const text = this.objectsFactory.text(webFont.familyName + `\nYo Poetsen One Two Three Four`, {
-				fontFamily: webFont.familyName,
-				fontSize: '50px',
-				color: '#ffffff',
-				resolution: 2,
-				align: 'center',
-			})
-			text.setName(this.getNewObjectName(context, text, 'text'))
-			text.setPosition(this.projectSizeFrame.width / 2, this.projectSizeFrame.height + 100)
-			text.setStroke('#ff0000', 6)
-			text.setShadow(0, 10, 'rgba(0, 0, 0, 0.33)', 0, true, false)
-			this.root.add(text)
-		} else {
-			this.logger.warn('failed to load web font')
-		} */
-	}
-
 	// TODO move to ObjectsFactory
 	private getNewObjectName(context: EditContext, obj: EditableObject, prefix?: string): string {
 		const _prefix = prefix ?? this.extractNamePrefix(obj.name) ?? this.createNamePrefix(obj)
@@ -471,25 +395,6 @@ export class MainScene extends BaseScene {
 		}
 
 		return name.split('__')[0]
-	}
-
-	private async addTestImage(asset: GraphicAssetData, offsetX: number, offsetY: number, angle = 0) {
-		const gameObject = await this.handleAssetDrop({
-			asset,
-			position: {
-				x: this.initData.project.config.size.width / 2,
-				y: this.initData.project.config.size.height / 2,
-			},
-		})
-
-		if (gameObject) {
-			const centerX = this.initData.project.config.size.width / 2
-			const centerY = this.initData.project.config.size.height / 2
-			gameObject.setPosition(centerX + offsetX, centerY + offsetY)
-			gameObject.setAngle(angle)
-		}
-
-		return gameObject
 	}
 
 	private setupAppCommands() {
@@ -679,7 +584,11 @@ export class MainScene extends BaseScene {
 	private async loadSpritesheetFrame(asset: AssetTreeSpritesheetFrameData): Promise<Phaser.Textures.Texture | null> {
 		const spritesheetId = asset.parentId!
 		const spritesheetAsset = getAssetById(state.assets.items, spritesheetId)
-		if (!spritesheetAsset || spritesheetAsset.type !== 'spritesheet') {
+		if (!spritesheetAsset) {
+			return null
+		}
+
+		if (!isAssetOfType(spritesheetAsset, 'spritesheet')) {
 			return null
 		}
 
