@@ -233,7 +233,7 @@ export const AssetsSearch = forwardRef<
 			</ActionIcon>
 		</Group>
 	) : (
-		<Group gap="xs" wrap="nowrap">
+		<Group gap="xs" wrap="nowrap" mr="xs">
 			<ActionIcon variant="subtle" onClick={handleExpand} size="sm" color={theme.colors.gray[5]}>
 				<Search size={18} />
 			</ActionIcon>

@@ -343,6 +343,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 					},
 				],
 			},
+			{ key: 'divider-1' },
 			{
 				key: 'open',
 				title: 'Open',
@@ -376,6 +377,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 						},
 					]
 				: []),
+			{ key: 'divider-2' },
 			{
 				key: 'rename',
 				title: 'Rename',
@@ -778,7 +780,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 											onDoubleClick={handleDoubleClick}
 											onContextMenu={(event, clickedAsset) => {
 												const contextMenuItems = getAssetContextMenuItems(clickedAsset)
-												showContextMenu(contextMenuItems)(event)
+												showContextMenu(contextMenuItems, { style: { width: '200px' } })(event)
 											}}
 											onRenameSubmit={completeRename}
 											renamedAssetId={itemToRename}
