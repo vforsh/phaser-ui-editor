@@ -133,9 +133,9 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 					return
 				}
 			}
-			
+
 			// TODO prefabs: use mantine modal instead of confirm
-			
+
 			/* const saveResult = await this.commands.emit('prompt-prefab-save', { prefabName })
 
 			if (saveResult === 'cancel') {
