@@ -19,7 +19,6 @@ import {
 	AssetTreeItemData,
 	AssetTreeItemDataOfType,
 	AssetTreePrefabData,
-	AssetTreeSpritesheetData,
 	AssetTreeSpritesheetFrameData,
 	AssetTreeWebFontData,
 	fetchImageUrl,
@@ -236,18 +235,10 @@ export class MainScene extends BaseScene {
 			}
 
 			await match(asset)
-				.with({ type: 'image' }, async (image) => {
-					await this.loadTexture(image)
-				})
-				.with({ type: 'spritesheet-frame' }, async (spritesheetFrame) => {
-					await this.loadSpritesheetFrame(spritesheetFrame)
-				})
-				.with({ type: 'bitmap-font' }, async (bitmapFont) => {
-					await this.loadBitmapFont(bitmapFont)
-				})
-				.with({ type: 'web-font' }, async (webFont) => {
-					await this.loadWebFont(webFont)
-				})
+				.with({ type: 'image' }, async (image) => this.loadTexture(image))
+				.with({ type: 'spritesheet-frame' }, async (frame) => this.loadSpritesheetFrame(frame))
+				.with({ type: 'bitmap-font' }, async (bitmapFont) => this.loadBitmapFont(bitmapFont))
+				.with({ type: 'web-font' }, async (webFont) => this.loadWebFont(webFont))
 				.exhaustive()
 		}
 	}
@@ -276,7 +267,7 @@ export class MainScene extends BaseScene {
 				.with({ type: 'Image' }, (image) => [image.asset])
 				.with({ type: 'Text' }, (text) => [text.asset])
 				.with({ type: 'BitmapText' }, (bitmapText) => [bitmapText.asset])
-				.with({ type: 'NineSlice' }, (nineSlice) => [])
+				.with({ type: 'NineSlice' }, (nineSlice) => [nineSlice.asset])
 				.exhaustive()
 
 			for (const asset of objectAssets) {
@@ -573,12 +564,16 @@ export class MainScene extends BaseScene {
 	}
 
 	private async loadTexture(asset: GraphicAssetData): Promise<Phaser.Textures.Texture | null> {
+		const textureKey = getAssetRelativePath(asset.path)
+
+		if (this.textures.exists(textureKey)) {
+			return this.textures.get(textureKey)
+		}
+
 		const img = await this.createImgForTexture(asset)
 		if (!img) {
 			return null
 		}
-
-		const textureKey = getAssetRelativePath(asset.path)
 
 		this.textures.addImage(textureKey, img)
 
@@ -596,6 +591,13 @@ export class MainScene extends BaseScene {
 			return null
 		}
 
+		const textureKey = getAssetRelativePath(spritesheetAsset.image.path)
+
+		// TODO check if texture is an atlas
+		if (this.textures.exists(textureKey)) {
+			return this.textures.get(textureKey)
+		}
+
 		const img = await this.createImgForTexture(spritesheetAsset)
 		if (!img) {
 			return null
@@ -605,8 +607,6 @@ export class MainScene extends BaseScene {
 		if (!json) {
 			return null
 		}
-
-		const textureKey = getAssetRelativePath(spritesheetAsset.image.path)
 
 		this.textures.addAtlas(textureKey, img, json)
 
