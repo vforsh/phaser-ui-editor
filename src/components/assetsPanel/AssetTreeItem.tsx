@@ -43,7 +43,7 @@ const getExtension = (item: Snapshot<AssetTreeItemData>) => {
 		.exhaustive()
 }
 
-const getNameWithoutExtension = (item: Snapshot<AssetTreeItemData>) => {
+export const getNameWithoutExtension = (item: Snapshot<AssetTreeItemData> | AssetTreeItemData) => {
 	return item.name.replace(getExtension(item), '')
 }
 

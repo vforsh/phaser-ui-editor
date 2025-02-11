@@ -33,6 +33,7 @@ import {
 	removeAssetById,
 	type AssetTreeItemData,
 } from '../../types/assets'
+import { createEmptyPrefabFile } from '../../types/prefabs/PrefabFile'
 import { PanelTitle } from './../PanelTitle'
 import { AssetsSearch } from './AssetsSearch'
 import AssetTreeItem from './AssetTreeItem'
@@ -308,7 +309,8 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 								return
 							}
 
-							const prefabNameTemp = `prefab-${nanoid(5)}.prefab.json`
+							// TODO prefabs: suggest a name for the prefab
+							const prefabNameTemp = `prefab-${nanoid(5)}.prefab`
 							const prefabAsset: AssetTreePrefabData = addAssetId({
 								type: 'prefab',
 								name: prefabNameTemp,
@@ -318,7 +320,10 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 							logger.info(`creating prefab at '${prefabAsset.path}'`)
 
 							const { error } = await until(() =>
-								trpc.createTextFile.mutate({ path: prefabAsset.path, content: '{}' })
+								trpc.createTextFile.mutate({
+									path: prefabAsset.path,
+									content: JSON.stringify(createEmptyPrefabFile()),
+								})
 							)
 							if (error) {
 								logger.error(

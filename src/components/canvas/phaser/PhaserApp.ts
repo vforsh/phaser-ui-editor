@@ -21,7 +21,7 @@ import { Phaser3Extensions } from './robowhale/phaser3/Phaser3Extensions'
 import { BaseScene } from './robowhale/phaser3/scenes/BaseScene'
 import { TypedEventEmitter } from './robowhale/phaser3/TypedEventEmitter'
 import { CommandEmitter } from './robowhale/utils/events/CommandEmitter'
-import { MainScene } from './scenes/main/MainScene'
+import { MainScene, MainSceneInitData } from './scenes/main/MainScene'
 import { TestScene, TestSceneInitData } from './scenes/test/TestScene'
 
 export type Vector2Like = Phaser.Types.Math.Vector2Like
@@ -50,6 +50,7 @@ export interface PhaserGameExtra {
 
 export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 	public logger: Logger<{}>
+	public projectConfig: ProjectConfig
 	public ev3nts = new TypedEventEmitter<PhaserAppEvents>()
 	public commands = new CommandEmitter<PhaserAppCommands>('phaser-app')
 	public appEvents: AppEventsEmitter
@@ -75,6 +76,8 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 
 		this.logger = logger.getOrCreate('canvas')
 		this.logger.info('PhaserApp created')
+
+		this.projectConfig = projectConfig
 
 		this.appEvents = appEvents
 
@@ -113,6 +116,13 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 			return
 		}
 
+		// TODO prefabs: check if the prefab file is already opened in MainScene
+		const mainScene = this.scene.getScene('MainScene') as MainScene
+		if (mainScene && mainScene.scene.isActive() && mainScene.initData?.prefabAsset.id === prefabAssetId) {
+			this.logger.info(`prefab '${prefabAsset.name}' (${prefabAsset.id}) is already opened`)
+			return
+		}
+
 		const { error, data } = await until(() => trpc.readJson.query({ path: prefabAsset.path }))
 		if (error) {
 			this.logger.error(`failed to load prefab from '${prefabAsset.path}' (${getErrorLog(error)})`)
@@ -120,17 +130,18 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 		}
 
 		// TODO add zod validation and check if the loaded json is a valid prefab file
-		const prefabFile = data.content as PrefabFile
-
-		state.canvas.lastOpenedPrefabAssetId = prefabAssetId
+		const prefabFile = data as PrefabFile
 
 		this.logger.info(`loaded prefab from '${prefabAsset.path}'`, prefabFile)
 
-		/* this.scene.start('MainScene', {
-			project: new Project({ config: projectConfig }),
+		this.scene.start('MainScene', {
+			project: new Project({ config: this.projectConfig }),
 			prefabAsset,
 			prefabFile,
-		} satisfies MainSceneInitData) */
+		} satisfies MainSceneInitData)
+
+		// save the prefab asset id to the state so it will auto-open it next time
+		state.canvas.lastOpenedPrefabAssetId = prefabAssetId
 	}
 
 	private setupScaling() {

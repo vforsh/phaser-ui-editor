@@ -1,3 +1,4 @@
+import { getNameWithoutExtension } from '@components/assetsPanel/AssetTreeItem'
 import { IPatchesConfig } from '@koreez/phaser3-ninepatch'
 import { until } from '@open-draft/until'
 import { state } from '@state/State'
@@ -27,6 +28,8 @@ import {
 	GraphicAssetData,
 	isAssetOfType,
 } from '../../../../../types/assets'
+import { PrefabAsset } from '../../../../../types/prefabs/PrefabAsset'
+import { PrefabFile } from '../../../../../types/prefabs/PrefabFile'
 import { parseJsonBitmapFont } from '../../robowhale/phaser3/gameObjects/bitmap-text/parse-json-bitmap-font'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { signalFromEvent } from '../../robowhale/utils/events/create-abort-signal-from-event'
@@ -49,8 +52,6 @@ import { EditableImage } from './objects/EditableImage'
 import { EditableObject, EditableObjectJson } from './objects/EditableObject'
 import { EditableObjectsFactory } from './objects/EditableObjectsFactory'
 import { Rulers } from './Rulers'
-import { PrefabFile } from '../../../../../types/prefabs/PrefabFile'
-import { PrefabAsset } from '../../../../../types/prefabs/PrefabAsset'
 
 type PhaserBmfontData = Phaser.Types.GameObjects.BitmapText.BitmapFontData
 
@@ -205,9 +206,10 @@ export class MainScene extends BaseScene {
 			root = this.objectsFactory.fromJson(prefabFile.content) as EditableContainer
 		} else {
 			root = this.objectsFactory.container()
-			root.name = this.initData.prefabAsset.name
+			root.name = getNameWithoutExtension(this.initData.prefabAsset)
 		}
 
+		this.root = root
 		this.add.existing(this.root)
 
 		this.editContexts.add(this.root, {
