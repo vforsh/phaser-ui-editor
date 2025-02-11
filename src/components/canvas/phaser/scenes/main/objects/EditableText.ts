@@ -84,7 +84,12 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 			{
 				resolution: (value) => value && this.setResolution(value),
 				align: (value) => value && this.setAlign(value),
-				fontFamily: (value) => value && this.setFontFamily(value),
+				fontFamily: (value) => {
+					if (value) {
+						// TODO prefabs: update asset too
+						this.setFontFamily(value)
+					}
+				},
 				fontSize: (value) => value && this.setFontSize(value),
 				fontStyle: (value) => value && this.setFontStyle(value),
 				backgroundColor: (value) => value && this.setBackgroundColor(value),
