@@ -1,8 +1,9 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { IPatchesConfig } from '@koreez/phaser3-ninepatch'
-import { nanoid } from 'nanoid'
+import { customAlphabet } from 'nanoid'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
+import { PrefabBitmapFontAsset } from '../../../../../../types/prefabs/PrefabAsset'
 import { EditableBitmapText, EditableBitmapTextJson } from './EditableBitmapText'
 import { EditableContainer, EditableContainerJson } from './EditableContainer'
 import { EditableImage, EditableImageJson } from './EditableImage'
@@ -32,6 +33,7 @@ export interface EditableObjectsFactoryOptions {
 export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 	private scene: Phaser.Scene
 	private logger: Logger<{}>
+	private nanoid: (size?: number) => string
 	private componentsFactory: EditableComponentsFactory
 	private idsToObjects: Map<string, EditableObject> = new Map()
 	private destroyController = new AbortController()
@@ -41,6 +43,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 
 		this.scene = options.scene
 		this.logger = options.logger
+		this.nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz', 8)
 		this.componentsFactory = options.componentsFactory
 	}
 
@@ -65,10 +68,9 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 	}
 
 	private getObjectId(): string {
-		const idLength = 10
-		let id = nanoid(idLength)
+		let id = this.nanoid()
 		while (this.idsToObjects.has(id)) {
-			id = nanoid(idLength)
+			id = this.nanoid()
 		}
 		return id
 	}
@@ -108,9 +110,14 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		return text
 	}
 
-	public bitmapText(font: string, content: string, fontSize?: number): EditableBitmapText {
+	public bitmapText(
+		asset: PrefabBitmapFontAsset,
+		font: string,
+		content: string,
+		fontSize?: number
+	): EditableBitmapText {
 		const id = this.getObjectId()
-		const bitmapText = new EditableBitmapText(this.scene, id, font, content, fontSize)
+		const bitmapText = new EditableBitmapText(this.scene, id, asset, font, content, fontSize)
 		bitmapText.setOrigin(0.5)
 		this.register(bitmapText)
 		return bitmapText
@@ -216,7 +223,15 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 
 	private createBitmapTextFromJson(json: EditableBitmapTextJson): EditableBitmapText {
 		const id = this.getObjectId()
-		const bitmapText = new EditableBitmapText(this.scene, id, json.font, json.text, json.fontSize, json.align)
+		const bitmapText = new EditableBitmapText(
+			this.scene,
+			id,
+			json.asset,
+			json.font,
+			json.text,
+			json.fontSize,
+			json.align
+		)
 
 		bitmapText.setPosition(json.x, json.y)
 		bitmapText.setName(json.name)

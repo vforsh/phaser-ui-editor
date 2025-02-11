@@ -1,4 +1,5 @@
 import { proxy } from 'valtio'
+import { PrefabBitmapFontAsset } from '../../../../../../types/prefabs/PrefabAsset'
 import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
 import { ComponentsManager } from './components/base/ComponentsManager'
@@ -8,6 +9,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 	public readonly [EDITABLE_SYMBOL] = true
 	public readonly kind = 'BitmapText'
 	public readonly id: string
+	public readonly asset: PrefabBitmapFontAsset
 	private _isLocked = false
 	private _stateObj: EditableBitmapTextJson
 	private _stateChanges: StateChangesEmitter<EditableBitmapTextJson>
@@ -16,6 +18,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 	constructor(
 		scene: Phaser.Scene,
 		id: string,
+		asset: PrefabBitmapFontAsset,
 		font: string,
 		text?: string | string[],
 		size?: number,
@@ -24,6 +27,8 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		super(scene, 0, 0, font, text, size, align)
 
 		this.id = id
+
+		this.asset = asset
 
 		this._components = new ComponentsManager(this)
 		this._components.on('component-added', this.onComponentsListChanged, this)
@@ -54,6 +59,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 				this.updateInputHitArea()
 			},
 			'font': (value) => {
+				// TODO prefabs: update the asset too
 				this.setFont(value)
 				this.updateInputHitArea()
 			},
@@ -111,6 +117,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		return {
 			...this.toJSON(),
 			id: this.id,
+			asset: this.asset,
 			type: 'BitmapText',
 			depth: this.depth,
 			blendMode: this.blendMode,
@@ -277,4 +284,5 @@ export type EditableBitmapTextJson = CreateEditableObjectJson<{
 	tintFill: boolean
 	angle: number
 	components: EditableComponentJson[]
+	asset: PrefabBitmapFontAsset
 }>

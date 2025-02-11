@@ -28,7 +28,7 @@ import {
 	GraphicAssetData,
 	isAssetOfType,
 } from '../../../../../types/assets'
-import { PrefabAsset } from '../../../../../types/prefabs/PrefabAsset'
+import { createPrefabAsset, PrefabAsset, PrefabBitmapFontAsset } from '../../../../../types/prefabs/PrefabAsset'
 import { PrefabFile } from '../../../../../types/prefabs/PrefabFile'
 import { parseJsonBitmapFont } from '../../robowhale/phaser3/gameObjects/bitmap-text/parse-json-bitmap-font'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
@@ -288,7 +288,7 @@ export class MainScene extends BaseScene {
 				return []
 			})
 			.with({ type: 'BitmapText' }, (bitmapText) => {
-				return []
+				return [bitmapText.asset]
 			})
 			.with({ type: 'NineSlice' }, (nineSlice) => {
 				return []
@@ -307,7 +307,7 @@ export class MainScene extends BaseScene {
 		}
 
 		const { error } = await until(() =>
-			trpc.writeJson.mutate({ path: prefabFilePath, content: JSON.stringify(prefabFile) })
+			trpc.writeJson.mutate({ path: prefabFilePath, content: prefabFile, options: { spaces: '\t' } })
 		)
 		if (error) {
 			this.logger.error(`failed to save '${this.initData.prefabAsset.name}' prefab ${getErrorLog(error)}`)
@@ -315,7 +315,7 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		this.logger.info(`saved '${this.initData.prefabAsset.name}' prefab`)
+		this.logger.info(`saved '${this.initData.prefabAsset.name}' at '${prefabFilePath}'`)
 	}
 
 	private calculatePrefabAssetPack(prefabRoot: EditableContainerJson): PrefabFile['assetPack'] {
@@ -415,7 +415,7 @@ export class MainScene extends BaseScene {
 			}
 		}
 
-		const bitmapFont = await this.initBitmapFont_DEBUG('5cbc7ed7df')
+		/* const bitmapFont = await this.initBitmapFont_DEBUG('5cbc7ed7df')
 		if (bitmapFont.isOk()) {
 			const bmFont = bitmapFont.value
 			const bmText = this.objectsFactory.bitmapText(bmFont.key, '1234567890', 100)
@@ -424,7 +424,7 @@ export class MainScene extends BaseScene {
 			this.root.add(bmText)
 		} else {
 			this.logger.warn(`failed to load bitmap font (${bitmapFont.error})`)
-		}
+		} */
 
 		const webFont = await this.initWebFont_DEBUG('e97f56cb27')
 		if (webFont) {
@@ -448,9 +448,8 @@ export class MainScene extends BaseScene {
 	// TODO move to ObjectsFactory
 	private getNewObjectName(context: EditContext, obj: EditableObject, prefix?: string): string {
 		const _prefix = prefix ?? this.extractNamePrefix(obj.name) ?? this.createNamePrefix(obj)
-		const uid = Phaser.Math.RND.uuid().slice(0, 4)
 
-		return `${_prefix}__${uid}`
+		return `${_prefix}`
 	}
 
 	private createNamePrefix(obj: EditableObject): string {
@@ -649,9 +648,10 @@ export class MainScene extends BaseScene {
 					return null
 				}
 
+				const objAsset = createPrefabAsset<PrefabBitmapFontAsset>(bitmapFontAsset)
 				const bmFont = bmFontResult.value
 				const bmTextContent = this.getBitmapFontChars(bmFont.data).replace(' ', '').slice(0, 10)
-				const bmText = this.objectsFactory.bitmapText(bmFont.key, bmTextContent, bmFont.data.size)
+				const bmText = this.objectsFactory.bitmapText(objAsset, bmFont.key, bmTextContent, bmFont.data.size)
 				bmText.setName(this.getNewObjectName(this.editContexts.current!, bmText, 'bitmap-text'))
 				return bmText
 			})
@@ -891,6 +891,18 @@ export class MainScene extends BaseScene {
 	}
 
 	private addKeyboadCallbacks() {
+		this.onKeyDown(
+			'S',
+			(event) => {
+				if (event.ctrlKey || event.metaKey) {
+					event.preventDefault()
+					this.savePrefab()
+				}
+			},
+			this,
+			this.shutdownSignal
+		)
+
 		this.onKeyDown('R', this.restart, this, this.shutdownSignal)
 		this.onKeyDown('F', this.alignCameraToProjectFrame, this, this.shutdownSignal)
 
