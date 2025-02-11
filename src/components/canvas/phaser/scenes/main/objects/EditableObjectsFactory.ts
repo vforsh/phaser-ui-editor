@@ -3,7 +3,12 @@ import { IPatchesConfig } from '@koreez/phaser3-ninepatch'
 import { customAlphabet } from 'nanoid'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
-import { PrefabBitmapFontAsset, PrefabWebFontAsset } from '../../../../../../types/prefabs/PrefabAsset'
+import {
+	PrefabBitmapFontAsset,
+	PrefabImageAsset,
+	PrefabSpritesheetFrameAsset,
+	PrefabWebFontAsset,
+} from '../../../../../../types/prefabs/PrefabAsset'
 import { EditableBitmapText, EditableBitmapTextJson } from './EditableBitmapText'
 import { EditableContainer, EditableContainerJson } from './EditableContainer'
 import { EditableImage, EditableImageJson } from './EditableImage'
@@ -82,9 +87,13 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		return container
 	}
 
-	public image(texture: string, frame?: string | number): EditableImage {
+	public image(
+		asset: PrefabImageAsset | PrefabSpritesheetFrameAsset,
+		texture: string,
+		frame?: string | number
+	): EditableImage {
 		const id = this.getObjectId()
-		const image = new EditableImage(this.scene, id, 0, 0, texture, frame)
+		const image = new EditableImage(this.scene, id, asset, 0, 0, texture, frame)
 		this.register(image)
 		return image
 	}
@@ -161,7 +170,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 
 	private createImageFromJson(json: EditableImageJson): EditableImage {
 		const id = this.getObjectId()
-		const image = new EditableImage(this.scene, id, json.x, json.y, json.textureKey, json.frameKey)
+		const image = new EditableImage(this.scene, id, json.asset, json.x, json.y, json.textureKey, json.frameKey)
 
 		image.setName(json.name)
 		image.setVisible(json.visible)

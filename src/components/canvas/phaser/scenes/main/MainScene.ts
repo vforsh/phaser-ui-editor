@@ -32,6 +32,8 @@ import {
 	createPrefabAsset,
 	PrefabAsset,
 	PrefabBitmapFontAsset,
+	PrefabImageAsset,
+	PrefabSpritesheetFrameAsset,
 	PrefabWebFontAsset,
 } from '../../../../../types/prefabs/PrefabAsset'
 import { PrefabFile } from '../../../../../types/prefabs/PrefabFile'
@@ -599,7 +601,8 @@ export class MainScene extends BaseScene {
 					return null
 				}
 
-				return this.objectsFactory.image(texture.key)
+				const imageAsset = createPrefabAsset<PrefabImageAsset>(image)
+				return this.objectsFactory.image(imageAsset, texture.key)
 			})
 			.with({ type: 'spritesheet-frame' }, async (spritesheetFrame) => {
 				let texture: Phaser.Textures.Texture | null = this.textures.get(spritesheetFrame.id)
@@ -630,7 +633,8 @@ export class MainScene extends BaseScene {
 						nineScaleConfig
 					)
 				} else {
-					return this.objectsFactory.image(texture.key, spritesheetFrame.pathInHierarchy)
+					const frameAsset = createPrefabAsset<PrefabSpritesheetFrameAsset>(spritesheetFrame)
+					return this.objectsFactory.image(frameAsset, texture.key, spritesheetFrame.pathInHierarchy)
 				}
 			})
 			.with({ type: 'web-font' }, async (webFontAsset) => {
