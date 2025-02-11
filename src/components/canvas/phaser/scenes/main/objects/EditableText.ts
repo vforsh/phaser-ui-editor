@@ -1,5 +1,6 @@
 import { signalFromEvent } from '@components/canvas/phaser/robowhale/utils/events/create-abort-signal-from-event'
 import { proxy } from 'valtio'
+import { PrefabWebFontAsset } from '../../../../../../types/prefabs/PrefabAsset'
 import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
 import { ComponentsManager } from './components/base/ComponentsManager'
@@ -9,15 +10,26 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	public readonly [EDITABLE_SYMBOL] = true
 	public readonly kind = 'Text'
 	public readonly id: string
+	public readonly asset: PrefabWebFontAsset
 	private _isLocked = false
 	private _stateObj: EditableTextJson
 	private _stateChanges: StateChangesEmitter<EditableTextJson>
 	private _components: ComponentsManager
 
-	constructor(scene: Phaser.Scene, id: string, x: number, y: number, text: string, style: EditableTextStyleJson) {
+	constructor(
+		scene: Phaser.Scene,
+		id: string,
+		asset: PrefabWebFontAsset,
+		x: number,
+		y: number,
+		text: string,
+		style: EditableTextStyleJson
+	) {
 		super(scene, x, y, text, style as Phaser.Types.GameObjects.Text.TextStyle)
 
 		this.id = id
+
+		this.asset = asset
 
 		this._components = new ComponentsManager(this)
 		this._components.on('component-added', this.onComponentsListChanged, this)
@@ -112,6 +124,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 		return {
 			...this.toJSON(),
 			id: this.id,
+			asset: this.asset,
 			type: 'Text',
 			depth: this.depth,
 			blendMode: this.blendMode,
@@ -256,6 +269,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 export type EditableTextJson = CreateEditableObjectJson<{
 	type: 'Text'
 	id: string
+	asset: PrefabWebFontAsset
 	depth: number
 	blendMode: string | Phaser.BlendModes | number
 	scale: { x: number; y: number }

@@ -150,6 +150,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 	toJson(): EditableContainerJson {
 		const children = this.editables.map((child) => child.toJson())
 
+		// TODO prefabs: remove props like frameKey and textureKey, don't use toJSON() at all
 		return {
 			...this.toJSON(),
 			id: this.id,

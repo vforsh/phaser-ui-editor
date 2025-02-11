@@ -3,7 +3,7 @@ import { IPatchesConfig } from '@koreez/phaser3-ninepatch'
 import { customAlphabet } from 'nanoid'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
-import { PrefabBitmapFontAsset } from '../../../../../../types/prefabs/PrefabAsset'
+import { PrefabBitmapFontAsset, PrefabWebFontAsset } from '../../../../../../types/prefabs/PrefabAsset'
 import { EditableBitmapText, EditableBitmapTextJson } from './EditableBitmapText'
 import { EditableContainer, EditableContainerJson } from './EditableContainer'
 import { EditableImage, EditableImageJson } from './EditableImage'
@@ -102,9 +102,9 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		return nineSlice
 	}
 
-	public text(content: string, style: EditableTextStyleJson): EditableText {
+	public text(asset: PrefabWebFontAsset, content: string, style: EditableTextStyleJson): EditableText {
 		const id = this.getObjectId()
-		const text = new EditableText(this.scene, id, 0, 0, content, style)
+		const text = new EditableText(this.scene, id, asset, 0, 0, content, style)
 		text.setOrigin(0.5)
 		this.register(text)
 		return text
@@ -205,7 +205,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 
 	private createTextFromJson(json: EditableTextJson): EditableText {
 		const id = this.getObjectId()
-		const text = new EditableText(this.scene, id, json.x, json.y, json.text, json.style)
+		const text = new EditableText(this.scene, id, json.asset, json.x, json.y, json.text, json.style)
 
 		text.setName(json.name)
 		text.setVisible(json.visible)

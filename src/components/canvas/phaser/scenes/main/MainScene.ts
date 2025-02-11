@@ -28,7 +28,12 @@ import {
 	GraphicAssetData,
 	isAssetOfType,
 } from '../../../../../types/assets'
-import { createPrefabAsset, PrefabAsset, PrefabBitmapFontAsset } from '../../../../../types/prefabs/PrefabAsset'
+import {
+	createPrefabAsset,
+	PrefabAsset,
+	PrefabBitmapFontAsset,
+	PrefabWebFontAsset,
+} from '../../../../../types/prefabs/PrefabAsset'
 import { PrefabFile } from '../../../../../types/prefabs/PrefabFile'
 import { parseJsonBitmapFont } from '../../robowhale/phaser3/gameObjects/bitmap-text/parse-json-bitmap-font'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
@@ -426,7 +431,7 @@ export class MainScene extends BaseScene {
 			this.logger.warn(`failed to load bitmap font (${bitmapFont.error})`)
 		} */
 
-		const webFont = await this.initWebFont_DEBUG('e97f56cb27')
+		/* const webFont = await this.initWebFont_DEBUG('e97f56cb27')
 		if (webFont) {
 			const text = this.objectsFactory.text(webFont.familyName + `\nYo Poetsen One Two Three Four`, {
 				fontFamily: webFont.familyName,
@@ -442,7 +447,7 @@ export class MainScene extends BaseScene {
 			this.root.add(text)
 		} else {
 			this.logger.warn('failed to load web font')
-		}
+		} */
 	}
 
 	// TODO move to ObjectsFactory
@@ -634,7 +639,8 @@ export class MainScene extends BaseScene {
 					return null
 				}
 
-				const text = this.objectsFactory.text(font.familyName, {
+				const textAsset = createPrefabAsset<PrefabWebFontAsset>(webFontAsset)
+				const text = this.objectsFactory.text(textAsset, font.familyName, {
 					fontFamily: font.familyName,
 					fontSize: '60px',
 					color: '#ffffff',
@@ -648,10 +654,10 @@ export class MainScene extends BaseScene {
 					return null
 				}
 
-				const objAsset = createPrefabAsset<PrefabBitmapFontAsset>(bitmapFontAsset)
+				const bmTextAsset = createPrefabAsset<PrefabBitmapFontAsset>(bitmapFontAsset)
 				const bmFont = bmFontResult.value
 				const bmTextContent = this.getBitmapFontChars(bmFont.data).replace(' ', '').slice(0, 10)
-				const bmText = this.objectsFactory.bitmapText(objAsset, bmFont.key, bmTextContent, bmFont.data.size)
+				const bmText = this.objectsFactory.bitmapText(bmTextAsset, bmFont.key, bmTextContent, bmFont.data.size)
 				bmText.setName(this.getNewObjectName(this.editContexts.current!, bmText, 'bitmap-text'))
 				return bmText
 			})
