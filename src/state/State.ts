@@ -40,6 +40,7 @@ export const stateSchema = z.object({
 		locateAsset: z.function().args(z.string()).optional(),
 	}),
 	canvas: z.object({
+		lastOpenedPrefabAssetId: z.string().optional(),
 		camera: z.object({
 			zoom: z.number().positive(),
 			scrollX: z.number(),

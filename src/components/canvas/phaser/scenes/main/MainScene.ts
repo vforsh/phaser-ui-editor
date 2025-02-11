@@ -1,6 +1,8 @@
 import { IPatchesConfig } from '@koreez/phaser3-ninepatch'
+import { until } from '@open-draft/until'
 import { state } from '@state/State'
 import { urlParams } from '@url-params'
+import { getErrorLog } from '@utils/error/utils'
 import { once } from 'es-toolkit'
 import { err, ok, Result } from 'neverthrow'
 import { match } from 'ts-pattern'
@@ -14,6 +16,8 @@ import trpc, { WebFontParsed } from '../../../../../trpc'
 import {
 	AssetTreeBitmapFontData,
 	AssetTreeItemData,
+	AssetTreePrefabData,
+	AssetTreeSpritesheetData,
 	AssetTreeSpritesheetFrameData,
 	AssetTreeWebFontData,
 	fetchImageUrl,
@@ -40,15 +44,20 @@ import {
 } from './objects/components/base/ComponentsManager'
 import { EditableComponentJson, EditableComponentType } from './objects/components/base/EditableComponent'
 import { EditableComponentsFactory } from './objects/components/base/EditableComponentsFactory'
-import { EditableContainer } from './objects/EditableContainer'
+import { EditableContainer, EditableContainerJson } from './objects/EditableContainer'
 import { EditableImage } from './objects/EditableImage'
-import { EditableObject } from './objects/EditableObject'
+import { EditableObject, EditableObjectJson } from './objects/EditableObject'
 import { EditableObjectsFactory } from './objects/EditableObjectsFactory'
 import { Rulers } from './Rulers'
+import { PrefabFile } from '../../../../../types/prefabs/PrefabFile'
+import { PrefabAsset } from '../../../../../types/prefabs/PrefabAsset'
+
 type PhaserBmfontData = Phaser.Types.GameObjects.BitmapText.BitmapFontData
 
 export type MainSceneInitData = {
 	project: Project
+	prefabAsset: AssetTreePrefabData
+	prefabFile: PrefabFile
 }
 
 type SelectionDragData = {
@@ -96,7 +105,7 @@ export class MainScene extends BaseScene {
 		this.sceneClickedAt = 0
 	}
 
-	public create() {
+	public async create() {
 		if (!this.initData) {
 			throw new Error('MainScene.initData is not set')
 		}
@@ -117,7 +126,7 @@ export class MainScene extends BaseScene {
 
 		this.initEditContexts()
 
-		this.initRoot()
+		await this.initRoot(this.initData.prefabFile)
 
 		this.initAligner()
 
@@ -143,7 +152,7 @@ export class MainScene extends BaseScene {
 
 		this.setupAppCommands()
 
-		this.addTestObjects()
+		// this.addTestObjects()
 
 		state.canvas.objects = this.root.stateObj
 		state.canvas.objectById = (id: string) => this.objectsFactory.getObjectById(id)?.stateObj
@@ -188,15 +197,132 @@ export class MainScene extends BaseScene {
 		)
 	}
 
-	private initRoot() {
-		this.root = this.objectsFactory.container()
-		this.root.name = 'root' // TODO use the current prefab name (from the assets tree)
+	private async initRoot(prefabFile: PrefabFile) {
+		let root: EditableContainer
+
+		if (prefabFile.content) {
+			await this.loadPrefabAssets(prefabFile.content)
+			root = this.objectsFactory.fromJson(prefabFile.content) as EditableContainer
+		} else {
+			root = this.objectsFactory.container()
+			root.name = this.initData.prefabAsset.name
+		}
+
 		this.add.existing(this.root)
 
 		this.editContexts.add(this.root, {
 			switchTo: true,
 			isRoot: true,
 		})
+	}
+
+	private async loadPrefabAssets(content: EditableContainerJson) {
+		const prefabAssets = this.calculatePrefabAssets(content)
+
+		// TODO prefabs: load assets in parallel
+		for (const assetDef of prefabAssets) {
+			const asset = getAssetById(state.assets.items, assetDef.id)
+			if (!asset) {
+				this.logger.warn(`failed to find ${assetDef.type} '${assetDef.name}' with id '${assetDef.id}'`)
+				continue
+			}
+
+			await match(asset)
+				.with({ type: 'image' }, async (image) => {
+					await this.loadTexture(image)
+				})
+				.with({ type: 'spritesheet' }, async (spritesheet) => {
+					await this.loadSpritesheet(spritesheet)
+				})
+				.with({ type: 'bitmap-font' }, async (bitmapFont) => {
+					await this.loadBitmapFont(bitmapFont)
+				})
+				.with({ type: 'web-font' }, async (webFont) => {
+					await this.loadWebFont(webFont)
+				})
+				.run()
+		}
+	}
+
+	private calculatePrefabAssets(prefabRoot: EditableContainerJson): PrefabAsset[] {
+		const assetIds = new Set<string>()
+		const assets: PrefabAsset[] = []
+
+		const traverse = (object: EditableObjectJson) => {
+			if (object.type === 'Container') {
+				for (const child of object.children) {
+					traverse(child)
+				}
+
+				return
+			}
+
+			const objectAssets = this.getObjectAssets(object)
+			for (const asset of objectAssets) {
+				if (assetIds.has(asset.id)) {
+					continue
+				}
+
+				assetIds.add(asset.id)
+				assets.push(asset)
+			}
+		}
+
+		traverse(prefabRoot)
+
+		return assets
+	}
+
+	private getObjectAssets(object: EditableObjectJson): PrefabAsset[] {
+		return match(object)
+			.returnType<PrefabAsset[]>()
+			.with({ type: 'Image' }, (image) => {
+				return []
+			})
+			.with({ type: 'Container' }, (container) => {
+				return []
+			})
+			.with({ type: 'Text' }, (text) => {
+				return []
+			})
+			.with({ type: 'BitmapText' }, (bitmapText) => {
+				return []
+			})
+			.with({ type: 'NineSlice' }, (nineSlice) => {
+				return []
+			})
+			.exhaustive()
+	}
+
+	private async savePrefab() {
+		const prefabFilePath = this.initData.prefabAsset.path
+
+		const prefabContent = this.root.toJson()
+
+		const prefabFile: PrefabFile = {
+			content: prefabContent,
+			assetPack: this.calculatePrefabAssetPack(prefabContent),
+		}
+
+		const { error } = await until(() =>
+			trpc.writeJson.mutate({ path: prefabFilePath, content: JSON.stringify(prefabFile) })
+		)
+		if (error) {
+			this.logger.error(`failed to save '${this.initData.prefabAsset.name}' prefab ${getErrorLog(error)}`)
+			// TODO prefabs: show mantine notification
+			return
+		}
+
+		this.logger.info(`saved '${this.initData.prefabAsset.name}' prefab`)
+	}
+
+	private calculatePrefabAssetPack(prefabRoot: EditableContainerJson): PrefabFile['assetPack'] {
+		const assets = this.calculatePrefabAssets(prefabRoot)
+
+		// TODO prefabs: convert the assets to Phaser AssetPack
+		// https://docs.phaser.io/api-documentation/class/loader-loaderplugin#pack
+
+		return []
 	}
 
 	private initAligner() {
@@ -472,7 +598,7 @@ export class MainScene extends BaseScene {
 			.with({ type: 'spritesheet-frame' }, async (spritesheetFrame) => {
 				let texture: Phaser.Textures.Texture | null = this.textures.get(spritesheetFrame.id)
 				if (!texture || texture.key === '__MISSING') {
-					texture = await this.loadTextureAtlas(spritesheetFrame)
+					texture = await this.loadSpritesheetFrame(spritesheetFrame)
 				}
 
 				if (!texture) {
@@ -543,7 +669,7 @@ export class MainScene extends BaseScene {
 		return this.textures.get(textureKey)
 	}
 
-	private async loadTextureAtlas(asset: AssetTreeSpritesheetFrameData): Promise<Phaser.Textures.Texture | null> {
+	private async loadSpritesheetFrame(asset: AssetTreeSpritesheetFrameData): Promise<Phaser.Textures.Texture | null> {
 		const spritesheetId = asset.parentId!
 		const spritesheetAsset = getAssetById(state.assets.items, spritesheetId)
 		if (!spritesheetAsset || spritesheetAsset.type !== 'spritesheet') {
@@ -561,6 +687,24 @@ export class MainScene extends BaseScene {
 		}
 
 		const textureKey = getAssetRelativePath(spritesheetAsset.image.path)
+
+		this.textures.addAtlas(textureKey, img, json)
+
+		return this.textures.get(textureKey)
+	}
+
+	private async loadSpritesheet(asset: AssetTreeSpritesheetData): Promise<Phaser.Textures.Texture | null> {
+		const img = await this.createImgForTexture(asset)
+		if (!img) {
+			return null
+		}
+
+		const json = await trpc.readJson.query({ path: asset.json.path })
+		if (!json) {
+			return null
+		}
+
+		const textureKey = getAssetRelativePath(asset.image.path)
 
 		this.textures.addAtlas(textureKey, img, json)
 
@@ -600,7 +744,7 @@ export class MainScene extends BaseScene {
 		return this.loadWebFont(asset)
 	}
 
-	private async loadWebFont(asset: AssetTreeWebFontData) {
+	private async loadWebFont(asset: AssetTreeWebFontData): Promise<WebFontParsed> {
 		// it only supports WOFF, WOFF2 and TTF formats
 		const webFontParsed = await trpc.parseWebFont.query({ path: asset.path })
 		const webFontCss = this.createWebFontCss(webFontParsed)
