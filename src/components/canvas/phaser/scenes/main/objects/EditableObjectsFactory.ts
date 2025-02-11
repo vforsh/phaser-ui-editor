@@ -99,6 +99,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 	}
 
 	public nineSlice(
+		asset: PrefabImageAsset | PrefabSpritesheetFrameAsset,
 		width: number,
 		height: number,
 		texture: string,
@@ -106,7 +107,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		patchesConfig?: IPatchesConfig
 	): EditableNineSlice {
 		const id = this.getObjectId()
-		const nineSlice = new EditableNineSlice(this.scene, id, width, height, texture, frame, patchesConfig)
+		const nineSlice = new EditableNineSlice(this.scene, id, asset, width, height, texture, frame, patchesConfig)
 		this.register(nineSlice)
 		return nineSlice
 	}
@@ -191,6 +192,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		const nineSlice = new EditableNineSlice(
 			this.scene,
 			id,
+			json.asset,
 			json.width,
 			json.height,
 			json.textureKey,

@@ -1,5 +1,6 @@
 import { IPatchesConfig, NinePatch } from '@koreez/phaser3-ninepatch'
 import { proxy } from 'valtio'
+import { PrefabImageAsset, PrefabSpritesheetFrameAsset } from '../../../../../../types/prefabs/PrefabAsset'
 import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
 import { ComponentsManager } from './components/base/ComponentsManager'
@@ -9,6 +10,7 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
 	public readonly kind = 'NineSlice'
 	public readonly id: string
+	public readonly asset: PrefabImageAsset | PrefabSpritesheetFrameAsset
 	private _isLocked = false
 	private _stateObj: EditableNineSliceJson
 	private _stateChanges: StateChangesEmitter<EditableNineSliceJson>
@@ -17,6 +19,7 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 	constructor(
 		scene: Phaser.Scene,
 		id: string,
+		asset: PrefabImageAsset | PrefabSpritesheetFrameAsset,
 		width: number,
 		height: number,
 		texture: string,
@@ -26,6 +29,8 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 		super(scene, 0, 0, width, height, texture, frame, ninePatchConfig)
 
 		this.id = id
+
+		this.asset = asset
 
 		this._components = new ComponentsManager(this)
 		this._components.on('component-added', this.onComponentsListChanged, this)
@@ -46,7 +51,7 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 			tint: (value) => (this.tint = value),
 			tintFill: (value) => (this.tintFill = value),
 
-			// TODO implement frame and texture changes
+			// TODO implement frame and texture changes and update the asset
 
 			// nine slice specific properties
 			width: (value) => this.resize(value, this.height),
@@ -74,6 +79,7 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 		return {
 			...this.toJSON(),
 			id: this.id,
+			asset: this.asset,
 			type: 'NineSlice',
 			depth: this.depth,
 			blendMode: this.blendMode,
@@ -200,6 +206,7 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 export type EditableNineSliceJson = CreateEditableObjectJson<{
 	type: 'NineSlice'
 	id: string
+	asset: PrefabImageAsset | PrefabSpritesheetFrameAsset
 	depth: number
 	blendMode: string | Phaser.BlendModes | number
 	scale: { x: number; y: number }

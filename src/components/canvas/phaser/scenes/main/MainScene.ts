@@ -501,6 +501,8 @@ export class MainScene extends BaseScene {
 					return null
 				}
 
+				// TODO support creation NineSlice from image assets if they have scale9Borders prop
+
 				const imageAsset = createPrefabAsset<PrefabImageAsset>(image)
 				return this.objectsFactory.image(imageAsset, texture.key)
 			})
@@ -525,7 +527,9 @@ export class MainScene extends BaseScene {
 						right: frameWidth - x - w,
 					}
 
+					const frameAsset = createPrefabAsset<PrefabSpritesheetFrameAsset>(spritesheetFrame)
 					return this.objectsFactory.nineSlice(
+						frameAsset,
 						spritesheetFrame.size.w,
 						spritesheetFrame.size.h,
 						texture.key,
