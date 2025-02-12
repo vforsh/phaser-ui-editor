@@ -82,7 +82,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 
 	public container(): EditableContainer {
 		const id = this.getObjectId()
-		const container = new EditableContainer(this.scene, id, 0, 0, [])
+		const container = new EditableContainer(this.scene, id, null, 0, 0, [])
 		this.register(container)
 		return container
 	}
@@ -153,7 +153,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 	private createContainerFromJson(json: EditableContainerJson): EditableContainer {
 		const id = this.getObjectId()
 		const children = json.children.map((childJson) => this.fromJson(childJson))
-		const container = new EditableContainer(this.scene, id, json.x, json.y, children)
+		const container = new EditableContainer(this.scene, id, json.prefab, json.x, json.y, children)
 
 		container.setScale(json.scale.x, json.scale.y)
 		container.setRotation(json.rotation)

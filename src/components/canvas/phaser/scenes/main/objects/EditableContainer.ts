@@ -19,10 +19,16 @@ type Events = {
 	'hierarchy-changed': () => void
 }
 
+export type PrefabRef = {
+	id: string
+	name: string
+}
+
 export class EditableContainer extends Phaser.GameObjects.Container implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
 	public readonly kind = 'Container'
 	public readonly id: string
+	public readonly prefab: PrefabRef | null
 	private readonly __events = new TypedEventEmitter<Events>()
 	private readonly _preDestroyController = new AbortController()
 	// copy of editables to track changes in hierarchy
@@ -32,10 +38,19 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 	private _stateChanges: StateChangesEmitter<EditableContainerJson>
 	private _components: ComponentsManager
 
-	constructor(scene: Phaser.Scene, id: string, x = 0, y = 0, children: Phaser.GameObjects.GameObject[] = []) {
+	constructor(
+		scene: Phaser.Scene,
+		id: string,
+		prefab: PrefabRef | null,
+		x = 0,
+		y = 0,
+		children: Phaser.GameObjects.GameObject[] = []
+	) {
 		super(scene, x, y)
 
 		this.id = id
+
+		this.prefab = prefab
 
 		// defer adding children
 		// we do it here instead of in `super()` because `__events` is not initialized yet in `super()`
@@ -154,6 +169,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		return {
 			...this.toJSON(),
 			id: this.id,
+			prefab: this.prefab,
 			type: 'Container',
 			width: this.width,
 			height: this.height,
@@ -299,4 +315,9 @@ export type EditableContainerJson = CreateEditableObjectJson<{
 	originX: number
 	originY: number
 	components: EditableComponentJson[]
+
+	/**
+	 * If the container was created from a prefab, this will be the reference to the prefab.
+	 */
+	prefab: PrefabRef | null
 }>
