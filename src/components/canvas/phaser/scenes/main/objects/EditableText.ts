@@ -200,17 +200,6 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 		return this
 	}
 
-	override setPosition(x?: number, y?: number): this {
-		super.setPosition(x, y)
-
-		this.withoutEmits((state) => {
-			state.x = x ?? this.x
-			state.y = y ?? this.y
-		})
-
-		return this
-	}
-
 	override setAngle(angle: number): this {
 		super.setAngle(angle)
 
@@ -268,6 +257,17 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 		super.setY(y)
 
 		this.withoutEmits((state) => {
+			state.y = y
+		})
+
+		return this
+	}
+
+	override setPosition(x: number, y: number): this {
+		super.setPosition(x, y)
+
+		this.withoutEmits((state) => {
+			state.x = x
 			state.y = y
 		})
 

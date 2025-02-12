@@ -185,15 +185,6 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 		return this
 	}
 
-	override setPosition(x?: number, y?: number): this {
-		if (this._stateObj) {
-			this._stateObj.x = x ?? this._stateObj.x
-			this._stateObj.y = y ?? this._stateObj.y
-		}
-
-		return this
-	}
-
 	override setAlpha(alpha: number): this {
 		super.setAlpha(alpha)
 
@@ -234,6 +225,17 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 		super.setY(y)
 
 		this.withoutEmits((state) => {
+			state.y = y
+		})
+
+		return this
+	}
+
+	override setPosition(x: number, y: number): this {
+		super.setPosition(x, y)
+
+		this.withoutEmits((state) => {
+			state.x = x
 			state.y = y
 		})
 

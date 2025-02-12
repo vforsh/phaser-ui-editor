@@ -223,17 +223,6 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		}
 	}
 
-	override setPosition(x?: number, y?: number): this {
-		super.setPosition(x, y)
-
-		this.withoutEmits((state) => {
-			state.x = x ?? this.x
-			state.y = y ?? this.y
-		})
-
-		return this
-	}
-
 	override setDisplaySize(width: number, height: number): this {
 		super.setDisplaySize(width, height)
 
@@ -269,6 +258,17 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		super.setY(y)
 
 		this.withoutEmits((state) => {
+			state.y = y
+		})
+
+		return this
+	}
+
+	override setPosition(x: number, y: number): this {
+		super.setPosition(x, y)
+
+		this.withoutEmits((state) => {
+			state.x = x
 			state.y = y
 		})
 
