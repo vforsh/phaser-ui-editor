@@ -10,9 +10,9 @@ interface ContainerSizeSectionProps extends BaseSectionProps<EditableObjectJson>
 export function ContainerSizeSection({ data }: ContainerSizeSectionProps) {
 	const snap = useSnapshot(data)
 
-	const hasSizeControllingComps = snap.components.some((comp) =>
+	const hasActiveSizeControllingComps = snap.components.some((comp) =>
 		match(comp.type)
-			.with('horizontal-layout', 'vertical-layout', 'grid-layout', () => true)
+			.with('horizontal-layout', 'vertical-layout', 'grid-layout', () => comp.active)
 			.otherwise(() => false)
 	)
 
@@ -25,7 +25,7 @@ export function ContainerSizeSection({ data }: ContainerSizeSectionProps) {
 					onChange={(val) => (data.width = val)}
 					size="xs"
 					// TODO add tooltip that explains that the width is controlled by the layout component
-					readOnly={hasSizeControllingComps}
+					readOnly={hasActiveSizeControllingComps}
 				/>
 				<NumberInputCustom
 					label="Height"
@@ -33,7 +33,7 @@ export function ContainerSizeSection({ data }: ContainerSizeSectionProps) {
 					onChange={(val) => (data.height = val)}
 					size="xs"
 					// TODO add tooltip that explains that the height is controlled by the layout component
-					readOnly={hasSizeControllingComps}
+					readOnly={hasActiveSizeControllingComps}
 				/>
 			</Group>
 

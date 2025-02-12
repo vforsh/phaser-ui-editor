@@ -1,6 +1,6 @@
 import { EditableContainer } from '../EditableContainer'
 import { EditableObject } from '../EditableObject'
-import { PHASER_ALIGN, PhaserAlignKey } from '../PhaserAlign'
+import { PhaserAlignKey } from '../PhaserAlign'
 import { StateChangesEmitter } from '../StateChangesEmitter'
 import { BaseEditableComponent } from './base/BaseEditableComponent'
 
@@ -15,8 +15,6 @@ export class EditableGridLayoutComponent extends BaseEditableComponent<GridLayou
 	private cellPosition: PhaserAlignKey = 'center'
 	private spacingX = 0
 	private spacingY = 0
-	private startX = 0
-	private startY = 0
 
 	constructor(id: string, initialState?: GridLayoutComponentJson) {
 		super(id)
@@ -29,8 +27,6 @@ export class EditableGridLayoutComponent extends BaseEditableComponent<GridLayou
 			this.cellPosition = initialState.cellPosition
 			this.spacingX = initialState.spacingX
 			this.spacingY = initialState.spacingY
-			this.startX = initialState.startX
-			this.startY = initialState.startY
 		}
 
 		this._state = this.createState()
@@ -40,6 +36,10 @@ export class EditableGridLayoutComponent extends BaseEditableComponent<GridLayou
 			{
 				active: (value) => {
 					this._isActive = value
+				},
+				columns: (value) => {
+					this.columns = value
+					this.updateLayout()
 				},
 				cellWidth: (value) => {
 					this.cellWidth = value
@@ -53,12 +53,12 @@ export class EditableGridLayoutComponent extends BaseEditableComponent<GridLayou
 					this.cellPosition = value
 					this.updateLayout()
 				},
-				spacingY: (value) => {
-					this.spacingY = value
+				spacingX: (value) => {
+					this.spacingX = value
 					this.updateLayout()
 				},
-				startY: (value) => {
-					this.startY = value
+				spacingY: (value) => {
+					this.spacingY = value
 					this.updateLayout()
 				},
 			},
@@ -77,16 +77,20 @@ export class EditableGridLayoutComponent extends BaseEditableComponent<GridLayou
 			return
 		}
 
-		Phaser.Actions.GridAlign(this._parent.editables, {
-			width: this.columns,
-			cellWidth: this.cellWidth,
-			cellHeight: this.cellHeight,
-			position: PHASER_ALIGN[this.cellPosition],
-			// spacingX: this.spacingX,
-			// spacingY: this.spacingY,
-			x: this.startX,
-			y: this.startY,
+		const rows = Math.ceil(this._parent.editables.length / this.columns)
+
+		this._parent.editables.forEach((child, index) => {
+			const row = Math.floor(index / this.columns)
+			const col = index % this.columns
+			const cellCenterX = col * (this.cellWidth + this.spacingX) + this.cellWidth / 2
+			const cellCenterY = row * (this.cellHeight + this.spacingY) + this.cellHeight / 2
+			child.setPosition(cellCenterX, cellCenterY)
 		})
+
+		const actualColumns = Math.min(this.columns, this._parent.editables.length)
+		const width = actualColumns * this.cellWidth + this.spacingX * (actualColumns - 1)
+		const height = rows * this.cellHeight + this.spacingY * (rows - 1)
+		this._parent.setSize(width, height)
 	}
 
 	public toJson(): GridLayoutComponentJson {
@@ -100,8 +104,6 @@ export class EditableGridLayoutComponent extends BaseEditableComponent<GridLayou
 			cellPosition: this.cellPosition,
 			spacingX: this.spacingX,
 			spacingY: this.spacingY,
-			startX: this.startX,
-			startY: this.startY,
 		}
 	}
 
@@ -131,6 +133,4 @@ export type GridLayoutComponentJson = {
 	cellPosition: PhaserAlignKey
 	spacingX: number
 	spacingY: number
-	startX: number
-	startY: number
 }

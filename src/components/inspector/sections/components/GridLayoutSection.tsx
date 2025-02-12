@@ -1,8 +1,5 @@
 import { GridLayoutComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/EditableGridLayoutComponent'
-import {
-	PHASER_ALIGN,
-	PhaserAlignKey
-} from '@components/canvas/phaser/scenes/main/objects/PhaserAlign'
+import { PHASER_ALIGN, PhaserAlignKey } from '@components/canvas/phaser/scenes/main/objects/PhaserAlign'
 import { Group, Stack } from '@mantine/core'
 import { useSnapshot } from 'valtio'
 import { BaseSectionProps } from '../BaseSection'
@@ -66,24 +63,6 @@ export function GridLayoutSection({ data }: GridLayoutSectionProps) {
 					label="Spacing Y"
 					value={snap.spacingY}
 					onChange={(value) => (data.spacingY = value)}
-					step={1}
-					size="xs"
-				/>
-			</Group>
-
-			<Group grow>
-				<NumberInputCustom
-					label="Start X"
-					value={snap.startX}
-					onChange={(value) => (data.startX = value)}
-					step={1}
-					size="xs"
-				/>
-
-				<NumberInputCustom
-					label="Start Y"
-					value={snap.startY}
-					onChange={(value) => (data.startY = value)}
 					step={1}
 					size="xs"
 				/>
