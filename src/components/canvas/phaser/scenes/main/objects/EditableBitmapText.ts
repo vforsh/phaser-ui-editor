@@ -1,4 +1,5 @@
 import { proxy } from 'valtio'
+import { PrefabBitmapFontAsset } from '../../../../../../types/prefabs/PrefabAsset'
 import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
 import { ComponentsManager } from './components/base/ComponentsManager'
@@ -8,6 +9,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 	public readonly [EDITABLE_SYMBOL] = true
 	public readonly kind = 'BitmapText'
 	public readonly id: string
+	public readonly asset: PrefabBitmapFontAsset
 	private _isLocked = false
 	private _stateObj: EditableBitmapTextJson
 	private _stateChanges: StateChangesEmitter<EditableBitmapTextJson>
@@ -16,6 +18,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 	constructor(
 		scene: Phaser.Scene,
 		id: string,
+		asset: PrefabBitmapFontAsset,
 		font: string,
 		text?: string | string[],
 		size?: number,
@@ -24,6 +27,8 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		super(scene, 0, 0, font, text, size, align)
 
 		this.id = id
+
+		this.asset = asset
 
 		this._components = new ComponentsManager(this)
 		this._components.on('component-added', this.onComponentsListChanged, this)
@@ -54,6 +59,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 				this.updateInputHitArea()
 			},
 			'font': (value) => {
+				// TODO prefabs: update the asset too
 				this.setFont(value)
 				this.updateInputHitArea()
 			},
@@ -111,6 +117,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		return {
 			...this.toJSON(),
 			id: this.id,
+			asset: this.asset,
 			type: 'BitmapText',
 			depth: this.depth,
 			blendMode: this.blendMode,
@@ -209,17 +216,6 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		return this
 	}
 
-	override setPosition(x?: number, y?: number): this {
-		super.setPosition(x, y)
-
-		this.withoutEmits((state) => {
-			state.x = x ?? this.x
-			state.y = y ?? this.y
-		})
-
-		return this
-	}
-
 	override setAngle(angle: number): this {
 		super.setAngle(angle)
 
@@ -235,6 +231,37 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 
 		this.withoutEmits((state) => {
 			state.name = value
+		})
+
+		return this
+	}
+
+	override setX(x: number): this {
+		super.setX(x)
+
+		this.withoutEmits((state) => {
+			state.x = x
+		})
+
+		return this
+	}
+
+	override setY(y: number): this {
+		super.setY(y)
+
+		this.withoutEmits((state) => {
+			state.y = y
+		})
+
+		return this
+	}
+
+	override setPosition(x: number, y: number): this {
+		super.setPosition(x, y)
+
+		this.withoutEmits((state) => {
+			state.x = x
+			state.y = y
 		})
 
 		return this
@@ -277,4 +304,5 @@ export type EditableBitmapTextJson = CreateEditableObjectJson<{
 	tintFill: boolean
 	angle: number
 	components: EditableComponentJson[]
+	asset: PrefabBitmapFontAsset
 }>

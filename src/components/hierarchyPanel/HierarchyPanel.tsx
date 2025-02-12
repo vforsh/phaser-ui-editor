@@ -30,9 +30,11 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 							<HierarchyItem
 								key={canvasSnap.objects.id}
 								objId={canvasSnap.objects.id}
+								hasUnsavedChanges={canvasSnap.hasUnsavedChanges}
 								selectedIds={canvasSnap.selection}
 								hoveredIds={canvasSnap.hover}
 								isLastChild={true}
+								isRoot={true}
 							/>
 						)}
 					</Stack>

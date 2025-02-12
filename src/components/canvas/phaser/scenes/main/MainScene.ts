@@ -1,6 +1,9 @@
+import { getNameWithoutExtension } from '@components/assetsPanel/AssetTreeItem'
 import { IPatchesConfig } from '@koreez/phaser3-ninepatch'
-import { state } from '@state/State'
+import { until } from '@open-draft/until'
+import { state, subscribe } from '@state/State'
 import { urlParams } from '@url-params'
+import { getErrorLog } from '@utils/error/utils'
 import { once } from 'es-toolkit'
 import { err, ok, Result } from 'neverthrow'
 import { match } from 'ts-pattern'
@@ -14,15 +17,25 @@ import trpc, { WebFontParsed } from '../../../../../trpc'
 import {
 	AssetTreeBitmapFontData,
 	AssetTreeItemData,
+	AssetTreeItemDataOfType,
+	AssetTreePrefabData,
 	AssetTreeSpritesheetFrameData,
 	AssetTreeWebFontData,
 	fetchImageUrl,
 	getAssetById,
 	getAssetRelativePath,
-	getAssetsOfType,
 	GraphicAssetData,
 	isAssetOfType,
 } from '../../../../../types/assets'
+import {
+	createPrefabAsset,
+	PrefabAsset,
+	PrefabBitmapFontAsset,
+	PrefabImageAsset,
+	PrefabSpritesheetFrameAsset,
+	PrefabWebFontAsset,
+} from '../../../../../types/prefabs/PrefabAsset'
+import { PrefabFile } from '../../../../../types/prefabs/PrefabFile'
 import { parseJsonBitmapFont } from '../../robowhale/phaser3/gameObjects/bitmap-text/parse-json-bitmap-font'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { signalFromEvent } from '../../robowhale/utils/events/create-abort-signal-from-event'
@@ -40,15 +53,17 @@ import {
 } from './objects/components/base/ComponentsManager'
 import { EditableComponentJson, EditableComponentType } from './objects/components/base/EditableComponent'
 import { EditableComponentsFactory } from './objects/components/base/EditableComponentsFactory'
-import { EditableContainer } from './objects/EditableContainer'
-import { EditableImage } from './objects/EditableImage'
-import { EditableObject } from './objects/EditableObject'
+import { EditableContainer, EditableContainerJson } from './objects/EditableContainer'
+import { EditableObject, EditableObjectJson } from './objects/EditableObject'
 import { EditableObjectsFactory } from './objects/EditableObjectsFactory'
 import { Rulers } from './Rulers'
+
 type PhaserBmfontData = Phaser.Types.GameObjects.BitmapText.BitmapFontData
 
 export type MainSceneInitData = {
 	project: Project
+	prefabAsset: AssetTreePrefabData
+	prefabFile: PrefabFile
 }
 
 type SelectionDragData = {
@@ -96,7 +111,7 @@ export class MainScene extends BaseScene {
 		this.sceneClickedAt = 0
 	}
 
-	public create() {
+	public async create() {
 		if (!this.initData) {
 			throw new Error('MainScene.initData is not set')
 		}
@@ -117,7 +132,7 @@ export class MainScene extends BaseScene {
 
 		this.initEditContexts()
 
-		this.initRoot()
+		await this.initRoot(this.initData.prefabFile)
 
 		this.initAligner()
 
@@ -143,10 +158,17 @@ export class MainScene extends BaseScene {
 
 		this.setupAppCommands()
 
-		this.addTestObjects()
-
 		state.canvas.objects = this.root.stateObj
 		state.canvas.objectById = (id: string) => this.objectsFactory.getObjectById(id)?.stateObj
+		state.canvas.hasUnsavedChanges = false
+
+		subscribe(
+			state.canvas.objects,
+			() => {
+				state.canvas.hasUnsavedChanges = true
+			},
+			{ signal: this.shutdownSignal }
+		)
 	}
 
 	private initComponentsFactory() {
@@ -188,15 +210,132 @@ export class MainScene extends BaseScene {
 		)
 	}
 
-	private initRoot() {
-		this.root = this.objectsFactory.container()
-		this.root.name = 'root' // TODO use the current prefab name (from the assets tree)
+	private async initRoot(prefabFile: PrefabFile) {
+		let root: EditableContainer
+
+		if (prefabFile.content) {
+			await this.loadPrefabAssets(prefabFile.content)
+			root = this.objectsFactory.fromJson(prefabFile.content) as EditableContainer
+		} else {
+			root = this.objectsFactory.container()
+			root.name = getNameWithoutExtension(this.initData.prefabAsset)
+		}
+
+		this.root = root
 		this.add.existing(this.root)
 
 		this.editContexts.add(this.root, {
 			switchTo: true,
 			isRoot: true,
 		})
+	}
+
+	private async loadPrefabAssets(content: EditableContainerJson) {
+		const prefabAssets = this.calculatePrefabAssets(content)
+
+		// TODO prefabs: load assets in parallel
+		for (const assetDef of prefabAssets) {
+			const asset = getAssetById(state.assets.items, assetDef.id) as AssetTreeItemDataOfType<typeof assetDef.type>
+			if (!asset) {
+				this.logger.warn(`failed to find ${assetDef.type} '${assetDef.name}' with id '${assetDef.id}'`)
+				continue
+			}
+
+			await match(asset)
+				.with({ type: 'image' }, async (image) => this.loadTexture(image))
+				.with({ type: 'spritesheet-frame' }, async (frame) => this.loadSpritesheetFrame(frame))
+				.with({ type: 'bitmap-font' }, async (bitmapFont) => this.loadBitmapFont(bitmapFont))
+				.with({ type: 'web-font' }, async (webFont) => this.loadWebFont(webFont))
+				.exhaustive()
+		}
+	}
+
+	/**
+	 * Calculates the assets that are needed to be loaded to display the prefab.
+	 */
+	private calculatePrefabAssets(prefabRoot: EditableContainerJson): PrefabAsset[] {
+		const assetIds = new Set<string>()
+		const assets: PrefabAsset[] = []
+
+		const traverse = (object: EditableObjectJson) => {
+			if (object.type === 'Container') {
+				for (const child of object.children) {
+					traverse(child)
+				}
+
+				return
+			}
+
+			// simplify - get rid of array
+			const objectAssets = match(object)
+				.returnType<PrefabAsset[]>()
+				.with({ type: 'Image' }, (image) => [image.asset])
+				.with({ type: 'Text' }, (text) => [text.asset])
+				.with({ type: 'BitmapText' }, (bitmapText) => [bitmapText.asset])
+				.with({ type: 'NineSlice' }, (nineSlice) => [nineSlice.asset])
+				.exhaustive()
+
+			for (const asset of objectAssets) {
+				if (assetIds.has(asset.id)) {
+					continue
+				}
+
+				assetIds.add(asset.id)
+				assets.push(asset)
+			}
+		}
+
+		traverse(prefabRoot)
+
+		return assets
+	}
+
+	/**
+	 * Saves the prefab to the file system.
+	 */
+	public async savePrefab(): Promise<Result<{}, string>> {
+		if (!state.canvas.hasUnsavedChanges) {
+			this.logger.info(`no changes in '${this.initData.prefabAsset.name}', skipping save`)
+			return ok({})
+		}
+
+		const prefabFilePath = this.initData.prefabAsset.path
+
+		const prefabContent = this.root.toJson()
+
+		const prefabFile: PrefabFile = {
+			content: prefabContent,
+			assetPack: this.calculatePrefabAssetPack(prefabContent),
+		}
+
+		const { error } = await until(() =>
+			trpc.writeJson.mutate({ path: prefabFilePath, content: prefabFile, options: { spaces: '\t' } })
+		)
+		if (error) {
+			const errorLog = getErrorLog(error)
+			this.logger.error(`failed to save '${this.initData.prefabAsset.name}' prefab (${errorLog})`)
+			// TODO prefabs: show mantine notification
+			return err(errorLog)
+		}
+
+		this.logger.info(`saved '${this.initData.prefabAsset.name}' at ${prefabFilePath}`)
+
+		state.canvas.hasUnsavedChanges = false
+
+		return ok({})
+	}
+
+	/**
+	 * Calculates the asset pack for the prefab.
+	 * @note Asset pack is used in RUNTIME, not in EDITOR.
+	 */
+	private calculatePrefabAssetPack(prefabRoot: EditableContainerJson): PrefabFile['assetPack'] {
+		const assets = this.calculatePrefabAssets(prefabRoot)
+
+		// TODO prefabs: convert the assets to Phaser AssetPack
+		// https://docs.phaser.io/api-documentation/class/loader-loaderplugin#pack
+
+		return []
 	}
 
 	private initAligner() {
@@ -238,91 +377,11 @@ export class MainScene extends BaseScene {
 		this.projectSizeFrame.height = size.height
 	}
 
-	private async addTestObjects(): Promise<void> {
-		const context = this.editContexts.current!
-
-		const chefCherryFrame = getAssetsOfType(state.assets.items, 'spritesheet-frame').find(
-			(frame) => frame.name === 'Chef Cherry'
-		)
-
-		let chefCherry_1: EditableImage | undefined
-		if (chefCherryFrame) {
-			chefCherry_1 = (await this.addTestImage(chefCherryFrame, -400, -600)) as EditableImage
-			chefCherry_1?.setName(this.getNewObjectName(context, chefCherry_1!, 'chefCherry_topLeft'))
-			chefCherry_1?.setOrigin(0)
-		}
-
-		let chefCherry_2: EditableImage | undefined
-		if (chefCherryFrame) {
-			chefCherry_2 = (await this.addTestImage(chefCherryFrame, 400, -600)) as EditableImage
-			chefCherry_2?.setName(this.getNewObjectName(context, chefCherry_2!, 'chefCherry_topRight'))
-			chefCherry_2?.setOrigin(1, 0)
-		}
-
-		if (chefCherry_1 && chefCherry_2) {
-			const selection = context.setSelection([chefCherry_1, chefCherry_2])
-			const group = this.group(selection, context)
-			group.setPosition(group.x, group.y - 150)
-		}
-
-		if (chefCherryFrame) {
-			const chefCherry_3 = (await this.addTestImage(chefCherryFrame, -250, -30)) as EditableImage
-			chefCherry_3?.setName(this.getNewObjectName(context, chefCherry_3!, 'chefCherry_bottomLeft'))
-			chefCherry_3?.setOrigin(0.5, 0.5)
-			chefCherry_3?.setAngle(90)
-			context.setSelection([chefCherry_3])
-		}
-
-		const nineSliceAsset = getAssetsOfType(state.assets.items, 'spritesheet-frame').find(
-			(frame) => frame.name === 'popup_back.png'
-		)
-		if (nineSliceAsset) {
-			const nineSlice = await this.handleAssetDrop({
-				asset: nineSliceAsset,
-				position: { x: -400, y: -400 },
-			})
-			if (nineSlice && nineSlice.kind === 'NineSlice') {
-				nineSlice.resize(500, 400)
-				nineSlice.setPosition(this.projectSizeFrame.width / 2 + 250, this.projectSizeFrame.height / 2 - 30)
-			}
-		}
-
-		const bitmapFont = await this.initBitmapFont_DEBUG('5cbc7ed7df')
-		if (bitmapFont.isOk()) {
-			const bmFont = bitmapFont.value
-			const bmText = this.objectsFactory.bitmapText(bmFont.key, '1234567890', 100)
-			bmText.setName(this.getNewObjectName(context, bmText, 'bitmap-text'))
-			bmText.setPosition(this.projectSizeFrame.width / 2, this.projectSizeFrame.height - 70)
-			this.root.add(bmText)
-		} else {
-			this.logger.warn(`failed to load bitmap font (${bitmapFont.error})`)
-		}
-
-		const webFont = await this.initWebFont_DEBUG('e97f56cb27')
-		if (webFont) {
-			const text = this.objectsFactory.text(webFont.familyName + `\nYo Poetsen One Two Three Four`, {
-				fontFamily: webFont.familyName,
-				fontSize: '50px',
-				color: '#ffffff',
-				resolution: 2,
-				align: 'center',
-			})
-			text.setName(this.getNewObjectName(context, text, 'text'))
-			text.setPosition(this.projectSizeFrame.width / 2, this.projectSizeFrame.height + 100)
-			text.setStroke('#ff0000', 6)
-			text.setShadow(0, 10, 'rgba(0, 0, 0, 0.33)', 0, true, false)
-			this.root.add(text)
-		} else {
-			this.logger.warn('failed to load web font')
-		}
-	}
-
 	// TODO move to ObjectsFactory
 	private getNewObjectName(context: EditContext, obj: EditableObject, prefix?: string): string {
 		const _prefix = prefix ?? this.extractNamePrefix(obj.name) ?? this.createNamePrefix(obj)
-		const uid = Phaser.Math.RND.uuid().slice(0, 4)
 
-		return `${_prefix}__${uid}`
+		return `${_prefix}`
 	}
 
 	private createNamePrefix(obj: EditableObject): string {
@@ -344,25 +403,6 @@ export class MainScene extends BaseScene {
 		return name.split('__')[0]
 	}
 
-	private async addTestImage(asset: GraphicAssetData, offsetX: number, offsetY: number, angle = 0) {
-		const gameObject = await this.handleAssetDrop({
-			asset,
-			position: {
-				x: this.initData.project.config.size.width / 2,
-				y: this.initData.project.config.size.height / 2,
-			},
-		})
-
-		if (gameObject) {
-			const centerX = this.initData.project.config.size.width / 2
-			const centerY = this.initData.project.config.size.height / 2
-			gameObject.setPosition(centerX + offsetX, centerY + offsetY)
-			gameObject.setAngle(angle)
-		}
-
-		return gameObject
-	}
-
 	private setupAppCommands() {
 		const appCommands = (this.game as PhaserGameExtra).appCommands as AppCommandsEmitter
 
@@ -373,6 +413,8 @@ export class MainScene extends BaseScene {
 		appCommands.on('paste-component', this.pasteComponent, this, false, this.shutdownSignal)
 
 		appCommands.on('handle-asset-drop', this.handleAssetDrop, this, false, this.shutdownSignal)
+
+		appCommands.on('save-prefab', this.savePrefab, this, false, this.shutdownSignal)
 	}
 
 	private addComponent(data: { componentType: EditableComponentType; objectId: string }): AddComponentResult {
@@ -467,12 +509,15 @@ export class MainScene extends BaseScene {
 					return null
 				}
 
-				return this.objectsFactory.image(texture.key)
+				// TODO support creation NineSlice from image assets if they have scale9Borders prop
+
+				const imageAsset = createPrefabAsset<PrefabImageAsset>(image)
+				return this.objectsFactory.image(imageAsset, texture.key)
 			})
 			.with({ type: 'spritesheet-frame' }, async (spritesheetFrame) => {
 				let texture: Phaser.Textures.Texture | null = this.textures.get(spritesheetFrame.id)
 				if (!texture || texture.key === '__MISSING') {
-					texture = await this.loadTextureAtlas(spritesheetFrame)
+					texture = await this.loadSpritesheetFrame(spritesheetFrame)
 				}
 
 				if (!texture) {
@@ -490,7 +535,9 @@ export class MainScene extends BaseScene {
 						right: frameWidth - x - w,
 					}
 
+					const frameAsset = createPrefabAsset<PrefabSpritesheetFrameAsset>(spritesheetFrame)
 					return this.objectsFactory.nineSlice(
+						frameAsset,
 						spritesheetFrame.size.w,
 						spritesheetFrame.size.h,
 						texture.key,
@@ -498,7 +545,8 @@ export class MainScene extends BaseScene {
 						nineScaleConfig
 					)
 				} else {
-					return this.objectsFactory.image(texture.key, spritesheetFrame.pathInHierarchy)
+					const frameAsset = createPrefabAsset<PrefabSpritesheetFrameAsset>(spritesheetFrame)
+					return this.objectsFactory.image(frameAsset, texture.key, spritesheetFrame.pathInHierarchy)
 				}
 			})
 			.with({ type: 'web-font' }, async (webFontAsset) => {
@@ -507,7 +555,8 @@ export class MainScene extends BaseScene {
 					return null
 				}
 
-				const text = this.objectsFactory.text(font.familyName, {
+				const textAsset = createPrefabAsset<PrefabWebFontAsset>(webFontAsset)
+				const text = this.objectsFactory.text(textAsset, font.familyName, {
 					fontFamily: font.familyName,
 					fontSize: '60px',
 					color: '#ffffff',
@@ -521,9 +570,10 @@ export class MainScene extends BaseScene {
 					return null
 				}
 
+				const bmTextAsset = createPrefabAsset<PrefabBitmapFontAsset>(bitmapFontAsset)
 				const bmFont = bmFontResult.value
 				const bmTextContent = this.getBitmapFontChars(bmFont.data).replace(' ', '').slice(0, 10)
-				const bmText = this.objectsFactory.bitmapText(bmFont.key, bmTextContent, bmFont.data.size)
+				const bmText = this.objectsFactory.bitmapText(bmTextAsset, bmFont.key, bmTextContent, bmFont.data.size)
 				bmText.setName(this.getNewObjectName(this.editContexts.current!, bmText, 'bitmap-text'))
 				return bmText
 			})
@@ -531,23 +581,38 @@ export class MainScene extends BaseScene {
 	}
 
 	private async loadTexture(asset: GraphicAssetData): Promise<Phaser.Textures.Texture | null> {
+		const textureKey = getAssetRelativePath(asset.path)
+
+		if (this.textures.exists(textureKey)) {
+			return this.textures.get(textureKey)
+		}
+
 		const img = await this.createImgForTexture(asset)
 		if (!img) {
 			return null
 		}
-
-		const textureKey = getAssetRelativePath(asset.path)
 
 		this.textures.addImage(textureKey, img)
 
 		return this.textures.get(textureKey)
 	}
 
-	private async loadTextureAtlas(asset: AssetTreeSpritesheetFrameData): Promise<Phaser.Textures.Texture | null> {
+	private async loadSpritesheetFrame(asset: AssetTreeSpritesheetFrameData): Promise<Phaser.Textures.Texture | null> {
 		const spritesheetId = asset.parentId!
 		const spritesheetAsset = getAssetById(state.assets.items, spritesheetId)
-		if (!spritesheetAsset || spritesheetAsset.type !== 'spritesheet') {
+		if (!spritesheetAsset) {
 			return null
+		}
+
+		if (!isAssetOfType(spritesheetAsset, 'spritesheet')) {
+			return null
+		}
+
+		const textureKey = getAssetRelativePath(spritesheetAsset.image.path)
+
+		// TODO check if texture is an atlas
+		if (this.textures.exists(textureKey)) {
+			return this.textures.get(textureKey)
 		}
 
 		const img = await this.createImgForTexture(spritesheetAsset)
@@ -559,8 +624,6 @@ export class MainScene extends BaseScene {
 		if (!json) {
 			return null
 		}
-
-		const textureKey = getAssetRelativePath(spritesheetAsset.image.path)
 
 		this.textures.addAtlas(textureKey, img, json)
 
@@ -600,7 +663,7 @@ export class MainScene extends BaseScene {
 		return this.loadWebFont(asset)
 	}
 
-	private async loadWebFont(asset: AssetTreeWebFontData) {
+	private async loadWebFont(asset: AssetTreeWebFontData): Promise<WebFontParsed> {
 		// it only supports WOFF, WOFF2 and TTF formats
 		const webFontParsed = await trpc.parseWebFont.query({ path: asset.path })
 		const webFontCss = this.createWebFontCss(webFontParsed)
@@ -745,6 +808,18 @@ export class MainScene extends BaseScene {
 	}
 
 	private addKeyboadCallbacks() {
+		this.onKeyDown(
+			'S',
+			(event) => {
+				if (event.ctrlKey || event.metaKey) {
+					event.preventDefault()
+					this.savePrefab()
+				}
+			},
+			this,
+			this.shutdownSignal
+		)
+
 		this.onKeyDown('R', this.restart, this, this.shutdownSignal)
 		this.onKeyDown('F', this.alignCameraToProjectFrame, this, this.shutdownSignal)
 

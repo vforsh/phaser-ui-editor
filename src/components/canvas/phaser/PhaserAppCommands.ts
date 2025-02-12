@@ -1,10 +1,10 @@
 import { CommandEmitter } from './robowhale/utils/events/CommandEmitter'
 
-/** 
- * Commands to request parent React app to perform some actions 
+/**
+ * Commands to request parent React app to perform some actions
  */
 export type PhaserAppCommands = {
-	'double-number': (n: number) => number
+	'prompt-prefab-save': (data: { prefabName: string }) => Promise<'save' | 'dont-save' | 'cancel'>
 }
 
 export type PhaserAppCommandsEmitter = CommandEmitter<PhaserAppCommands>

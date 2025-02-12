@@ -1,8 +1,14 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { IPatchesConfig } from '@koreez/phaser3-ninepatch'
-import { nanoid } from 'nanoid'
+import { customAlphabet } from 'nanoid'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
+import {
+	PrefabBitmapFontAsset,
+	PrefabImageAsset,
+	PrefabSpritesheetFrameAsset,
+	PrefabWebFontAsset,
+} from '../../../../../../types/prefabs/PrefabAsset'
 import { EditableBitmapText, EditableBitmapTextJson } from './EditableBitmapText'
 import { EditableContainer, EditableContainerJson } from './EditableContainer'
 import { EditableImage, EditableImageJson } from './EditableImage'
@@ -32,6 +38,7 @@ export interface EditableObjectsFactoryOptions {
 export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 	private scene: Phaser.Scene
 	private logger: Logger<{}>
+	private nanoid: (size?: number) => string
 	private componentsFactory: EditableComponentsFactory
 	private idsToObjects: Map<string, EditableObject> = new Map()
 	private destroyController = new AbortController()
@@ -41,6 +48,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 
 		this.scene = options.scene
 		this.logger = options.logger
+		this.nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz', 8)
 		this.componentsFactory = options.componentsFactory
 	}
 
@@ -65,10 +73,9 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 	}
 
 	private getObjectId(): string {
-		const idLength = 10
-		let id = nanoid(idLength)
+		let id = this.nanoid()
 		while (this.idsToObjects.has(id)) {
-			id = nanoid(idLength)
+			id = this.nanoid()
 		}
 		return id
 	}
@@ -80,14 +87,19 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		return container
 	}
 
-	public image(texture: string, frame?: string | number): EditableImage {
+	public image(
+		asset: PrefabImageAsset | PrefabSpritesheetFrameAsset,
+		texture: string,
+		frame?: string | number
+	): EditableImage {
 		const id = this.getObjectId()
-		const image = new EditableImage(this.scene, id, 0, 0, texture, frame)
+		const image = new EditableImage(this.scene, id, asset, 0, 0, texture, frame)
 		this.register(image)
 		return image
 	}
 
 	public nineSlice(
+		asset: PrefabImageAsset | PrefabSpritesheetFrameAsset,
 		width: number,
 		height: number,
 		texture: string,
@@ -95,22 +107,27 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		patchesConfig?: IPatchesConfig
 	): EditableNineSlice {
 		const id = this.getObjectId()
-		const nineSlice = new EditableNineSlice(this.scene, id, width, height, texture, frame, patchesConfig)
+		const nineSlice = new EditableNineSlice(this.scene, id, asset, width, height, texture, frame, patchesConfig)
 		this.register(nineSlice)
 		return nineSlice
 	}
 
-	public text(content: string, style: EditableTextStyleJson): EditableText {
+	public text(asset: PrefabWebFontAsset, content: string, style: EditableTextStyleJson): EditableText {
 		const id = this.getObjectId()
-		const text = new EditableText(this.scene, id, 0, 0, content, style)
+		const text = new EditableText(this.scene, id, asset, 0, 0, content, style)
 		text.setOrigin(0.5)
 		this.register(text)
 		return text
 	}
 
-	public bitmapText(font: string, content: string, fontSize?: number): EditableBitmapText {
+	public bitmapText(
+		asset: PrefabBitmapFontAsset,
+		font: string,
+		content: string,
+		fontSize?: number
+	): EditableBitmapText {
 		const id = this.getObjectId()
-		const bitmapText = new EditableBitmapText(this.scene, id, font, content, fontSize)
+		const bitmapText = new EditableBitmapText(this.scene, id, asset, font, content, fontSize)
 		bitmapText.setOrigin(0.5)
 		this.register(bitmapText)
 		return bitmapText
@@ -154,7 +171,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 
 	private createImageFromJson(json: EditableImageJson): EditableImage {
 		const id = this.getObjectId()
-		const image = new EditableImage(this.scene, id, json.x, json.y, json.textureKey, json.frameKey)
+		const image = new EditableImage(this.scene, id, json.asset, json.x, json.y, json.textureKey, json.frameKey)
 
 		image.setName(json.name)
 		image.setVisible(json.visible)
@@ -175,6 +192,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		const nineSlice = new EditableNineSlice(
 			this.scene,
 			id,
+			json.asset,
 			json.width,
 			json.height,
 			json.textureKey,
@@ -198,7 +216,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 
 	private createTextFromJson(json: EditableTextJson): EditableText {
 		const id = this.getObjectId()
-		const text = new EditableText(this.scene, id, json.x, json.y, json.text, json.style)
+		const text = new EditableText(this.scene, id, json.asset, json.x, json.y, json.text, json.style)
 
 		text.setName(json.name)
 		text.setVisible(json.visible)
@@ -216,7 +234,15 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 
 	private createBitmapTextFromJson(json: EditableBitmapTextJson): EditableBitmapText {
 		const id = this.getObjectId()
-		const bitmapText = new EditableBitmapText(this.scene, id, json.font, json.text, json.fontSize, json.align)
+		const bitmapText = new EditableBitmapText(
+			this.scene,
+			id,
+			json.asset,
+			json.font,
+			json.text,
+			json.fontSize,
+			json.align
+		)
 
 		bitmapText.setPosition(json.x, json.y)
 		bitmapText.setName(json.name)

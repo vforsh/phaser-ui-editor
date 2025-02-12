@@ -150,6 +150,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 	toJson(): EditableContainerJson {
 		const children = this.editables.map((child) => child.toJson())
 
+		// TODO prefabs: remove props like frameKey and textureKey, don't use toJSON() at all
 		return {
 			...this.toJSON(),
 			id: this.id,
@@ -222,17 +223,6 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		}
 	}
 
-	override setPosition(x?: number, y?: number): this {
-		super.setPosition(x, y)
-
-		this.withoutEmits((state) => {
-			state.x = x ?? this.x
-			state.y = y ?? this.y
-		})
-
-		return this
-	}
-
 	override setDisplaySize(width: number, height: number): this {
 		super.setDisplaySize(width, height)
 
@@ -249,6 +239,37 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 
 		this.withoutEmits((state) => {
 			state.angle = angle
+		})
+
+		return this
+	}
+
+	override setX(x: number): this {
+		super.setX(x)
+
+		this.withoutEmits((state) => {
+			state.x = x
+		})
+
+		return this
+	}
+
+	override setY(y: number): this {
+		super.setY(y)
+
+		this.withoutEmits((state) => {
+			state.y = y
+		})
+
+		return this
+	}
+
+	override setPosition(x: number, y: number): this {
+		super.setPosition(x, y)
+
+		this.withoutEmits((state) => {
+			state.x = x
+			state.y = y
 		})
 
 		return this

@@ -2,7 +2,7 @@ import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/object
 import { derive } from 'derive-valtio'
 import { debounce, merge } from 'es-toolkit'
 import { PartialDeep } from 'type-fest'
-import { proxy, subscribe, useSnapshot } from 'valtio'
+import { proxy, subscribe as subscribeValtio, useSnapshot } from 'valtio'
 import { z } from 'zod'
 import { AppCommands } from '../AppCommands'
 import { AppEvents } from '../AppEvents'
@@ -40,6 +40,8 @@ export const stateSchema = z.object({
 		locateAsset: z.function().args(z.string()).optional(),
 	}),
 	canvas: z.object({
+		hasUnsavedChanges: z.boolean().default(false),
+		lastOpenedPrefabAssetId: z.string().optional(),
 		camera: z.object({
 			zoom: z.number().positive(),
 			scrollX: z.number(),
@@ -94,6 +96,7 @@ const initialStateParsed = merge(
 			searchHistory: [],
 		},
 		canvas: {
+			hasUnsavedChanges: false,
 			camera: {
 				zoom: 1,
 				scrollX: 0,
@@ -129,7 +132,7 @@ window.addEventListener('beforeunload', () => {
 })
 
 // save state to localStorage on change, but filter out valtio refs
-subscribe(state, () => {
+subscribeValtio(state, () => {
 	debouncedSaveState()
 })
 
@@ -143,6 +146,33 @@ function serializeState(): string {
 	})
 
 	return JSON.stringify(stateCopy)
+}
+
+// expose valtio types
+type Path = (string | symbol)[]
+type Op = [op: 'set', path: Path, value: unknown, prevValue: unknown] | [op: 'delete', path: Path, prevValue: unknown]
+
+/**
+ * Subscribe to changes of a proxy object.
+ *
+ * @param proxyObject - The proxy object to subscribe to.
+ * @param callback - The callback to call when the proxy object changes.
+ * @param options - The options for the subscription.
+ * @param options.signal - The signal to abort the subscription.
+ * @returns A function to unsubscribe from the subscription.
+ */
+const subscribe = (
+	proxyObject: object,
+	callback: (unstable_ops: Op[]) => void,
+	options: { notifyInSync?: boolean; signal?: AbortSignal } = {}
+): (() => void) => {
+	const unsub = subscribeValtio(proxyObject, callback, options.notifyInSync)
+
+	if (options.signal) {
+		options.signal.addEventListener('abort', unsub, { once: true })
+	}
+
+	return unsub
 }
 
 export { derive, state, subscribe, unproxy, useSnapshot }

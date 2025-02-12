@@ -1,4 +1,5 @@
 import { proxy } from 'valtio'
+import { PrefabImageAsset, PrefabSpritesheetFrameAsset } from '../../../../../../types/prefabs/PrefabAsset'
 import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
 import { ComponentsManager } from './components/base/ComponentsManager'
@@ -8,15 +9,27 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 	public readonly [EDITABLE_SYMBOL] = true
 	public readonly kind = 'Image'
 	public readonly id: string
+	public readonly asset: PrefabImageAsset | PrefabSpritesheetFrameAsset
 	private _isLocked = false
 	private _stateObj: EditableImageJson
 	private _stateChanges: StateChangesEmitter<EditableImageJson>
 	private _components: ComponentsManager
 
-	constructor(scene: Phaser.Scene, id: string, x: number, y: number, texture: string, frame?: string | number) {
+	constructor(
+		scene: Phaser.Scene,
+		id: string,
+		asset: PrefabImageAsset | PrefabSpritesheetFrameAsset,
+		x: number,
+		y: number,
+		texture: string,
+		frame?: string | number
+	) {
 		super(scene, x, y, texture, frame)
 
 		this.id = id
+
+		this.asset = asset
+
 		this.x = x
 		this.y = y
 
@@ -42,7 +55,10 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 			'alpha': (value) => (this.alpha = value),
 			'tint': (value) => (this.tint = value),
 			'tintFill': (value) => (this.tintFill = value),
-			'frameKey': (value) => this.setFrame(value),
+			'frameKey': (value) => {
+				// TODO prefabs: update asset too
+				this.setFrame(value)
+			},
 		})
 	}
 
@@ -66,6 +82,7 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 		return {
 			...this.toJSON(),
 			id: this.id,
+			asset: this.asset,
 			type: 'Image',
 			depth: this.depth,
 			blendMode: this.blendMode,
@@ -168,15 +185,6 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 		return this
 	}
 
-	override setPosition(x?: number, y?: number): this {
-		if (this._stateObj) {
-			this._stateObj.x = x ?? this._stateObj.x
-			this._stateObj.y = y ?? this._stateObj.y
-		}
-
-		return this
-	}
-
 	override setAlpha(alpha: number): this {
 		super.setAlpha(alpha)
 
@@ -199,6 +207,37 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 		if (this._stateObj) {
 			this._stateObj.tintFill = tintFill
 		}
+
+		return this
+	}
+
+	override setX(x: number): this {
+		super.setX(x)
+
+		this.withoutEmits((state) => {
+			state.x = x
+		})
+
+		return this
+	}
+
+	override setY(y: number): this {
+		super.setY(y)
+
+		this.withoutEmits((state) => {
+			state.y = y
+		})
+
+		return this
+	}
+
+	override setPosition(x: number, y: number): this {
+		super.setPosition(x, y)
+
+		this.withoutEmits((state) => {
+			state.x = x
+			state.y = y
+		})
 
 		return this
 	}
@@ -233,4 +272,5 @@ export type EditableImageJson = CreateEditableObjectJson<{
 	originX: number
 	originY: number
 	components: EditableComponentJson[]
+	asset: PrefabImageAsset | PrefabSpritesheetFrameAsset
 }>

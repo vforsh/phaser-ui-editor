@@ -186,10 +186,22 @@ const appRouter = t.router({
 		return { success: true }
 	}),
 	writeJson: t.procedure
-		.input(z.object({ path: absPathSchema, content: z.string().min(2) }))
+		.input(
+			z.object({
+				path: absPathSchema,
+				content: z.unknown(),
+				options: z
+					.object({
+						spaces: z.union([z.number(), z.literal('\t')]).optional(),
+						replacer: z.function().optional(),
+						reviver: z.function().optional(),
+					})
+					.optional(),
+			})
+		)
 		.mutation(async ({ input }) => {
-			const { path, content } = input
-			await fse.writeJson(path, content)
+			const { path, content, options } = input
+			await fse.writeJson(path, content, options)
 			return { path }
 		}),
 	parseWebFont: t.procedure.input(z.object({ path: absPathSchema })).query(async ({ input }) => {

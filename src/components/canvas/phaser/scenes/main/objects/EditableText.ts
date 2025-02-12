@@ -1,5 +1,6 @@
 import { signalFromEvent } from '@components/canvas/phaser/robowhale/utils/events/create-abort-signal-from-event'
 import { proxy } from 'valtio'
+import { PrefabWebFontAsset } from '../../../../../../types/prefabs/PrefabAsset'
 import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
 import { ComponentsManager } from './components/base/ComponentsManager'
@@ -9,15 +10,26 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	public readonly [EDITABLE_SYMBOL] = true
 	public readonly kind = 'Text'
 	public readonly id: string
+	public readonly asset: PrefabWebFontAsset
 	private _isLocked = false
 	private _stateObj: EditableTextJson
 	private _stateChanges: StateChangesEmitter<EditableTextJson>
 	private _components: ComponentsManager
 
-	constructor(scene: Phaser.Scene, id: string, x: number, y: number, text: string, style: EditableTextStyleJson) {
+	constructor(
+		scene: Phaser.Scene,
+		id: string,
+		asset: PrefabWebFontAsset,
+		x: number,
+		y: number,
+		text: string,
+		style: EditableTextStyleJson
+	) {
 		super(scene, x, y, text, style as Phaser.Types.GameObjects.Text.TextStyle)
 
 		this.id = id
+
+		this.asset = asset
 
 		this._components = new ComponentsManager(this)
 		this._components.on('component-added', this.onComponentsListChanged, this)
@@ -72,7 +84,12 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 			{
 				resolution: (value) => value && this.setResolution(value),
 				align: (value) => value && this.setAlign(value),
-				fontFamily: (value) => value && this.setFontFamily(value),
+				fontFamily: (value) => {
+					if (value) {
+						// TODO prefabs: update asset too
+						this.setFontFamily(value)
+					}
+				},
 				fontSize: (value) => value && this.setFontSize(value),
 				fontStyle: (value) => value && this.setFontStyle(value),
 				backgroundColor: (value) => value && this.setBackgroundColor(value),
@@ -112,6 +129,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 		return {
 			...this.toJSON(),
 			id: this.id,
+			asset: this.asset,
 			type: 'Text',
 			depth: this.depth,
 			blendMode: this.blendMode,
@@ -182,17 +200,6 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 		return this
 	}
 
-	override setPosition(x?: number, y?: number): this {
-		super.setPosition(x, y)
-
-		this.withoutEmits((state) => {
-			state.x = x ?? this.x
-			state.y = y ?? this.y
-		})
-
-		return this
-	}
-
 	override setAngle(angle: number): this {
 		super.setAngle(angle)
 
@@ -236,6 +243,37 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 		return this
 	}
 
+	override setX(x: number): this {
+		super.setX(x)
+
+		this.withoutEmits((state) => {
+			state.x = x
+		})
+
+		return this
+	}
+
+	override setY(y: number): this {
+		super.setY(y)
+
+		this.withoutEmits((state) => {
+			state.y = y
+		})
+
+		return this
+	}
+
+	override setPosition(x: number, y: number): this {
+		super.setPosition(x, y)
+
+		this.withoutEmits((state) => {
+			state.x = x
+			state.y = y
+		})
+
+		return this
+	}
+
 	get stateObj() {
 		return this._stateObj
 	}
@@ -256,6 +294,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 export type EditableTextJson = CreateEditableObjectJson<{
 	type: 'Text'
 	id: string
+	asset: PrefabWebFontAsset
 	depth: number
 	blendMode: string | Phaser.BlendModes | number
 	scale: { x: number; y: number }

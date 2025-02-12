@@ -287,7 +287,7 @@ function getObjectSections(obj: EditableObjectJson): InspectorSectionDef[] {
 			icon: Move,
 			data: obj,
 			content: <TransformSection data={obj} />,
-			defaultExpanded: false,
+			defaultExpanded: true,
 		},
 		// TODO add ObjectDataSection that will allow to edit object.data (https://docs.phaser.io/api-documentation/class/data-datamanager)
 	]
