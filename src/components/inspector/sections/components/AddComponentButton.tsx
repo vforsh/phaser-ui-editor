@@ -14,7 +14,7 @@ export function AddComponentButton({ onAddComponent }: AddComponentButtonProps) 
 	return (
 		<Popover opened={opened} onChange={setOpened} position="bottom" width={300} trapFocus shadow="md">
 			<Popover.Target>
-				<Button variant="light" leftSection={<Plus size={16} />} fullWidth onClick={() => setOpened((o) => !o)}>
+				<Button variant="light" leftSection={<Plus size={16} />} onClick={() => setOpened((o) => !o)}>
 					Add Component
 				</Button>
 			</Popover.Target>

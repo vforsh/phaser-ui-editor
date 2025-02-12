@@ -1,10 +1,10 @@
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { EditableComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/base/EditableComponent'
-import { Divider, ScrollArea, Stack } from '@mantine/core'
+import { Button, Divider, Group, ScrollArea, Stack } from '@mantine/core'
 import { useForceUpdate } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
 import { state } from '@state/State'
-import { Eye, Image, Info, Move, Scaling, Type, TypeOutline } from 'lucide-react'
+import { ClipboardPaste, Eye, Image, Info, Move, Scaling, Type, TypeOutline } from 'lucide-react'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import { useSnapshot } from 'valtio'
@@ -22,11 +22,11 @@ import { HorizontalLayoutSection } from './sections/components/HorizontalLayoutS
 import { PinnerSection } from './sections/components/PinnerSection'
 import { VerticalLayoutSection } from './sections/components/VerticalLayoutSection'
 import { BitmapTextSection } from './sections/objects/BitmapTextSection'
+import { ContainerSizeSection } from './sections/objects/ContainerSizeSection'
 import { DisplaySection } from './sections/objects/DisplaySection'
 import { ImageSection } from './sections/objects/ImageSection'
 import { NineSliceSection } from './sections/objects/NineSliceSection'
 import { ObjectSection } from './sections/objects/ObjectSection'
-import { ContainerSizeSection } from './sections/objects/ContainerSizeSection'
 import { TextSection } from './sections/objects/TextSection'
 import { TextShadowSection } from './sections/objects/TextShadowSection'
 import { TextStrokeSection } from './sections/objects/TextStrokeSection'
@@ -160,6 +160,12 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 										}}
 										onCopy={() => {
 											state.inspector.componentsClipboard.push(JSON.stringify(componentData))
+											notifications.show({
+												title: 'Clipboard',
+												message: `Component '${componentData.type}' copied to clipboard`,
+												color: 'green',
+												autoClose: 5_000,
+											})
 										}}
 										onPaste={() => {
 											// TODO components - implement paste functionality
@@ -180,26 +186,38 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 							)
 						})}
 						<Divider />
-						{/* TODO components - add paste component button */}
-						<AddComponentButton
-							onAddComponent={(type) => {
-								const addResult = state.app?.commands.emit('add-component', {
-									componentType: type,
-									objectId: selectedObjectId,
-								})!
+						<Group grow gap="xs">
+							<Button
+								variant="light"
+								leftSection={<ClipboardPaste size={16} />}
+								disabled={state.inspector.componentsClipboard.length === 0}
+								onClick={() => {
+									// TODO components - implement paste functionality
+								}}
+							>
+								Paste Component
+							</Button>
 
-								if (addResult.isOk()) {
-									forceUpdate()
-								} else {
-									notifications.show({
-										title: 'Failed to add component',
-										message: `${addResult.error}`,
-										color: 'red',
-										autoClose: 10_000,
-									})
-								}
-							}}
-						/>
+							<AddComponentButton
+								onAddComponent={(type) => {
+									const addResult = state.app?.commands.emit('add-component', {
+										componentType: type,
+										objectId: selectedObjectId,
+									})!
+
+									if (addResult.isOk()) {
+										forceUpdate()
+									} else {
+										notifications.show({
+											title: 'Failed to add component',
+											message: `${addResult.error}`,
+											color: 'red',
+											autoClose: 10_000,
+										})
+									}
+								}}
+							/>
+						</Group>
 					</Stack>
 				</ScrollArea>
 			)
