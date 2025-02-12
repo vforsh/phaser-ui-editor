@@ -20,7 +20,12 @@ export function NumberInputCustom(props: NumberInputCustomProps) {
 	const inputRef = useEventListener<'wheel', HTMLInputElement>(
 		'wheel',
 		(event: WheelEvent) => {
+			if (props.readOnly) {
+				return
+			}
+
 			event.preventDefault()
+
 			if (!inputRef.current) return
 
 			const currentValue = parseFloat(inputRef.current.value) || 0
