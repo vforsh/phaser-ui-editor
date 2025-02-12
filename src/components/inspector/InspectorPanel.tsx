@@ -295,7 +295,7 @@ function getObjectSections(obj: EditableObjectJson): InspectorSectionDef[] {
 	const objectTypeSections = match(obj)
 		.returnType<InspectorSectionDef[]>()
 		.with({ type: 'Container' }, (container) => {
-			// TODO add grid align section
+			// TODO prefabs: add prefab reference section (with reset and detach buttons)
 			return []
 		})
 		.with({ type: 'Image' }, (image) => {
