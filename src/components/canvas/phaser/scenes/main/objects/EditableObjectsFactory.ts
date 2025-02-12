@@ -80,9 +80,10 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		return id
 	}
 
-	public container(): EditableContainer {
+	public container(name: string): EditableContainer {
 		const id = this.getObjectId()
 		const container = new EditableContainer(this.scene, id, null, 0, 0, [])
+		container.name = name
 		this.register(container)
 		return container
 	}
@@ -136,9 +137,9 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 	/**
 	 * Creates an object but it **doesn't add it to the scene**
 	 */
-	public fromJson(json: EditableObjectJson) {
+	public fromJson(json: EditableObjectJson, isRoot = false) {
 		const obj = match(json)
-			.with({ type: 'Container' }, (json) => this.createContainerFromJson(json))
+			.with({ type: 'Container' }, (json) => this.createContainerFromJson(json, isRoot))
 			.with({ type: 'Image' }, (json) => this.createImageFromJson(json))
 			.with({ type: 'NineSlice' }, (json) => this.createNineSliceFromJson(json))
 			.with({ type: 'Text' }, (json) => this.createTextFromJson(json))
@@ -150,10 +151,10 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		return obj
 	}
 
-	private createContainerFromJson(json: EditableContainerJson): EditableContainer {
+	private createContainerFromJson(json: EditableContainerJson, isRoot = false): EditableContainer {
 		const id = this.getObjectId()
 		const children = json.children.map((childJson) => this.fromJson(childJson))
-		const container = new EditableContainer(this.scene, id, json.prefab, json.x, json.y, children)
+		const container = new EditableContainer(this.scene, id, json.prefab, json.x, json.y, children, isRoot)
 
 		container.setScale(json.scale.x, json.scale.y)
 		container.setRotation(json.rotation)

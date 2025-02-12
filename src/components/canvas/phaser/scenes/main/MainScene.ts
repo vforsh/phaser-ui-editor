@@ -88,6 +88,7 @@ export class MainScene extends BaseScene {
 	private grid!: Grid
 	private rulers!: Rulers
 	private editContexts!: EditContextsManager
+	private superRoot!: EditableContainer
 	private root!: EditableContainer
 	// TODO move to a separate class, it should emit events on resize
 	public projectSizeFrame!: Phaser.GameObjects.Graphics & { width: number; height: number }
@@ -131,6 +132,8 @@ export class MainScene extends BaseScene {
 		this.initClipboard()
 
 		this.initEditContexts()
+
+		this.initSuperRoot()
 
 		await this.initRoot(this.initData.prefabFile)
 
@@ -193,7 +196,7 @@ export class MainScene extends BaseScene {
 
 				this.editContexts.add(obj, {
 					switchTo: false,
-					isRoot: false,
+					isRoot: obj.isRoot,
 				})
 			},
 			this,
@@ -226,24 +229,30 @@ export class MainScene extends BaseScene {
 		)
 	}
 
+	/**
+	 * The sole purpose of the super root is to be the parent of the root object.
+	 * So that the root object can be selected and edited via Inspector.
+	 * @note The super root is not displayed in the hierarchy panel and not being exported to the prefab file.
+	 */
+	private initSuperRoot() {
+		this.superRoot = this.objectsFactory.container('super-root')
+		this.add.existing(this.superRoot)
+	}
+
 	private async initRoot(prefabFile: PrefabFile) {
 		let root: EditableContainer
 
 		if (prefabFile.content) {
 			await this.loadPrefabAssets(prefabFile.content)
-			root = this.objectsFactory.fromJson(prefabFile.content) as EditableContainer
+			root = this.objectsFactory.fromJson(prefabFile.content, true) as EditableContainer
 		} else {
-			root = this.objectsFactory.container()
-			root.name = getNameWithoutExtension(this.initData.prefabAsset)
+			const name = getNameWithoutExtension(this.initData.prefabAsset)
+			root = this.objectsFactory.container(name)
 		}
 
 		this.root = root
-		this.add.existing(this.root)
-
-		this.editContexts.add(this.root, {
-			switchTo: true,
-			isRoot: true,
-		})
+		this.superRoot.add(this.root)
+		this.editContexts.switchTo(this.root)
 	}
 
 	private async loadPrefabAssets(content: EditableContainerJson) {
@@ -659,11 +668,6 @@ export class MainScene extends BaseScene {
 				const containerJson = { ...prefabFile.content, prefab: { id: prefabAsset.id, name: prefabAsset.name } }
 				const conainer = this.objectsFactory.fromJson(containerJson) as EditableContainer
 
-				this.editContexts.add(conainer, {
-					switchTo: false,
-					isRoot: false,
-				})
-
 				return conainer
 			})
 			.otherwise(() => null)
@@ -961,10 +965,10 @@ export class MainScene extends BaseScene {
 	}
 
 	private group(selection: Selection, editContext: EditContext): EditableContainer {
+		const name = this.getNewObjectName(editContext, selection.objects[0])
 		const bounds =
 			selection.objects.length === 1 ? this.aligner.getRotatedBounds(selection.objects[0]) : selection.bounds
-		const group = this.objectsFactory.container()
-		group.name = this.getNewObjectName(editContext, group)
+		const group = this.objectsFactory.container(name)
 		group.setPosition(bounds.centerX, bounds.centerY)
 		group.setSize(bounds.width, bounds.height)
 		editContext.target.add(group)

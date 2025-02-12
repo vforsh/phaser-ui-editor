@@ -29,6 +29,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 	public readonly kind = 'Container'
 	public readonly id: string
 	public readonly prefab: PrefabRef | null
+	public readonly isRoot: boolean
 	private readonly __events = new TypedEventEmitter<Events>()
 	private readonly _preDestroyController = new AbortController()
 	// copy of editables to track changes in hierarchy
@@ -44,13 +45,16 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		prefab: PrefabRef | null,
 		x = 0,
 		y = 0,
-		children: Phaser.GameObjects.GameObject[] = []
+		children: Phaser.GameObjects.GameObject[] = [],
+		isRoot = false
 	) {
 		super(scene, x, y)
 
 		this.id = id
 
 		this.prefab = prefab
+
+		this.isRoot = isRoot
 
 		// defer adding children
 		// we do it here instead of in `super()` because `__events` is not initialized yet in `super()`
