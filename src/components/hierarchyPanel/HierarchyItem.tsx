@@ -90,6 +90,7 @@ export default function HierarchyItem({
 			<div
 				onMouseEnter={() => setIsHovered(true)}
 				onMouseLeave={() => setIsHovered(false)}
+				onDoubleClick={() => state.app?.commands.emit('select-object', objId)}
 				style={{
 					padding: '0.3rem 0',
 					paddingLeft: level * INDENT_SIZE + ICON_MARGIN,

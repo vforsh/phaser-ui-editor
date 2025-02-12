@@ -16,7 +16,9 @@ import { AssetTreeItemData } from './types/assets'
  */
 export type AppCommands = {
 	// commands from hierarchy panel
-	'delete-object': (objPath: string) => void
+	'select-object': (id: string) => void
+	'highlight-object': (id: string) => void
+	'delete-object': (id: string) => void
 	'save-prefab': () => void
 
 	// commands from assets panel

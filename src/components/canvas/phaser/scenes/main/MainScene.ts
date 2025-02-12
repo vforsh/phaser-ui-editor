@@ -183,6 +183,22 @@ export class MainScene extends BaseScene {
 			logger: this.logger.getSubLogger({ name: ':objects-factory' }),
 			componentsFactory: this.componentsFactory,
 		})
+
+		this.objectsFactory.on(
+			'obj-registered',
+			(obj) => {
+				if (!(obj instanceof EditableContainer)) {
+					return
+				}
+
+				this.editContexts.add(obj, {
+					switchTo: false,
+					isRoot: false,
+				})
+			},
+			this,
+			this.shutdownSignal
+		)
 	}
 
 	private initClipboard() {
@@ -414,7 +430,52 @@ export class MainScene extends BaseScene {
 
 		appCommands.on('handle-asset-drop', this.handleAssetDrop, this, false, this.shutdownSignal)
 
+		appCommands.on('highlight-object', this.highlightObject, this, false, this.shutdownSignal)
+		appCommands.on('select-object', this.selectObject, this, false, this.shutdownSignal)
+		appCommands.on('delete-object', this.deleteObject, this, false, this.shutdownSignal)
 		appCommands.on('save-prefab', this.savePrefab, this, false, this.shutdownSignal)
+	}
+
+	private highlightObject(objId: string) {
+		const obj = this.objectsFactory.getObjectById(objId)
+		if (!obj) {
+			return
+		}
+
+		const context = this.editContexts.findContext(obj)
+		if (!context) {
+			return
+		}
+
+		// TODO hierarchy: highlight object by command from hierarchy panel
+		this.logger.info(`highlighting '${obj.name}' (${objId})`)
+	}
+
+	private selectObject(objId: string) {
+		const obj = this.objectsFactory.getObjectById(objId)
+		if (!obj) {
+			return
+		}
+
+		const context = this.editContexts.findContext(obj)
+		if (!context) {
+			return
+		}
+
+		this.editContexts.switchTo(context.target)
+
+		// set selection
+		context.setSelection([obj])
+	}
+
+	private deleteObject(objId: string) {
+		const obj = this.objectsFactory.getObjectById(objId)
+		if (!obj) {
+			return
+		}
+
+		// TODO hierarchy: delete canvas object by command from hierarchy panel
+		this.logger.info(`deleting '${obj.name}' (${objId})`)
 	}
 
 	private addComponent(data: { componentType: EditableComponentType; objectId: string }): AddComponentResult {

@@ -2,6 +2,7 @@ import { Logger } from 'tslog'
 import { TypedEventEmitter } from '../../../robowhale/phaser3/TypedEventEmitter'
 import { MainScene } from '../MainScene'
 import { EditableContainer } from '../objects/EditableContainer'
+import { EditableObject } from '../objects/EditableObject'
 import { EditContext } from './EditContext'
 import { Selection } from './Selection'
 interface AddContextOptions {
@@ -164,8 +165,8 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 	 * Finds the edit context that contains the given object.
 	 * @returns the edit context that contains the object, or undefined if no context is found
 	 */
-	public findContext(obj: Phaser.GameObjects.GameObject): EditContext | undefined {
-		const container = obj instanceof Phaser.GameObjects.Container ? obj : obj.parentContainer
+	public findContext(obj: EditableObject): EditContext | undefined {
+		const container = obj.parentContainer
 		for (const context of this.contexts.values()) {
 			if (context.target === container) {
 				return context
