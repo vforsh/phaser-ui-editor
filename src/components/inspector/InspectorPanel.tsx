@@ -192,7 +192,31 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 								leftSection={<ClipboardPaste size={16} />}
 								disabled={state.inspector.componentsClipboard.length === 0}
 								onClick={() => {
-									// TODO components - implement paste functionality
+									const componentRaw = state.inspector.componentsClipboard.pop()
+									const componentParsed = componentRaw ? JSON.parse(componentRaw) : null
+									if (!componentParsed) {
+										return
+									}
+
+									const pasteResult = state.app?.commands.emit('paste-component', {
+										componentData: componentParsed as EditableComponentJson,
+										objectId: selectedObjectId,
+									})
+
+									if (!pasteResult) {
+										return
+									}
+
+									if (pasteResult.isOk()) {
+										forceUpdate()
+									} else {
+										notifications.show({
+											title: 'Failed to paste component',
+											message: `${pasteResult.error}`,
+											color: 'red',
+											autoClose: 10_000,
+										})
+									}
 								}}
 							>
 								Paste Component
