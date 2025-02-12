@@ -22,6 +22,7 @@ const ICON_MARGIN = 8
 
 interface HierarchyItemProps {
 	objId: string
+	activeContextId: string | undefined
 	hasUnsavedChanges?: boolean
 	isRoot?: boolean
 	level?: number
@@ -34,6 +35,7 @@ interface HierarchyItemProps {
 
 export default function HierarchyItem({
 	objId,
+	activeContextId,
 	hasUnsavedChanges = false,
 	isRoot = false,
 	selectedIds,
@@ -54,6 +56,7 @@ export default function HierarchyItem({
 	const snap = useSnapshot(stateObj)
 	const isSelectedInCanvas = selectedIds.includes(objId)
 	const isHoveredInCanvas = hoveredIds.includes(objId)
+	const isActiveContext = activeContextId === objId
 
 	const getIcon = () => {
 		return match(snap)
@@ -84,6 +87,7 @@ export default function HierarchyItem({
 	}
 
 	const gridLineThickness = 1
+	const gridLineColor = theme.colors.dark[2]
 
 	return (
 		<>
@@ -117,7 +121,7 @@ export default function HierarchyItem({
 								top: 0,
 								bottom: isLastChild && index === level - 1 ? '50%' : 0,
 								width: `${gridLineThickness}px`,
-								backgroundColor: theme.colors.dark[2],
+								backgroundColor: gridLineColor,
 								opacity: 0.33,
 							}}
 						/>
@@ -132,7 +136,7 @@ export default function HierarchyItem({
 							top: '50%',
 							width: snap.type === 'Container' ? INDENT_SIZE - ICON_MARGIN : INDENT_SIZE + 4,
 							height: `${gridLineThickness}px`,
-							backgroundColor: theme.colors.dark[2],
+							backgroundColor: gridLineColor,
 							opacity: 0.33,
 						}}
 					/>
@@ -182,7 +186,8 @@ export default function HierarchyItem({
 							textOverflow: 'ellipsis',
 							opacity: snap.visible ? 1 : 0.5,
 							userSelect: 'none',
-							fontWeight: hasUnsavedChanges ? 'bold' : 'normal',
+							fontWeight: hasUnsavedChanges || isActiveContext ? 'bold' : 'normal',
+							textDecoration: isActiveContext ? 'underline' : 'none',
 							flex: 1,
 						}}
 					>
@@ -260,6 +265,7 @@ export default function HierarchyItem({
 						selectedIds={selectedIds}
 						hoveredIds={hoveredIds}
 						isLastChild={index === arr.length - 1}
+						activeContextId={activeContextId}
 					/>
 				))}
 		</>

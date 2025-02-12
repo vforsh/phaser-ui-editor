@@ -227,6 +227,15 @@ export class MainScene extends BaseScene {
 			this,
 			this.shutdownSignal
 		)
+
+		this.editContexts.on(
+			'context-switched',
+			(context) => {
+				state.canvas.activeContextId = context.target.id
+			},
+			this,
+			this.shutdownSignal
+		)
 	}
 
 	/**
