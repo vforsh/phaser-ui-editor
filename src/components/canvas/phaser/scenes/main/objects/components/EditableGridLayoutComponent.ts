@@ -15,6 +15,7 @@ export class EditableGridLayoutComponent extends BaseEditableComponent<GridLayou
 	private cellPosition: PhaserAlignKey = 'center'
 	private spacingX = 0
 	private spacingY = 0
+	private centerLastRow = true
 
 	constructor(id: string, initialState?: GridLayoutComponentJson) {
 		super(id)
@@ -27,6 +28,7 @@ export class EditableGridLayoutComponent extends BaseEditableComponent<GridLayou
 			this.cellPosition = initialState.cellPosition
 			this.spacingX = initialState.spacingX
 			this.spacingY = initialState.spacingY
+			this.centerLastRow = initialState.centerLastRow
 		}
 
 		this._state = this.createState()
@@ -61,6 +63,10 @@ export class EditableGridLayoutComponent extends BaseEditableComponent<GridLayou
 					this.spacingY = value
 					this.updateLayout()
 				},
+				centerLastRow: (value) => {
+					this.centerLastRow = value
+					this.updateLayout()
+				},
 			},
 			this.destroySignal
 		)
@@ -91,6 +97,20 @@ export class EditableGridLayoutComponent extends BaseEditableComponent<GridLayou
 		const width = actualColumns * this.cellWidth + this.spacingX * (actualColumns - 1)
 		const height = rows * this.cellHeight + this.spacingY * (rows - 1)
 		this._parent.setSize(width, height)
+
+		if (this.centerLastRow) {
+			const lastRowItemsNum = this._parent.editables.length % this.columns
+			const needsCenter = lastRowItemsNum > 0
+			if (needsCenter) {
+				const lastRowWidth = lastRowItemsNum * (this.cellWidth + this.spacingX)
+				const lastRowAlignOffset = (width - lastRowWidth) / 2
+				const lastRowItems = this._parent.editables.slice(-lastRowItemsNum)
+				lastRowItems.forEach((item, index) => {
+					const cellCenterX = index * (this.cellWidth + this.spacingX) + this.cellWidth / 2
+					item.setX(cellCenterX + lastRowAlignOffset)
+				})
+			}
+		}
 	}
 
 	public toJson(): GridLayoutComponentJson {
@@ -104,14 +124,15 @@ export class EditableGridLayoutComponent extends BaseEditableComponent<GridLayou
 			cellPosition: this.cellPosition,
 			spacingX: this.spacingX,
 			spacingY: this.spacingY,
+			centerLastRow: this.centerLastRow,
 		}
 	}
 
 	override onAdded(parent: EditableObject): void {
 		super.onAdded(parent)
 
-		this._parent.on('editable-added', this.updateLayout, this, this.destroySignal)
-		this._parent.on('editable-removed', this.updateLayout, this, this.destroySignal)
+		this._parent.events.on('editable-added', this.updateLayout, this, this.destroySignal)
+		this._parent.events.on('editable-removed', this.updateLayout, this, this.destroySignal)
 
 		this.updateLayout()
 	}
@@ -133,4 +154,5 @@ export type GridLayoutComponentJson = {
 	cellPosition: PhaserAlignKey
 	spacingX: number
 	spacingY: number
+	centerLastRow: boolean
 }

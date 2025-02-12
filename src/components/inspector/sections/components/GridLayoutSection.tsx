@@ -1,6 +1,6 @@
 import { GridLayoutComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/EditableGridLayoutComponent'
 import { PHASER_ALIGN, PhaserAlignKey } from '@components/canvas/phaser/scenes/main/objects/PhaserAlign'
-import { Group, Stack } from '@mantine/core'
+import { Group, Stack, Switch } from '@mantine/core'
 import { useSnapshot } from 'valtio'
 import { BaseSectionProps } from '../BaseSection'
 import { NumberInputCustom } from '../common/NumberInputCustom'
@@ -67,6 +67,12 @@ export function GridLayoutSection({ data }: GridLayoutSectionProps) {
 					size="xs"
 				/>
 			</Group>
+
+			<Switch
+				label="Center Last Row"
+				checked={snap.centerLastRow}
+				onChange={(value) => (data.centerLastRow = value.target.checked)}
+			/>
 		</Stack>
 	)
 }
