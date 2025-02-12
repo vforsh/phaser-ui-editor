@@ -50,6 +50,8 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 	) {
 		super(scene, x, y)
 
+		this.setSize(100, 100)
+
 		this.id = id
 
 		this.prefab = prefab
@@ -64,6 +66,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		this._components.on('component-added', this.onComponentsListChanged, this)
 		this._components.on('component-removed', this.onComponentsListChanged, this)
 		this._components.on('component-moved', this.onComponentsListChanged, this)
+
 		this._stateObj = proxy(this.toJson())
 
 		// state changes are reflected in the underlying Phaser object
@@ -82,6 +85,8 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 			// 'tint': (value) => (this.tint = value),
 			// 'tintFill': (value) => (this.tintFill = value),
 			// 'frameKey': (value) => this.setFrame(value),
+			'width': (value) => this.setSize(value, this.height),
+			'height': (value) => this.setSize(this.width, value),
 		})
 
 		this.scene.events.on(Phaser.Scenes.Events.UPDATE, this.checkForHierarchyChanges, this, this.preDestroySignal)
@@ -175,8 +180,6 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 			id: this.id,
 			prefab: this.prefab,
 			type: 'Container',
-			width: this.width,
-			height: this.height,
 			depth: this.depth,
 			blendMode: this.blendMode,
 			name: this.name,
@@ -186,16 +189,12 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 			angle: this.angle,
 			originX: this.originX,
 			originY: this.originY,
+			width: this.width,
+			height: this.height,
+			displayWidth: this.displayWidth,
+			displayHeight: this.displayHeight,
 			components: this._components.items.map((c) => c.toJson()),
 		}
-	}
-
-	override setSize(width: number, height: number): this {
-		const prevWidth = this.width
-		const prevHeight = this.height
-		super.setSize(width, height)
-		this.events.emit('size-changed', width, height, prevWidth, prevHeight)
-		return this
 	}
 
 	override destroy(fromScene?: boolean): void {
@@ -295,6 +294,49 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		return this
 	}
 
+	public setWidth(width: number): this {
+		const prevWidth = this.width
+		const prevHeight = this.height
+		this.setSize(width, this.height)
+
+		this.withoutEmits((state) => {
+			state.width = width
+		})
+
+		this.events.emit('size-changed', width, this.height, prevWidth, prevHeight)
+
+		return this
+	}
+
+	public setHeight(height: number): this {
+		const prevWidth = this.width
+		const prevHeight = this.height
+		this.setSize(this.width, height)
+
+		this.withoutEmits((state) => {
+			state.height = height
+		})
+
+		this.events.emit('size-changed', this.width, height, prevWidth, prevHeight)
+
+		return this
+	}
+
+	override setSize(width: number, height: number): this {
+		const prevWidth = this.width
+		const prevHeight = this.height
+		super.setSize(width, height)
+
+		this.withoutEmits((state) => {
+			state.width = width
+			state.height = height
+		})
+
+		this.events.emit('size-changed', width, height, prevWidth, prevHeight)
+
+		return this
+	}
+
 	get stateObj() {
 		return this._stateObj
 	}
@@ -307,8 +349,6 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 export type EditableContainerJson = CreateEditableObjectJson<{
 	type: 'Container'
 	id: string
-	width: number
-	height: number
 	children: EditableObjectJson[]
 	name: string
 	depth: number
@@ -318,6 +358,10 @@ export type EditableContainerJson = CreateEditableObjectJson<{
 	angle: number
 	originX: number
 	originY: number
+	width: number
+	height: number
+	displayWidth: number
+	displayHeight: number
 	components: EditableComponentJson[]
 
 	/**

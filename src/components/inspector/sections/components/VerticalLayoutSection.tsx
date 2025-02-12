@@ -1,7 +1,4 @@
-import {
-	PHASER_ALIGN,
-	PhaserAlignKey
-} from '@components/canvas/phaser/scenes/main/objects/PhaserAlign'
+import { PHASER_ALIGN, PhaserAlignKey } from '@components/canvas/phaser/scenes/main/objects/PhaserAlign'
 import { VerticalLayoutComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/EditableVerticalLayoutComponent'
 import { Group, Stack } from '@mantine/core'
 import { useSnapshot } from 'valtio'
@@ -48,14 +45,6 @@ export function VerticalLayoutSection({ data }: VerticalLayoutSectionProps) {
 				label="Spacing Y"
 				value={snap.spacingY}
 				onChange={(value) => (data.spacingY = value)}
-				step={1}
-				size="xs"
-			/>
-
-			<NumberInputCustom
-				label="Start Y"
-				value={snap.startY}
-				onChange={(value) => (data.startY = value)}
 				step={1}
 				size="xs"
 			/>

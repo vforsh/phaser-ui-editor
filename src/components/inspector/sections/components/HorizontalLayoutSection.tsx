@@ -1,10 +1,5 @@
-import {
-	HorizontalLayoutComponentJson,
-} from '@components/canvas/phaser/scenes/main/objects/components/EditableHorizontalLayoutComponent'
-import {
-	PHASER_ALIGN,
-	PhaserAlignKey
-} from '@components/canvas/phaser/scenes/main/objects/PhaserAlign'
+import { HorizontalLayoutComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/EditableHorizontalLayoutComponent'
+import { PHASER_ALIGN, PhaserAlignKey } from '@components/canvas/phaser/scenes/main/objects/PhaserAlign'
 import { Group, Stack } from '@mantine/core'
 import { useSnapshot } from 'valtio'
 import { BaseSectionProps } from '../BaseSection'
@@ -50,14 +45,6 @@ export function HorizontalLayoutSection({ data }: HorizontalLayoutSectionProps) 
 				label="Spacing X"
 				value={snap.spacingX}
 				onChange={(value) => (data.spacingX = value)}
-				step={1}
-				size="xs"
-			/>
-
-			<NumberInputCustom
-				label="Start X"
-				value={snap.startX}
-				onChange={(value) => (data.startX = value)}
 				step={1}
 				size="xs"
 			/>

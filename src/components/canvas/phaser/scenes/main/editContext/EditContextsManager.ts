@@ -71,7 +71,7 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		context.on('container-added', (container) => this.add(container), this, signal)
 		// context.on('container-removed', (container) => this.remove(container), this, signal)
 		context.on('container-double-clicked', (container) => this.switchTo(container), this, signal)
-		context.on('bounds-changed', (bounds) => this.onContextBoundsChanged(context, bounds), this, signal)
+		// context.on('bounds-changed', (bounds) => this.onContextBoundsChanged(context, bounds), this, signal)
 		context.on('selection-changed', (selection) => this.emit('selection-changed', selection), this, signal)
 		context.once('pre-destroy', () => this.remove(container), this, signal)
 

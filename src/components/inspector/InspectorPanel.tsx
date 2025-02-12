@@ -4,7 +4,7 @@ import { Divider, ScrollArea, Stack } from '@mantine/core'
 import { useForceUpdate } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
 import { state } from '@state/State'
-import { Eye, Image, Info, Move, Type, TypeOutline } from 'lucide-react'
+import { Eye, Image, Info, Move, Scaling, Type, TypeOutline } from 'lucide-react'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import { useSnapshot } from 'valtio'
@@ -26,6 +26,7 @@ import { DisplaySection } from './sections/objects/DisplaySection'
 import { ImageSection } from './sections/objects/ImageSection'
 import { NineSliceSection } from './sections/objects/NineSliceSection'
 import { ObjectSection } from './sections/objects/ObjectSection'
+import { ContainerSizeSection } from './sections/objects/ContainerSizeSection'
 import { TextSection } from './sections/objects/TextSection'
 import { TextShadowSection } from './sections/objects/TextShadowSection'
 import { TextStrokeSection } from './sections/objects/TextStrokeSection'
@@ -296,7 +297,16 @@ function getObjectSections(obj: EditableObjectJson): InspectorSectionDef[] {
 		.returnType<InspectorSectionDef[]>()
 		.with({ type: 'Container' }, (container) => {
 			// TODO prefabs: add prefab reference section (with reset and detach buttons)
-			return []
+			return [
+				{
+					type: 'obj-size',
+					title: 'Size',
+					icon: Scaling,
+					data: container,
+					content: <ContainerSizeSection data={container} />,
+					defaultExpanded: true,
+				},
+			]
 		})
 		.with({ type: 'Image' }, (image) => {
 			return [

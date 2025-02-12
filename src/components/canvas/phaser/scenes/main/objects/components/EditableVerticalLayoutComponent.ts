@@ -1,8 +1,9 @@
 import { EditableContainer } from '../EditableContainer'
 import { EditableObject } from '../EditableObject'
-import { PHASER_ALIGN, PhaserAlignKey } from '../PhaserAlign'
+import { PhaserAlignKey } from '../PhaserAlign'
 import { StateChangesEmitter } from '../StateChangesEmitter'
 import { BaseEditableComponent } from './base/BaseEditableComponent'
+import { getCellCenterOffset } from './LayoutUtils'
 
 export class EditableVerticalLayoutComponent extends BaseEditableComponent<VerticalLayoutComponentJson> {
 	public readonly type = 'vertical-layout'
@@ -13,7 +14,6 @@ export class EditableVerticalLayoutComponent extends BaseEditableComponent<Verti
 	private cellHeight = 100
 	private cellPosition: PhaserAlignKey = 'center'
 	private spacingY = 0
-	private startY = 0
 
 	constructor(id: string, initialState?: VerticalLayoutComponentJson) {
 		super(id)
@@ -24,7 +24,6 @@ export class EditableVerticalLayoutComponent extends BaseEditableComponent<Verti
 			this.cellHeight = initialState.cellHeight
 			this.cellPosition = initialState.cellPosition
 			this.spacingY = initialState.spacingY
-			this.startY = initialState.startY
 		}
 
 		this._state = this.createState()
@@ -51,10 +50,6 @@ export class EditableVerticalLayoutComponent extends BaseEditableComponent<Verti
 					this.spacingY = value
 					this.updateLayout()
 				},
-				startY: (value) => {
-					this.startY = value
-					this.updateLayout()
-				},
 			},
 			this.destroySignal
 		)
@@ -71,14 +66,17 @@ export class EditableVerticalLayoutComponent extends BaseEditableComponent<Verti
 			return
 		}
 
-		Phaser.Actions.GridAlign(this._parent.editables, {
-			height: -1,
-			cellWidth: this.cellWidth,
-			cellHeight: this.cellHeight,
-			position: PHASER_ALIGN[this.cellPosition],
-			// spacingY: this.spacingY,
-			y: this.startY,
+		this._parent.editables.forEach((child, index) => {
+			const { x: xOffset, y: yOffset } = getCellCenterOffset(this.cellPosition, this.cellWidth, this.cellHeight)
+			const cellCenterX = this.cellWidth / 2
+			const cellCenterY = index * (this.cellHeight + this.spacingY) + this.cellHeight / 2
+			child.setPosition(cellCenterX + xOffset, cellCenterY + yOffset)
 		})
+
+		const childrenNum = this._parent.editables.length
+		const width = this.cellWidth
+		const height = childrenNum * this.cellHeight + this.spacingY * (childrenNum - 1)
+		this._parent.setSize(width, height)
 	}
 
 	public toJson(): VerticalLayoutComponentJson {
@@ -90,7 +88,6 @@ export class EditableVerticalLayoutComponent extends BaseEditableComponent<Verti
 			cellHeight: this.cellHeight,
 			cellPosition: this.cellPosition,
 			spacingY: this.spacingY,
-			startY: this.startY,
 		}
 	}
 
@@ -118,5 +115,4 @@ export type VerticalLayoutComponentJson = {
 	cellHeight: number
 	cellPosition: PhaserAlignKey
 	spacingY: number
-	startY: number
 }

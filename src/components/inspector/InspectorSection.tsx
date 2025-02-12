@@ -29,6 +29,7 @@ type ObjectSectionDef =
 	| { type: 'obj-info'; data: EditableObjectJson }
 	| { type: 'obj-display'; data: EditableObjectJson }
 	| { type: 'obj-transform'; data: EditableObjectJson }
+	| { type: 'obj-size'; data: EditableObjectJson }
 	//
 	| { type: 'obj-image'; data: EditableImageJson }
 	| { type: 'obj-nine-slice'; data: EditableNineSliceJson }
