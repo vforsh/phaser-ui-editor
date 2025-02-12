@@ -577,6 +577,34 @@ export class MainScene extends BaseScene {
 				bmText.setName(this.getNewObjectName(this.editContexts.current!, bmText, 'bitmap-text'))
 				return bmText
 			})
+			.with({ type: 'prefab' }, async (prefabAsset) => {
+				const { error, data } = await until(() => trpc.readJson.query({ path: prefabAsset.path }))
+				if (error) {
+					this.logger.error(`failed to load prefab file '${prefabAsset.path}' (${getErrorLog(error)})`)
+					return null
+				}
+
+				// TODO prefabs: check if data is a valid prefab file (zod validation)
+				const prefabFile = data as PrefabFile
+
+				if (!prefabFile.content) {
+					this.logger.error(`${prefabAsset.name} (${prefabAsset.id}) is empty`)
+					return null
+				}
+
+				await this.loadPrefabAssets(prefabFile.content)
+
+				// add prefab reference to the content
+				const containerJson = { ...prefabFile.content, prefab: { id: prefabAsset.id, name: prefabAsset.name } }
+				const conainer = this.objectsFactory.fromJson(containerJson) as EditableContainer
+
+				this.editContexts.add(conainer, {
+					switchTo: false,
+					isRoot: false,
+				})
+
+				return conainer
+			})
 			.otherwise(() => null)
 	}
 
