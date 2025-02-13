@@ -91,7 +91,7 @@ export class MainScene extends BaseScene {
 	private superRoot!: EditableContainer
 	private root!: EditableContainer
 	// TODO move to a separate class, it should emit events on resize
-	public projectSizeFrame!: Phaser.GameObjects.Graphics & { width: number; height: number }
+	public contextBoundsFrame!: Phaser.GameObjects.Graphics & { width: number; height: number }
 	public objectsFactory!: EditableObjectsFactory
 	private componentsFactory!: EditableComponentsFactory
 	private clipboard!: CanvasClipboard
@@ -139,7 +139,7 @@ export class MainScene extends BaseScene {
 
 		this.initAligner()
 
-		this.addProjectSizeFrame(this.initData.project.config.size)
+		this.addContextBoundsFrame(this.initData.project.config.size)
 
 		this.addKeyboadCallbacks()
 
@@ -401,14 +401,14 @@ export class MainScene extends BaseScene {
 		)
 	}
 
-	private addProjectSizeFrame(size: ProjectConfig['size']) {
-		this.projectSizeFrame = this.add.graphics() as Phaser.GameObjects.Graphics & { width: number; height: number }
-		this.projectSizeFrame.lineStyle(1, 0xffffff, 1)
-		this.projectSizeFrame.strokeRect(0, 0, size.width, size.height)
+	private addContextBoundsFrame(size: ProjectConfig['size']) {
+		this.contextBoundsFrame = this.add.graphics() as Phaser.GameObjects.Graphics & { width: number; height: number }
+		this.contextBoundsFrame.lineStyle(1, 0xffffff, 1)
+		this.contextBoundsFrame.strokeRect(0, 0, size.width, size.height)
 		// this.projectSizeFrame.fillStyle(0x2f0559, 0.25)
 		// this.projectSizeFrame.fillRect(0, 0, size.width, size.height)
-		this.projectSizeFrame.width = size.width
-		this.projectSizeFrame.height = size.height
+		this.contextBoundsFrame.width = size.width
+		this.contextBoundsFrame.height = size.height
 	}
 
 	// TODO move to ObjectsFactory
@@ -1200,7 +1200,7 @@ export class MainScene extends BaseScene {
 
 				const msSinceLastClick = Date.now() - (this.sceneClickedAt ?? 0)
 				if (msSinceLastClick < 200) {
-					this.editContexts.switchTo(this.root)
+					this.editContexts.switchTo(this.superRoot)
 				}
 				this.sceneClickedAt = Date.now()
 
@@ -1208,7 +1208,7 @@ export class MainScene extends BaseScene {
 			})
 			.with('middle', () => this.startCameraDrag(pointer))
 			.with('right', () => console.log('right button click'))
-			.otherwise(() => console.warn('unknown button', buttonType))
+			.exhaustive()
 	}
 
 	private startDrawingSelectionRect(selection: EditContext, pointer: Phaser.Input.Pointer) {
