@@ -1,10 +1,10 @@
 import { nanoid } from 'nanoid'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
-import { EditableGridLayoutComponent, GridLayoutComponentJson } from '../EditableGridLayoutComponent'
-import { EditableHorizontalLayoutComponent, HorizontalLayoutComponentJson } from '../EditableHorizontalLayoutComponent'
-import { EditablePinnerComponent, PinnerComponentJson } from '../EditablePinnerComponent'
-import { EditableVerticalLayoutComponent, VerticalLayoutComponentJson } from '../EditableVerticalLayoutComponent'
+import { GridLayoutComponent, GridLayoutComponentJson } from '../GridLayoutComponent'
+import { HorizontalLayoutComponent, HorizontalLayoutComponentJson } from '../HorizontalLayoutComponent'
+import { PinnerComponent, PinnerComponentJson } from '../PinnerComponent'
+import { VerticalLayoutComponent, VerticalLayoutComponentJson } from '../VerticalLayoutComponent'
 import { EditableComponent, EditableComponentJson, EditableComponentType } from './EditableComponent'
 
 interface EditableComponentsFactoryOptions {
@@ -50,7 +50,7 @@ export class EditableComponentsFactory {
 
 	private pinner(initialState?: PinnerComponentJson) {
 		const id = this.getOrCreateId(initialState)
-		const pinner = new EditablePinnerComponent(id, initialState)
+		const pinner = new PinnerComponent(id, initialState)
 		return pinner
 	}
 
@@ -64,19 +64,19 @@ export class EditableComponentsFactory {
 
 	private horizontalLayout(initialState?: HorizontalLayoutComponentJson) {
 		const id = this.getOrCreateId(initialState)
-		const horizontalLayout = new EditableHorizontalLayoutComponent(id, initialState)
+		const horizontalLayout = new HorizontalLayoutComponent(id, initialState)
 		return horizontalLayout
 	}
 
 	private verticalLayout(initialState?: VerticalLayoutComponentJson) {
 		const id = this.getOrCreateId(initialState)
-		const verticalLayout = new EditableVerticalLayoutComponent(id, initialState)
+		const verticalLayout = new VerticalLayoutComponent(id, initialState)
 		return verticalLayout
 	}
 
 	private gridLayout(initialState?: GridLayoutComponentJson) {
 		const id = this.getOrCreateId(initialState)
-		const gridLayout = new EditableGridLayoutComponent(id, initialState)
+		const gridLayout = new GridLayoutComponent(id, initialState)
 		return gridLayout
 	}
 

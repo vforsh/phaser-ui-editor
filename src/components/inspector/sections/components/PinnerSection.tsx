@@ -1,4 +1,4 @@
-import { PinnerComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/EditablePinnerComponent'
+import { PinnerComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/PinnerComponent'
 import { Group, Stack, TextInput } from '@mantine/core'
 import { useSnapshot } from 'valtio'
 import { BaseSectionProps } from '../BaseSection'

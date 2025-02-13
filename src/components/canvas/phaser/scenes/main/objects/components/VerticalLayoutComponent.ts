@@ -5,17 +5,17 @@ import { StateChangesEmitter } from '../StateChangesEmitter'
 import { BaseEditableComponent } from './base/BaseEditableComponent'
 import { getCellCenterOffset } from './LayoutUtils'
 
-export class EditableHorizontalLayoutComponent extends BaseEditableComponent<HorizontalLayoutComponentJson> {
-	public readonly type = 'horizontal-layout'
-	private _stateChanges: StateChangesEmitter<HorizontalLayoutComponentJson>
+export class VerticalLayoutComponent extends BaseEditableComponent<VerticalLayoutComponentJson> {
+	public readonly type = 'vertical-layout'
+	private _stateChanges: StateChangesEmitter<VerticalLayoutComponentJson>
 	protected declare _parent: EditableContainer
 
 	private cellWidth = 100
 	private cellHeight = 100
 	private cellPosition: PhaserAlignKey = 'center'
-	private spacingX = 0
+	private spacingY = 0
 
-	constructor(id: string, initialState?: HorizontalLayoutComponentJson) {
+	constructor(id: string, initialState?: VerticalLayoutComponentJson) {
 		super(id)
 
 		if (initialState) {
@@ -23,7 +23,7 @@ export class EditableHorizontalLayoutComponent extends BaseEditableComponent<Hor
 			this.cellWidth = initialState.cellWidth
 			this.cellHeight = initialState.cellHeight
 			this.cellPosition = initialState.cellPosition
-			this.spacingX = initialState.spacingX
+			this.spacingY = initialState.spacingY
 		}
 
 		this._state = this.createState()
@@ -46,8 +46,8 @@ export class EditableHorizontalLayoutComponent extends BaseEditableComponent<Hor
 					this.cellPosition = value
 					this.updateLayout()
 				},
-				spacingX: (value) => {
-					this.spacingX = value
+				spacingY: (value) => {
+					this.spacingY = value
 					this.updateLayout()
 				},
 			},
@@ -56,7 +56,7 @@ export class EditableHorizontalLayoutComponent extends BaseEditableComponent<Hor
 
 		this._preAddChecks.push(
 			this._preAddChecksFactory.requireObjectType('Container'),
-			this._preAddChecksFactory.requireNoComponentOfType('vertical-layout'),
+			this._preAddChecksFactory.requireNoComponentOfType('horizontal-layout'),
 			this._preAddChecksFactory.requireNoComponentOfType('grid-layout')
 		)
 	}
@@ -68,26 +68,26 @@ export class EditableHorizontalLayoutComponent extends BaseEditableComponent<Hor
 
 		this._parent.editables.forEach((child, index) => {
 			const { x: xOffset, y: yOffset } = getCellCenterOffset(this.cellPosition, this.cellWidth, this.cellHeight)
-			const cellCenterX = index * (this.cellWidth + this.spacingX) + this.cellWidth / 2
-			const cellCenterY = this.cellHeight / 2
+			const cellCenterX = this.cellWidth / 2
+			const cellCenterY = index * (this.cellHeight + this.spacingY) + this.cellHeight / 2
 			child.setPosition(cellCenterX + xOffset, cellCenterY + yOffset)
 		})
 
 		const childrenNum = this._parent.editables.length
-		const width = childrenNum * this.cellWidth + this.spacingX * (childrenNum - 1)
-		const height = this.cellHeight
+		const width = this.cellWidth
+		const height = childrenNum * this.cellHeight + this.spacingY * (childrenNum - 1)
 		this._parent.setSize(width, height)
 	}
 
-	public toJson(): HorizontalLayoutComponentJson {
+	public toJson(): VerticalLayoutComponentJson {
 		return {
-			type: 'horizontal-layout',
+			type: 'vertical-layout',
 			id: this.id,
 			active: this._isActive,
 			cellWidth: this.cellWidth,
 			cellHeight: this.cellHeight,
 			cellPosition: this.cellPosition,
-			spacingX: this.spacingX,
+			spacingY: this.spacingY,
 		}
 	}
 
@@ -107,12 +107,12 @@ export class EditableHorizontalLayoutComponent extends BaseEditableComponent<Hor
 	protected onDeactivate(): void {}
 }
 
-export type HorizontalLayoutComponentJson = {
-	type: 'horizontal-layout'
+export type VerticalLayoutComponentJson = {
+	type: 'vertical-layout'
 	id: string
 	active: boolean
 	cellWidth: number
 	cellHeight: number
 	cellPosition: PhaserAlignKey
-	spacingX: number
+	spacingY: number
 }

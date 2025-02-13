@@ -2,7 +2,7 @@ import { unproxy } from '@state/valtio-utils'
 import { StateChangesEmitter } from '../StateChangesEmitter'
 import { BaseEditableComponent } from './base/BaseEditableComponent'
 
-export class EditablePinnerComponent extends BaseEditableComponent<PinnerComponentJson> {
+export class PinnerComponent extends BaseEditableComponent<PinnerComponentJson> {
 	public readonly type = 'pinner'
 	private _stateChanges: StateChangesEmitter<PinnerComponentJson>
 

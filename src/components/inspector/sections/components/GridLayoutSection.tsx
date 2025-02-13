@@ -1,4 +1,4 @@
-import { GridLayoutComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/EditableGridLayoutComponent'
+import { GridLayoutComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/GridLayoutComponent'
 import { PHASER_ALIGN, PhaserAlignKey } from '@components/canvas/phaser/scenes/main/objects/PhaserAlign'
 import { Group, Stack, Switch } from '@mantine/core'
 import { useSnapshot } from 'valtio'

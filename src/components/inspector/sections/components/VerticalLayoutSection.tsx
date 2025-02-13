@@ -1,5 +1,5 @@
 import { PHASER_ALIGN, PhaserAlignKey } from '@components/canvas/phaser/scenes/main/objects/PhaserAlign'
-import { VerticalLayoutComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/EditableVerticalLayoutComponent'
+import { VerticalLayoutComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/VerticalLayoutComponent'
 import { Group, Stack } from '@mantine/core'
 import { useSnapshot } from 'valtio'
 import { BaseSectionProps } from '../BaseSection'

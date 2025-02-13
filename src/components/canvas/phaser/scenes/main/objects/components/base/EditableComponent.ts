@@ -1,13 +1,13 @@
-import { EditableGridLayoutComponent, GridLayoutComponentJson } from '../EditableGridLayoutComponent'
-import { EditableHorizontalLayoutComponent, HorizontalLayoutComponentJson } from '../EditableHorizontalLayoutComponent'
-import { EditablePinnerComponent, PinnerComponentJson } from '../EditablePinnerComponent'
-import { EditableVerticalLayoutComponent, VerticalLayoutComponentJson } from '../EditableVerticalLayoutComponent'
+import { GridLayoutComponent, GridLayoutComponentJson } from '../GridLayoutComponent'
+import { HorizontalLayoutComponent, HorizontalLayoutComponentJson } from '../HorizontalLayoutComponent'
+import { PinnerComponent, PinnerComponentJson } from '../PinnerComponent'
+import { VerticalLayoutComponent, VerticalLayoutComponentJson } from '../VerticalLayoutComponent'
 
 export type EditableComponent =
-	| EditablePinnerComponent
-	| EditableHorizontalLayoutComponent
-	| EditableVerticalLayoutComponent
-	| EditableGridLayoutComponent
+	| PinnerComponent
+	| HorizontalLayoutComponent
+	| VerticalLayoutComponent
+	| GridLayoutComponent
 
 export type EditableComponentType = EditableComponent['type'] | 'localization' | 'input'
 
