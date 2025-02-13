@@ -51,6 +51,7 @@ export const stateSchema = z.object({
 		selection: z.array(z.string()),
 		selectionChangedAt: z.number().int().positive().optional(),
 		activeContextId: z.string().optional(),
+		clipboard: z.string().optional(),
 		objects: z.unknown().nullable() as z.ZodType<EditableObjectJson | null>,
 		objectById: z
 			.function()

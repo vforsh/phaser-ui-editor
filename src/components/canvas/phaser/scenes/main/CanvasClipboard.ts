@@ -1,3 +1,4 @@
+import { state } from '@state/State'
 import { Logger } from 'tslog'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { TypedEventEmitter } from '../../robowhale/phaser3/TypedEventEmitter'
@@ -17,7 +18,6 @@ export type ClipboardOptions = {
 export class CanvasClipboard extends TypedEventEmitter<Events> {
 	public readonly logger: ClipboardOptions['logger']
 	private readonly factory: ClipboardOptions['factory']
-	private content: EditableObjectJson[] | undefined
 
 	constructor(
 		private readonly scene: BaseScene,
@@ -29,25 +29,26 @@ export class CanvasClipboard extends TypedEventEmitter<Events> {
 		this.factory = options.factory
 	}
 
-	public copy(content: EditableObject[]): void {
-		this.content = content.map((item) => item.toJson())
+	public copy(objects: EditableObject[]): void {
+		state.canvas.clipboard = JSON.stringify(objects.map((obj) => obj.toJson()))
 	}
 
 	public paste(): EditableObject[] | null {
-		if (this.content === undefined) {
+		if (!state.canvas.clipboard) {
 			return null
 		}
 
-		const items = this.content.map((json) => this.factory.fromJson(json))
+		const itemsJsons = JSON.parse(state.canvas.clipboard) as EditableObjectJson[]
+		const items = itemsJsons.map((json: EditableObjectJson) => this.factory.fromJson(json))
 
 		return items
 	}
 
 	public clear(): void {
-		this.content = undefined
+		state.canvas.clipboard = undefined
 	}
 
 	public isEmpty(): boolean {
-		return this.content === undefined
+		return !state.canvas.clipboard
 	}
 }
