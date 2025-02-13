@@ -1008,6 +1008,8 @@ export class MainScene extends BaseScene {
 			const sin = Math.sin(group.rotation)
 			const cos = Math.cos(group.rotation)
 
+			group.components.deactivateAll()
+
 			const ungrouped = group.editables.map((child) => {
 				// Calculate new position accounting for group angle and scale
 				const dx = child.x * group.scaleX

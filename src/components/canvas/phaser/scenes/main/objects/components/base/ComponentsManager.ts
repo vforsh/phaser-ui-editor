@@ -98,6 +98,12 @@ export class ComponentsManager extends TypedEventEmitter<Events> {
 		return ok({})
 	}
 
+	public deactivateAll(): void {
+		for (const comp of this._components) {
+			comp.deactivate()
+		}
+	}
+
 	public get(type: EditableComponentType): BaseEditableComponent | undefined {
 		return this._components.find((c) => c.type === type)
 	}
