@@ -102,12 +102,14 @@ export class PinnerComponent extends BaseEditableComponent<PinnerComponentJson> 
 			return { type: 'absolute', value: 0 }
 		}
 
-		// if string like '10%', '-50%' or '+100%'
-		const percentageStr = offsetStr.match(/^(-?\d+)%$/)
+		// strings like '10%', '-50%' or '+100%'
+		const percentageStr = offsetStr.match(/^([+-]?\d+)%$/)
 		if (percentageStr) {
 			const percentage = parseFloat(percentageStr[1]) / 100
 			return { type: 'percentage', value: percentage }
 		}
+
+		// TODO support offsets like '50% + 10'
 
 		return { type: 'invalid', value: 0 }
 	}

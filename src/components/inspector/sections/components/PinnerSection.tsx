@@ -67,7 +67,7 @@ function validateOffset(offset: string): boolean {
 	}
 
 	// if string like '10%', '-50%' or '+100%'
-	const regex = /^-?\d*\.?\d*%?$/
+	const regex = /^[+-]?\d*\.?\d*%?$/
 
 	return regex.test(offset)
 }
