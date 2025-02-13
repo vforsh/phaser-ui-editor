@@ -8,7 +8,7 @@ import { alignChildrenAroundCenter, getCellCenterOffset } from './LayoutUtils'
 export class VerticalLayoutComponent extends BaseEditableComponent<VerticalLayoutComponentJson> {
 	public readonly type = 'vertical-layout'
 	private _stateChanges: StateChangesEmitter<VerticalLayoutComponentJson>
-	protected declare _parent: EditableContainer
+	protected declare _obj: EditableContainer
 
 	private cellWidth = 100
 	private cellHeight = 100
@@ -62,23 +62,23 @@ export class VerticalLayoutComponent extends BaseEditableComponent<VerticalLayou
 	}
 
 	private updateLayout(): void {
-		if (!this._parent || !this._isActive) {
+		if (!this._obj || !this._isActive) {
 			return
 		}
 
-		this._parent.editables.forEach((child, index) => {
+		this._obj.editables.forEach((child, index) => {
 			const { x: xOffset, y: yOffset } = getCellCenterOffset(this.cellPosition, this.cellWidth, this.cellHeight)
 			const cellCenterX = this.cellWidth / 2
 			const cellCenterY = index * (this.cellHeight + this.spacingY) + this.cellHeight / 2
 			child.setPosition(cellCenterX + xOffset, cellCenterY + yOffset)
 		})
 
-		const childrenNum = this._parent.editables.length
+		const childrenNum = this._obj.editables.length
 		const width = this.cellWidth
 		const height = childrenNum * this.cellHeight + this.spacingY * (childrenNum - 1)
-		this._parent.setSize(width, height)
+		this._obj.setSize(width, height)
 
-		alignChildrenAroundCenter(this._parent)
+		alignChildrenAroundCenter(this._obj)
 	}
 
 	public toJson(): VerticalLayoutComponentJson {
@@ -96,8 +96,8 @@ export class VerticalLayoutComponent extends BaseEditableComponent<VerticalLayou
 	override onAdded(parent: EditableObject): void {
 		super.onAdded(parent)
 
-		this._parent.on('editable-added', this.updateLayout, this, this.destroySignal)
-		this._parent.on('editable-removed', this.updateLayout, this, this.destroySignal)
+		this._obj.on('editable-added', this.updateLayout, this, this.destroySignal)
+		this._obj.on('editable-removed', this.updateLayout, this, this.destroySignal)
 
 		this.updateLayout()
 	}

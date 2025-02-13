@@ -7,7 +7,7 @@ import { PreAddCheck, PreAddChecksFactory } from './PreAddChecksFactory'
 export abstract class BaseEditableComponent<TJson extends EditableComponentJson = EditableComponentJson> {
 	public abstract readonly type: string
 	protected _id: string
-	protected _parent: EditableObject | undefined
+	protected _obj: EditableObject | undefined
 	protected _isActive = true
 	protected _state!: TJson
 	protected _preAddChecksFactory = new PreAddChecksFactory()
@@ -23,13 +23,13 @@ export abstract class BaseEditableComponent<TJson extends EditableComponentJson 
 		return proxy(this.toJson())
 	}
 
-	public canBeAddedTo(parent: EditableObject): Result<{}, string> {
-		if (this._parent !== undefined) {
-			return err('component already has a parent')
+	public canBeAddedTo(obj: EditableObject): Result<{}, string> {
+		if (this._obj !== undefined) {
+			return err('component already attached to another object')
 		}
 
 		for (const check of this._preAddChecks) {
-			const result = check(parent)
+			const result = check(obj)
 			if (result.isErr()) {
 				return result
 			}
@@ -38,8 +38,8 @@ export abstract class BaseEditableComponent<TJson extends EditableComponentJson 
 		return ok({})
 	}
 
-	public onAdded(parent: EditableObject): void {
-		this._parent = parent
+	public onAdded(obj: EditableObject): void {
+		this._obj = obj
 
 		if (this._isActive) {
 			this._deactivateController = new AbortController()
@@ -82,8 +82,8 @@ export abstract class BaseEditableComponent<TJson extends EditableComponentJson 
 
 	public abstract toJson(): TJson
 
-	public get parent(): EditableObject | undefined {
-		return this._parent
+	public get obj(): EditableObject | undefined {
+		return this._obj
 	}
 
 	public get destroySignal(): AbortSignal {
@@ -92,7 +92,7 @@ export abstract class BaseEditableComponent<TJson extends EditableComponentJson 
 
 	public destroy(): void {
 		this._destroyController.abort()
-		this._parent = undefined
+		this._obj = undefined
 	}
 
 	public get state(): TJson {

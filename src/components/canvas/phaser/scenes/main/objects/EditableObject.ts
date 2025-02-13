@@ -1,17 +1,25 @@
+import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { match } from 'ts-pattern'
 import { EditableBitmapText, EditableBitmapTextJson } from './EditableBitmapText'
 import { EditableContainer, EditableContainerJson } from './EditableContainer'
 import { EditableImage, EditableImageJson } from './EditableImage'
 import { EditableNineSlice, EditableNineSliceJson } from './EditableNineSlice'
 import { EditableText, EditableTextJson } from './EditableText'
-import { EditableComponentJson } from './components/base/EditableComponent'
 import { ComponentsManager } from './components/base/ComponentsManager'
+import { EditableComponentJson } from './components/base/EditableComponent'
 
 export const EDITABLE_SYMBOL = Symbol('EditableObject')
 
 export function isEditable(obj: Phaser.GameObjects.GameObject): obj is EditableObject {
 	return EDITABLE_SYMBOL in obj && obj[EDITABLE_SYMBOL] === true
 }
+
+export type EditableObjectEvents = {
+	'added-to-container': (container: EditableContainer) => void
+	'removed-from-container': (container: EditableContainer) => void
+}
+
+export type EditableObjectEmitter = TypedEventEmitter<EditableObjectEvents>
 
 export interface IEditableObject {
 	[EDITABLE_SYMBOL]: true
@@ -34,6 +42,8 @@ export interface IEditableObject {
 	get stateObj(): EditableObjectJson
 
 	get components(): ComponentsManager
+
+	get events(): EditableObjectEmitter
 }
 
 export type EditableObject = EditableContainer | EditableImage | EditableNineSlice | EditableText | EditableBitmapText

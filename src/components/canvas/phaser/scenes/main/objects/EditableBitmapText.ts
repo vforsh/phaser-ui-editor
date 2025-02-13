@@ -1,15 +1,21 @@
+import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { proxy } from 'valtio'
 import { PrefabBitmapFontAsset } from '../../../../../../types/prefabs/PrefabAsset'
-import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
-import { StateChangesEmitter } from './StateChangesEmitter'
 import { ComponentsManager } from './components/base/ComponentsManager'
 import { EditableComponentJson } from './components/base/EditableComponent'
+import { CreateEditableObjectJson, EDITABLE_SYMBOL, EditableObjectEvents, IEditableObject } from './EditableObject'
+import { StateChangesEmitter } from './StateChangesEmitter'
+
+type Events = {
+	// custom events
+} & EditableObjectEvents
 
 export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
 	public readonly kind = 'BitmapText'
 	public readonly id: string
 	public readonly asset: PrefabBitmapFontAsset
+	private readonly __events = new TypedEventEmitter<Events>()
 	private _isLocked = false
 	private _stateObj: EditableBitmapTextJson
 	private _stateChanges: StateChangesEmitter<EditableBitmapTextJson>
@@ -34,6 +40,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		this._components.on('component-added', this.onComponentsListChanged, this)
 		this._components.on('component-removed', this.onComponentsListChanged, this)
 		this._components.on('component-moved', this.onComponentsListChanged, this)
+
 		this._stateObj = proxy(this.toJson())
 
 		// state changes are reflected in the underlying Phaser object
@@ -138,6 +145,10 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 			tint: this.tint,
 			tintFill: this.tintFill,
 			angle: this.angle,
+			width: this.width,
+			height: this.height,
+			displayWidth: this.displayWidth,
+			displayHeight: this.displayHeight,
 			components: this._components.items.map((c) => c.toJson()),
 		}
 	}
@@ -281,6 +292,12 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		this._components.destroy()
 
 		super.destroy(fromScene)
+
+		this.__events.destroy()
+	}
+
+	public get events(): TypedEventEmitter<Events> {
+		return this.__events
 	}
 }
 
@@ -303,6 +320,10 @@ export type EditableBitmapTextJson = CreateEditableObjectJson<{
 	tint: number
 	tintFill: boolean
 	angle: number
+	width: number
+	height: number
+	displayWidth: number
+	displayHeight: number
 	components: EditableComponentJson[]
 	asset: PrefabBitmapFontAsset
 }>

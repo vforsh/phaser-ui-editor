@@ -4,6 +4,7 @@ import {
 	CreateEditableObjectJson,
 	EDITABLE_SYMBOL,
 	EditableObject,
+	EditableObjectEvents,
 	EditableObjectJson,
 	IEditableObject,
 	isEditable,
@@ -17,7 +18,7 @@ type Events = {
 	'editable-removed': (child: EditableObject) => void
 	'size-changed': (width: number, height: number, prevWidth: number, prevHeight: number) => void
 	'hierarchy-changed': () => void
-}
+} & EditableObjectEvents
 
 export type PrefabRef = {
 	id: string
@@ -126,6 +127,9 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		if (isEditable(gameObject)) {
 			this.events.emit('editable-added', gameObject)
 
+			// @ts-expect-error
+			gameObject.events.emit('added-to-container', this)
+
 			// every change in child container will propagate to parent container
 			if (gameObject instanceof EditableContainer) {
 				gameObject.events.on(
@@ -143,6 +147,9 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 
 		if (isEditable(gameObject)) {
 			this.events.emit('editable-removed', gameObject)
+
+			// @ts-expect-error
+			gameObject.events.emit('removed-from-container', this)
 
 			if (gameObject instanceof EditableContainer) {
 				gameObject.events.offByContext(this, 'hierarchy-changed')

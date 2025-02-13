@@ -1,9 +1,14 @@
+import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { proxy } from 'valtio'
 import { PrefabImageAsset, PrefabSpritesheetFrameAsset } from '../../../../../../types/prefabs/PrefabAsset'
-import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
-import { StateChangesEmitter } from './StateChangesEmitter'
 import { ComponentsManager } from './components/base/ComponentsManager'
 import { EditableComponentJson } from './components/base/EditableComponent'
+import { CreateEditableObjectJson, EDITABLE_SYMBOL, EditableObjectEvents, IEditableObject } from './EditableObject'
+import { StateChangesEmitter } from './StateChangesEmitter'
+
+type Events = {
+	// custom events
+} & EditableObjectEvents
 
 export class EditableImage extends Phaser.GameObjects.Image implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
@@ -14,6 +19,7 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 	private _stateObj: EditableImageJson
 	private _stateChanges: StateChangesEmitter<EditableImageJson>
 	private _components: ComponentsManager
+	private readonly __events = new TypedEventEmitter<Events>()
 
 	constructor(
 		scene: Phaser.Scene,
@@ -96,6 +102,10 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 			angle: this.angle,
 			originX: this.originX,
 			originY: this.originY,
+			width: this.width,
+			height: this.height,
+			displayWidth: this.displayWidth,
+			displayHeight: this.displayHeight,
 			components: this._components.items.map((c) => c.toJson()),
 		}
 	}
@@ -252,10 +262,16 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 		this._components.destroy()
 
 		super.destroy(fromScene)
+
+		this.__events.destroy()
 	}
 
 	get components() {
 		return this._components
+	}
+
+	public get events(): TypedEventEmitter<Events> {
+		return this.__events
 	}
 }
 
@@ -271,6 +287,10 @@ export type EditableImageJson = CreateEditableObjectJson<{
 	angle: number
 	originX: number
 	originY: number
+	width: number
+	height: number
+	displayWidth: number
+	displayHeight: number
 	components: EditableComponentJson[]
 	asset: PrefabImageAsset | PrefabSpritesheetFrameAsset
 }>

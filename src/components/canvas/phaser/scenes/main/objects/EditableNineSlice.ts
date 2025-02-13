@@ -1,10 +1,15 @@
+import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { IPatchesConfig, NinePatch } from '@koreez/phaser3-ninepatch'
 import { proxy } from 'valtio'
 import { PrefabImageAsset, PrefabSpritesheetFrameAsset } from '../../../../../../types/prefabs/PrefabAsset'
-import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
+import { CreateEditableObjectJson, EDITABLE_SYMBOL, EditableObjectEvents, IEditableObject } from './EditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
 import { ComponentsManager } from './components/base/ComponentsManager'
 import { EditableComponentJson } from './components/base/EditableComponent'
+
+type Events = {
+	// custom events
+} & EditableObjectEvents
 
 export class EditableNineSlice extends NinePatch implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
@@ -15,6 +20,7 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 	private _stateObj: EditableNineSliceJson
 	private _stateChanges: StateChangesEmitter<EditableNineSliceJson>
 	private _components: ComponentsManager
+	private readonly __events = new TypedEventEmitter<Events>()
 
 	constructor(
 		scene: Phaser.Scene,
@@ -94,6 +100,8 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 			tintFill: this.tintFill,
 			width: this.width,
 			height: this.height,
+			displayWidth: this.displayWidth,
+			displayHeight: this.displayHeight,
 			// @ts-ignore
 			ninePatchConfig: this.config as IPatchesConfig,
 			angle: this.angle,
@@ -216,10 +224,16 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 		this._components.destroy()
 
 		super.destroy(fromScene)
+
+		this.__events.destroy()
 	}
 
 	get components() {
 		return this._components
+	}
+
+	public get events(): TypedEventEmitter<Events> {
+		return this.__events
 	}
 }
 
@@ -237,6 +251,8 @@ export type EditableNineSliceJson = CreateEditableObjectJson<{
 	tintFill: boolean
 	width: number
 	height: number
+	displayWidth: number
+	displayHeight: number
 	ninePatchConfig: IPatchesConfig
 	angle: number
 	components: EditableComponentJson[]

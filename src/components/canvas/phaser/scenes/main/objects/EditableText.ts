@@ -1,10 +1,15 @@
+import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { signalFromEvent } from '@components/canvas/phaser/robowhale/utils/events/create-abort-signal-from-event'
 import { proxy } from 'valtio'
 import { PrefabWebFontAsset } from '../../../../../../types/prefabs/PrefabAsset'
-import { CreateEditableObjectJson, EDITABLE_SYMBOL, IEditableObject } from './EditableObject'
-import { StateChangesEmitter } from './StateChangesEmitter'
 import { ComponentsManager } from './components/base/ComponentsManager'
 import { EditableComponentJson } from './components/base/EditableComponent'
+import { CreateEditableObjectJson, EDITABLE_SYMBOL, EditableObjectEvents, IEditableObject } from './EditableObject'
+import { StateChangesEmitter } from './StateChangesEmitter'
+
+type Events = {
+	// custom events
+} & EditableObjectEvents
 
 export class EditableText extends Phaser.GameObjects.Text implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
@@ -15,6 +20,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	private _stateObj: EditableTextJson
 	private _stateChanges: StateChangesEmitter<EditableTextJson>
 	private _components: ComponentsManager
+	private readonly __events = new TypedEventEmitter<Events>()
 
 	constructor(
 		scene: Phaser.Scene,
@@ -35,6 +41,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 		this._components.on('component-added', this.onComponentsListChanged, this)
 		this._components.on('component-removed', this.onComponentsListChanged, this)
 		this._components.on('component-moved', this.onComponentsListChanged, this)
+
 		const signal = signalFromEvent(this, 'destroy')
 
 		this._stateObj = proxy(this.toJson())
@@ -151,6 +158,10 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 			paddingY: this.padding.y || 0,
 			wordWrapWidth: this.style.wordWrapWidth || 0,
 			wordWrapUseAdvanced: this.style.wordWrapUseAdvanced,
+			width: this.width,
+			height: this.height,
+			displayWidth: this.displayWidth,
+			displayHeight: this.displayHeight,
 			components: this._components.items.map((c) => c.toJson()),
 		}
 	}
@@ -284,10 +295,16 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 		this._components.destroy()
 
 		super.destroy(fromScene)
+
+		this.__events.destroy()
 	}
 
 	get components() {
 		return this._components
+	}
+
+	public get events(): TypedEventEmitter<Events> {
+		return this.__events
 	}
 }
 
@@ -312,6 +329,10 @@ export type EditableTextJson = CreateEditableObjectJson<{
 	paddingY: number
 	wordWrapWidth: number
 	wordWrapUseAdvanced: boolean
+	width: number
+	height: number
+	displayWidth: number
+	displayHeight: number
 	components: EditableComponentJson[]
 }>
 

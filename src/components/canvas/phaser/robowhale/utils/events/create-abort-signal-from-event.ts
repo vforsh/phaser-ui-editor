@@ -1,6 +1,6 @@
 import { AnyFunction } from '../../../../../../types/helpers'
 
-type EventEmitter = {
+export type GenericEventEmitter = {
 	on: (event: string, listener: AnyFunction) => void
 	once: (event: string, listener: AnyFunction) => void
 }
@@ -11,7 +11,7 @@ type EventEmitter = {
  * @param event - The event to listen to.
  * @returns An AbortSignal.
  */
-export function signalFromEvent(emitter: EventEmitter, event: string) {
+export function signalFromEvent(emitter: GenericEventEmitter, event: string) {
 	const controller = new AbortController()
 	emitter.once(event, () => controller.abort(`'${event}' event was emitted`))
 	return controller.signal

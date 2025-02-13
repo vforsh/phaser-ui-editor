@@ -8,7 +8,7 @@ import { alignChildrenAroundCenter, getCellCenterOffset } from './LayoutUtils'
 export class HorizontalLayoutComponent extends BaseEditableComponent<HorizontalLayoutComponentJson> {
 	public readonly type = 'horizontal-layout'
 	private _stateChanges: StateChangesEmitter<HorizontalLayoutComponentJson>
-	protected declare _parent: EditableContainer
+	protected declare _obj: EditableContainer
 
 	private cellWidth = 100
 	private cellHeight = 100
@@ -62,23 +62,23 @@ export class HorizontalLayoutComponent extends BaseEditableComponent<HorizontalL
 	}
 
 	private updateLayout(): void {
-		if (!this._parent || !this._isActive) {
+		if (!this._obj || !this._isActive) {
 			return
 		}
 
-		this._parent.editables.forEach((child, index) => {
+		this._obj.editables.forEach((child, index) => {
 			const { x: xOffset, y: yOffset } = getCellCenterOffset(this.cellPosition, this.cellWidth, this.cellHeight)
 			const cellCenterX = index * (this.cellWidth + this.spacingX) + this.cellWidth / 2
 			const cellCenterY = this.cellHeight / 2
 			child.setPosition(cellCenterX + xOffset, cellCenterY + yOffset)
 		})
 
-		const childrenNum = this._parent.editables.length
+		const childrenNum = this._obj.editables.length
 		const width = childrenNum * this.cellWidth + this.spacingX * (childrenNum - 1)
 		const height = this.cellHeight
-		this._parent.setSize(width, height)
+		this._obj.setSize(width, height)
 
-		alignChildrenAroundCenter(this._parent)
+		alignChildrenAroundCenter(this._obj)
 	}
 
 	public toJson(): HorizontalLayoutComponentJson {
@@ -96,8 +96,8 @@ export class HorizontalLayoutComponent extends BaseEditableComponent<HorizontalL
 	override onAdded(parent: EditableObject): void {
 		super.onAdded(parent)
 
-		this._parent.on('editable-added', this.updateLayout, this, this.destroySignal)
-		this._parent.on('editable-removed', this.updateLayout, this, this.destroySignal)
+		this._obj.on('editable-added', this.updateLayout, this, this.destroySignal)
+		this._obj.on('editable-removed', this.updateLayout, this, this.destroySignal)
 
 		this.updateLayout()
 	}

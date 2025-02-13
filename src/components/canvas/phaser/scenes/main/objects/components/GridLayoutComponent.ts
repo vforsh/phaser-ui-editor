@@ -8,7 +8,7 @@ import { alignChildrenAroundCenter } from './LayoutUtils'
 export class GridLayoutComponent extends BaseEditableComponent<GridLayoutComponentJson> {
 	public readonly type = 'grid-layout'
 	private _stateChanges: StateChangesEmitter<GridLayoutComponentJson>
-	protected declare _parent: EditableContainer
+	protected declare _obj: EditableContainer
 
 	private columns = 3
 	private cellWidth = 100
@@ -80,13 +80,13 @@ export class GridLayoutComponent extends BaseEditableComponent<GridLayoutCompone
 	}
 
 	private updateLayout(): void {
-		if (!this._parent || !this._isActive) {
+		if (!this._obj || !this._isActive) {
 			return
 		}
 
-		const rows = Math.ceil(this._parent.editables.length / this.columns)
+		const rows = Math.ceil(this._obj.editables.length / this.columns)
 
-		this._parent.editables.forEach((child, index) => {
+		this._obj.editables.forEach((child, index) => {
 			const row = Math.floor(index / this.columns)
 			const col = index % this.columns
 			const cellCenterX = col * (this.cellWidth + this.spacingX) + this.cellWidth / 2
@@ -94,20 +94,20 @@ export class GridLayoutComponent extends BaseEditableComponent<GridLayoutCompone
 			child.setPosition(cellCenterX, cellCenterY)
 		})
 
-		const actualColumns = Math.min(this.columns, this._parent.editables.length)
+		const actualColumns = Math.min(this.columns, this._obj.editables.length)
 		const width = actualColumns * this.cellWidth + this.spacingX * (actualColumns - 1)
 		const height = rows * this.cellHeight + this.spacingY * (rows - 1)
-		this._parent.setSize(width, height)
+		this._obj.setSize(width, height)
 
 		if (this.centerLastRow) {
 			this.alignLastRow(width)
 		}
 
-		alignChildrenAroundCenter(this._parent)
+		alignChildrenAroundCenter(this._obj)
 	}
 
 	private alignLastRow(width: number) {
-		const lastRowItemsNum = this._parent.editables.length % this.columns
+		const lastRowItemsNum = this._obj.editables.length % this.columns
 		const needsCenter = lastRowItemsNum > 0
 		if (!needsCenter) {
 			return
@@ -115,7 +115,7 @@ export class GridLayoutComponent extends BaseEditableComponent<GridLayoutCompone
 
 		const lastRowWidth = lastRowItemsNum * (this.cellWidth + this.spacingX)
 		const lastRowAlignOffset = (width - lastRowWidth) / 2
-		const lastRowItems = this._parent.editables.slice(-lastRowItemsNum)
+		const lastRowItems = this._obj.editables.slice(-lastRowItemsNum)
 		lastRowItems.forEach((item, index) => {
 			const cellCenterX = index * (this.cellWidth + this.spacingX) + this.cellWidth / 2
 			item.setX(cellCenterX + lastRowAlignOffset)
@@ -140,8 +140,8 @@ export class GridLayoutComponent extends BaseEditableComponent<GridLayoutCompone
 	override onAdded(parent: EditableObject): void {
 		super.onAdded(parent)
 
-		this._parent.events.on('editable-added', this.updateLayout, this, this.destroySignal)
-		this._parent.events.on('editable-removed', this.updateLayout, this, this.destroySignal)
+		this._obj.events.on('editable-added', this.updateLayout, this, this.destroySignal)
+		this._obj.events.on('editable-removed', this.updateLayout, this, this.destroySignal)
 
 		this.updateLayout()
 	}

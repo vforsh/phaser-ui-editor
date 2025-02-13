@@ -15,7 +15,12 @@ export class TypedEventEmitter<TEvents extends TypedEventMap = EmptyEvents> exte
 		super()
 	}
 
-	override on<TEvent extends TypedEvent<TEvents>>(event: TEvent, listener: TEvents[TEvent], context?: unknown, signal?: AbortSignal): this {
+	override on<TEvent extends TypedEvent<TEvents>>(
+		event: TEvent,
+		listener: TEvents[TEvent],
+		context?: unknown,
+		signal?: AbortSignal
+	): this {
 		if (signal) {
 			if (signal.aborted) {
 				return this
@@ -27,7 +32,12 @@ export class TypedEventEmitter<TEvents extends TypedEventMap = EmptyEvents> exte
 		return super.on(event, listener, context)
 	}
 
-	override once<TEvent extends TypedEvent<TEvents>>(event: TEvent, listener: TEvents[TEvent], context?: unknown, signal?: AbortSignal): this {
+	override once<TEvent extends TypedEvent<TEvents>>(
+		event: TEvent,
+		listener: TEvents[TEvent],
+		context?: unknown,
+		signal?: AbortSignal
+	): this {
 		if (signal) {
 			if (signal.aborted) {
 				return this
@@ -39,7 +49,12 @@ export class TypedEventEmitter<TEvents extends TypedEventMap = EmptyEvents> exte
 		return super.once(event, listener, context)
 	}
 
-	override off<TEvent extends TypedEvent<TEvents>>(event: TEvent, listener: TEvents[TEvent], context?: unknown, once?: boolean): this {
+	override off<TEvent extends TypedEvent<TEvents>>(
+		event: TEvent,
+		listener: TEvents[TEvent],
+		context?: unknown,
+		once?: boolean
+	): this {
 		return super.off(event, listener, context, once)
 	}
 
@@ -51,3 +66,6 @@ export class TypedEventEmitter<TEvents extends TypedEventMap = EmptyEvents> exte
 		return super.eventNames().includes(event)
 	}
 }
+
+export type TypedEventEmitterEvents<T extends TypedEventEmitter<any>> =
+	T extends TypedEventEmitter<infer E> ? keyof E : never
