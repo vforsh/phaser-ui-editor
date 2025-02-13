@@ -93,11 +93,11 @@ export class HorizontalLayoutComponent extends BaseEditableComponent<HorizontalL
 		}
 	}
 
-	override onAdded(parent: EditableObject): void {
-		super.onAdded(parent)
+	override onAdded(obj: EditableObject): void {
+		super.onAdded(obj)
 
-		this._obj.on('editable-added', this.updateLayout, this, this.destroySignal)
-		this._obj.on('editable-removed', this.updateLayout, this, this.destroySignal)
+		this._obj.events.on('editable-added', this.updateLayout, this, this.destroySignal)
+		this._obj.events.on('editable-removed', this.updateLayout, this, this.destroySignal)
 
 		this.updateLayout()
 	}
