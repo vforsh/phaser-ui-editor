@@ -1,4 +1,5 @@
 import { match } from 'ts-pattern'
+import { EditableContainer } from '../EditableContainer'
 import { PhaserAlignKey } from '../PhaserAlign'
 
 export function getCellCenterOffset(cellPosition: PhaserAlignKey, cellWidth: number, cellHeight: number) {
@@ -14,4 +15,16 @@ export function getCellCenterOffset(cellPosition: PhaserAlignKey, cellWidth: num
 		.with('bottom-center', () => ({ x: 0, y: cellHeight / 2 }))
 		.with('bottom-right', () => ({ x: cellWidth / 2, y: cellHeight / 2 }))
 		.exhaustive()
+}
+
+/**
+ * Moves all container's children so they will be positioned around the container's center.
+ */
+export function alignChildrenAroundCenter(container: EditableContainer) {
+	const dx = container.width / 2
+	const dy = container.height / 2
+	container.editables.forEach((item) => {
+		item.setX(item.x - dx)
+		item.setY(item.y - dy)
+	})
 }

@@ -3,6 +3,7 @@ import { EditableObject } from '../EditableObject'
 import { PhaserAlignKey } from '../PhaserAlign'
 import { StateChangesEmitter } from '../StateChangesEmitter'
 import { BaseEditableComponent } from './base/BaseEditableComponent'
+import { alignChildrenAroundCenter } from './LayoutUtils'
 
 export class GridLayoutComponent extends BaseEditableComponent<GridLayoutComponentJson> {
 	public readonly type = 'grid-layout'
@@ -98,14 +99,14 @@ export class GridLayoutComponent extends BaseEditableComponent<GridLayoutCompone
 		const height = rows * this.cellHeight + this.spacingY * (rows - 1)
 		this._parent.setSize(width, height)
 
-		this.alignLastRow(width)
+		if (this.centerLastRow) {
+			this.alignLastRow(width)
+		}
+
+		alignChildrenAroundCenter(this._parent)
 	}
 
 	private alignLastRow(width: number) {
-		if (!this.centerLastRow) {
-			return
-		}
-
 		const lastRowItemsNum = this._parent.editables.length % this.columns
 		const needsCenter = lastRowItemsNum > 0
 		if (!needsCenter) {

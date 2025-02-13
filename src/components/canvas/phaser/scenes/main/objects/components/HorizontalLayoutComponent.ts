@@ -3,7 +3,7 @@ import { EditableObject } from '../EditableObject'
 import { PhaserAlignKey } from '../PhaserAlign'
 import { StateChangesEmitter } from '../StateChangesEmitter'
 import { BaseEditableComponent } from './base/BaseEditableComponent'
-import { getCellCenterOffset } from './LayoutUtils'
+import { alignChildrenAroundCenter, getCellCenterOffset } from './LayoutUtils'
 
 export class HorizontalLayoutComponent extends BaseEditableComponent<HorizontalLayoutComponentJson> {
 	public readonly type = 'horizontal-layout'
@@ -77,6 +77,8 @@ export class HorizontalLayoutComponent extends BaseEditableComponent<HorizontalL
 		const width = childrenNum * this.cellWidth + this.spacingX * (childrenNum - 1)
 		const height = this.cellHeight
 		this._parent.setSize(width, height)
+
+		alignChildrenAroundCenter(this._parent)
 	}
 
 	public toJson(): HorizontalLayoutComponentJson {

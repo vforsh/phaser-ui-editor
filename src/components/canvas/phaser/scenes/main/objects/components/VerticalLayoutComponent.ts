@@ -3,7 +3,7 @@ import { EditableObject } from '../EditableObject'
 import { PhaserAlignKey } from '../PhaserAlign'
 import { StateChangesEmitter } from '../StateChangesEmitter'
 import { BaseEditableComponent } from './base/BaseEditableComponent'
-import { getCellCenterOffset } from './LayoutUtils'
+import { alignChildrenAroundCenter, getCellCenterOffset } from './LayoutUtils'
 
 export class VerticalLayoutComponent extends BaseEditableComponent<VerticalLayoutComponentJson> {
 	public readonly type = 'vertical-layout'
@@ -77,6 +77,8 @@ export class VerticalLayoutComponent extends BaseEditableComponent<VerticalLayou
 		const width = this.cellWidth
 		const height = childrenNum * this.cellHeight + this.spacingY * (childrenNum - 1)
 		this._parent.setSize(width, height)
+
+		alignChildrenAroundCenter(this._parent)
 	}
 
 	public toJson(): VerticalLayoutComponentJson {
