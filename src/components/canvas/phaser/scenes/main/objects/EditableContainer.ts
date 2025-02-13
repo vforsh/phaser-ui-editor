@@ -334,6 +334,8 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		const prevHeight = this.height
 		super.setSize(width, height)
 
+		this.updateInputHitArea(width, height)
+
 		this.withoutEmits((state) => {
 			state.width = width
 			state.height = height
@@ -342,6 +344,14 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		this.events.emit('size-changed', width, height, prevWidth, prevHeight)
 
 		return this
+	}
+
+	private updateInputHitArea(width: number, height: number): void {
+		if (!this.input?.hitArea) {
+			return
+		}
+
+		this.input.hitArea.setSize(width, height)
 	}
 
 	get stateObj() {
