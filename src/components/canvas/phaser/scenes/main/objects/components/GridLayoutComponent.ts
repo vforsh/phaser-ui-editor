@@ -98,19 +98,27 @@ export class GridLayoutComponent extends BaseEditableComponent<GridLayoutCompone
 		const height = rows * this.cellHeight + this.spacingY * (rows - 1)
 		this._parent.setSize(width, height)
 
-		if (this.centerLastRow) {
-			const lastRowItemsNum = this._parent.editables.length % this.columns
-			const needsCenter = lastRowItemsNum > 0
-			if (needsCenter) {
-				const lastRowWidth = lastRowItemsNum * (this.cellWidth + this.spacingX)
-				const lastRowAlignOffset = (width - lastRowWidth) / 2
-				const lastRowItems = this._parent.editables.slice(-lastRowItemsNum)
-				lastRowItems.forEach((item, index) => {
-					const cellCenterX = index * (this.cellWidth + this.spacingX) + this.cellWidth / 2
-					item.setX(cellCenterX + lastRowAlignOffset)
-				})
-			}
+		this.alignLastRow(width)
+	}
+
+	private alignLastRow(width: number) {
+		if (!this.centerLastRow) {
+			return
 		}
+
+		const lastRowItemsNum = this._parent.editables.length % this.columns
+		const needsCenter = lastRowItemsNum > 0
+		if (!needsCenter) {
+			return
+		}
+
+		const lastRowWidth = lastRowItemsNum * (this.cellWidth + this.spacingX)
+		const lastRowAlignOffset = (width - lastRowWidth) / 2
+		const lastRowItems = this._parent.editables.slice(-lastRowItemsNum)
+		lastRowItems.forEach((item, index) => {
+			const cellCenterX = index * (this.cellWidth + this.spacingX) + this.cellWidth / 2
+			item.setX(cellCenterX + lastRowAlignOffset)
+		})
 	}
 
 	public toJson(): GridLayoutComponentJson {
