@@ -33,13 +33,14 @@ export function HorizontalLayoutSection({ data }: HorizontalLayoutSectionProps) 
 				/>
 			</Group>
 
-			<SelectCustom
+			{/* always align to center for now */}
+			{/* <SelectCustom
 				label="Align"
 				value={snap.cellPosition}
 				onChange={(value) => (data.cellPosition = value as PhaserAlignKey)}
 				data={Object.entries(PHASER_ALIGN).map(([key, value]) => ({ label: key, value: key }))}
 				size="xs"
-			/>
+			/> */}
 
 			<NumberInputCustom
 				label="Spacing X"

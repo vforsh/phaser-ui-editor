@@ -66,19 +66,25 @@ export class HorizontalLayoutComponent extends BaseEditableComponent<HorizontalL
 			return
 		}
 
+		// if height is not set, use auto-height = the max height of the children
+		const height = this.cellHeight || this.getMaxDisplayHeight(this._obj.editables)
+
 		this._obj.editables.forEach((child, index) => {
-			const { x: xOffset, y: yOffset } = getCellCenterOffset(this.cellPosition, this.cellWidth, this.cellHeight)
+			const { x: xOffset, y: yOffset } = getCellCenterOffset(this.cellPosition, this.cellWidth, height)
 			const cellCenterX = index * (this.cellWidth + this.spacingX) + this.cellWidth / 2
-			const cellCenterY = this.cellHeight / 2
+			const cellCenterY = height / 2
 			child.setPosition(cellCenterX + xOffset, cellCenterY + yOffset)
 		})
 
 		const childrenNum = this._obj.editables.length
 		const width = childrenNum * this.cellWidth + this.spacingX * (childrenNum - 1)
-		const height = this.cellHeight
 		this._obj.setSize(width, height)
 
 		alignChildrenAroundCenter(this._obj)
+	}
+
+	private getMaxDisplayHeight(editables: EditableObject[]): number {
+		return editables.reduce((max, child) => Math.max(max, child.displayHeight), 0)
 	}
 
 	public toJson(): HorizontalLayoutComponentJson {

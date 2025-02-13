@@ -66,19 +66,25 @@ export class VerticalLayoutComponent extends BaseEditableComponent<VerticalLayou
 			return
 		}
 
+		// if width is not set, use auto-width = the max width of the children
+		const width = this.cellWidth || this.getMaxDisplayWidth(this._obj.editables)
+
 		this._obj.editables.forEach((child, index) => {
-			const { x: xOffset, y: yOffset } = getCellCenterOffset(this.cellPosition, this.cellWidth, this.cellHeight)
-			const cellCenterX = this.cellWidth / 2
+			const { x: xOffset, y: yOffset } = getCellCenterOffset(this.cellPosition, width, this.cellHeight)
+			const cellCenterX = width / 2
 			const cellCenterY = index * (this.cellHeight + this.spacingY) + this.cellHeight / 2
 			child.setPosition(cellCenterX + xOffset, cellCenterY + yOffset)
 		})
 
 		const childrenNum = this._obj.editables.length
-		const width = this.cellWidth
 		const height = childrenNum * this.cellHeight + this.spacingY * (childrenNum - 1)
 		this._obj.setSize(width, height)
 
 		alignChildrenAroundCenter(this._obj)
+	}
+
+	private getMaxDisplayWidth(editables: EditableObject[]): number {
+		return editables.reduce((max, child) => Math.max(max, child.displayWidth), 0)
 	}
 
 	public toJson(): VerticalLayoutComponentJson {
