@@ -12,7 +12,6 @@ import WebFont from 'webfontloader'
 import { AppCommandsEmitter } from '../../../../../AppCommands'
 import { logger } from '../../../../../logs/logs'
 import { Project } from '../../../../../project/Project'
-import { ProjectConfig } from '../../../../../project/ProjectConfig'
 import trpc, { WebFontParsed } from '../../../../../trpc'
 import {
 	AssetTreeBitmapFontData,
@@ -45,6 +44,7 @@ import { EditContext } from './editContext/EditContext'
 import { EditContextsManager } from './editContext/EditContextsManager'
 import { Selection } from './editContext/Selection'
 import { TransformControls } from './editContext/TransformControls'
+import { EditContextFrame } from './EditContextFrame'
 import { Grid } from './Grid'
 import {
 	AddComponentResult,
@@ -91,7 +91,7 @@ export class MainScene extends BaseScene {
 	private superRoot!: EditableContainer
 	private root!: EditableContainer
 	// TODO move to a separate class, it should emit events on resize
-	public contextBoundsFrame!: Phaser.GameObjects.Graphics & { width: number; height: number }
+	public contextFrame!: EditContextFrame
 	public objectsFactory!: EditableObjectsFactory
 	private componentsFactory!: EditableComponentsFactory
 	private clipboard!: CanvasClipboard
@@ -133,13 +133,13 @@ export class MainScene extends BaseScene {
 
 		this.initEditContexts()
 
-		this.initSuperRoot()
+		this.initSuperRoot(this.initData.project.config.size.width, this.initData.project.config.size.height)
 
 		await this.initRoot(this.initData.prefabFile)
 
 		this.initAligner()
 
-		this.addContextBoundsFrame(this.initData.project.config.size)
+		this.addContextFrame(this.editContexts.current!)
 
 		this.addKeyboadCallbacks()
 
@@ -156,7 +156,7 @@ export class MainScene extends BaseScene {
 
 		const isDefaultCameraSettings = cameraState.zoom === 1 && cameraState.scrollX === 0 && cameraState.scrollY === 0
 		if (isDefaultCameraSettings) {
-			this.alignCameraToProjectFrame()
+			this.alignCameraToContextFrame()
 		}
 
 		this.setupAppCommands()
@@ -228,14 +228,15 @@ export class MainScene extends BaseScene {
 			this.shutdownSignal
 		)
 
-		this.editContexts.on(
-			'context-switched',
-			(context) => {
-				state.canvas.activeContextId = context.target.id
-			},
-			this,
-			this.shutdownSignal
-		)
+		this.editContexts.on('context-switched', this.onContextSwitched, this, this.shutdownSignal)
+	}
+
+	private onContextSwitched(context: EditContext): void {
+		state.canvas.activeContextId = context.target.id
+
+		if (this.contextFrame) {
+			this.contextFrame.adjustTo(context)
+		}
 	}
 
 	/**
@@ -243,8 +244,9 @@ export class MainScene extends BaseScene {
 	 * So that the root object can be selected and edited via Inspector.
 	 * @note The super root is not displayed in the hierarchy panel and not being exported to the prefab file.
 	 */
-	private initSuperRoot() {
+	private initSuperRoot(width: number, height: number) {
 		this.superRoot = this.objectsFactory.container('super-root')
+		this.superRoot.setSize(width, height)
 		this.add.existing(this.superRoot)
 	}
 
@@ -401,14 +403,13 @@ export class MainScene extends BaseScene {
 		)
 	}
 
-	private addContextBoundsFrame(size: ProjectConfig['size']) {
-		this.contextBoundsFrame = this.add.graphics() as Phaser.GameObjects.Graphics & { width: number; height: number }
-		this.contextBoundsFrame.lineStyle(1, 0xffffff, 1)
-		this.contextBoundsFrame.strokeRect(0, 0, size.width, size.height)
-		// this.projectSizeFrame.fillStyle(0x2f0559, 0.25)
-		// this.projectSizeFrame.fillRect(0, 0, size.width, size.height)
-		this.contextBoundsFrame.width = size.width
-		this.contextBoundsFrame.height = size.height
+	private addContextFrame(context: EditContext) {
+		this.contextFrame = new EditContextFrame(this, context, {
+			thickness: 1,
+			color: 0xffffff,
+		})
+
+		this.add.existing(this.contextFrame)
 	}
 
 	// TODO move to ObjectsFactory
@@ -923,7 +924,7 @@ export class MainScene extends BaseScene {
 		)
 
 		this.onKeyDown('R', this.restart, this, this.shutdownSignal)
-		this.onKeyDown('F', this.alignCameraToProjectFrame, this, this.shutdownSignal)
+		this.onKeyDown('F', this.alignCameraToContextFrame, this, this.shutdownSignal)
 
 		this.onKeyDown('DELETE', this.removeSelection, this, this.shutdownSignal)
 		this.onKeyDown('BACKSPACE', this.removeSelection, this, this.shutdownSignal)
@@ -1450,19 +1451,29 @@ export class MainScene extends BaseScene {
 		state.canvas.camera.scrollY = camera.scrollY
 	}
 
-	private alignCameraToProjectFrame() {
+	private alignCameraToContextFrame() {
 		const camera = this.cameras.main
 
-		const projectSize = this.initData.project.config.size
-		camera.scrollX = -(camera.width - projectSize.width) / 2
-		camera.scrollY = -(camera.height - projectSize.height) / 2
+		const contextSize = this.contextFrame.aabbSize
+
+		// center camera to (0, 0)
+		camera.scrollX = -camera.width / 2
+		camera.scrollY = -camera.height / 2
 
 		const zoomPaddingX = camera.width * 0.1
 		const zoomPaddingY = camera.height * 0.1
-		camera.zoom = Math.min(
-			camera.width / (projectSize.width + zoomPaddingX),
-			camera.height / (projectSize.height + zoomPaddingY)
+
+		const currentZoom = camera.zoom
+		let newZoom = Math.min(
+			camera.width / (contextSize.width + zoomPaddingX),
+			camera.height / (contextSize.height + zoomPaddingY)
 		)
+
+		if (Phaser.Math.Fuzzy.Equal(newZoom, currentZoom)) {
+			newZoom /= 2
+		}
+
+		camera.zoom = newZoom
 
 		this.onResizeOrCameraChange()
 	}

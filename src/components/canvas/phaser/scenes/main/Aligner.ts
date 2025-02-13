@@ -178,7 +178,7 @@ export class Aligner extends TypedEventEmitter<Events> {
 
 	private getContextBounds(context: EditContext): Phaser.Geom.Rectangle {
 		if (context.isRoot) {
-			const projectFrame = this.scene.contextBoundsFrame!
+			const projectFrame = this.scene.contextFrame!
 			return new Phaser.Geom.Rectangle(0, 0, projectFrame.width, projectFrame.height)
 		}
 
