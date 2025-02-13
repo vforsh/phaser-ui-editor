@@ -44,13 +44,13 @@ export class Rulers extends Phaser.GameObjects.Container {
 			leftText.y = y
 			leftText.revive()
 
-			let rightText = this.getOrCreateText()
-			rightText.setText(y.toString())
-			rightText.setOrigin(1, 0.5)
-			rightText.setScale(labelScale)
-			rightText.x = visibleLeft + width - marginX
-			rightText.y = y
-			rightText.revive()
+			// let rightText = this.getOrCreateText()
+			// rightText.setText(y.toString())
+			// rightText.setOrigin(1, 0.5)
+			// rightText.setScale(labelScale)
+			// rightText.x = visibleLeft + width - marginX
+			// rightText.y = y
+			// rightText.revive()
 		}
 
 		// add texts to the bottom of the camera

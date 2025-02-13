@@ -39,7 +39,7 @@ export default function AlignmentControls({
 							transform: 'translateX(-50%)',
 						}
 					: {
-							left: 6,
+							right: -36,
 							top: '50%',
 							transform: 'translateY(-50%) rotate(90deg)',
 						}),
