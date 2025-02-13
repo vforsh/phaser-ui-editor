@@ -412,30 +412,29 @@ export class MainScene extends BaseScene {
 		this.add.existing(this.contextFrame)
 	}
 
-	// TODO move to ObjectsFactory
-	private getNewObjectName(context: EditContext, obj: EditableObject, prefix?: string): string {
-		const _prefix = prefix ?? this.extractNamePrefix(obj.name) ?? this.createNamePrefix(obj)
+	private getNewObjectName(context: EditContext, objToName: EditableObject, prefix?: string): string {
+		const _prefix = prefix ?? this.createNamePrefix(objToName)
 
-		return `${_prefix}`
+		let n = 1
+		let name = `${_prefix}`
+		while (context.target.editables.some((item) => item.name === name)) {
+			name = `${_prefix}_${++n}`
+		}
+
+		return name
 	}
 
 	private createNamePrefix(obj: EditableObject): string {
-		return match(obj)
-			.with({ kind: 'Container' }, () => 'group')
-			.with({ kind: 'Image' }, (image) => {
-				const textureKey = image.texture.key
-				const frameKey = image.frame.name
-				return `${textureKey}_${frameKey}`
-			})
-			.otherwise(() => 'item')
-	}
-
-	private extractNamePrefix(name: string): string | undefined {
-		if (!name || !name.includes('__')) {
-			return undefined
+		if (!obj.name) {
+			return match(obj)
+				.with({ kind: 'Container' }, () => 'group')
+				.otherwise((obj) => {
+					return obj.asset.name.split('.').slice(0, -1).join('.')
+				})
 		}
 
-		return name.split('__')[0]
+		// if name has postfix like '_1', '_2', etc, remove it
+		return obj.name.replace(/_\d+$/, '')
 	}
 
 	private setupAppCommands() {
@@ -562,7 +561,8 @@ export class MainScene extends BaseScene {
 			return null
 		}
 
-		obj.setName(this.getNewObjectName(this.editContexts.current!, obj, data.asset.name))
+		const name = this.getNewObjectName(this.editContexts.current!, obj)
+		obj.setName(name)
 		obj.setPosition(data.position.x, data.position.y)
 
 		if ('setOrigin' in obj && typeof obj.setOrigin === 'function') {
@@ -1074,10 +1074,11 @@ export class MainScene extends BaseScene {
 		const editContext = this.editContexts.current!
 
 		copiedObjs.forEach((obj) => {
+			const name = this.getNewObjectName(editContext, obj)
+			obj.setName(name)
 			obj.setPosition(obj.x + 30, obj.y + 30)
-			obj.setName(this.getNewObjectName(editContext, obj))
 			editContext.target.add(obj)
-			this.logger.debug(`pasted '${obj.name}'`)
+			this.logger.debug(`pasted '${name}'`)
 		})
 
 		editContext.selection?.destroy()
