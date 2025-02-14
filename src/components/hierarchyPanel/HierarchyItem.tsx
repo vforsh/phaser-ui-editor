@@ -10,7 +10,6 @@ import {
 	Image,
 	ImageUpscale,
 	Lock,
-	Save,
 	Type,
 	TypeOutline,
 	Unlock,
@@ -28,7 +27,6 @@ const ICON_MARGIN = 8
 interface HierarchyItemProps {
 	objState: EditableObjectJson
 	activeEditContextId: string | undefined
-	hasUnsavedChanges?: boolean
 	isRoot?: boolean
 	level?: number
 	selectedIds: readonly string[]
@@ -39,7 +37,6 @@ interface HierarchyItemProps {
 const HierarchyItem = memo(function HierarchyItem({
 	objState,
 	activeEditContextId,
-	hasUnsavedChanges = false,
 	isRoot = false,
 	selectedIds,
 	hoveredIds,
@@ -154,34 +151,14 @@ const HierarchyItem = memo(function HierarchyItem({
 							[styles.hiddenItem]: !visible,
 						})}
 						style={{
-							fontWeight: hasUnsavedChanges || isActiveEditContext ? 'bold' : 'normal',
+							fontWeight: isActiveEditContext ? 'bold' : 'normal',
 							textDecoration: isActiveEditContext ? 'underline' : 'none',
 						}}
 					>
-						{hasUnsavedChanges ? name + ' *' : name}
+						{name}
 					</Text>
 
 					<Group gap="xs" wrap="nowrap" mr="xs">
-						{isRoot && (
-							<Tooltip label="Save">
-								<ActionIcon
-									variant="subtle"
-									size="sm"
-									color={theme.colors.gray[5]}
-									disabled={!hasUnsavedChanges}
-									onClick={(e) => {
-										e.stopPropagation()
-										state.app?.commands.emit('save-prefab')
-									}}
-									className={clsx(styles.actionButton, {
-										[styles.actionButtonVisible]: isHovered,
-									})}
-								>
-									<Save size={14} />
-								</ActionIcon>
-							</Tooltip>
-						)}
-
 						<Tooltip label={visible ? 'Hide' : 'Show'}>
 							<ActionIcon
 								variant="subtle"

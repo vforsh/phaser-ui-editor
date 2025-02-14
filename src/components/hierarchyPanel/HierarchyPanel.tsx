@@ -1,4 +1,4 @@
-import { Divider, Paper, ScrollArea, Stack } from '@mantine/core'
+import { ActionIcon, Box, Divider, Paper, ScrollArea, Stack, Title, Tooltip, useMantineTheme } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { until } from '@open-draft/until'
 import { state, unproxy, useSnapshot } from '@state/State'
@@ -11,6 +11,7 @@ import {
 	FilePlus2,
 	Folder,
 	FolderSearch,
+	Save,
 	Scissors,
 	TextCursorInput,
 	Trash2,
@@ -19,7 +20,6 @@ import { ContextMenuItemOptions } from 'mantine-contextmenu'
 import { Logger } from 'tslog'
 import { Snapshot } from 'valtio'
 import { EditableObjectJson } from '../../types/exports/exports'
-import { PanelTitle } from '../PanelTitle'
 import HierarchyItem from './HierarchyItem'
 
 export function createHierarchyItemContextMenuItems(
@@ -182,15 +182,36 @@ export type HierarchyPanelProps = {
 
 export default function HierarchyPanel(props: HierarchyPanelProps) {
 	const { logger } = props
+	const theme = useMantineTheme()
 
 	const canvasSnap = useSnapshot(state.canvas)
 
 	const rootState = canvasSnap.root && state.canvas.objectById(canvasSnap.root.id)
 
+	if (rootState && rootState.type !== 'Container') {
+		throw new Error('Root must be a container')
+	}
+
 	return (
 		<Paper style={{ height: '100%', display: 'flex', flexDirection: 'column' }} radius="sm">
 			<Stack gap="xs" p="xs" style={{ height: '100%', minHeight: 0 }}>
-				<PanelTitle title="Hierarchy" />
+				<Box w="100%" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+					<Title order={5} ml="4px" ta="left">
+						{canvasSnap.currentPrefabName || 'Hierarchy'}
+						{canvasSnap.hasUnsavedChanges ? ' *' : ''}
+					</Title>
+					<Tooltip label="Save">
+						<ActionIcon
+							variant="subtle"
+							size="md"
+							color={theme.colors.gray[5]}
+							disabled={!canvasSnap.hasUnsavedChanges}
+							onClick={() => state.app?.commands.emit('save-prefab')}
+						>
+							<Save size={14} />
+						</ActionIcon>
+					</Tooltip>
+				</Box>
 				<Divider />
 				<ScrollArea style={{ flex: 1 }}>
 					<Stack gap={0}>
@@ -198,7 +219,6 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 							<HierarchyItem
 								key={rootState.id}
 								objState={rootState}
-								hasUnsavedChanges={canvasSnap.hasUnsavedChanges}
 								selectedIds={canvasSnap.selection}
 								hoveredIds={canvasSnap.hover}
 								isLastChild={true}

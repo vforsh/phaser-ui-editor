@@ -170,7 +170,7 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 			prefabAsset,
 			prefabFile,
 		} satisfies MainSceneInitData)
-
+		
 		// save the prefab asset id to the state so it will auto-open it next time
 		state.canvas.lastOpenedPrefabAssetId = prefabAssetId
 	}
