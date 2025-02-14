@@ -10,7 +10,7 @@
   background-color: rgba(25, 113, 194, 0.5);
 }
 
-.itemHovered {
+.itemHovered:not(.itemSelected) {
   background-color: var(--mantine-color-dark-6);
 }
 

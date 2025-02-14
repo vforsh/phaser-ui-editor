@@ -115,12 +115,8 @@ const HierarchyItem = memo(function HierarchyItem({
 					const menuItems = createHierarchyItemContextMenuItems(objState, isRoot)
 					showContextMenu(menuItems, { style: { width: 200 } })(e)
 				}}
-				onDoubleClick={() => {
-					if (objState.type === 'Container') {
-						state.app?.commands.emit('switch-to-context', objId)
-					} else {
-						state.app?.commands.emit('select-object', objId)
-					}
+				onClick={(e) => {
+					state.app?.commands.emit('select-object', objId)
 				}}
 				className={clsx(styles.itemContainer, {
 					[styles.itemSelected]: isSelectedInCanvas,
