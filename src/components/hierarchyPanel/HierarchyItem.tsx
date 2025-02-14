@@ -1,3 +1,4 @@
+import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { ActionIcon, alpha, Group, Text, Tooltip, useMantineTheme } from '@mantine/core'
 import { state } from '@state/State'
 import {
@@ -21,8 +22,8 @@ const INDENT_SIZE = 26
 const ICON_MARGIN = 8
 
 interface HierarchyItemProps {
-	objId: string
-	activeContextId: string | undefined
+	objState: EditableObjectJson
+	activeEditContextId: string | undefined
 	hasUnsavedChanges?: boolean
 	isRoot?: boolean
 	level?: number
@@ -34,8 +35,8 @@ interface HierarchyItemProps {
 }
 
 export default function HierarchyItem({
-	objId,
-	activeContextId,
+	objState,
+	activeEditContextId,
 	hasUnsavedChanges = false,
 	isRoot = false,
 	selectedIds,
@@ -45,21 +46,17 @@ export default function HierarchyItem({
 	isHovered: isHoveredInitially = false,
 	isOpened: isOpenedInitially = true,
 }: HierarchyItemProps) {
-	const stateObj = state.canvas.objectById(objId)
-	if (!stateObj) {
-		return <></>
-	}
-
 	const theme = useMantineTheme()
 	const [isOpen, setIsOpen] = useState(isOpenedInitially)
 	const [isHovered, setIsHovered] = useState(isHoveredInitially)
-	const snap = useSnapshot(stateObj)
+	const objSnap = useSnapshot(objState)
+	const objId = objState.id
 	const isSelectedInCanvas = selectedIds.includes(objId)
 	const isHoveredInCanvas = hoveredIds.includes(objId)
-	const isActiveContext = activeContextId === objId
+	const isActiveEditContext = activeEditContextId === objId
 
 	const getIcon = () => {
-		return match(snap)
+		return match(objSnap)
 			.with({ type: 'Container' }, () => <GroupIcon size={16} />)
 			.with({ type: 'Image' }, () => <Image size={16} />)
 			.with({ type: 'NineSlice' }, () => <ImageUpscale size={16} />)
@@ -69,7 +66,7 @@ export default function HierarchyItem({
 	}
 
 	const toggleOpen = (e: React.MouseEvent<HTMLDivElement>) => {
-		if (snap.type === 'Container') {
+		if (objSnap.type === 'Container') {
 			if (e.shiftKey) {
 				// TODO recursively toggle open/close all children
 			} else {
@@ -79,11 +76,11 @@ export default function HierarchyItem({
 	}
 
 	const setItemVisibility = (visible: boolean) => {
-		stateObj!.visible = visible
+		objState!.visible = visible
 	}
 
 	const setItemLock = (locked: boolean) => {
-		stateObj!.locked = locked
+		objState!.locked = locked
 	}
 
 	const gridLineThickness = 1
@@ -134,7 +131,7 @@ export default function HierarchyItem({
 							position: 'absolute',
 							left: (level - 1) * INDENT_SIZE + ICON_MARGIN * 2 + gridLineThickness,
 							top: '50%',
-							width: snap.type === 'Container' ? INDENT_SIZE - ICON_MARGIN : INDENT_SIZE + 4,
+							width: objSnap.type === 'Container' ? INDENT_SIZE - ICON_MARGIN : INDENT_SIZE + 4,
 							height: `${gridLineThickness}px`,
 							backgroundColor: gridLineColor,
 							opacity: 0.33,
@@ -145,7 +142,7 @@ export default function HierarchyItem({
 				<Group gap="xs" wrap="nowrap">
 					{/* Add placeholder space for non-container items to maintain alignment */}
 					<div style={{ width: 16, height: 16 }}>
-						{snap.type === 'Container' && (
+						{objSnap.type === 'Container' && (
 							<div
 								onClick={toggleOpen}
 								style={{
@@ -184,14 +181,14 @@ export default function HierarchyItem({
 							whiteSpace: 'nowrap',
 							overflow: 'hidden',
 							textOverflow: 'ellipsis',
-							opacity: snap.visible ? 1 : 0.5,
+							opacity: objSnap.visible ? 1 : 0.5,
 							userSelect: 'none',
-							fontWeight: hasUnsavedChanges || isActiveContext ? 'bold' : 'normal',
-							textDecoration: isActiveContext ? 'underline' : 'none',
+							fontWeight: hasUnsavedChanges || isActiveEditContext ? 'bold' : 'normal',
+							textDecoration: isActiveEditContext ? 'underline' : 'none',
 							flex: 1,
 						}}
 					>
-						{hasUnsavedChanges ? snap.name + ' *' : snap.name}
+						{hasUnsavedChanges ? objSnap.name + ' *' : objSnap.name}
 					</Text>
 
 					<Group gap="xs" wrap="nowrap" mr="xs">
@@ -216,58 +213,67 @@ export default function HierarchyItem({
 							</Tooltip>
 						)}
 
-						<Tooltip label={snap.visible ? 'Hide' : 'Show'}>
+						<Tooltip label={objSnap.visible ? 'Hide' : 'Show'}>
 							<ActionIcon
 								variant="subtle"
 								size="sm"
 								color={theme.colors.gray[5]}
 								onClick={(e) => {
 									e.stopPropagation()
-									setItemVisibility(!snap.visible)
+									setItemVisibility(!objSnap.visible)
 								}}
 								style={{
 									opacity: isHovered ? 1 : 0,
 									transition: 'opacity 33ms ease',
 								}}
 							>
-								{snap.visible ? <Eye size={14} /> : <EyeOff size={14} />}
+								{objSnap.visible ? <Eye size={14} /> : <EyeOff size={14} />}
 							</ActionIcon>
 						</Tooltip>
 
-						<Tooltip label={snap.locked ? 'Unlock' : 'Lock'}>
+						<Tooltip label={objSnap.locked ? 'Unlock' : 'Lock'}>
 							<ActionIcon
 								variant="subtle"
 								size="sm"
 								color={theme.colors.gray[5]}
 								onClick={(e) => {
 									e.stopPropagation()
-									setItemLock(!snap.locked)
+									setItemLock(!objSnap.locked)
 								}}
 								style={{
-									opacity: snap.locked ? 1 : isHovered ? 1 : 0,
+									opacity: objSnap.locked ? 1 : isHovered ? 1 : 0,
 									transition: 'opacity 33ms ease',
 								}}
 							>
-								{snap.locked ? <Lock size={14} /> : <Unlock size={14} />}
+								{objSnap.locked ? <Lock size={14} /> : <Unlock size={14} />}
 							</ActionIcon>
 						</Tooltip>
 					</Group>
 				</Group>
 			</div>
 
-			{snap.type === 'Container' &&
+			{objSnap.type === 'Container' &&
 				isOpen &&
-				snap.children.map((child, index, arr) => (
-					<HierarchyItem
-						key={child.id}
-						objId={child.id}
-						level={level + 1}
-						selectedIds={selectedIds}
-						hoveredIds={hoveredIds}
-						isLastChild={index === arr.length - 1}
-						activeContextId={activeContextId}
-					/>
-				))}
+				objSnap.children
+					.map((childSnap, index, arr) => {
+						const childState = state.canvas.objectById(childSnap.id)
+						if (!childState) {
+							return null
+						}
+
+						return (
+							<HierarchyItem
+								key={childSnap.id}
+								objState={childState}
+								level={level + 1}
+								selectedIds={selectedIds}
+								hoveredIds={hoveredIds}
+								isLastChild={index === arr.length - 1}
+								activeEditContextId={activeEditContextId}
+							/>
+						)
+					})
+					.filter(Boolean)}
 		</>
 	)
 }

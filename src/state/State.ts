@@ -1,3 +1,4 @@
+import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { derive } from 'derive-valtio'
 import { debounce, merge } from 'es-toolkit'
@@ -52,7 +53,7 @@ export const stateSchema = z.object({
 		selectionChangedAt: z.number().int().positive().optional(),
 		activeContextId: z.string().optional(),
 		clipboard: z.string().optional(),
-		objects: z.unknown().nullable() as z.ZodType<EditableObjectJson | null>,
+		root: z.unknown().nullable() as z.ZodType<EditableContainerJson | null>,
 		objectById: z
 			.function()
 			.args(z.string())
@@ -106,7 +107,7 @@ const initialStateParsed = merge(
 			},
 			hover: [],
 			selection: [],
-			objects: null,
+			root: null,
 			objectById: () => undefined,
 		},
 		inspector: {

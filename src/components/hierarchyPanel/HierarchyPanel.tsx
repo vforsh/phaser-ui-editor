@@ -19,6 +19,8 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 
 	const canvasSnap = useSnapshot(state.canvas)
 
+	const rootState = canvasSnap.root && state.canvas.objectById(canvasSnap.root.id)
+
 	return (
 		<Paper style={{ height: '100%', display: 'flex', flexDirection: 'column' }} radius="sm">
 			<Stack gap="xs" p="xs" style={{ height: '100%', minHeight: 0 }}>
@@ -26,16 +28,16 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 				<Divider />
 				<ScrollArea style={{ flex: 1 }}>
 					<Stack gap={0}>
-						{canvasSnap.objects && (
+						{rootState && (
 							<HierarchyItem
-								key={canvasSnap.objects.id}
-								objId={canvasSnap.objects.id}
+								key={rootState.id}
+								objState={rootState}
 								hasUnsavedChanges={canvasSnap.hasUnsavedChanges}
 								selectedIds={canvasSnap.selection}
 								hoveredIds={canvasSnap.hover}
 								isLastChild={true}
 								isRoot={true}
-								activeContextId={canvasSnap.activeContextId}
+								activeEditContextId={canvasSnap.activeContextId}
 							/>
 						)}
 					</Stack>

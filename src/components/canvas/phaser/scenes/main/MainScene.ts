@@ -161,12 +161,12 @@ export class MainScene extends BaseScene {
 
 		this.setupAppCommands()
 
-		state.canvas.objects = this.root.stateObj
+		state.canvas.root = this.root.stateObj
 		state.canvas.objectById = (id: string) => this.objectsFactory.getObjectById(id)?.stateObj
 		state.canvas.hasUnsavedChanges = false
 
 		subscribe(
-			state.canvas.objects,
+			state.canvas.root,
 			() => {
 				state.canvas.hasUnsavedChanges = true
 			},
@@ -1522,7 +1522,7 @@ export class MainScene extends BaseScene {
 		// @ts-expect-error
 		this.clipboard = undefined
 
-		state.canvas.objects = null
+		state.canvas.root = null
 		state.canvas.objectById = () => undefined
 
 		this.objectsFactory.destroy()
