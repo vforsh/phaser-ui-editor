@@ -31,5 +31,6 @@
 			"@hooks/*": ["./src/hooks/*"],
 		}
 	},
-	"include": ["src", "types"]
+	"include": ["src", "types"],
+	"exclude": ["exports.d.ts"]
 }

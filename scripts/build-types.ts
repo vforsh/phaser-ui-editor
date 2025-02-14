@@ -20,33 +20,26 @@ interface TsConfig {
 	compilerOptions?: CompilerOptions
 }
 
-async function main() {
-	try {
-		const tsconfigPath = join(process.cwd(), 'tsconfig.dts.json')
-		const tscConfig = fse.readJsonSync(tsconfigPath, 'utf8') as TsConfig
-		const outDir = tscConfig.compilerOptions!.declarationDir!
+const tsconfigPath = join(process.cwd(), 'tsconfig.dts.json')
+const tscConfig = fse.readJsonSync(tsconfigPath, 'utf8') as TsConfig
+const outDir = tscConfig.compilerOptions!.declarationDir!
 
-		const exportsPath = join('src', 'types', 'exports', 'exports.d.ts')
-		const exportsDtsPath = join(outDir, exportsPath)
+const exportsPath = join('src', 'types', 'exports', 'exports.d.ts')
+const exportsDtsPath = join(outDir, exportsPath)
 
-		// Run tsc to generate initial d.ts files
-		console.log('Generating type declarations...')
-		execSync('npx tsc -p tsconfig.dts.json', { stdio: 'inherit' })
+// Run tsc to generate initial d.ts files
+console.log('Generating type declarations with tsc...')
+execSync('npx tsc -p tsconfig.dts.json', { stdio: 'inherit' })
 
-		// Run dtsroll to bundle the declarations
-		console.log('Bundling type declarations...')
-		execSync(`npx dtsroll ${exportsDtsPath}`, { stdio: 'inherit' })
+// Run dtsroll to bundle the declarations
+console.log('Bundling type declarations with dtsroll...')
+execSync(`npx dtsroll ${exportsDtsPath}`, { stdio: 'inherit' })
 
-		const exportsContent = await fse.readFile(exportsDtsPath, 'utf8')
-		const indexPath = join(outDir, 'index.d.ts')
-		await fse.outputFile(indexPath, exportsContent)
+const exportsContent = await fse.readFile(exportsDtsPath, 'utf8')
+const indexPath = 'exports.d.ts'
+await fse.outputFile(indexPath, exportsContent)
 
-		console.log(``)
-		console.log(`Type declarations generated successfully at ${indexPath}!`)
-	} catch (error) {
-		console.error('Error generating type declarations:', error)
-		process.exit(1)
-	}
-}
+console.log(``)
+console.log(`Type declarations generated successfully at ${indexPath}!`)
 
-main()
+// TODO commit, tag and push to github

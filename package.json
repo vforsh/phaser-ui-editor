@@ -102,7 +102,7 @@
 		"node": ">=23.6.0"
 	},
 	"files": [
-		"dist/types/index.d.ts"
+		"exports.d.ts"
 	],
-	"types": "dist/types/index.d.ts"
+	"types": "exports.d.ts"
 }
