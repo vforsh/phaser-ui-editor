@@ -137,7 +137,10 @@ export class MainScene extends BaseScene {
 
 		await this.initRoot(this.initData.prefabFile)
 
-		state.canvas.currentPrefabName = this.initData.prefabAsset.name
+		state.canvas.currentPrefab = {
+			id: this.initData.prefabAsset.id,
+			name: this.initData.prefabAsset.name,
+		}
 
 		this.initAligner()
 
@@ -1678,7 +1681,7 @@ export class MainScene extends BaseScene {
 
 		state.canvas.root = null
 		state.canvas.objectById = () => undefined
-		state.canvas.currentPrefabName = undefined
+		state.canvas.currentPrefab = undefined
 
 		this.objectsFactory.destroy()
 

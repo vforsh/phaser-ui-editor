@@ -16,7 +16,7 @@ import InspectorPanel from './inspector/InspectorPanel'
 import ResizableDivider from './ResizableDivider'
 
 const MIN_PANEL_WIDTH = 200
-const MAX_PANEL_WIDTH = 400
+const MAX_PANEL_WIDTH = 420
 const MIN_PANEL_HEIGHT = 300
 const MAX_PANEL_HEIGHT = 800
 

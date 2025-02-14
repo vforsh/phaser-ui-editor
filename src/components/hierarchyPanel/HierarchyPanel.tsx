@@ -20,7 +20,7 @@ import { ContextMenuItemOptions } from 'mantine-contextmenu'
 import { Logger } from 'tslog'
 import { Snapshot } from 'valtio'
 import { EditableObjectJson } from '../../types/exports/exports'
-import HierarchyItem from './HierarchyItem'
+import HierarchyItem, { getLinkedAssetId } from './HierarchyItem'
 
 export function createHierarchyItemContextMenuItems(
 	obj: Snapshot<EditableObjectJson>,
@@ -32,6 +32,8 @@ export function createHierarchyItemContextMenuItems(
 	}
 
 	const appCommands = state.app?.commands
+
+	const linkedAssetId = getLinkedAssetId(obj as EditableObjectJson, isRoot)
 
 	const items: ContextMenuItemOptions[] = [
 		{
@@ -90,8 +92,9 @@ export function createHierarchyItemContextMenuItems(
 			key: 'locate-in-assets',
 			title: 'Locate in Assets',
 			icon: <FolderSearch size={16} />,
+			disabled: !linkedAssetId,
 			onClick: () => {
-				console.log(`locate in assets`, unproxy(obj))
+				state.assets.locateAsset?.(linkedAssetId!)
 			},
 		},
 		divider(),
@@ -197,7 +200,7 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 			<Stack gap="xs" p="xs" style={{ height: '100%', minHeight: 0 }}>
 				<Box w="100%" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 					<Title order={5} ml="4px" ta="left">
-						{canvasSnap.currentPrefabName || 'Hierarchy'}
+						{canvasSnap.currentPrefab?.name || 'Hierarchy'}
 						{canvasSnap.hasUnsavedChanges ? ' *' : ''}
 					</Title>
 					<Tooltip label="Save">

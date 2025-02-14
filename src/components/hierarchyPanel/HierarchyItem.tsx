@@ -6,6 +6,7 @@ import {
 	ChevronDown,
 	Eye,
 	EyeOff,
+	FolderSearch,
 	Group as GroupIcon,
 	Image,
 	ImageUpscale,
@@ -23,6 +24,31 @@ import styles from './HierarchyItem.module.css'
 
 const INDENT_SIZE = 26
 const ICON_MARGIN = 8
+
+/**
+ * Get the asset id of the object.
+ * If the object is the root of a prefab, return the prefab id.
+ * If the object has a prefab, return the prefab id (this is for containers only)
+ * If the object has an asset, return the asset id (this is for images, spritesheets, etc.)
+ * Otherwise, return undefined.
+ */
+export function getLinkedAssetId(objState: EditableObjectJson, isRoot: boolean): string | undefined {
+	if (isRoot) {
+		return state.canvas.currentPrefab?.id
+	}
+
+	const asset = 'asset' in objState ? objState.asset : null
+	if (asset) {
+		return asset.id
+	}
+
+	const prefab = 'prefab' in objState ? objState.prefab : null
+	if (prefab) {
+		return prefab.id
+	}
+
+	return undefined
+}
 
 interface HierarchyItemProps {
 	objState: EditableObjectJson
@@ -72,6 +98,8 @@ const HierarchyItem = memo(function HierarchyItem({
 		}),
 		[level]
 	)
+
+	const linkedAssetId = getLinkedAssetId(objState, isRoot)
 
 	return (
 		<>
@@ -158,7 +186,25 @@ const HierarchyItem = memo(function HierarchyItem({
 						{name}
 					</Text>
 
-					<Group gap="xs" wrap="nowrap" mr="xs">
+					<Group gap="4px" wrap="nowrap" mr="xs">
+						<Tooltip label={'Locate in Assets'}>
+							<ActionIcon
+								variant="subtle"
+								size="sm"
+								color={theme.colors.gray[5]}
+								disabled={!linkedAssetId}
+								onClick={(e) => {
+									e.stopPropagation()
+									state.assets.locateAsset?.(linkedAssetId!)
+								}}
+								className={clsx(styles.actionButton, {
+									[styles.actionButtonVisible]: isHovered,
+								})}
+							>
+								<FolderSearch size={14} />
+							</ActionIcon>
+						</Tooltip>
+
 						<Tooltip label={visible ? 'Hide' : 'Show'}>
 							<ActionIcon
 								variant="subtle"

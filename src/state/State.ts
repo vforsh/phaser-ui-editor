@@ -43,7 +43,12 @@ export const stateSchema = z.object({
 	canvas: z.object({
 		hasUnsavedChanges: z.boolean().default(false),
 		lastOpenedPrefabAssetId: z.string().optional(),
-		currentPrefabName: z.string().optional(),
+		currentPrefab: z
+			.object({
+				id: z.string(),
+				name: z.string(),
+			})
+			.optional(),
 		camera: z.object({
 			zoom: z.number().positive(),
 			scrollX: z.number(),
