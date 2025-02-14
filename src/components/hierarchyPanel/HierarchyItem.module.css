@@ -1,0 +1,91 @@
+.itemContainer {
+  padding: 0.3rem 0;
+  transition: all 33ms ease;
+  position: relative;
+  width: 100%;
+  cursor: pointer;
+}
+
+.itemSelected {
+  background-color: rgba(25, 113, 194, 0.5);
+}
+
+.itemHovered {
+  background-color: var(--mantine-color-dark-6);
+}
+
+.gridLine {
+  position: absolute;
+  width: 1px;
+  background-color: var(--mantine-color-dark-2);
+  opacity: 0.33;
+}
+
+.horizontalConnector {
+  position: absolute;
+  top: 50%;
+  height: 1px;
+  background-color: var(--mantine-color-dark-2);
+  opacity: 0.33;
+}
+
+.chevron {
+  transition: transform 33ms ease;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chevronOpen {
+  transform: rotate(0deg);
+}
+
+.chevronClosed {
+  transform: rotate(-90deg);
+}
+
+.chevronHovered {
+  color: var(--mantine-color-blue-4);
+}
+
+.icon {
+  transition: color 33ms ease;
+  color: var(--mantine-color-blue-4);
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.itemName {
+  transition: color 33ms ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: none;
+  flex: 1;
+}
+
+.itemNameHovered {
+  color: var(--mantine-white);
+}
+
+.itemNameNormal {
+  color: var(--mantine-color-gray-4);
+}
+
+.actionButton {
+  opacity: 0;
+  transition: opacity 33ms ease;
+}
+
+.actionButtonVisible {
+  opacity: 1;
+}
+
+.hiddenItem {
+  opacity: 0.5;
+} 
