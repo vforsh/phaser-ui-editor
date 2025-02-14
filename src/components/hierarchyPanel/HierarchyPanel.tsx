@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Divider, Paper, ScrollArea, Stack, Title, Tooltip, useMantineTheme } from '@mantine/core'
+import { Divider, Paper, ScrollArea, Stack } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { until } from '@open-draft/until'
 import { state, unproxy, useSnapshot } from '@state/State'
@@ -10,7 +10,6 @@ import {
 	Copy,
 	FilePlus2,
 	FolderSearch,
-	Save,
 	Scissors,
 	TextCursorInput,
 	Trash2,
@@ -20,6 +19,7 @@ import { Logger } from 'tslog'
 import { Snapshot } from 'valtio'
 import { EditableObjectJson } from '../../types/exports/exports'
 import HierarchyItem, { getHierarchyItemIcon, getLinkedAssetId } from './HierarchyItem'
+import { HierarchyPanelTitle } from './HierarchyPanelTitle'
 
 export function createHierarchyItemContextMenuItems(
 	obj: Snapshot<EditableObjectJson>,
@@ -184,7 +184,6 @@ export type HierarchyPanelProps = {
 
 export default function HierarchyPanel(props: HierarchyPanelProps) {
 	const { logger } = props
-	const theme = useMantineTheme()
 
 	const canvasSnap = useSnapshot(state.canvas)
 
@@ -197,23 +196,11 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 	return (
 		<Paper style={{ height: '100%', display: 'flex', flexDirection: 'column' }} radius="sm">
 			<Stack gap="xs" p="xs" style={{ height: '100%', minHeight: 0 }}>
-				<Box w="100%" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-					<Title order={5} ml="4px" ta="left">
-						{canvasSnap.currentPrefab?.name || 'Hierarchy'}
-						{canvasSnap.hasUnsavedChanges ? ' *' : ''}
-					</Title>
-					<Tooltip label="Save">
-						<ActionIcon
-							variant="subtle"
-							size="md"
-							color={theme.colors.gray[5]}
-							disabled={!canvasSnap.hasUnsavedChanges}
-							onClick={() => state.app?.commands.emit('save-prefab')}
-						>
-							<Save size={14} />
-						</ActionIcon>
-					</Tooltip>
-				</Box>
+				<HierarchyPanelTitle
+					title={canvasSnap.currentPrefab?.name || 'Hierarchy'}
+					hasUnsavedChanges={canvasSnap.hasUnsavedChanges}
+					onSave={() => state.app?.commands.emit('save-prefab')}
+				/>
 				<Divider />
 				<ScrollArea style={{ flex: 1 }}>
 					<Stack gap={0}>
