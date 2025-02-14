@@ -388,6 +388,15 @@ export class MainScene extends BaseScene {
 		return []
 	}
 
+	private selectAllInCurrentContext() {
+		const context = this.editContexts.current
+		if (!context) {
+			return
+		}
+
+		context.setSelection(context.target.editables)
+	}
+
 	private initAligner() {
 		this.aligner = new Aligner({
 			scene: this,
@@ -947,6 +956,18 @@ export class MainScene extends BaseScene {
 				if (event.ctrlKey || event.metaKey) {
 					event.preventDefault()
 					this.savePrefab()
+				}
+			},
+			this,
+			this.shutdownSignal
+		)
+
+		this.onKeyDown(
+			'A',
+			(event) => {
+				if (event.ctrlKey || event.metaKey) {
+					event.preventDefault()
+					this.selectAllInCurrentContext()
 				}
 			},
 			this,
