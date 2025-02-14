@@ -86,16 +86,18 @@ export function AssetPicker({
 				</Box>
 			</Input.Wrapper>
 
-			<AssetPickerSelectMenu
-				opened={opened}
-				onClose={close}
-				assetIds={assetIds}
-				onSelect={onSelect}
-				search={search}
-				onSearchChange={setSearch}
-				selectedAssetId={selectedAssetId}
-				title={modalTitle ?? `Select ${label?.toLowerCase() ?? 'asset'}`}
-			/>
+			{opened && (
+				<AssetPickerSelectMenu
+					opened={opened}
+					onClose={close}
+					assetIds={assetIds}
+					onSelect={onSelect}
+					search={search}
+					onSearchChange={setSearch}
+					selectedAssetId={selectedAssetId}
+					title={modalTitle ?? `Select ${label?.toLowerCase() ?? 'asset'}`}
+				/>
+			)}
 		</>
 	)
 }

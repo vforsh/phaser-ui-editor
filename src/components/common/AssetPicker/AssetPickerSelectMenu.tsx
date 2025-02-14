@@ -17,6 +17,7 @@ interface AssetPickerSelectMenuProps {
 	title?: string
 }
 
+// TODO optimize this comp, fps drops by 5-6 when opening the menu
 export function AssetPickerSelectMenu({
 	opened,
 	onClose,
