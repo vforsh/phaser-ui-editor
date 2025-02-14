@@ -54,7 +54,7 @@ import {
 import { EditableComponentJson, EditableComponentType } from './objects/components/base/EditableComponent'
 import { EditableComponentsFactory } from './objects/components/base/EditableComponentsFactory'
 import { EditableContainer, EditableContainerJson } from './objects/EditableContainer'
-import { EditableObject, EditableObjectJson, isObjectOfType } from './objects/EditableObject'
+import { EditableObject, EditableObjectJson, EditableObjectType, isObjectOfType } from './objects/EditableObject'
 import { EditableObjectsFactory } from './objects/EditableObjectsFactory'
 import { Rulers } from './Rulers'
 
@@ -474,7 +474,13 @@ export class MainScene extends BaseScene {
 		appCommands.on('switch-to-context', this.switchToContext, this, false, this.shutdownSignal)
 		appCommands.on('highlight-object', this.highlightObject, this, false, this.shutdownSignal)
 		appCommands.on('select-object', this.selectObject, this, false, this.shutdownSignal)
+		appCommands.on('create-object', this.createObject, this, false, this.shutdownSignal)
+		appCommands.on('copy-object', this.copyObject, this, false, this.shutdownSignal)
+		appCommands.on('duplicate-object', this.duplicateObject, this, false, this.shutdownSignal)
+		appCommands.on('cut-object', this.cutObject, this, false, this.shutdownSignal)
+		appCommands.on('paste-object', this.pasteObject, this, false, this.shutdownSignal)
 		appCommands.on('delete-object', this.deleteObject, this, false, this.shutdownSignal)
+		appCommands.on('get-object-path', this.getObjectPath, this, false, this.shutdownSignal)
 		appCommands.on('save-prefab', this.savePrefab, this, false, this.shutdownSignal)
 	}
 
@@ -493,7 +499,7 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		const context = this.editContexts.findContext(obj)
+		const context = this.editContexts.findParentContext(obj)
 		if (!context) {
 			return
 		}
@@ -508,7 +514,7 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		const context = this.editContexts.findContext(obj)
+		const context = this.editContexts.findParentContext(obj)
 		if (!context) {
 			return
 		}
@@ -519,14 +525,129 @@ export class MainScene extends BaseScene {
 		context.setSelection([obj])
 	}
 
+	private createObject(data: { clickedObjId: string; type: EditableObjectType }) {
+		const clickedObj = this.objectsFactory.getObjectById(data.clickedObjId)
+		if (!clickedObj) {
+			return
+		}
+
+		const editContext = isObjectOfType(clickedObj, 'Container')
+			? this.editContexts.getContext(clickedObj)
+			: this.editContexts.findParentContext(clickedObj)
+
+		if (!editContext) {
+			this.logger.error(`failed to find edit context for '${clickedObj.name}' (${clickedObj.id})`)
+			return
+		}
+
+		const newObj = match(data.type)
+			.with('Container', () => this.objectsFactory.container('group'))
+			.with('Image', () => null)
+			.with('Text', () => null)
+			.with('BitmapText', () => null)
+			.with('NineSlice', () => null)
+			.exhaustive()
+
+		if (!newObj) {
+			return
+		}
+
+		const newObjName = this.getNewObjectName(editContext, newObj)
+		newObj.setName(newObjName)
+
+		this.editContexts.switchTo(editContext.target)
+
+		editContext.target.add(newObj)
+
+		editContext.setSelection([newObj])
+	}
+
+	private copyObject(objId: string) {
+		const obj = this.objectsFactory.getObjectById(objId)
+		if (!obj) {
+			return
+		}
+
+		// TODO implement
+		this.logger.info(`copying '${obj.name}' (${objId})`)
+	}
+
+	private duplicateObject(objId: string) {
+		const obj = this.objectsFactory.getObjectById(objId)
+		if (!obj) {
+			return
+		}
+
+		const editContext = this.editContexts.findParentContext(obj)
+		if (!editContext) {
+			this.logger.error(`failed to find edit context for '${obj.name}' (${objId})`)
+			return
+		}
+
+		const objJson = obj.toJson()
+
+		const newObjName = this.getNewObjectName(editContext, obj)
+		const newObj = this.objectsFactory.fromJson(objJson)
+		newObj.setName(newObjName)
+		newObj.setPosition(obj.x + 30, obj.y + 30)
+
+		this.editContexts.switchTo(editContext.target)
+
+		editContext.target.add(newObj)
+
+		editContext.setSelection([newObj])
+	}
+
+	private cutObject(objId: string) {
+		const obj = this.objectsFactory.getObjectById(objId)
+		if (!obj) {
+			return
+		}
+
+		// TODO implement
+		this.logger.info(`cutting '${obj.name}' (${objId})`)
+	}
+
+	private pasteObject(objId: string) {
+		const obj = this.objectsFactory.getObjectById(objId)
+		if (!obj) {
+			return
+		}
+
+		// TODO implement
+		this.logger.info(`pasting '${obj.name}' (${objId})`)
+	}
+
 	private deleteObject(objId: string) {
 		const obj = this.objectsFactory.getObjectById(objId)
 		if (!obj) {
 			return
 		}
 
-		// TODO hierarchy: delete canvas object by command from hierarchy panel
-		this.logger.info(`deleting '${obj.name}' (${objId})`)
+		obj.destroy()
+	}
+
+	private getObjectPath(objId: string): string {
+		const obj = this.objectsFactory.getObjectById(objId)
+		if (!obj) {
+			return ''
+		}
+
+		const pathParts = this.calculateObjPathToRoot(obj)
+
+		return pathParts.join('/')
+	}
+
+	private calculateObjPathToRoot(obj: EditableObject): string[] {
+		const pathParts: string[] = [obj.name]
+
+		let currentParent = obj.parentContainer
+		while (currentParent && currentParent !== this.root) {
+			pathParts.push(currentParent.name)
+			currentParent = currentParent.parentContainer
+		}
+
+		return pathParts.reverse()
 	}
 
 	private addComponent(data: { componentType: EditableComponentType; objectId: string }): AddComponentResult {

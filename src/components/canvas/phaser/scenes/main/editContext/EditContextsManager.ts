@@ -165,13 +165,17 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 	 * Finds the edit context that contains the given object.
 	 * @returns the edit context that contains the object, or undefined if no context is found
 	 */
-	public findContext(obj: EditableObject): EditContext | undefined {
+	public findParentContext(obj: EditableObject): EditContext | undefined {
 		const container = obj.parentContainer
 		for (const context of this.contexts.values()) {
 			if (context.target === container) {
 				return context
 			}
 		}
+	}
+
+	public getContext(target: EditableContainer): EditContext | undefined {
+		return this.contexts.get(target)
 	}
 
 	public update(deltaMs: number): void {

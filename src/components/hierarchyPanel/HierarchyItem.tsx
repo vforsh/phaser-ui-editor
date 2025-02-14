@@ -15,9 +15,11 @@ import {
 	TypeOutline,
 	Unlock,
 } from 'lucide-react'
+import { useContextMenu } from 'mantine-contextmenu'
 import { memo, useMemo, useState } from 'react'
 import { match } from 'ts-pattern'
 import { useSnapshot } from 'valtio'
+import { createHierarchyItemContextMenuItems } from '../hierarchyPanel/HierarchyPanel'
 import styles from './HierarchyItem.module.css'
 
 const INDENT_SIZE = 26
@@ -47,6 +49,7 @@ const HierarchyItem = memo(function HierarchyItem({
 	const theme = useMantineTheme()
 	const [isOpen, setIsOpen] = useState(true)
 	const [isHovered, setIsHovered] = useState(false)
+	const { showContextMenu } = useContextMenu()
 
 	// Only subscribe to needed properties
 	const { name, type, visible, locked } = useSnapshot(objState)
@@ -78,6 +81,11 @@ const HierarchyItem = memo(function HierarchyItem({
 			<div
 				onMouseEnter={() => setIsHovered(true)}
 				onMouseLeave={() => setIsHovered(false)}
+				onContextMenu={(e) => {
+					e.preventDefault()
+					const menuItems = createHierarchyItemContextMenuItems(objState, isRoot)
+					showContextMenu(menuItems, { style: { width: 200 } })(e)
+				}}
 				onDoubleClick={() => {
 					if (objState.type === 'Container') {
 						state.app?.commands.emit('switch-to-context', objId)

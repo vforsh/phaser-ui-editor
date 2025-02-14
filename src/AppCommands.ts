@@ -8,6 +8,7 @@ import {
 	EditableComponentJson,
 	EditableComponentType,
 } from '@components/canvas/phaser/scenes/main/objects/components/base/EditableComponent'
+import { EditableObjectType } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { CommandEmitter } from './components/canvas/phaser/robowhale/utils/events/CommandEmitter'
 import { AssetTreeItemData } from './types/assets'
 
@@ -19,7 +20,13 @@ export type AppCommands = {
 	'switch-to-context': (id: string) => void
 	'select-object': (id: string) => void
 	'highlight-object': (id: string) => void
+	'create-object': (data: { clickedObjId: string; type: EditableObjectType }) => void
+	'copy-object': (id: string) => void
+	'duplicate-object': (id: string) => void
+	'cut-object': (id: string) => void
+	'paste-object': (id: string) => void
 	'delete-object': (id: string) => void
+	'get-object-path': (id: string) => string
 	'save-prefab': () => void
 
 	// commands from assets panel
