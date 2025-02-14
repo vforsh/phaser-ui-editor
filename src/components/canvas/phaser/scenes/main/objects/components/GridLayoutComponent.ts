@@ -38,7 +38,7 @@ export class GridLayoutComponent extends BaseEditableComponent<GridLayoutCompone
 			this._state,
 			{
 				active: (value) => {
-					this._isActive = value
+					value ? this.activate() : this.deactivate()
 				},
 				columns: (value) => {
 					this.columns = value

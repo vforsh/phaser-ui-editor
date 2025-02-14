@@ -36,7 +36,7 @@ export class PinnerComponent extends BaseEditableComponent<PinnerComponentJson> 
 			this._state,
 			{
 				active: (value) => {
-					this._isActive = value
+					value ? this.activate() : this.deactivate()
 				},
 				x: (value) => {
 					this.x = value

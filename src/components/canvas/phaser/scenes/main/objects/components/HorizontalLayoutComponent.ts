@@ -32,7 +32,7 @@ export class HorizontalLayoutComponent extends BaseEditableComponent<HorizontalL
 			this._state,
 			{
 				active: (value) => {
-					this._isActive = value
+					value ? this.activate() : this.deactivate()
 				},
 				cellWidth: (value) => {
 					this.cellWidth = value
