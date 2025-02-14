@@ -15,9 +15,10 @@ import {
 	Trash2,
 } from 'lucide-react'
 import { ContextMenuItemOptions } from 'mantine-contextmenu'
+import { useRef, useState } from 'react'
 import { Logger } from 'tslog'
 import { Snapshot } from 'valtio'
-import { EditableObjectJson } from '../../types/exports/exports'
+import { EditableContainerJson, EditableObjectJson } from '../../types/exports/exports'
 import HierarchyItem, { getHierarchyItemIcon, getLinkedAssetId } from './HierarchyItem'
 import { HierarchyPanelTitle } from './HierarchyPanelTitle'
 
@@ -178,12 +179,32 @@ export function createHierarchyItemContextMenuItems(
 	return items
 }
 
+export function flattenHierarchy(root: EditableContainerJson): EditableObjectJson[] {
+	const items: EditableObjectJson[] = []
+
+	items.push(root)
+
+	for (const child of root.children) {
+		if (child.type === 'Container') {
+			items.push(...flattenHierarchy(child))
+		} else {
+			items.push(child)
+		}
+	}
+
+	return items
+}
+
 export type HierarchyPanelProps = {
 	logger: Logger<{}>
 }
 
 export default function HierarchyPanel(props: HierarchyPanelProps) {
 	const { logger } = props
+
+	const panelRef = useRef<HTMLDivElement>(null)
+
+	const [isFocused, setIsFocused] = useState(document.activeElement === panelRef.current)
 
 	const canvasSnap = useSnapshot(state.canvas)
 
@@ -194,7 +215,15 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 	}
 
 	return (
-		<Paper style={{ height: '100%', display: 'flex', flexDirection: 'column' }} radius="sm">
+		<Paper
+			style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+			radius="sm"
+			ref={panelRef}
+			onClick={() => panelRef.current?.focus()}
+			tabIndex={0}
+			onFocus={() => setIsFocused(true)}
+			onBlur={() => setIsFocused(false)}
+		>
 			<Stack gap="xs" p="xs" style={{ height: '100%', minHeight: 0 }}>
 				<HierarchyPanelTitle
 					title={canvasSnap.currentPrefab?.name || 'Hierarchy'}
@@ -213,6 +242,7 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 								isLastChild={true}
 								isRoot={true}
 								activeEditContextId={canvasSnap.activeContextId}
+								isPanelFocused={isFocused}
 							/>
 						)}
 					</Stack>

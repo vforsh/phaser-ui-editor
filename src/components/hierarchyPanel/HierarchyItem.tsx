@@ -1,5 +1,6 @@
 import { EditableObjectJson, EditableObjectType } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { ActionIcon, Group, Text, Tooltip, useMantineTheme } from '@mantine/core'
+import { useWindowEvent } from '@mantine/hooks'
 import { state } from '@state/State'
 import clsx from 'clsx'
 import {
@@ -15,8 +16,8 @@ import {
 	TypeOutline,
 	Unlock,
 } from 'lucide-react'
-import { useContextMenu } from 'mantine-contextmenu'
-import { memo, useMemo, useState } from 'react'
+import { ContextMenuOptions, useContextMenu } from 'mantine-contextmenu'
+import { memo, useCallback, useMemo, useState } from 'react'
 import { match } from 'ts-pattern'
 import { useSnapshot } from 'valtio'
 import { createHierarchyItemContextMenuItems } from '../hierarchyPanel/HierarchyPanel'
@@ -68,6 +69,7 @@ interface HierarchyItemProps {
 	selectedIds: readonly string[]
 	hoveredIds: readonly string[]
 	isLastChild?: Boolean
+	isPanelFocused?: boolean
 }
 
 const HierarchyItem = memo(function HierarchyItem({
@@ -78,6 +80,7 @@ const HierarchyItem = memo(function HierarchyItem({
 	hoveredIds,
 	level = 0,
 	isLastChild = false,
+	isPanelFocused = false,
 }: HierarchyItemProps) {
 	const theme = useMantineTheme()
 	const [isOpen, setIsOpen] = useState(true)
@@ -105,18 +108,119 @@ const HierarchyItem = memo(function HierarchyItem({
 
 	const linkedAssetId = getLinkedAssetId(objState, isRoot)
 
+	const setSelected = (objId: string) => {
+		state.app?.commands.emit('select-object', objId)
+	}
+
+	const getVisibleItems = useCallback((): EditableObjectJson[] => {
+		// return all dom elements with id starting with 'hierarchy-item-'
+		const items = document.querySelectorAll('[id^="hierarchy-item-"]')
+		const objs: EditableObjectJson[] = []
+
+		for (const item of items) {
+			const sliceIndex = item.id.lastIndexOf('-')
+			const id = item.id.slice(sliceIndex + 1)
+			const obj = state.canvas.objectById(id)
+			if (obj) {
+				objs.push(obj)
+			}
+		}
+
+		return objs
+	}, [])
+
+	const selectAndScrollIntoView = (objId: string) => {
+		setSelected(objId)
+		const element = document.getElementById(`hierarchy-item-${objId}`)
+		element?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+	}
+
+	// Handle keyboard navigation
+	useWindowEvent('keydown', (event) => {
+		if (!isPanelFocused) {
+			return
+		}
+
+		const visibleItems = getVisibleItems()
+		const currentSelection = selectedIds[0]
+		if (!currentSelection || !visibleItems.length) {
+			return
+		}
+
+		if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Delete', 'Backspace'].includes(event.key)) {
+			event.preventDefault()
+
+			const currentIndex = visibleItems.findIndex((item) => item.id === currentSelection)
+			if (currentIndex === -1) {
+				const itemToSelect = event.key === 'ArrowUp' ? visibleItems.at(-1) : visibleItems.at(0)
+				if (itemToSelect) {
+					selectAndScrollIntoView(itemToSelect.id)
+				}
+
+				return
+			}
+
+			const currentItem = visibleItems[currentIndex]
+
+			switch (event.key) {
+				case 'ArrowUp':
+					if (currentIndex > 0) {
+						const prevItem = visibleItems[currentIndex - 1]
+						selectAndScrollIntoView(prevItem.id)
+					}
+					break
+
+				case 'ArrowDown':
+					if (currentIndex < visibleItems.length - 1) {
+						const nextItem = visibleItems[currentIndex + 1]
+						selectAndScrollIntoView(nextItem.id)
+					}
+					break
+
+				case 'ArrowRight':
+					if (currentItem.type === 'Container' && currentItem.id === objId && !isOpen) {
+						setIsOpen(true)
+					}
+					break
+
+				case 'ArrowLeft':
+					if (currentItem.type === 'Container' && currentItem.id === objId && isOpen) {
+						setIsOpen(false)
+					}
+					break
+
+				case 'Delete':
+				case 'Backspace':
+					// Check if the item is root, can't delete the root
+					if (!isRoot) {
+						state.app?.commands.emit('delete-object', currentItem.id)
+
+						// Select the next or previous item after deleting
+						const itemToSelect = visibleItems[currentIndex + 1] ?? visibleItems[currentIndex - 1]
+						if (itemToSelect) {
+							selectAndScrollIntoView(itemToSelect.id)
+						}
+					}
+					break
+			}
+		}
+	})
+
 	return (
 		<>
 			<div
+				id={`hierarchy-item-${objId}`}
 				onMouseEnter={() => setIsHovered(true)}
 				onMouseLeave={() => setIsHovered(false)}
 				onContextMenu={(e) => {
 					e.preventDefault()
 					const menuItems = createHierarchyItemContextMenuItems(objState, isRoot)
-					showContextMenu(menuItems, { style: { width: 200 } })(e)
+					const menuOptions: ContextMenuOptions = { style: { width: 200 } }
+					showContextMenu(menuItems, menuOptions)(e)
+					setSelected(objId)
 				}}
 				onClick={(e) => {
-					state.app?.commands.emit('select-object', objId)
+					setSelected(objId)
 				}}
 				className={clsx(styles.itemContainer, {
 					[styles.itemSelected]: isSelectedInCanvas,
@@ -260,6 +364,7 @@ const HierarchyItem = memo(function HierarchyItem({
 								hoveredIds={hoveredIds}
 								isLastChild={index === arr.length - 1}
 								activeEditContextId={activeEditContextId}
+								isPanelFocused={isPanelFocused}
 							/>
 						)
 					})
