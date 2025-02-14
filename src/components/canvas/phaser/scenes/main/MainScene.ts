@@ -249,6 +249,7 @@ export class MainScene extends BaseScene {
 
 		this.superRoot.setSize(width, height)
 
+		// super root can only have one child
 		this.superRoot.events.on('editable-added', (obj) => {
 			if (this.superRoot.editables.length <= 1) {
 				return
