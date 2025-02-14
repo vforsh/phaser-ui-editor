@@ -28,6 +28,13 @@
 			"label": "typecheck",
 			"detail": "tsc --noEmit --watch --pretty false --project tsconfig.app.json",
 			"isBackground": true
+		},
+		{
+			"type": "shell",
+			"command": "node scripts/build-types.ts --push",
+			"problemMatcher": [],
+			"label": "Update Types",
+			"detail": "Build and push TypeScript type definitions"
 		}
 	]
 }

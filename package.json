@@ -18,7 +18,8 @@
 		"build": "vite build",
 		"lint": "eslint .",
 		"preview": "vite preview",
-		"build-types": "node scripts/build-types.ts"
+		"build-types": "node scripts/build-types.ts",
+		"update-types": "node scripts/build-types.ts --push"
 	},
 	"dependencies": {
 		"@koreez/phaser3-ninepatch": "^2.0.2",

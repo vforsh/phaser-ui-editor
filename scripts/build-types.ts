@@ -14,7 +14,10 @@
 import { execSync } from 'child_process'
 import fse from 'fs-extra'
 import { join } from 'path'
+import prettier from 'prettier'
+import readline from 'readline'
 import type { CompilerOptions } from 'typescript'
+import prettierConfig from '../.prettierrc.mjs'
 
 interface TsConfig {
 	compilerOptions?: CompilerOptions
@@ -24,8 +27,8 @@ const tsconfigPath = join(process.cwd(), 'tsconfig.dts.json')
 const tscConfig = fse.readJsonSync(tsconfigPath, 'utf8') as TsConfig
 const outDir = tscConfig.compilerOptions!.declarationDir!
 
-const exportsPath = join('src', 'types', 'exports', 'exports.d.ts')
-const exportsDtsPath = join(outDir, exportsPath)
+const exportsSrcPath = join('src', 'types', 'exports', 'exports.d.ts')
+const exportsDtsPath = join(outDir, exportsSrcPath)
 
 // Run tsc to generate initial d.ts files
 console.log('Generating type declarations with tsc...')
@@ -36,10 +39,58 @@ console.log('Bundling type declarations with dtsroll...')
 execSync(`npx dtsroll ${exportsDtsPath}`, { stdio: 'inherit' })
 
 const exportsContent = await fse.readFile(exportsDtsPath, 'utf8')
-const indexPath = 'exports.d.ts'
-await fse.outputFile(indexPath, exportsContent)
+const exportsContentPrettyfied = await prettier.format(exportsContent, {
+	...prettierConfig,
+	parser: 'typescript',
+})
+
+const exportsFinalPath = 'exports.d.ts'
+await fse.outputFile(exportsFinalPath, exportsContentPrettyfied)
 
 console.log(``)
-console.log(`Type declarations generated successfully at ${indexPath}!`)
+console.log(`Type declarations generated successfully at ${exportsFinalPath}!`)
 
-// TODO commit, tag and push to github
+// Check if --push argument is provided
+const shouldPush = process.argv.includes('--push')
+if (shouldPush) {
+	console.log('Staging, committing and pushing exports.d.ts...')
+
+	// check if there are any changes to exports.d.ts
+	const changes = execSync(`git diff ${exportsFinalPath}`, { stdio: 'pipe' })
+
+	// if no changes, exit
+	if (!changes.toString().trim()) {
+		console.log(`No changes to ${exportsFinalPath}, skipping commit and push...`)
+		process.exit(0)
+	}
+
+	// Stage exports.d.ts
+	execSync(`git add ${exportsFinalPath}`, { stdio: 'inherit' })
+
+	// Create commit with provided message
+	execSync(`git commit -m "${await promptCommitMessage()}"`, { stdio: 'inherit' })
+
+	// Push to origin
+	execSync('git push origin', { stdio: 'inherit' })
+
+	console.log(`Successfully pushed ${exportsFinalPath} to origin!`)
+}
+
+async function promptCommitMessage(): Promise<string> {
+	const defaultMessage = 'update exports.d.ts'
+
+	return defaultMessage
+
+	// Create readline interface
+	const rl = readline.createInterface({
+		input: process.stdin,
+		output: process.stdout,
+	})
+
+	return new Promise<string>((resolve) => {
+		rl.question(`Enter commit message (default: "${defaultMessage}"): `, (answer) => {
+			rl.close()
+			resolve(answer || defaultMessage)
+		})
+	})
+}
