@@ -251,4 +251,12 @@ type VerticalLayoutComponentJson = {
 
 type EditableComponentJson = PinnerComponentJson | HorizontalLayoutComponentJson | VerticalLayoutComponentJson | GridLayoutComponentJson;
 
-export type { EditableBitmapTextJson, EditableComponentJson, EditableContainerJson, EditableImageJson, EditableNineSliceJson, EditableObjectJson, EditableTextJson, GridLayoutComponentJson, HorizontalLayoutComponentJson, PinnerComponentJson, VerticalLayoutComponentJson };
+type PrefabFile = {
+    content: EditableContainerJson | null;
+    /**
+     * Used in the runtime to load the assets before displaying the prefab.
+     */
+    assetPack: Phaser.Types.Loader.FileTypes.PackFileSection[];
+};
+
+export type { EditableBitmapTextJson, EditableComponentJson, EditableContainerJson, EditableImageJson, EditableNineSliceJson, EditableObjectJson, EditableTextJson, GridLayoutComponentJson, HorizontalLayoutComponentJson, PinnerComponentJson, PrefabFile, VerticalLayoutComponentJson };
