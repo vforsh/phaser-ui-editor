@@ -54,7 +54,7 @@ import {
 import { EditableComponentJson, EditableComponentType } from './objects/components/base/EditableComponent'
 import { EditableComponentsFactory } from './objects/components/base/EditableComponentsFactory'
 import { EditableContainer, EditableContainerJson } from './objects/EditableContainer'
-import { EditableObject, EditableObjectJson } from './objects/EditableObject'
+import { EditableObject, EditableObjectJson, isObjectOfType } from './objects/EditableObject'
 import { EditableObjectsFactory } from './objects/EditableObjectsFactory'
 import { Rulers } from './Rulers'
 
@@ -462,10 +462,20 @@ export class MainScene extends BaseScene {
 
 		appCommands.on('handle-asset-drop', this.handleAssetDrop, this, false, this.shutdownSignal)
 
+		appCommands.on('switch-to-context', this.switchToContext, this, false, this.shutdownSignal)
 		appCommands.on('highlight-object', this.highlightObject, this, false, this.shutdownSignal)
 		appCommands.on('select-object', this.selectObject, this, false, this.shutdownSignal)
 		appCommands.on('delete-object', this.deleteObject, this, false, this.shutdownSignal)
 		appCommands.on('save-prefab', this.savePrefab, this, false, this.shutdownSignal)
+	}
+
+	private switchToContext(contextId: string) {
+		const container = this.objectsFactory.getObjectById(contextId)
+		if (!container || !isObjectOfType(container, 'Container')) {
+			return
+		}
+
+		this.editContexts.switchTo(container)
 	}
 
 	private highlightObject(objId: string) {

@@ -16,6 +16,7 @@ import { AssetTreeItemData } from './types/assets'
  */
 export type AppCommands = {
 	// commands from hierarchy panel
+	'switch-to-context': (id: string) => void
 	'select-object': (id: string) => void
 	'highlight-object': (id: string) => void
 	'delete-object': (id: string) => void

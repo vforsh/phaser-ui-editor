@@ -1,14 +1,8 @@
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { Divider, Paper, ScrollArea, Stack } from '@mantine/core'
 import { state, useSnapshot } from '@state/State'
 import { Logger } from 'tslog'
 import { PanelTitle } from '../PanelTitle'
 import HierarchyItem from './HierarchyItem'
-
-type HierarchyItem = EditableObjectJson & {
-	selected: boolean
-	hovered: boolean
-}
 
 export type HierarchyPanelProps = {
 	logger: Logger<{}>

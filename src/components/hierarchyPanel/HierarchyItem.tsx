@@ -78,7 +78,13 @@ const HierarchyItem = memo(function HierarchyItem({
 			<div
 				onMouseEnter={() => setIsHovered(true)}
 				onMouseLeave={() => setIsHovered(false)}
-				onDoubleClick={() => state.app?.commands.emit('select-object', objId)}
+				onDoubleClick={() => {
+					if (objState.type === 'Container') {
+						state.app?.commands.emit('switch-to-context', objId)
+					} else {
+						state.app?.commands.emit('select-object', objId)
+					}
+				}}
 				className={clsx(styles.itemContainer, {
 					[styles.itemSelected]: isSelectedInCanvas,
 					[styles.itemHovered]: isHovered,

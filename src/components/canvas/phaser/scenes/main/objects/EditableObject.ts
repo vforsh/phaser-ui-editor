@@ -50,6 +50,15 @@ export type EditableObject = EditableContainer | EditableImage | EditableNineSli
 
 export type EditableObjectType = EditableObject['kind']
 
+export type EditableObjectOfType<T extends EditableObjectType> = Extract<EditableObject, { kind: T }>
+
+export function isObjectOfType<T extends EditableObjectType>(
+	obj: EditableObject,
+	type: T
+): obj is EditableObjectOfType<T> {
+	return obj.kind === type
+}
+
 // #region JSON
 export type CreateEditableObjectJson<
 	T extends { readonly type: string; locked: boolean; components: EditableComponentJson[] },
