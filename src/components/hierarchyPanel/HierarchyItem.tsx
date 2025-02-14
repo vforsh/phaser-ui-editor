@@ -1,4 +1,4 @@
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { EditableObjectJson, EditableObjectType } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { ActionIcon, Group, Text, Tooltip, useMantineTheme } from '@mantine/core'
 import { state } from '@state/State'
 import clsx from 'clsx'
@@ -50,6 +50,16 @@ export function getLinkedAssetId(objState: EditableObjectJson, isRoot: boolean):
 	return undefined
 }
 
+export function getHierarchyItemIcon(type: EditableObjectType, size = 16): React.ReactNode {
+	return match({ type })
+		.with({ type: 'Container' }, () => <GroupIcon size={size} />)
+		.with({ type: 'Image' }, () => <Image size={size} />)
+		.with({ type: 'NineSlice' }, () => <ImageUpscale size={size} />)
+		.with({ type: 'BitmapText' }, () => <TypeOutline size={size} />)
+		.with({ type: 'Text' }, () => <Type size={size} />)
+		.exhaustive()
+}
+
 interface HierarchyItemProps {
 	objState: EditableObjectJson
 	activeEditContextId: string | undefined
@@ -83,13 +93,7 @@ const HierarchyItem = memo(function HierarchyItem({
 	const isActiveEditContext = activeEditContextId === objId
 
 	const getIcon = useMemo(() => {
-		return match({ type })
-			.with({ type: 'Container' }, () => <GroupIcon size={16} />)
-			.with({ type: 'Image' }, () => <Image size={16} />)
-			.with({ type: 'NineSlice' }, () => <ImageUpscale size={16} />)
-			.with({ type: 'BitmapText' }, () => <TypeOutline size={16} />)
-			.with({ type: 'Text' }, () => <Type size={16} />)
-			.exhaustive()
+		return getHierarchyItemIcon(type)
 	}, [type])
 
 	const containerStyle = useMemo(

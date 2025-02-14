@@ -9,7 +9,6 @@ import {
 	ClipboardPaste,
 	Copy,
 	FilePlus2,
-	Folder,
 	FolderSearch,
 	Save,
 	Scissors,
@@ -20,7 +19,7 @@ import { ContextMenuItemOptions } from 'mantine-contextmenu'
 import { Logger } from 'tslog'
 import { Snapshot } from 'valtio'
 import { EditableObjectJson } from '../../types/exports/exports'
-import HierarchyItem, { getLinkedAssetId } from './HierarchyItem'
+import HierarchyItem, { getHierarchyItemIcon, getLinkedAssetId } from './HierarchyItem'
 
 export function createHierarchyItemContextMenuItems(
 	obj: Snapshot<EditableObjectJson>,
@@ -44,7 +43,7 @@ export function createHierarchyItemContextMenuItems(
 			items: [
 				{
 					key: 'create-container',
-					icon: <Folder size={16} />,
+					icon: getHierarchyItemIcon('Container'),
 					title: 'Container',
 					onClick: () => {
 						appCommands?.emit('create-object', { clickedObjId: obj.id, type: 'Container' })
