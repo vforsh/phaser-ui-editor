@@ -246,7 +246,20 @@ export class MainScene extends BaseScene {
 	 */
 	private initSuperRoot(width: number, height: number) {
 		this.superRoot = this.objectsFactory.container('super-root')
+
 		this.superRoot.setSize(width, height)
+
+		this.superRoot.events.on('editable-added', (obj) => {
+			if (this.superRoot.editables.length <= 1) {
+				return
+			}
+
+			this.logger.warn(`super root can only have one child, destroying ${obj.name}`)
+
+			// wait for the next frame to destroy the object
+			this.events.once(Phaser.Scenes.Events.UPDATE, () => obj.destroy(), this, this.shutdownSignal)
+		})
+
 		this.add.existing(this.superRoot)
 	}
 
@@ -556,6 +569,12 @@ export class MainScene extends BaseScene {
 	 * @returns The created editable object or null if the object could not be created.
 	 */
 	private async handleAssetDrop(data: { asset: AssetTreeItemData; position: { x: number; y: number } }) {
+		// adding objects to super root is not allowed
+		if (this.editContexts.current?.target === this.superRoot) {
+			this.logger.warn(`adding objects to super root is not allowed`)
+			return null
+		}
+
 		const obj = await this.createObjectFromAsset(data.asset)
 		if (!obj) {
 			return null
@@ -1063,6 +1082,12 @@ export class MainScene extends BaseScene {
 
 	private paste(event: KeyboardEvent): void {
 		if (!event.ctrlKey && !event.metaKey) {
+			return
+		}
+
+		// pasting on super root is not allowed
+		if (this.editContexts.current?.target === this.superRoot) {
+			this.logger.warn(`adding objects to super root is not allowed`)
 			return
 		}
 
