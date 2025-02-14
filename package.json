@@ -1,11 +1,15 @@
 {
-	"name": "phaser-ui-builder",
+	"name": "phaser-ui-editor",
 	"author": {
 		"name": "Vladislav Forsh",
 		"email": "vlad@robowhale.com"
 	},
+	"repository": {
+		"type": "git",
+		"url": "git@github.com:vforsh/phaser-ui-editor.git"
+	},
 	"private": true,
-	"version": "0.0.0",
+	"version": "0.0.10",
 	"type": "module",
 	"scripts": {
 		"start": "vite --host",
@@ -96,5 +100,9 @@
 	},
 	"engines": {
 		"node": ">=23.6.0"
-	}
+	},
+	"files": [
+		"dist/types/index.d.ts"
+	],
+	"types": "dist/types/index.d.ts"
 }
