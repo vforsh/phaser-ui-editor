@@ -278,10 +278,10 @@ export default function HierarchyItem({
 			const visibleItems = getVisibleItems()
 
 			const lastSelectedId = selectedIds.at(-1)
-			const currentIndex = visibleItems.findIndex((item) => item.id === lastSelectedId)
+			const lastSelectedIndex = visibleItems.findIndex((item) => item.id === lastSelectedId)
 
 			// if nothing is selected, select the first or last item depending on the key pressed
-			if (currentIndex === -1) {
+			if (lastSelectedIndex === -1) {
 				let itemToSelect: EditableObjectJson | undefined
 				if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
 					itemToSelect = visibleItems.at(-1)
@@ -296,20 +296,20 @@ export default function HierarchyItem({
 				return
 			}
 
-			const currentItem = visibleItems[currentIndex]
+			const lastSelectedItem = visibleItems[lastSelectedIndex]
 
 			const handleArrowUp = () => {
-				if (currentIndex <= 0) {
+				if (lastSelectedIndex <= 0) {
 					return
 				}
 
-				const prevItem = visibleItems[currentIndex - 1]
+				const prevItem = visibleItems[lastSelectedIndex - 1]
 				if (!event.shiftKey) {
 					selectAndScrollIntoView(prevItem.id)
 					return
 				}
 
-				const currentItemParent = findParentContainer(currentItem.id, visibleItems)
+				const currentItemParent = findParentContainer(lastSelectedItem.id, visibleItems)
 				const prevItemParent = findParentContainer(prevItem.id, visibleItems)
 				const hasSameParent = currentItemParent === prevItemParent
 				if (!hasSameParent) {
@@ -326,17 +326,17 @@ export default function HierarchyItem({
 			}
 
 			const handleArrowDown = () => {
-				if (currentIndex >= visibleItems.length - 1) {
+				if (lastSelectedIndex >= visibleItems.length - 1) {
 					return
 				}
 
-				const nextItem = visibleItems[currentIndex + 1]
+				const nextItem = visibleItems[lastSelectedIndex + 1]
 				if (!event.shiftKey) {
 					selectAndScrollIntoView(nextItem.id)
 					return
 				}
 
-				const currentItemParent = findParentContainer(currentItem.id, visibleItems)
+				const currentItemParent = findParentContainer(lastSelectedItem.id, visibleItems)
 				const nextItemParent = findParentContainer(nextItem.id, visibleItems)
 				const hasSameParent = currentItemParent === nextItemParent
 				if (!hasSameParent) {
@@ -362,8 +362,8 @@ export default function HierarchyItem({
 					break
 
 				case 'ArrowRight':
-					if (currentItem.type === 'Container') {
-						if (currentItem.id === objId && !isOpen) {
+					if (lastSelectedItem.type === 'Container') {
+						if (lastSelectedItem.id === objId && !isOpen) {
 							setIsOpen(true)
 						}
 					} else {
@@ -373,12 +373,12 @@ export default function HierarchyItem({
 					break
 
 				case 'ArrowLeft':
-					if (currentItem.type === 'Container') {
-						if (currentItem.id === objId && isOpen) {
+					if (lastSelectedItem.type === 'Container') {
+						if (lastSelectedItem.id === objId && isOpen) {
 							setIsOpen(false)
 						}
 					} else {
-						const parentContainer = findParentContainer(currentItem.id, visibleItems)
+						const parentContainer = findParentContainer(lastSelectedItem.id, visibleItems)
 						if (parentContainer) {
 							selectAndScrollIntoView(parentContainer.id)
 						}
@@ -389,10 +389,10 @@ export default function HierarchyItem({
 				case 'Backspace':
 					// Check if the item is root, can't delete the root
 					if (!isRoot) {
-						state.app?.commands.emit('delete-object', currentItem.id)
+						state.app?.commands.emit('delete-object', lastSelectedItem.id)
 
 						// Select the next or previous item after deleting
-						const itemToSelect = visibleItems[currentIndex + 1] ?? visibleItems[currentIndex - 1]
+						const itemToSelect = visibleItems[lastSelectedIndex + 1] ?? visibleItems[lastSelectedIndex - 1]
 						if (itemToSelect) {
 							selectAndScrollIntoView(itemToSelect.id)
 						}
