@@ -45,6 +45,12 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 			return
 		}
 
+		if (event.key === 'Delete' || event.key === 'Backspace') {
+			event.preventDefault()
+
+			state.app?.commands.emit('delete-objects', canvasSnap.selection as string[])
+		}
+
 		if (event.key === 'Escape') {
 			event.preventDefault()
 

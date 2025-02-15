@@ -120,7 +120,7 @@ function createContextMenuItems(obj: Snapshot<EditableObjectJson>, isRoot = fals
 			color: 'red',
 			disabled: isRoot,
 			onClick: (event) => {
-				appCommands?.emit('delete-object', obj.id)
+				appCommands?.emit('delete-objects', [obj.id])
 			},
 		},
 		divider(),
@@ -272,7 +272,7 @@ export default function HierarchyItem({
 			return
 		}
 
-		if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Delete', 'Backspace', 'A', 'a'].includes(event.key)) {
+		if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'A', 'a'].includes(event.key)) {
 			event.preventDefault()
 
 			const visibleItems = getVisibleItems()
@@ -381,20 +381,6 @@ export default function HierarchyItem({
 						const parentContainer = findParentContainer(lastSelectedItem.id, visibleItems)
 						if (parentContainer) {
 							selectAndScrollIntoView(parentContainer.id)
-						}
-					}
-					break
-
-				case 'Delete':
-				case 'Backspace':
-					// Check if the item is root, can't delete the root
-					if (!isRoot) {
-						state.app?.commands.emit('delete-object', lastSelectedItem.id)
-
-						// Select the next or previous item after deleting
-						const itemToSelect = visibleItems[lastSelectedIndex + 1] ?? visibleItems[lastSelectedIndex - 1]
-						if (itemToSelect) {
-							selectAndScrollIntoView(itemToSelect.id)
 						}
 					}
 					break

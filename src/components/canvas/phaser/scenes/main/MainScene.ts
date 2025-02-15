@@ -492,7 +492,8 @@ export class MainScene extends BaseScene {
 		appCommands.on('duplicate-object', this.duplicateObject, this, false, signal)
 		appCommands.on('cut-object', this.cutObject, this, false, signal)
 		appCommands.on('paste-object', this.pasteObject, this, false, signal)
-		appCommands.on('delete-object', this.deleteObject, this, false, signal)
+		appCommands.on('delete-objects', this.deleteObjects, this, false, signal)
+		appCommands.on('move-object-in-hierarchy', this.moveObjectInHierarchy, this, false, signal)
 		appCommands.on('get-object-path', this.getObjectPath, this, false, signal)
 		appCommands.on('save-prefab', this.savePrefab, this, false, signal)
 	}
@@ -724,13 +725,48 @@ export class MainScene extends BaseScene {
 		this.logger.info(`pasting '${obj.name}' (${objId})`)
 	}
 
-	private deleteObject(objId: string) {
+	private deleteObjects(objIds: string[]) {
+		for (const objId of objIds) {
+			const obj = this.objectsFactory.getObjectById(objId)
+			if (!obj) {
+				continue
+			}
+
+			if (obj === this.root) {
+				this.logger.warn(`can't delete root object!`)
+				continue
+			}
+
+			obj.destroy()
+		}
+	}
+
+	private moveObjectInHierarchy(objId: string, parentId: string, parentIndex: number) {
 		const obj = this.objectsFactory.getObjectById(objId)
 		if (!obj) {
 			return
 		}
 
-		obj.destroy()
+		const parent = this.objectsFactory.getObjectById(parentId)
+		if (!parent || !isObjectOfType(parent, 'Container')) {
+			return
+		}
+
+		if (obj.parentContainer === parent) {
+			const currentIndex = parent.editables.indexOf(obj)
+			if (currentIndex === parentIndex) {
+				return
+			}
+
+			// TODO change child index
+			this.logger.info(
+				`moving '${obj.name}' (${objId}) to index ${parentIndex} in '${parent.name}' (${parentId})`
+			)
+			return
+		}
+
+		// TODO move object to new parent
+		this.logger.info(`moving '${obj.name}' (${objId}) to '${parent.name}' (${parentId})`)
 	}
 
 	private getObjectPath(objId: string): string {
