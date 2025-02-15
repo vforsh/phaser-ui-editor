@@ -207,6 +207,8 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 
 	const panelRef = useRef<HTMLDivElement>(null)
 
+	const scrollAreaRef = useRef<HTMLDivElement>(null)
+
 	const [isFocused, setIsFocused] = useState(document.activeElement === panelRef.current)
 
 	const canvasSnap = useSnapshot(state.canvas)
@@ -257,12 +259,21 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 					onSave={() => state.app?.commands.emit('save-prefab')}
 				/>
 				<Divider />
-				<ScrollArea style={{ flex: 1 }}>
+				<ScrollArea
+					style={{ flex: 1 }}
+					viewportRef={scrollAreaRef}
+					onClick={(e) => {
+						if (e.target === scrollAreaRef.current) {
+							state.app?.commands.emit('clear-selection')
+						}
+					}}
+				>
 					<Stack gap={0}>
 						{rootState && (
 							<HierarchyItem
 								key={rootState.id}
 								objState={rootState}
+								parentId={'super-root'}
 								selectedIds={canvasSnap.selection}
 								hoveredIds={canvasSnap.hover}
 								isLastChild={true}

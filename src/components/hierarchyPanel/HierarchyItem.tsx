@@ -5,7 +5,7 @@ import { state } from '@state/State'
 import clsx from 'clsx'
 import { ChevronDown, Eye, EyeOff, FolderSearch, Lock, Unlock } from 'lucide-react'
 import { ContextMenuOptions, useContextMenu } from 'mantine-contextmenu'
-import { memo, useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useSnapshot } from 'valtio'
 import { createHierarchyItemContextMenuItems } from '../hierarchyPanel/HierarchyPanel'
 import styles from './HierarchyItem.module.css'
@@ -16,6 +16,7 @@ const ICON_MARGIN = 8
 
 interface HierarchyItemProps {
 	objState: EditableObjectJson
+	parentId: string
 	activeEditContextId: string | undefined
 	isRoot?: boolean
 	level?: number
@@ -25,8 +26,9 @@ interface HierarchyItemProps {
 	isPanelFocused?: boolean
 }
 
-const HierarchyItem = memo(function HierarchyItem({
+export default function HierarchyItem({
 	objState,
+	parentId,
 	activeEditContextId,
 	isRoot = false,
 	selectedIds,
@@ -81,13 +83,15 @@ const HierarchyItem = memo(function HierarchyItem({
 	}
 
 	const selectAndScrollIntoView = (objId: string) => {
-		setSelected(objId)
-		const element = document.getElementById(`hierarchy-item-${objId}`)
-		element?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+		state.app?.commands.emit('select-object', objId)
+		scrollIntoView(objId)
 	}
 
-	const setSelected = (objId: string) => {
-		state.app?.commands.emit('select-object', objId)
+	const scrollIntoView = (objId: string) => {
+		const element = document.getElementById(`hierarchy-item-${objId}`)
+		if (element) {
+			element.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+		}
 	}
 
 	useWindowEvent('keydown', (event) => {
@@ -95,16 +99,13 @@ const HierarchyItem = memo(function HierarchyItem({
 			return
 		}
 
-		const visibleItems = getVisibleItems()
-		const currentSelection = selectedIds[0]
-		if (!currentSelection || !visibleItems.length) {
-			return
-		}
-
-		if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Delete', 'Backspace'].includes(event.key)) {
+		if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Delete', 'Backspace', 'A', 'a'].includes(event.key)) {
 			event.preventDefault()
 
-			const currentIndex = visibleItems.findIndex((item) => item.id === currentSelection)
+			const visibleItems = getVisibleItems()
+
+			// TODO need to choose current index differently, depending on selection timestamps
+			const currentIndex = visibleItems.findIndex((item) => selectedIds.indexOf(item.id) !== -1)
 			if (currentIndex === -1) {
 				const itemToSelect = event.key === 'ArrowUp' ? visibleItems.at(-1) : visibleItems.at(0)
 				if (itemToSelect) {
@@ -116,19 +117,69 @@ const HierarchyItem = memo(function HierarchyItem({
 
 			const currentItem = visibleItems[currentIndex]
 
+			const handleArrowUp = () => {
+				if (currentIndex <= 0) {
+					return
+				}
+
+				const prevItem = visibleItems[currentIndex - 1]
+				if (!event.shiftKey) {
+					selectAndScrollIntoView(prevItem.id)
+					return
+				}
+
+				const currentItemParent = findParentContainer(currentItem.id, visibleItems)
+				const prevItemParent = findParentContainer(prevItem.id, visibleItems)
+				const hasSameParent = currentItemParent === prevItemParent
+				if (!hasSameParent) {
+					return
+				}
+
+				// TODO it doesn't work properly, need to fix
+				const isPrevItemSelected = selectedIds.includes(prevItem.id)
+				if (isPrevItemSelected) {
+					state.app?.commands.emit('remove-object-from-selection', prevItem.id)
+				} else {
+					state.app?.commands.emit('add-object-to-selection', prevItem.id)
+					scrollIntoView(prevItem.id)
+				}
+			}
+
+			const handleArrowDown = () => {
+				if (currentIndex >= visibleItems.length - 1) {
+					return
+				}
+
+				const nextItem = visibleItems[currentIndex + 1]
+				if (!event.shiftKey) {
+					selectAndScrollIntoView(nextItem.id)
+					return
+				}
+
+				const currentItemParent = findParentContainer(currentItem.id, visibleItems)
+				const nextItemParent = findParentContainer(nextItem.id, visibleItems)
+				const hasSameParent = currentItemParent === nextItemParent
+				if (!hasSameParent) {
+					return
+				}
+
+				// TODO it doesn't work properly, need to fix
+				const isNextItemSelected = selectedIds.includes(nextItem.id)
+				if (isNextItemSelected) {
+					state.app?.commands.emit('remove-object-from-selection', nextItem.id)
+				} else {
+					state.app?.commands.emit('add-object-to-selection', nextItem.id)
+					scrollIntoView(nextItem.id)
+				}
+			}
+
 			switch (event.key) {
 				case 'ArrowUp':
-					if (currentIndex > 0) {
-						const prevItem = visibleItems[currentIndex - 1]
-						selectAndScrollIntoView(prevItem.id)
-					}
+					handleArrowUp()
 					break
 
 				case 'ArrowDown':
-					if (currentIndex < visibleItems.length - 1) {
-						const nextItem = visibleItems[currentIndex + 1]
-						selectAndScrollIntoView(nextItem.id)
-					}
+					handleArrowDown()
 					break
 
 				case 'ArrowRight':
@@ -168,6 +219,13 @@ const HierarchyItem = memo(function HierarchyItem({
 						}
 					}
 					break
+
+				case 'A':
+				case 'a':
+					if (event.ctrlKey || event.metaKey) {
+						// TODO select all items on current level
+					}
+					break
 			}
 		}
 	})
@@ -176,6 +234,7 @@ const HierarchyItem = memo(function HierarchyItem({
 		<>
 			<div
 				id={`hierarchy-item-${objId}`}
+				data-parent-id={parentId}
 				data-selected={isSelectedInCanvas}
 				onMouseEnter={() => setIsHovered(true)}
 				onMouseLeave={() => setIsHovered(false)}
@@ -184,10 +243,20 @@ const HierarchyItem = memo(function HierarchyItem({
 					const menuItems = createHierarchyItemContextMenuItems(objState, isRoot)
 					const menuOptions: ContextMenuOptions = { style: { width: 200 } }
 					showContextMenu(menuItems, menuOptions)(e)
-					setSelected(objId)
+					state.app?.commands.emit('select-object', objId)
 				}}
 				onClick={(e) => {
-					setSelected(objId)
+					if (e.ctrlKey || e.metaKey) {
+						if (isSelectedInCanvas) {
+							state.app?.commands.emit('remove-object-from-selection', objId)
+						} else {
+							state.app?.commands.emit('add-object-to-selection', objId)
+						}
+					} else if (e.shiftKey) {
+						// TODO handle shift clicks - select items between last selected and clicked
+					} else {
+						state.app?.commands.emit('select-object', objId)
+					}
 				}}
 				className={clsx(styles.itemContainer, {
 					[styles.itemSelected]: isSelectedInCanvas,
@@ -328,6 +397,7 @@ const HierarchyItem = memo(function HierarchyItem({
 							<HierarchyItem
 								key={childSnap.id}
 								objState={childState}
+								parentId={objId}
 								level={level + 1}
 								selectedIds={selectedIds}
 								hoveredIds={hoveredIds}
@@ -340,6 +410,4 @@ const HierarchyItem = memo(function HierarchyItem({
 					.filter(Boolean)}
 		</>
 	)
-})
-
-export default HierarchyItem
+}
