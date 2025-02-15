@@ -1495,7 +1495,12 @@ export class MainScene extends BaseScene {
 
 				const msSinceLastClick = Date.now() - (this.sceneClickedAt ?? 0)
 				if (msSinceLastClick < 200) {
-					this.editContexts.switchTo(this.superRoot)
+					const parentContext = this.editContexts.findParentContext(context.target)
+					if (parentContext) {
+						this.editContexts.switchTo(parentContext.target)
+					} else {
+						this.editContexts.switchTo(this.superRoot)
+					}
 				}
 				this.sceneClickedAt = Date.now()
 
