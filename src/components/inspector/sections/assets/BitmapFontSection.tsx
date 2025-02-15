@@ -3,6 +3,7 @@ import {
 	BmFontData,
 } from '@components/canvas/phaser/robowhale/phaser3/gameObjects/bitmap-text/create-bmfont-data'
 import { Group, NumberInput, Stack, Textarea, TextInput } from '@mantine/core'
+import { until } from '@open-draft/until'
 import { useEffect, useState } from 'react'
 import { match } from 'ts-pattern'
 import trpc from '../../../../trpc'
@@ -19,13 +20,20 @@ export function BitmapFontSection({ data: asset }: BitmapFontSectionProps) {
 	useEffect(() => {
 		const ac = new AbortController()
 
-		loadFontData(asset.data, ac.signal)
-			.then((data) => {
-				setFontData(data)
-			})
-			.catch((err) => {
-				console.error(err)
-			})
+		const fetchData = async () => {
+			const { error, data } = await until(() => loadFontData(asset.data, ac.signal))
+			if (error) {
+				if (error.message.includes('aborted')) {
+					return
+				}
+
+				throw error
+			}
+
+			setFontData(data)
+		}
+
+		fetchData()
 
 		return () => ac.abort()
 	}, [asset])
