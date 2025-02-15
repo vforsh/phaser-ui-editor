@@ -27,6 +27,7 @@ export type AppCommands = {
 	'delete-object': (id: string) => void
 	'get-object-path': (id: string) => string
 	'save-prefab': () => void
+	'discard-unsaved-prefab': () => void
 
 	'select-object': (id: string) => void
 	'select-objects': (ids: string[]) => void

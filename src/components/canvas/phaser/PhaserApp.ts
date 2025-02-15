@@ -83,6 +83,7 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 
 		this.appCommands = appCommands
 		this.appCommands.on('open-prefab', this.openPrefab, this, false, this.destroySignal)
+		this.appCommands.on('discard-unsaved-prefab', this.discardUnsavedPrefab, this, false, this.destroySignal)
 
 		this.resizeSensor = this.setupScaling()
 
@@ -170,9 +171,13 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 			prefabAsset,
 			prefabFile,
 		} satisfies MainSceneInitData)
-		
+
 		// save the prefab asset id to the state so it will auto-open it next time
 		state.canvas.lastOpenedPrefabAssetId = prefabAssetId
+	}
+
+	private async discardUnsavedPrefab() {
+		console.log(`discardUnsavedPrefab`)
 	}
 
 	private setupScaling() {

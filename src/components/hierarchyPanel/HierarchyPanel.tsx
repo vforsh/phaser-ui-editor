@@ -257,6 +257,7 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 					title={canvasSnap.currentPrefab?.name || 'Hierarchy'}
 					hasUnsavedChanges={canvasSnap.hasUnsavedChanges}
 					onSave={() => state.app?.commands.emit('save-prefab')}
+					onDiscard={() => state.app?.commands.emit('discard-unsaved-prefab')}
 				/>
 				<Divider />
 				<ScrollArea
