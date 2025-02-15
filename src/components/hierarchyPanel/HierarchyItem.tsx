@@ -56,20 +56,15 @@ export default function HierarchyItem({
 
 	const linkedAssetId = getLinkedAssetId(objState, isRoot)
 
-	const getObjIdFromElementId = (elementId: string) => {
-		const sliceIndex = elementId.lastIndexOf('-')
-		return elementId.slice(sliceIndex + 1)
-	}
-
 	const getVisibleItems = (): EditableObjectJson[] => {
 		// find all dom elements with id starting with 'hierarchy-item-'
-		const items = document.querySelectorAll('[id^="hierarchy-item-"]')
+		const items = document.querySelectorAll('[id^="hierarchy-item-"]') as NodeListOf<HTMLDivElement>
 
 		const objs: EditableObjectJson[] = []
 
 		for (const item of items) {
-			const objId = getObjIdFromElementId(item.id)
-			const obj = state.canvas.objectById(objId)
+			const objId = item.dataset.objId
+			const obj = state.canvas.objectById(objId!)
 			if (obj) {
 				objs.push(obj)
 			}
@@ -248,7 +243,7 @@ export default function HierarchyItem({
 				return
 			}
 
-			const clickedElement = e.currentTarget as HTMLElement
+			const clickedElement = e.currentTarget as HTMLDivElement
 			const clickedElementId = clickedElement.dataset.objId
 			if (!clickedElementId) {
 				return
@@ -295,7 +290,6 @@ export default function HierarchyItem({
 				id={`hierarchy-item-${objId}`}
 				data-obj-id={objId}
 				data-parent-id={parentId}
-				data-selected={isSelectedInCanvas}
 				onMouseEnter={() => setIsHovered(true)}
 				onMouseLeave={() => setIsHovered(false)}
 				onContextMenu={(e) => {
