@@ -5,7 +5,7 @@ import { state } from '@state/State'
 import clsx from 'clsx'
 import { ChevronDown, Eye, EyeOff, FolderSearch, Lock, Unlock } from 'lucide-react'
 import { ContextMenuOptions, useContextMenu } from 'mantine-contextmenu'
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useSnapshot } from 'valtio'
 import { createHierarchyItemContextMenuItems } from '../hierarchyPanel/HierarchyPanel'
 import styles from './HierarchyItem.module.css'
@@ -56,23 +56,27 @@ export default function HierarchyItem({
 
 	const linkedAssetId = getLinkedAssetId(objState, isRoot)
 
-	const getVisibleItems = useCallback((): EditableObjectJson[] => {
+	const getObjIdFromElementId = (elementId: string) => {
+		const sliceIndex = elementId.lastIndexOf('-')
+		return elementId.slice(sliceIndex + 1)
+	}
+
+	const getVisibleItems = (): EditableObjectJson[] => {
 		// find all dom elements with id starting with 'hierarchy-item-'
 		const items = document.querySelectorAll('[id^="hierarchy-item-"]')
 
 		const objs: EditableObjectJson[] = []
 
 		for (const item of items) {
-			const sliceIndex = item.id.lastIndexOf('-')
-			const id = item.id.slice(sliceIndex + 1)
-			const obj = state.canvas.objectById(id)
+			const objId = getObjIdFromElementId(item.id)
+			const obj = state.canvas.objectById(objId)
 			if (obj) {
 				objs.push(obj)
 			}
 		}
 
 		return objs
-	}, [])
+	}
 
 	const findParentContainer = (objId: string, objs: EditableObjectJson[]): EditableObjectJson | undefined => {
 		for (const obj of objs) {
@@ -236,10 +240,60 @@ export default function HierarchyItem({
 		}
 	})
 
+	const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+		if (e.shiftKey) {
+			const lastSelectedId = selectedIds.at(-1)
+			if (!lastSelectedId) {
+				selectAndScrollIntoView(objId)
+				return
+			}
+
+			const clickedElement = e.currentTarget as HTMLElement
+			const clickedElementId = clickedElement.dataset.objId
+			if (!clickedElementId) {
+				return
+			}
+
+			if (selectedIds.includes(clickedElementId)) {
+				state.app?.commands.emit('remove-object-from-selection', clickedElementId)
+				return
+			}
+
+			const visibleItems = getVisibleItems()
+			const lastSelectedItemIndex = visibleItems.findIndex((item) => item.id === lastSelectedId)
+			const clickedItemIndex = visibleItems.findIndex((item) => item.id === clickedElementId)
+
+			const startIndex = Math.min(lastSelectedItemIndex, clickedItemIndex)
+			const endIndex = Math.max(lastSelectedItemIndex, clickedItemIndex)
+
+			for (let index = startIndex; index <= endIndex; index++) {
+				const item = visibleItems[index]
+				if (item && !selectedIds.includes(item.id)) {
+					state.app?.commands.emit('add-object-to-selection', item.id)
+				}
+			}
+
+			return
+		}
+
+		if (e.ctrlKey || e.metaKey) {
+			if (isSelectedInCanvas) {
+				state.app?.commands.emit('remove-object-from-selection', objId)
+			} else {
+				state.app?.commands.emit('add-object-to-selection', objId)
+			}
+
+			return
+		}
+
+		state.app?.commands.emit('select-object', objId)
+	}
+
 	return (
 		<>
 			<div
 				id={`hierarchy-item-${objId}`}
+				data-obj-id={objId}
 				data-parent-id={parentId}
 				data-selected={isSelectedInCanvas}
 				onMouseEnter={() => setIsHovered(true)}
@@ -251,19 +305,7 @@ export default function HierarchyItem({
 					showContextMenu(menuItems, menuOptions)(e)
 					state.app?.commands.emit('select-object', objId)
 				}}
-				onClick={(e) => {
-					if (e.ctrlKey || e.metaKey) {
-						if (isSelectedInCanvas) {
-							state.app?.commands.emit('remove-object-from-selection', objId)
-						} else {
-							state.app?.commands.emit('add-object-to-selection', objId)
-						}
-					} else if (e.shiftKey) {
-						// TODO handle shift clicks - select items between last selected and clicked
-					} else {
-						state.app?.commands.emit('select-object', objId)
-					}
-				}}
+				onClick={handleClick}
 				className={clsx(styles.itemContainer, {
 					[styles.itemSelected]: isSelectedInCanvas,
 					[styles.itemHovered]: isHovered,
