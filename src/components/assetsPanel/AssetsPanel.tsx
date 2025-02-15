@@ -16,7 +16,7 @@ import {
 	TextCursorInput,
 	Trash2,
 } from 'lucide-react'
-import { ContextMenuItemOptions, ContextMenuProvider, useContextMenu } from 'mantine-contextmenu'
+import { ContextMenuItemOptions, useContextMenu } from 'mantine-contextmenu'
 import { nanoid } from 'nanoid'
 import path from 'path-browserify-esm'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -35,6 +35,7 @@ import {
 } from '../../types/assets'
 import { createEmptyPrefabFile } from '../../types/prefabs/PrefabFile'
 import { PanelTitle } from './../PanelTitle'
+import styles from './AssetsPanel.module.css'
 import { AssetsSearch } from './AssetsSearch'
 import AssetTreeItem from './AssetTreeItem'
 import { addAssetId } from './build-asset-tree'
@@ -172,6 +173,10 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 	const [isSearchMode, setIsSearchMode] = useState(false)
 	const [focusedIndex, setFocusedIndex] = useState<number>(-1)
 	const searchRef = useRef<{ handleExpand: () => void; blur: () => void; focus: () => void } | null>(null)
+
+	const panelRef = useRef<HTMLDivElement>(null)
+	const scrollAreaRef = useRef<HTMLDivElement>(null)
+	const [isFocused, setIsFocused] = useState(document.activeElement === panelRef.current)
 
 	// Memoize flattened items for better search performance
 	const allAssetsFlattened = useMemo(() => flattenAssets(assetsSnap.items as AssetTreeItemData[]), [assetsSnap.items])
@@ -551,21 +556,15 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 
 	// Handle keyboard shortcuts
 	useWindowEvent('keydown', (event) => {
-		const activeElement = document.activeElement
-		const isInputFocused =
-			activeElement instanceof HTMLElement &&
-			(activeElement.tagName === 'INPUT' ||
-				activeElement.tagName === 'TEXTAREA' ||
-				activeElement.isContentEditable)
-
-		if (isInputFocused) {
-			return
-		}
-
+		// TODO CTRL+F should be handled int the EditorLayout component
 		// Handle Ctrl/Command + F
 		if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f') {
 			event.preventDefault()
 			searchRef.current?.handleExpand()
+		}
+
+		if (!isFocused) {
+			return
 		}
 
 		// Handle F2 for renaming selected asset
@@ -721,80 +720,92 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 	}, [])
 
 	return (
-		<ContextMenuProvider>
-			<Paper style={{ height: '100%', display: 'flex', flexDirection: 'column' }} radius="sm">
-				<Stack gap="xs" p="xs" style={{ height: '100%', minHeight: 0 }}>
-					<Group justify="space-between" wrap="nowrap">
-						{!isSearchMode && <PanelTitle title="Assets" />}
-						<AssetsSearch
-							ref={searchRef}
-							flatAssets={allAssetsFlattened}
-							onSearchChange={setSearchResults}
-							onSearchModeChange={setIsSearchMode}
-							onTabPress={handleSearchTabPress}
-						/>
-					</Group>
-					<Divider />
-					<ScrollArea
-						style={{ flex: 1 }}
-						id="assets-panel-scroll-area"
-						onContextMenu={(event) => {
-							// display root context menu only if clicked on the scroll area
-							if ((event.target as HTMLElement).parentElement?.id !== 'assets-panel-scroll-area') {
-								return
-							}
+		<Paper
+			className={styles.panel}
+			radius="sm"
+			ref={panelRef}
+			onClick={() => panelRef.current?.focus()}
+			tabIndex={2}
+			onFocus={() => setIsFocused(true)}
+			onBlur={() => setIsFocused(false)}
+		>
+			<Stack gap="xs" p="xs" style={{ height: '100%', minHeight: 0 }}>
+				<Group justify="space-between" wrap="nowrap">
+					{!isSearchMode && <PanelTitle title="Assets" />}
+					<AssetsSearch
+						ref={searchRef}
+						flatAssets={allAssetsFlattened}
+						onSearchChange={setSearchResults}
+						onSearchModeChange={setIsSearchMode}
+						onTabPress={handleSearchTabPress}
+					/>
+				</Group>
+				<Divider />
+				<ScrollArea
+					style={{ flex: 1 }}
+					id="assets-panel-scroll-area"
+					onContextMenu={(event) => {
+						// display root context menu only if clicked on the scroll area
+						if ((event.target as HTMLElement).parentElement?.id !== 'assets-panel-scroll-area') {
+							return
+						}
 
-							showContextMenu(rootContextMenu)(event)
-						}}
-					>
-						<Stack gap={0}>
-							{isSearchMode
-								? searchResults.map((asset, index) => (
-										<AssetTreeItem
-											key={asset.path}
-											item={asset}
-											onToggle={toggleFolder}
-											onSelect={handleSelect}
-											onDoubleClick={handleDoubleClick}
-											onContextMenu={(event, clickedAsset) => {
-												const contextMenuItems = getAssetContextMenuItems(clickedAsset)
-												showContextMenu(contextMenuItems)(event)
-											}}
-											onRenameSubmit={completeRename}
-											renamedAssetId={itemToRename}
-											isSelected={assetsSnap.selection.includes(asset.id)}
-											isLastChild={false}
-											isOpen={openFolders.has(asset.id)}
-											openFolders={openFolders}
-											id={getAssetItemId(asset.id)}
-											isFocused={focusedIndex === index}
-										/>
-									))
-								: assetsSnap.items.map((asset, index) => (
-										<AssetTreeItem
-											key={asset.path}
-											id={getAssetItemId(asset.id)}
-											item={asset}
-											onToggle={toggleFolder}
-											onSelect={handleSelect}
-											onDoubleClick={handleDoubleClick}
-											onContextMenu={(event, clickedAsset) => {
-												const contextMenuItems = getAssetContextMenuItems(clickedAsset)
-												showContextMenu(contextMenuItems, { style: { width: '200px' } })(event)
-											}}
-											onRenameSubmit={completeRename}
-											renamedAssetId={itemToRename}
-											isSelected={assetsSnap.selection.includes(asset.id)}
-											isLastChild={index === assetsSnap.items.length - 1}
-											isOpen={openFolders.has(asset.id)}
-											openFolders={openFolders}
-										/>
-									))}
-						</Stack>
-					</ScrollArea>
-				</Stack>
-			</Paper>
-		</ContextMenuProvider>
+						showContextMenu(rootContextMenu)(event)
+					}}
+					viewportRef={scrollAreaRef}
+					onClick={(e) => {
+						if (e.target === scrollAreaRef.current) {
+							// TODO clear assets selection
+						}
+					}}
+				>
+					<Stack gap={0}>
+						{isSearchMode
+							? searchResults.map((asset, index) => (
+									<AssetTreeItem
+										key={asset.path}
+										item={asset}
+										onToggle={toggleFolder}
+										onSelect={handleSelect}
+										onDoubleClick={handleDoubleClick}
+										onContextMenu={(event, clickedAsset) => {
+											const contextMenuItems = getAssetContextMenuItems(clickedAsset)
+											showContextMenu(contextMenuItems)(event)
+										}}
+										onRenameSubmit={completeRename}
+										renamedAssetId={itemToRename}
+										isSelected={assetsSnap.selection.includes(asset.id)}
+										isLastChild={false}
+										isOpen={openFolders.has(asset.id)}
+										openFolders={openFolders}
+										id={getAssetItemId(asset.id)}
+										isFocused={focusedIndex === index}
+									/>
+								))
+							: assetsSnap.items.map((asset, index) => (
+									<AssetTreeItem
+										key={asset.path}
+										id={getAssetItemId(asset.id)}
+										item={asset}
+										onToggle={toggleFolder}
+										onSelect={handleSelect}
+										onDoubleClick={handleDoubleClick}
+										onContextMenu={(event, clickedAsset) => {
+											const contextMenuItems = getAssetContextMenuItems(clickedAsset)
+											showContextMenu(contextMenuItems, { style: { width: '200px' } })(event)
+										}}
+										onRenameSubmit={completeRename}
+										renamedAssetId={itemToRename}
+										isSelected={assetsSnap.selection.includes(asset.id)}
+										isLastChild={index === assetsSnap.items.length - 1}
+										isOpen={openFolders.has(asset.id)}
+										openFolders={openFolders}
+									/>
+								))}
+					</Stack>
+				</ScrollArea>
+			</Stack>
+		</Paper>
 	)
 }
 
