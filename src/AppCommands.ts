@@ -18,7 +18,6 @@ import { AssetTreeItemData } from './types/assets'
 export type AppCommands = {
 	// commands from hierarchy panel
 	'switch-to-context': (id: string) => void
-	'select-object': (id: string) => void
 	'highlight-object': (id: string) => void
 	'create-object': (data: { clickedObjId: string; type: EditableObjectType }) => void
 	'copy-object': (id: string) => void
@@ -28,6 +27,12 @@ export type AppCommands = {
 	'delete-object': (id: string) => void
 	'get-object-path': (id: string) => string
 	'save-prefab': () => void
+
+	'select-object': (id: string) => void
+	'select-objects': (ids: string[]) => void
+	'add-object-to-selection': (id: string) => void
+	'remove-object-from-selection': (id: string) => void
+	'clear-selection': () => void
 
 	// commands from assets panel
 	'open-prefab': (prefabAssetId: string) => void

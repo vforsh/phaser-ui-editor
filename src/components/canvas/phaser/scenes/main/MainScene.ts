@@ -466,27 +466,151 @@ export class MainScene extends BaseScene {
 	}
 
 	private setupAppCommands() {
+		const signal = this.shutdownSignal
+
 		const appCommands = (this.game as PhaserGameExtra).appCommands as AppCommandsEmitter
 
-		appCommands.on('add-component', this.addComponent, this, false, this.shutdownSignal)
-		appCommands.on('remove-component', this.removeComponent, this, false, this.shutdownSignal)
-		appCommands.on('move-component-up', this.moveComponentUp, this, false, this.shutdownSignal)
-		appCommands.on('move-component-down', this.moveComponentDown, this, false, this.shutdownSignal)
-		appCommands.on('paste-component', this.pasteComponent, this, false, this.shutdownSignal)
+		appCommands.on('add-component', this.addComponent, this, false, signal)
+		appCommands.on('remove-component', this.removeComponent, this, false, signal)
+		appCommands.on('move-component-up', this.moveComponentUp, this, false, signal)
+		appCommands.on('move-component-down', this.moveComponentDown, this, false, signal)
+		appCommands.on('paste-component', this.pasteComponent, this, false, signal)
 
-		appCommands.on('handle-asset-drop', this.handleAssetDrop, this, false, this.shutdownSignal)
+		appCommands.on('handle-asset-drop', this.handleAssetDrop, this, false, signal)
 
-		appCommands.on('switch-to-context', this.switchToContext, this, false, this.shutdownSignal)
-		appCommands.on('highlight-object', this.highlightObject, this, false, this.shutdownSignal)
-		appCommands.on('select-object', this.selectObject, this, false, this.shutdownSignal)
-		appCommands.on('create-object', this.createObject, this, false, this.shutdownSignal)
-		appCommands.on('copy-object', this.copyObject, this, false, this.shutdownSignal)
-		appCommands.on('duplicate-object', this.duplicateObject, this, false, this.shutdownSignal)
-		appCommands.on('cut-object', this.cutObject, this, false, this.shutdownSignal)
-		appCommands.on('paste-object', this.pasteObject, this, false, this.shutdownSignal)
-		appCommands.on('delete-object', this.deleteObject, this, false, this.shutdownSignal)
-		appCommands.on('get-object-path', this.getObjectPath, this, false, this.shutdownSignal)
-		appCommands.on('save-prefab', this.savePrefab, this, false, this.shutdownSignal)
+		appCommands.on('select-object', this.selectObject, this, false, signal)
+		appCommands.on('select-objects', this.selectObjects, this, false, signal)
+		appCommands.on('add-object-to-selection', this.addObjectToSelection, this, false, signal)
+		appCommands.on('remove-object-from-selection', this.removeObjectFromSelection, this, false, signal)
+		appCommands.on('clear-selection', this.clearSelection, this, false, signal)
+
+		appCommands.on('switch-to-context', this.switchToContext, this, false, signal)
+		appCommands.on('highlight-object', this.highlightObject, this, false, signal)
+		appCommands.on('create-object', this.createObject, this, false, signal)
+		appCommands.on('copy-object', this.copyObject, this, false, signal)
+		appCommands.on('duplicate-object', this.duplicateObject, this, false, signal)
+		appCommands.on('cut-object', this.cutObject, this, false, signal)
+		appCommands.on('paste-object', this.pasteObject, this, false, signal)
+		appCommands.on('delete-object', this.deleteObject, this, false, signal)
+		appCommands.on('get-object-path', this.getObjectPath, this, false, signal)
+		appCommands.on('save-prefab', this.savePrefab, this, false, signal)
+	}
+
+	private selectObject(objId: string) {
+		const obj = this.objectsFactory.getObjectById(objId)
+		if (!obj) {
+			return
+		}
+
+		const context = this.editContexts.findParentContext(obj)
+		if (!context) {
+			return
+		}
+
+		this.editContexts.switchTo(context.target)
+
+		context.setSelection([obj])
+	}
+
+	private selectObjects(objIds: string[]) {
+		const objects = objIds.map((id) => this.objectsFactory.getObjectById(id)).filter(Boolean)
+		if (!objects.length) {
+			return
+		}
+
+		const context = this.editContexts.findParentContext(objects[0])
+		if (!context) {
+			return
+		}
+
+		const objsFromContext = objects.filter((obj) => obj.parentContainer === context.target)
+
+		this.editContexts.switchTo(context.target)
+
+		context.setSelection(objsFromContext)
+	}
+
+	private addObjectToSelection(objId: string) {
+		const obj = this.objectsFactory.getObjectById(objId)
+		if (!obj) {
+			return
+		}
+
+		if (state.canvas.selection.includes(objId)) {
+			return
+		}
+
+		if (state.canvas.selection.length === 0) {
+			this.selectObject(objId)
+			return
+		}
+
+		const selectedObj = this.objectsFactory.getObjectById(state.canvas.selection[0])
+		if (!selectedObj) {
+			return
+		}
+
+		if (obj.parentContainer !== selectedObj.parentContainer) {
+			return
+		}
+
+		const selectionContext = this.editContexts.findParentContext(selectedObj)
+		if (!selectionContext) {
+			return
+		}
+
+		const objsToSelect = state.canvas.selection.map((id) => this.objectsFactory.getObjectById(id)).filter(Boolean)
+
+		this.editContexts.switchTo(selectionContext.target)
+
+		selectionContext.setSelection([...objsToSelect, obj])
+	}
+
+	private removeObjectFromSelection(objId: string) {
+		const obj = this.objectsFactory.getObjectById(objId)
+		if (!obj) {
+			return
+		}
+
+		if (!state.canvas.selection.includes(objId)) {
+			return
+		}
+
+		if (state.canvas.selection.length === 0) {
+			return
+		}
+
+		const selectedObj = this.objectsFactory.getObjectById(state.canvas.selection[0])
+		if (!selectedObj) {
+			return
+		}
+
+		if (obj.parentContainer !== selectedObj.parentContainer) {
+			return
+		}
+
+		const selectionContext = this.editContexts.findParentContext(selectedObj)
+		if (!selectionContext) {
+			return
+		}
+
+		this.editContexts.switchTo(selectionContext.target)
+
+		const objsToSelect = state.canvas.selection
+			.filter((id) => id !== objId)
+			.map((id) => this.objectsFactory.getObjectById(id))
+			.filter(Boolean)
+
+		selectionContext.setSelection(objsToSelect)
+	}
+
+	private clearSelection() {
+		const context = this.editContexts.current
+		if (!context) {
+			return
+		}
+
+		context.cancelSelection()
 	}
 
 	private switchToContext(contextId: string) {
@@ -511,23 +635,6 @@ export class MainScene extends BaseScene {
 
 		// TODO hierarchy: highlight object by command from hierarchy panel
 		this.logger.info(`highlighting '${obj.name}' (${objId})`)
-	}
-
-	private selectObject(objId: string) {
-		const obj = this.objectsFactory.getObjectById(objId)
-		if (!obj) {
-			return
-		}
-
-		const context = this.editContexts.findParentContext(obj)
-		if (!context) {
-			return
-		}
-
-		this.editContexts.switchTo(context.target)
-
-		// set selection
-		context.setSelection([obj])
 	}
 
 	private createObject(data: { clickedObjId: string; type: EditableObjectType }) {

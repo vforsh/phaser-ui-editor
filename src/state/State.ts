@@ -55,7 +55,7 @@ export const stateSchema = z.object({
 			scrollY: z.number(),
 		}),
 		hover: z.array(z.string()),
-		selection: z.array(z.string()),
+		selection: z.array(z.string()).describe('ids of selected objects'),
 		selectionChangedAt: z.number().int().positive().optional(),
 		activeContextId: z.string().optional(),
 		clipboard: z.string().optional(),
