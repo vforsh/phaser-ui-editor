@@ -478,6 +478,7 @@ export class MainScene extends BaseScene {
 
 		appCommands.on('handle-asset-drop', this.handleAssetDrop, this, false, signal)
 
+		// handle selection
 		appCommands.on('select-object', this.selectObject, this, false, signal)
 		appCommands.on('select-objects', this.selectObjects, this, false, signal)
 		appCommands.on('add-object-to-selection', this.addObjectToSelection, this, false, signal)
