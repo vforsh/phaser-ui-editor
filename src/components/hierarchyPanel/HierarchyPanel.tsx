@@ -222,8 +222,6 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 			return
 		}
 
-		console.log(event.key, event.ctrlKey, event.metaKey)
-
 		if ((event.key === 's' || event.key === 'S') && (event.ctrlKey || event.metaKey)) {
 			event.preventDefault()
 
@@ -247,7 +245,7 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 			radius="sm"
 			ref={panelRef}
 			onClick={() => panelRef.current?.focus()}
-			tabIndex={0}
+			tabIndex={1}
 			onFocus={() => setIsFocused(true)}
 			onBlur={() => setIsFocused(false)}
 			className={styles.panel}

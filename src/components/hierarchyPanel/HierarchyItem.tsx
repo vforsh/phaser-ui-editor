@@ -52,22 +52,12 @@ const HierarchyItem = memo(function HierarchyItem({
 		return getHierarchyItemIcon(type)
 	}, [type])
 
-	const containerStyle = useMemo(
-		() => ({
-			paddingLeft: level * INDENT_SIZE + ICON_MARGIN,
-		}),
-		[level]
-	)
-
 	const linkedAssetId = getLinkedAssetId(objState, isRoot)
 
-	const setSelected = (objId: string) => {
-		state.app?.commands.emit('select-object', objId)
-	}
-
 	const getVisibleItems = useCallback((): EditableObjectJson[] => {
-		// return all dom elements with id starting with 'hierarchy-item-'
+		// find all dom elements with id starting with 'hierarchy-item-'
 		const items = document.querySelectorAll('[id^="hierarchy-item-"]')
+
 		const objs: EditableObjectJson[] = []
 
 		for (const item of items) {
@@ -96,7 +86,10 @@ const HierarchyItem = memo(function HierarchyItem({
 		element?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
 	}
 
-	// Handle keyboard navigation
+	const setSelected = (objId: string) => {
+		state.app?.commands.emit('select-object', objId)
+	}
+
 	useWindowEvent('keydown', (event) => {
 		if (!isPanelFocused) {
 			return
@@ -183,6 +176,7 @@ const HierarchyItem = memo(function HierarchyItem({
 		<>
 			<div
 				id={`hierarchy-item-${objId}`}
+				data-selected={isSelectedInCanvas}
 				onMouseEnter={() => setIsHovered(true)}
 				onMouseLeave={() => setIsHovered(false)}
 				onContextMenu={(e) => {
@@ -199,7 +193,9 @@ const HierarchyItem = memo(function HierarchyItem({
 					[styles.itemSelected]: isSelectedInCanvas,
 					[styles.itemHovered]: isHovered,
 				})}
-				style={containerStyle}
+				style={{
+					paddingLeft: level * INDENT_SIZE + ICON_MARGIN,
+				}}
 			>
 				{level > 0 &&
 					Array.from({ length: level }).map((_, index) => (
