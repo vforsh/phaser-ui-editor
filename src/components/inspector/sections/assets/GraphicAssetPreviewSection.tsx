@@ -144,8 +144,16 @@ export function GraphicAssetPreviewSection({ data }: GraphicAssetPreviewSectionP
 		const ac = new AbortController()
 
 		const fetchData = async () => {
-			const imageFileSize = await getImageFileSize(data, ac.signal)
-			setImageFileSize(imageFileSize)
+			const { data: size, error } = await until(() => getImageFileSize(data, ac.signal))
+			if (error) {
+				if (error.message.includes('aborted')) {
+					return
+				}
+
+				throw error
+			}
+
+			setImageFileSize(size)
 		}
 
 		fetchData()
