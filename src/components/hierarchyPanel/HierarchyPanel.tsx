@@ -1,4 +1,5 @@
 import { Divider, Paper, ScrollArea, Stack } from '@mantine/core'
+import { useWindowEvent } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
 import { until } from '@open-draft/until'
 import { state, unproxy, useSnapshot } from '@state/State'
@@ -19,8 +20,10 @@ import { useRef, useState } from 'react'
 import { Logger } from 'tslog'
 import { Snapshot } from 'valtio'
 import { EditableContainerJson, EditableObjectJson } from '../../types/exports/exports'
-import HierarchyItem, { getHierarchyItemIcon, getLinkedAssetId } from './HierarchyItem'
+import HierarchyItem from './HierarchyItem'
+import styles from './HierarchyPanel.module.css'
 import { HierarchyPanelTitle } from './HierarchyPanelTitle'
+import { getHierarchyItemIcon, getLinkedAssetId } from './hierarchyUtils'
 
 export function createHierarchyItemContextMenuItems(
 	obj: Snapshot<EditableObjectJson>,
@@ -214,6 +217,30 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 		throw new Error('Root must be a container')
 	}
 
+	useWindowEvent('keydown', (event) => {
+		if (!isFocused) {
+			return
+		}
+
+		console.log(event.key, event.ctrlKey, event.metaKey)
+
+		if ((event.key === 's' || event.key === 'S') && (event.ctrlKey || event.metaKey)) {
+			event.preventDefault()
+
+			if (canvasSnap.hasUnsavedChanges) {
+				state.app?.commands.emit('save-prefab')
+			}
+
+			return
+		}
+
+		if (event.key === 'Escape') {
+			event.preventDefault()
+
+			// TODO focus on the canvas
+		}
+	})
+
 	return (
 		<Paper
 			style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
@@ -223,6 +250,7 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 			tabIndex={0}
 			onFocus={() => setIsFocused(true)}
 			onBlur={() => setIsFocused(false)}
+			className={styles.panel}
 		>
 			<Stack gap="xs" p="xs" style={{ height: '100%', minHeight: 0 }}>
 				<HierarchyPanelTitle

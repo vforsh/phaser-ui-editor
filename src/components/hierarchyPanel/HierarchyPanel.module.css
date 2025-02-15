@@ -1,0 +1,19 @@
+.panel {
+	--outline-color: var(--mantine-color-blue-5);
+	transition: outline 0.1s ease-in-out;
+	outline: 1px solid transparent;
+}
+
+.panel:focus {
+	outline: 1px solid var(--outline-color);
+	animation: outlineFade 1s forwards;
+}
+
+@keyframes outlineFade {
+	0% {
+		outline-color: var(--outline-color);
+	}
+	100% {
+		outline-color: transparent;
+	}
+}

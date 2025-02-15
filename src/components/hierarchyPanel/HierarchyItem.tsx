@@ -1,65 +1,18 @@
-import { EditableObjectJson, EditableObjectType } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { ActionIcon, Group, Text, Tooltip, useMantineTheme } from '@mantine/core'
 import { useWindowEvent } from '@mantine/hooks'
 import { state } from '@state/State'
 import clsx from 'clsx'
-import {
-	ChevronDown,
-	Eye,
-	EyeOff,
-	FolderSearch,
-	Group as GroupIcon,
-	Image,
-	ImageUpscale,
-	Lock,
-	Type,
-	TypeOutline,
-	Unlock,
-} from 'lucide-react'
+import { ChevronDown, Eye, EyeOff, FolderSearch, Lock, Unlock } from 'lucide-react'
 import { ContextMenuOptions, useContextMenu } from 'mantine-contextmenu'
 import { memo, useCallback, useMemo, useState } from 'react'
-import { match } from 'ts-pattern'
 import { useSnapshot } from 'valtio'
 import { createHierarchyItemContextMenuItems } from '../hierarchyPanel/HierarchyPanel'
 import styles from './HierarchyItem.module.css'
+import { getHierarchyItemIcon, getLinkedAssetId } from './hierarchyUtils'
 
 const INDENT_SIZE = 26
 const ICON_MARGIN = 8
-
-/**
- * Get the asset id of the object.
- * If the object is the root of a prefab, return the prefab id.
- * If the object has a prefab, return the prefab id (this is for containers only)
- * If the object has an asset, return the asset id (this is for images, spritesheets, etc.)
- * Otherwise, return undefined.
- */
-export function getLinkedAssetId(objState: EditableObjectJson, isRoot: boolean): string | undefined {
-	if (isRoot) {
-		return state.canvas.currentPrefab?.id
-	}
-
-	const asset = 'asset' in objState ? objState.asset : null
-	if (asset) {
-		return asset.id
-	}
-
-	const prefab = 'prefab' in objState ? objState.prefab : null
-	if (prefab) {
-		return prefab.id
-	}
-
-	return undefined
-}
-
-export function getHierarchyItemIcon(type: EditableObjectType, size = 16): React.ReactNode {
-	return match({ type })
-		.with({ type: 'Container' }, () => <GroupIcon size={size} />)
-		.with({ type: 'Image' }, () => <Image size={size} />)
-		.with({ type: 'NineSlice' }, () => <ImageUpscale size={size} />)
-		.with({ type: 'BitmapText' }, () => <TypeOutline size={size} />)
-		.with({ type: 'Text' }, () => <Type size={size} />)
-		.exhaustive()
-}
 
 interface HierarchyItemProps {
 	objState: EditableObjectJson
@@ -129,6 +82,14 @@ const HierarchyItem = memo(function HierarchyItem({
 		return objs
 	}, [])
 
+	const findParentContainer = (objId: string, objs: EditableObjectJson[]): EditableObjectJson | undefined => {
+		for (const obj of objs) {
+			if (obj.type === 'Container' && obj.children.some((child) => child.id === objId)) {
+				return obj
+			}
+		}
+	}
+
 	const selectAndScrollIntoView = (objId: string) => {
 		setSelected(objId)
 		const element = document.getElementById(`hierarchy-item-${objId}`)
@@ -178,14 +139,26 @@ const HierarchyItem = memo(function HierarchyItem({
 					break
 
 				case 'ArrowRight':
-					if (currentItem.type === 'Container' && currentItem.id === objId && !isOpen) {
-						setIsOpen(true)
+					if (currentItem.type === 'Container') {
+						if (currentItem.id === objId && !isOpen) {
+							setIsOpen(true)
+						}
+					} else {
+						// TODO find the parent container of the current item
+						// then find the next sibling of the parent container and select it
 					}
 					break
 
 				case 'ArrowLeft':
-					if (currentItem.type === 'Container' && currentItem.id === objId && isOpen) {
-						setIsOpen(false)
+					if (currentItem.type === 'Container') {
+						if (currentItem.id === objId && isOpen) {
+							setIsOpen(false)
+						}
+					} else {
+						const parentContainer = findParentContainer(currentItem.id, visibleItems)
+						if (parentContainer) {
+							selectAndScrollIntoView(parentContainer.id)
+						}
 					}
 					break
 
