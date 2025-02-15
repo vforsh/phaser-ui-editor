@@ -104,10 +104,18 @@ export default function HierarchyItem({
 
 			const visibleItems = getVisibleItems()
 
-			// TODO need to choose current index differently, depending on selection timestamps
-			const currentIndex = visibleItems.findIndex((item) => selectedIds.indexOf(item.id) !== -1)
+			const lastSelectedId = selectedIds.at(-1)
+			const currentIndex = visibleItems.findIndex((item) => item.id === lastSelectedId)
+
+			// if nothing is selected, select the first or last item depending on the key pressed
 			if (currentIndex === -1) {
-				const itemToSelect = event.key === 'ArrowUp' ? visibleItems.at(-1) : visibleItems.at(0)
+				let itemToSelect: EditableObjectJson | undefined
+				if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+					itemToSelect = visibleItems.at(-1)
+				} else if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+					itemToSelect = visibleItems.at(0)
+				}
+
 				if (itemToSelect) {
 					selectAndScrollIntoView(itemToSelect.id)
 				}
@@ -135,7 +143,6 @@ export default function HierarchyItem({
 					return
 				}
 
-				// TODO it doesn't work properly, need to fix
 				const isPrevItemSelected = selectedIds.includes(prevItem.id)
 				if (isPrevItemSelected) {
 					state.app?.commands.emit('remove-object-from-selection', prevItem.id)
@@ -163,7 +170,6 @@ export default function HierarchyItem({
 					return
 				}
 
-				// TODO it doesn't work properly, need to fix
 				const isNextItemSelected = selectedIds.includes(nextItem.id)
 				if (isNextItemSelected) {
 					state.app?.commands.emit('remove-object-from-selection', nextItem.id)

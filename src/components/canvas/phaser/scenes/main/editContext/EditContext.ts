@@ -585,6 +585,24 @@ export class EditContext extends TypedEventEmitter<Events> {
 		return this.selection
 	}
 
+	public addToSelection(selectables: EditableObject[]): void {
+		if (this.selection) {
+			for (const obj of selectables) {
+				this.selection.add(obj)
+			}
+		} else {
+			this.selection = this.createSelection(selectables)
+		}
+	}
+
+	public removeFromSelection(selectables: EditableObject[]): void {
+		if (this.selection) {
+			for (const obj of selectables) {
+				this.selection.remove(obj)
+			}
+		}
+	}
+
 	public createSelection(objs: EditableObject[]): Selection {
 		objs.forEach((obj) => {
 			const objName = obj.name

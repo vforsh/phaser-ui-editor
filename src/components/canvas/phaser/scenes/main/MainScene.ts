@@ -560,11 +560,9 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		const objsToSelect = state.canvas.selection.map((id) => this.objectsFactory.getObjectById(id)).filter(Boolean)
-
 		this.editContexts.switchTo(selectionContext.target)
 
-		selectionContext.setSelection([...objsToSelect, obj])
+		selectionContext.addToSelection([obj])
 	}
 
 	private removeObjectFromSelection(objId: string) {
@@ -597,12 +595,7 @@ export class MainScene extends BaseScene {
 
 		this.editContexts.switchTo(selectionContext.target)
 
-		const objsToSelect = state.canvas.selection
-			.filter((id) => id !== objId)
-			.map((id) => this.objectsFactory.getObjectById(id))
-			.filter(Boolean)
-
-		selectionContext.setSelection(objsToSelect)
+		selectionContext.removeFromSelection([obj])
 	}
 
 	private clearSelection() {
