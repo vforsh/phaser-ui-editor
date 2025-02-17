@@ -231,7 +231,7 @@ export default function HierarchyItem({
 	const itemRef = useRef<HTMLDivElement>(null)
 
 	// Only subscribe to needed properties
-	const { name, type, visible, locked } = useSnapshot(objState)
+	const objSnap = useSnapshot(objState)
 
 	const objId = objState.id
 	const isSelectedInCanvas = selectedIds.includes(objId)
@@ -251,8 +251,8 @@ export default function HierarchyItem({
 				getInitialData: () =>
 					({
 						id: objId,
-						type: type,
-						name: name,
+						type: objSnap.type,
+						name: objSnap.name,
 						isRoot: isRoot,
 						metaType: 'hierarchy-item',
 					}) satisfies HierarchyItemDragData,
@@ -295,11 +295,11 @@ export default function HierarchyItem({
 			cleanup()
 			itemRef.current?.removeEventListener('dragstart', handleDragStart)
 		}
-	}, [objId, name, isRoot, parentId])
+	}, [objId, objSnap.name, isRoot, parentId])
 
 	const getIcon = useMemo(() => {
-		return getHierarchyItemIcon(type)
-	}, [type])
+		return getHierarchyItemIcon(objSnap.type)
+	}, [objSnap.type])
 
 	const linkedAssetId = getLinkedAssetId(objState, isRoot)
 
@@ -564,17 +564,17 @@ export default function HierarchyItem({
 						className={styles.horizontalConnector}
 						style={{
 							left: (level - 1) * INDENT_SIZE + ICON_MARGIN * 2 + 1,
-							width: type === 'Container' ? INDENT_SIZE - ICON_MARGIN : INDENT_SIZE + 4,
+							width: objSnap.type === 'Container' ? INDENT_SIZE - ICON_MARGIN : INDENT_SIZE + 4,
 						}}
 					/>
 				)}
 
 				<Group gap="xs" wrap="nowrap">
-					<div style={{ width: 16, height: 16 }}>
-						{type === 'Container' && (
+					<div style={{ width: 16, height: 16, cursor: 'pointer' }}>
+						{objSnap.type === 'Container' && (
 							<div
 								onClick={(e) => {
-									if (type === 'Container') {
+									if (objSnap.type === 'Container') {
 										if (e.shiftKey) {
 											// TODO recursively toggle open/close all children
 										} else {
@@ -598,14 +598,14 @@ export default function HierarchyItem({
 						className={clsx(styles.itemName, {
 							[styles.itemNameHovered]: isHovered,
 							[styles.itemNameNormal]: !isHovered,
-							[styles.hiddenItem]: !visible,
+							[styles.hiddenItem]: !objSnap.visible,
 						})}
 						style={{
 							fontWeight: isActiveEditContext ? 'bold' : 'normal',
 							textDecoration: isActiveEditContext ? 'underline' : 'none',
 						}}
 					>
-						{name}
+						{objSnap.name}
 					</Text>
 
 					<Group gap="4px" wrap="nowrap" mr="xs">
@@ -627,46 +627,46 @@ export default function HierarchyItem({
 							</ActionIcon>
 						</Tooltip>
 
-						<Tooltip label={visible ? 'Hide' : 'Show'}>
+						<Tooltip label={objSnap.visible ? 'Hide' : 'Show'}>
 							<ActionIcon
 								variant="subtle"
 								size="sm"
 								color={theme.colors.gray[5]}
 								onClick={(e) => {
 									e.stopPropagation()
-									objState.visible = !visible
+									objState.visible = !objSnap.visible
 								}}
 								className={clsx(styles.actionButton, {
 									[styles.actionButtonVisible]: isHovered,
 								})}
 							>
-								{visible ? <Eye size={14} /> : <EyeOff size={14} />}
+								{objSnap.visible ? <Eye size={14} /> : <EyeOff size={14} />}
 							</ActionIcon>
 						</Tooltip>
 
-						<Tooltip label={locked ? 'Unlock' : 'Lock'}>
+						<Tooltip label={objSnap.locked ? 'Unlock' : 'Lock'}>
 							<ActionIcon
 								variant="subtle"
 								size="sm"
 								color={theme.colors.gray[5]}
 								onClick={(e) => {
 									e.stopPropagation()
-									objState.locked = !locked
+									objState.locked = !objSnap.locked
 								}}
 								className={clsx(styles.actionButton, {
-									[styles.actionButtonVisible]: locked || isHovered,
+									[styles.actionButtonVisible]: objSnap.locked || isHovered,
 								})}
 							>
-								{locked ? <Lock size={14} /> : <Unlock size={14} />}
+								{objSnap.locked ? <Lock size={14} /> : <Unlock size={14} />}
 							</ActionIcon>
 						</Tooltip>
 					</Group>
 				</Group>
 			</div>
 
-			{objState.type === 'Container' &&
+			{objSnap.type === 'Container' &&
 				isOpen &&
-				objState.children
+				objSnap.children
 					.map((childSnap, index, arr) => {
 						const childState = state.canvas.objectById(childSnap.id)
 						if (!childState) {
