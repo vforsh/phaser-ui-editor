@@ -1,4 +1,13 @@
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine'
+import {
+	draggable,
+	dropTargetForElements,
+	ElementDropTargetGetFeedbackArgs,
+} from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
+import {
+	EditableObjectJson,
+	EditableObjectJsonType,
+} from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { ActionIcon, Group, Text, Tooltip, useMantineTheme } from '@mantine/core'
 import { useWindowEvent } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
@@ -23,14 +32,20 @@ import {
 	Unlock,
 } from 'lucide-react'
 import { ContextMenuItemOptions, ContextMenuOptions, useContextMenu } from 'mantine-contextmenu'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Snapshot, useSnapshot } from 'valtio'
+import { ICON_MARGIN, INDENT_SIZE } from './constants'
 import styles from './HierarchyItem.module.css'
 import { HIERARCHY_ITEMS_CONTAINER_ID } from './HierarchyPanel'
 import { getHierarchyItemIcon, getLinkedAssetId } from './hierarchyUtils'
 
-const INDENT_SIZE = 26
-const ICON_MARGIN = 8
+export interface HierarchyItemDragData {
+	id: string
+	metaType: 'hierarchy-item'
+	type: EditableObjectJsonType
+	name: string
+	isRoot: boolean
+}
 
 function createContextMenuItems(obj: Snapshot<EditableObjectJson>, isRoot = false): ContextMenuItemOptions[] {
 	let dividers = 1
@@ -191,7 +206,7 @@ interface HierarchyItemProps {
 	parentId: string
 	activeEditContextId: string | undefined
 	isRoot?: boolean
-	level?: number
+	level: number
 	selectedIds: readonly string[]
 	hoveredIds: readonly string[]
 	isLastChild?: Boolean
@@ -205,7 +220,7 @@ export default function HierarchyItem({
 	isRoot = false,
 	selectedIds,
 	hoveredIds,
-	level = 0,
+	level,
 	isLastChild = false,
 	isPanelFocused = false,
 }: HierarchyItemProps) {
@@ -213,6 +228,7 @@ export default function HierarchyItem({
 	const [isOpen, setIsOpen] = useState(true)
 	const [isHovered, setIsHovered] = useState(false)
 	const { showContextMenu } = useContextMenu()
+	const itemRef = useRef<HTMLDivElement>(null)
 
 	// Only subscribe to needed properties
 	const { name, type, visible, locked } = useSnapshot(objState)
@@ -221,6 +237,65 @@ export default function HierarchyItem({
 	const isSelectedInCanvas = selectedIds.includes(objId)
 	const isHoveredInCanvas = hoveredIds.includes(objId)
 	const isActiveEditContext = activeEditContextId === objId
+
+	// Setup drag and drop
+	useEffect(() => {
+		if (!itemRef.current) {
+			return
+		}
+
+		const cleanup = combine(
+			draggable({
+				element: itemRef.current,
+				dragHandle: itemRef.current,
+				getInitialData: () =>
+					({
+						id: objId,
+						type: type,
+						name: name,
+						isRoot: isRoot,
+						metaType: 'hierarchy-item',
+					}) satisfies HierarchyItemDragData,
+			}),
+			dropTargetForElements({
+				element: itemRef.current,
+				getData: () => ({
+					id: objId,
+					type: objState.type,
+					parentId: parentId,
+					metaType: 'hierarchy-item',
+					index: Array.from(document.querySelectorAll(`[data-parent-id="${parentId}"]`)).indexOf(
+						itemRef.current!
+					),
+				}),
+				canDrop: (args: ElementDropTargetGetFeedbackArgs) => {
+					const sourceId = args.source.data.id as string
+					const isSourceRoot = args.source.data.isRoot as boolean
+
+					// Don't allow dropping root item
+					if (isSourceRoot) {
+						return false
+					}
+
+					return true
+				},
+			})
+		)
+
+		// Disable default drag preview
+		const handleDragStart = (e: DragEvent) => {
+			const emptyImg = new Image()
+			emptyImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+			e.dataTransfer?.setDragImage(emptyImg, 0, 0)
+		}
+
+		itemRef.current.addEventListener('dragstart', handleDragStart)
+
+		return () => {
+			cleanup()
+			itemRef.current?.removeEventListener('dragstart', handleDragStart)
+		}
+	}, [objId, name, isRoot, parentId])
 
 	const getIcon = useMemo(() => {
 		return getHierarchyItemIcon(type)
@@ -263,7 +338,7 @@ export default function HierarchyItem({
 	const scrollIntoView = (objId: string) => {
 		const element = document.getElementById(`hierarchy-item-${objId}`)
 		if (element) {
-			element.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+			element.scrollIntoView({ block: 'nearest', behavior: 'instant' })
 		}
 	}
 
@@ -447,9 +522,11 @@ export default function HierarchyItem({
 	return (
 		<>
 			<div
+				ref={itemRef}
 				id={`hierarchy-item-${objId}`}
 				data-obj-id={objId}
 				data-parent-id={parentId}
+				data-level={level}
 				onMouseEnter={() => setIsHovered(true)}
 				onMouseLeave={() => setIsHovered(false)}
 				onContextMenu={(e) => {
@@ -466,6 +543,7 @@ export default function HierarchyItem({
 				})}
 				style={{
 					paddingLeft: level * INDENT_SIZE + ICON_MARGIN,
+					cursor: isRoot ? 'default' : 'grab',
 				}}
 			>
 				{level > 0 &&
@@ -510,7 +588,7 @@ export default function HierarchyItem({
 									[styles.chevronHovered]: isHovered,
 								})}
 							>
-								<ChevronDown size={14} />
+								<ChevronDown size={14} style={{ marginLeft: 1 }} />
 							</div>
 						)}
 					</div>

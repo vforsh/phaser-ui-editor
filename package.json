@@ -22,6 +22,8 @@
 		"update-types": "node scripts/build-types.ts --push"
 	},
 	"dependencies": {
+		"@atlaskit/pragmatic-drag-and-drop": "^1.5.0",
+		"@atlaskit/pragmatic-drag-and-drop-react-drop-indicator": "^1.2.0",
 		"@koreez/phaser3-ninepatch": "^2.0.2",
 		"@mantine/core": "^7.6.1",
 		"@mantine/hooks": "^7.6.1",

@@ -741,32 +741,38 @@ export class MainScene extends BaseScene {
 		}
 	}
 
-	private moveObjectInHierarchy(objId: string, parentId: string, parentIndex: number) {
+	private moveObjectInHierarchy(objId: string, newParentId: string, newParentIndex: number) {
 		const obj = this.objectsFactory.getObjectById(objId)
 		if (!obj) {
 			return
 		}
 
-		const parent = this.objectsFactory.getObjectById(parentId)
+		// parent has to be a container
+		const parent = this.objectsFactory.getObjectById(newParentId)
 		if (!parent || !isObjectOfType(parent, 'Container')) {
 			return
 		}
 
-		if (obj.parentContainer === parent) {
-			const currentIndex = parent.editables.indexOf(obj)
-			if (currentIndex === parentIndex) {
+		// check if new parent is NOT an ancestor of the object
+		if (isObjectOfType(obj, 'Container')) {
+			const currentParentsIds = this.calculateObjectParentsChain(obj)
+			if (currentParentsIds.includes(newParentId)) {
+				this.logger.warn(
+					`can't move '${obj.name}' (${objId}) to its ancestor '${parent.name}' (${newParentId})`
+				)
 				return
 			}
-
-			// TODO change child index
-			this.logger.info(
-				`moving '${obj.name}' (${objId}) to index ${parentIndex} in '${parent.name}' (${parentId})`
-			)
-			return
 		}
 
-		// TODO move object to new parent
-		this.logger.info(`moving '${obj.name}' (${objId}) to '${parent.name}' (${parentId})`)
+		this.logger.info(
+			`moving '${obj.name}' (${objId}) to index ${newParentIndex} in '${parent.name}' (${newParentId})`
+		)
+
+		if (obj.parentContainer === parent) {
+			parent.moveTo(obj, newParentIndex)
+		} else {
+			parent.addAt(obj, newParentIndex)
+		}
 	}
 
 	private getObjectPath(objId: string): string {
@@ -775,21 +781,31 @@ export class MainScene extends BaseScene {
 			return ''
 		}
 
-		const pathParts = this.calculateObjPathToRoot(obj)
+		const parentNames = this.calculateObjectParentsChain(obj).map((id) => {
+			return this.objectsFactory.getObjectById(id)!.name
+		})
+
+		const pathParts = [obj.name].concat(parentNames).reverse()
 
 		return pathParts.join('/')
 	}
 
-	private calculateObjPathToRoot(obj: EditableObject): string[] {
-		const pathParts: string[] = [obj.name]
+	/**
+	 * Calculates the chain of parent objects from the given object to the root object.
+	 * If object is located at `root/grid/top-row/obj`, the result will be `['top-row', 'grid', 'root']`.
+	 * @note The chain is in reverse order, so the root object is the last element.
+	 * @returns An array of object **ids** representing the chain of parents.
+	 */
+	private calculateObjectParentsChain(obj: EditableObject): string[] {
+		const pathParts: string[] = []
 
 		let currentParent = obj.parentContainer
-		while (currentParent && currentParent !== this.root) {
-			pathParts.push(currentParent.name)
+		while (currentParent && currentParent !== this.root && currentParent instanceof EditableContainer) {
+			pathParts.push(currentParent.id)
 			currentParent = currentParent.parentContainer
 		}
 
-		return pathParts.reverse()
+		return pathParts
 	}
 
 	private addComponent(data: { componentType: EditableComponentType; objectId: string }): AddComponentResult {

@@ -25,6 +25,7 @@ export type AppCommands = {
 	'cut-object': (id: string) => void
 	'paste-object': (id: string) => void
 	'delete-objects': (ids: string[]) => void
+	'move-object-in-hierarchy': (id: string, parentId: string, parentIndex: number) => void
 	'get-object-path': (id: string) => string
 	'save-prefab': () => void
 	'discard-unsaved-prefab': () => void
