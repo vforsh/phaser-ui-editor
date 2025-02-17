@@ -3,8 +3,12 @@ import { useWindowEvent } from '@mantine/hooks'
 import { until } from '@open-draft/until'
 import { state, useSnapshot } from '@state/State'
 import { getErrorLog } from '@utils/error/utils'
+import { cloneDeep } from 'es-toolkit'
 import {
 	ChevronRight,
+	ClipboardCopy,
+	ClipboardPaste,
+	Copy,
 	Cuboid,
 	ExternalLink,
 	FileJson,
@@ -13,6 +17,7 @@ import {
 	FolderOpen,
 	Image,
 	RefreshCcw,
+	Scissors,
 	TextCursorInput,
 	Trash2,
 } from 'lucide-react'
@@ -29,6 +34,7 @@ import {
 	AssetTreePrefabData,
 	getAssetById,
 	getAssetChildren,
+	getParentAsset,
 	isAssetOfType,
 	removeAssetById,
 	type AssetTreeItemData,
@@ -247,6 +253,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 
 	const getAssetContextMenuItems = (asset: Snapshot<AssetTreeItemData>) => {
 		const canBeRenamed = canAssetBeRenamed(asset)
+		const canBeDuplicated = canBeRenamed && asset.type !== 'folder'
 
 		const menuItems: ContextMenuItemOptions[] = [
 			{
@@ -383,6 +390,72 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 					]
 				: []),
 			{ key: 'divider-2' },
+			{
+				key: 'copy',
+				title: 'Copy',
+				icon: <ClipboardCopy size={16} />,
+				onClick: async () => {
+					// TODO implement asset copy
+					console.log(`copying asset '${asset.name}'`)
+				},
+			},
+			{
+				key: 'duplicate',
+				title: 'Duplicate',
+				icon: <Copy size={16} />,
+				disabled: !canBeDuplicated,
+				onClick: async () => {
+					const parentAsset = getParentAsset(state.assets.items, asset.id)
+					if (!parentAsset) {
+						return
+					}
+
+					const { error, data } = await until(() => trpc.duplicate.mutate({ path: asset.path }))
+					if (error) {
+						logger.error(`error duplicating asset '${asset.name}' (${getErrorLog(error)})`, error)
+						// TODO show error toast
+						return
+					}
+
+					const duplicatedAssetName = path.basename(data?.path)
+
+					const duplicatedAsset = addAssetId({
+						...cloneDeep(asset),
+						name: duplicatedAssetName,
+						path: data?.path,
+					})
+
+					match(parentAsset)
+						.with({ type: 'folder' }, (folder) => {
+							folder.children.push(duplicatedAsset)
+							folder.children.sort()
+						})
+						.otherwise((parentAsset) => {
+							console.error(`unknown parent asset type '${parentAsset.type}'`, parentAsset)
+						})
+
+					console.log(`duplicated asset '${duplicatedAsset.name}'`, duplicatedAsset)
+				},
+			},
+			{
+				key: 'cut',
+				title: 'Cut',
+				icon: <Scissors size={16} />,
+				onClick: async () => {
+					// TODO implement asset cut
+					console.log(`cutting asset '${asset.name}'`)
+				},
+			},
+			{
+				key: 'paste',
+				title: 'Paste',
+				icon: <ClipboardPaste size={16} />,
+				onClick: async () => {
+					// TODO implement asset paste
+					console.log(`pasting asset '${asset.name}'`)
+				},
+			},
+			{ key: 'divider-3' },
 			{
 				key: 'rename',
 				title: 'Rename',

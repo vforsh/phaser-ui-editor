@@ -204,6 +204,22 @@ const appRouter = t.router({
 			await fse.writeJson(path, content, options)
 			return { path }
 		}),
+	duplicate: t.procedure.input(z.object({ path: absPathSchema })).mutation(async ({ input }) => {
+		const { path: filePath } = input
+
+		const isDirectory = fse.statSync(filePath).isDirectory()
+		if (isDirectory) {
+			const newPath = filePath + '-copy'
+			fse.ensureDirSync(newPath)
+			fse.copySync(filePath, newPath)
+			return { path: newPath }
+		} else {
+			const ext = path.extname(filePath)
+			const newPath = filePath.replace(ext, `-copy${ext}`)
+			fse.copyFileSync(filePath, newPath)
+			return { path: newPath }
+		}
+	}),
 	parseWebFont: t.procedure.input(z.object({ path: absPathSchema })).query(async ({ input }) => {
 		const { path } = input
 		const fontBuffer = await fse.readFile(path)

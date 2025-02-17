@@ -374,3 +374,29 @@ export function getAssetRelativePath(assetPath: string, baseDir?: string): strin
 	path.setCWD(prevCwd)
 	return relativePath
 }
+
+/**
+ * Get parent asset of a given asset
+ */
+export function getParentAsset(assets: AssetTreeItemData[], id: string): AssetTreeItemData | undefined {
+	for (const asset of assets) {
+		const children = getAssetChildren(asset)
+
+		if (!children) {
+			continue
+		}
+
+		// Check if the current asset has the child with the specified id
+		if (children.some((child) => child.id === id)) {
+			return asset
+		}
+
+		// Recursively search in children
+		const foundInChildren = getParentAsset(children, id)
+		if (foundInChildren) {
+			return foundInChildren
+		}
+	}
+
+	return undefined
+}
