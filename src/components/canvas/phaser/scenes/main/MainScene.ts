@@ -742,36 +742,41 @@ export class MainScene extends BaseScene {
 	}
 
 	private moveObjectInHierarchy(objId: string, newParentId: string, newParentIndex: number) {
+		if (objId === newParentId) {
+			this.logger.warn(`can't move object to itself`)
+			return
+		}
+
 		const obj = this.objectsFactory.getObjectById(objId)
 		if (!obj) {
 			return
 		}
 
 		// parent has to be a container
-		const parent = this.objectsFactory.getObjectById(newParentId)
-		if (!parent || !isObjectOfType(parent, 'Container')) {
+		const newParent = this.objectsFactory.getObjectById(newParentId)
+		if (!newParent || !isObjectOfType(newParent, 'Container')) {
 			return
 		}
 
 		// check if new parent is NOT an ancestor of the object
 		if (isObjectOfType(obj, 'Container')) {
-			const currentParentsIds = this.calculateObjectParentsChain(obj)
-			if (currentParentsIds.includes(newParentId)) {
+			const parentsIds = this.calculateObjectParentsChain(newParent)
+			if (parentsIds.includes(objId)) {
 				this.logger.warn(
-					`can't move '${obj.name}' (${objId}) to its ancestor '${parent.name}' (${newParentId})`
+					`can't move '${obj.name}' (${objId}) to its ancestor '${newParent.name}' (${newParentId})`
 				)
 				return
 			}
 		}
 
 		this.logger.info(
-			`moving '${obj.name}' (${objId}) to index ${newParentIndex} in '${parent.name}' (${newParentId})`
+			`moving '${obj.name}' (${objId}) to index ${newParentIndex} in '${newParent.name}' (${newParentId})`
 		)
 
-		if (obj.parentContainer === parent) {
-			parent.moveTo(obj, newParentIndex)
+		if (obj.parentContainer === newParent) {
+			newParent.moveTo(obj, newParentIndex)
 		} else {
-			parent.addAt(obj, newParentIndex)
+			newParent.addAt(obj, newParentIndex)
 		}
 	}
 
