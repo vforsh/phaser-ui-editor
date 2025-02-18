@@ -774,7 +774,9 @@ export class MainScene extends BaseScene {
 		)
 
 		if (obj.parentContainer === newParent) {
-			newParent.moveTo(obj, newParentIndex)
+			const currentIndex = obj.parentContainer.getIndex(obj)
+			const newAdjustedIndex = currentIndex < newParentIndex ? newParentIndex - 1 : newParentIndex
+			newParent.moveTo(obj, newAdjustedIndex)
 		} else {
 			newParent.addAt(obj, newParentIndex)
 		}
