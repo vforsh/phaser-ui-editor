@@ -168,6 +168,7 @@ export class MainScene extends BaseScene {
 
 		state.canvas.root = this.root.stateObj
 		state.canvas.objectById = (id: string) => this.objectsFactory.getObjectById(id)?.stateObj
+		state.canvas.siblingIds = (id: string) => this.getObjectSiblingsIds(id)
 		state.canvas.hasUnsavedChanges = false
 
 		subscribe(
@@ -463,6 +464,20 @@ export class MainScene extends BaseScene {
 
 		// if name has postfix like '_1', '_2', etc, remove it
 		return obj.name.replace(/_\d+$/, '')
+	}
+
+	private getObjectSiblingsIds(objId: string): string[] {
+		const obj = this.objectsFactory.getObjectById(objId)
+		if (!obj) {
+			return []
+		}
+
+		const parent = obj.parentContainer
+		if (parent && parent instanceof EditableContainer) {
+			return parent.editables.map((item) => item.id)
+		}
+
+		return []
 	}
 
 	private setupAppCommands() {
@@ -1846,6 +1861,7 @@ export class MainScene extends BaseScene {
 
 		state.canvas.root = null
 		state.canvas.objectById = () => undefined
+		state.canvas.siblingIds = () => []
 		state.canvas.currentPrefab = undefined
 
 		this.objectsFactory.destroy()

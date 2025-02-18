@@ -64,6 +64,7 @@ export const stateSchema = z.object({
 			.function()
 			.args(z.string())
 			.returns(z.unknown() as z.ZodType<EditableObjectJson | undefined>),
+		siblingIds: z.function().args(z.string()).returns(z.array(z.string())),
 	}),
 	inspector: z.object({
 		componentsClipboard: z.array(z.string()),
@@ -115,6 +116,7 @@ const initialStateParsed = merge(
 			selection: [],
 			root: null,
 			objectById: () => undefined,
+			siblingIds: () => [],
 		},
 		inspector: {
 			componentsClipboard: [],

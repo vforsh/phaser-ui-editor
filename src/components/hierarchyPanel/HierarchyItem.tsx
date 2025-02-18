@@ -461,7 +461,8 @@ export default function HierarchyItem({
 				case 'A':
 				case 'a':
 					if (event.ctrlKey || event.metaKey) {
-						// TODO select all items on current level
+						const siblingsIds = state.canvas.siblingIds(lastSelectedItem.id)
+						state.app?.commands.emit('select-objects', siblingsIds)
 					}
 					break
 			}
@@ -612,19 +613,28 @@ export default function HierarchyItem({
 
 			{objSnap.type === 'Container' &&
 				isOpen &&
-				objSnap.children.map((childSnap, index, arr) => (
-					<HierarchyItem
-						key={childSnap.id}
-						objState={state.canvas.objectById(childSnap.id)!}
-						parentId={objId}
-						level={level + 1}
-						selectedIds={selectedIds}
-						hoveredIds={hoveredIds}
-						isLastChild={index === arr.length - 1}
-						activeEditContextId={activeEditContextId}
-						isPanelFocused={isPanelFocused}
-					/>
-				))}
+				objSnap.children
+					.map((childSnap, index, arr) => {
+						const childObj = state.canvas.objectById(childSnap.id)
+						if (!childObj) {
+							return null
+						}
+
+						return (
+							<HierarchyItem
+								key={childSnap.id}
+								objState={childObj}
+								parentId={objId}
+								level={level + 1}
+								selectedIds={selectedIds}
+								hoveredIds={hoveredIds}
+								isLastChild={index === arr.length - 1}
+								activeEditContextId={activeEditContextId}
+								isPanelFocused={isPanelFocused}
+							/>
+						)
+					})
+					.filter(Boolean)}
 		</>
 	)
 }
