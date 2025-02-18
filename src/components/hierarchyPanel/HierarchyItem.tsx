@@ -517,8 +517,6 @@ export default function HierarchyItem({
 		state.app?.commands.emit('select-object', objId)
 	}
 
-	const displayIcons = isHovered || objSnap.locked
-
 	return (
 		<>
 			<div
