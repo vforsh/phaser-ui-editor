@@ -8,7 +8,7 @@ import {
 	EditableObjectJson,
 	EditableObjectJsonType,
 } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
-import { ActionIcon, Group, Text, Tooltip, useMantineTheme } from '@mantine/core'
+import { Group, Text, useMantineTheme } from '@mantine/core'
 import { useWindowEvent } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
 import { until } from '@open-draft/until'
@@ -21,21 +21,18 @@ import {
 	ClipboardCopy,
 	ClipboardPaste,
 	Copy,
-	Eye,
-	EyeOff,
 	FilePlus2,
 	FolderSearch,
-	Lock,
 	Scissors,
 	TextCursorInput,
 	Trash2,
-	Unlock,
 } from 'lucide-react'
 import { ContextMenuItemOptions, ContextMenuOptions, useContextMenu } from 'mantine-contextmenu'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Snapshot, useSnapshot } from 'valtio'
 import { ICON_MARGIN, INDENT_SIZE } from './constants'
 import styles from './HierarchyItem.module.css'
+import HierarchyItemIcons from './HierarchyItemIcons'
 import { HIERARCHY_ITEMS_CONTAINER_ID } from './HierarchyPanel'
 import { getHierarchyItemIcon, getLinkedAssetId } from './hierarchyUtils'
 
@@ -296,7 +293,7 @@ export default function HierarchyItem({
 		}
 	}, [objId, objSnap.name, isRoot, parentId])
 
-	const getIcon = useMemo(() => {
+	const icon = useMemo(() => {
 		return getHierarchyItemIcon(objSnap.type)
 	}, [objSnap.type])
 
@@ -520,6 +517,8 @@ export default function HierarchyItem({
 		state.app?.commands.emit('select-object', objId)
 	}
 
+	const displayIcons = isHovered || objSnap.locked
+
 	return (
 		<>
 			<div
@@ -593,7 +592,7 @@ export default function HierarchyItem({
 							</div>
 						)}
 					</div>
-					<div className={styles.icon}>{getIcon}</div>
+					<div className={styles.icon}>{icon}</div>
 					<Text
 						size="sm"
 						className={clsx(styles.itemName, {
@@ -609,59 +608,7 @@ export default function HierarchyItem({
 						{objSnap.name}
 					</Text>
 
-					<Group gap="4px" wrap="nowrap" mr="xs">
-						<Tooltip label={'Locate in Assets'}>
-							<ActionIcon
-								variant="subtle"
-								size="sm"
-								color={theme.colors.gray[5]}
-								disabled={!linkedAssetId}
-								onClick={(e) => {
-									e.stopPropagation()
-									state.assets.locateAsset?.(linkedAssetId!)
-								}}
-								className={clsx(styles.actionButton, {
-									[styles.actionButtonVisible]: isHovered,
-								})}
-							>
-								<FolderSearch size={14} />
-							</ActionIcon>
-						</Tooltip>
-
-						<Tooltip label={objSnap.visible ? 'Hide' : 'Show'}>
-							<ActionIcon
-								variant="subtle"
-								size="sm"
-								color={theme.colors.gray[5]}
-								onClick={(e) => {
-									e.stopPropagation()
-									objState.visible = !objSnap.visible
-								}}
-								className={clsx(styles.actionButton, {
-									[styles.actionButtonVisible]: isHovered,
-								})}
-							>
-								{objSnap.visible ? <Eye size={14} /> : <EyeOff size={14} />}
-							</ActionIcon>
-						</Tooltip>
-
-						<Tooltip label={objSnap.locked ? 'Unlock' : 'Lock'}>
-							<ActionIcon
-								variant="subtle"
-								size="sm"
-								color={theme.colors.gray[5]}
-								onClick={(e) => {
-									e.stopPropagation()
-									objState.locked = !objSnap.locked
-								}}
-								className={clsx(styles.actionButton, {
-									[styles.actionButtonVisible]: objSnap.locked || isHovered,
-								})}
-							>
-								{objSnap.locked ? <Lock size={14} /> : <Unlock size={14} />}
-							</ActionIcon>
-						</Tooltip>
-					</Group>
+					<HierarchyItemIcons objState={objState} isHovered={isHovered} linkedAssetId={linkedAssetId} />
 				</Group>
 			</div>
 
