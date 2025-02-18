@@ -230,7 +230,6 @@ export default function HierarchyItem({
 	const { showContextMenu } = useContextMenu()
 	const itemRef = useRef<HTMLDivElement>(null)
 
-	// Only subscribe to needed properties
 	const objSnap = useSnapshot(objState)
 
 	const objId = objState.id
@@ -301,7 +300,9 @@ export default function HierarchyItem({
 		return getHierarchyItemIcon(objSnap.type)
 	}, [objSnap.type])
 
-	const linkedAssetId = getLinkedAssetId(objState, isRoot)
+	const linkedAssetId = useMemo(() => {
+		return getLinkedAssetId(objSnap as EditableObjectJson, isRoot)
+	}, [objSnap, isRoot])
 
 	const getVisibleItems = (): EditableObjectJson[] => {
 		// find all dom elements with id starting with 'hierarchy-item-'
@@ -666,28 +667,19 @@ export default function HierarchyItem({
 
 			{objSnap.type === 'Container' &&
 				isOpen &&
-				objSnap.children
-					.map((childSnap, index, arr) => {
-						const childState = state.canvas.objectById(childSnap.id)
-						if (!childState) {
-							return null
-						}
-
-						return (
-							<HierarchyItem
-								key={childSnap.id}
-								objState={childState}
-								parentId={objId}
-								level={level + 1}
-								selectedIds={selectedIds}
-								hoveredIds={hoveredIds}
-								isLastChild={index === arr.length - 1}
-								activeEditContextId={activeEditContextId}
-								isPanelFocused={isPanelFocused}
-							/>
-						)
-					})
-					.filter(Boolean)}
+				objSnap.children.map((childSnap, index, arr) => (
+					<HierarchyItem
+						key={childSnap.id}
+						objState={state.canvas.objectById(childSnap.id)!}
+						parentId={objId}
+						level={level + 1}
+						selectedIds={selectedIds}
+						hoveredIds={hoveredIds}
+						isLastChild={index === arr.length - 1}
+						activeEditContextId={activeEditContextId}
+						isPanelFocused={isPanelFocused}
+					/>
+				))}
 		</>
 	)
 }
