@@ -208,6 +208,8 @@ interface HierarchyItemProps {
 	hoveredIds: readonly string[]
 	isLastChild?: Boolean
 	isPanelFocused?: boolean
+	onToggleOpen?: (objId: string) => void
+	openedItems: Set<string>
 }
 
 export default function HierarchyItem({
@@ -220,9 +222,10 @@ export default function HierarchyItem({
 	level,
 	isLastChild = false,
 	isPanelFocused = false,
+	onToggleOpen,
+	openedItems,
 }: HierarchyItemProps) {
 	const theme = useMantineTheme()
-	const [isOpen, setIsOpen] = useState(true)
 	const [isHovered, setIsHovered] = useState(false)
 	const { showContextMenu } = useContextMenu()
 	const itemRef = useRef<HTMLDivElement>(null)
@@ -233,6 +236,7 @@ export default function HierarchyItem({
 	const isSelectedInCanvas = selectedIds.includes(objId)
 	const isHoveredInCanvas = hoveredIds.includes(objId)
 	const isActiveEditContext = activeEditContextId === objId
+	const isOpen = openedItems.has(objId)
 
 	// Setup drag and drop
 	useEffect(() => {
@@ -320,160 +324,11 @@ export default function HierarchyItem({
 		return objs
 	}
 
-	const findParentContainer = (objId: string, objs: EditableObjectJson[]): EditableObjectJson | undefined => {
-		for (const obj of objs) {
-			if (obj.type === 'Container' && obj.children.some((child) => child.id === objId)) {
-				return obj
-			}
-		}
-	}
-
-	const selectAndScrollIntoView = (objId: string) => {
-		state.app?.commands.emit('select-object', objId)
-		scrollIntoView(objId)
-	}
-
-	const scrollIntoView = (objId: string) => {
-		const element = document.getElementById(`hierarchy-item-${objId}`)
-		if (element) {
-			element.scrollIntoView({ block: 'nearest', behavior: 'instant' })
-		}
-	}
-
-	useWindowEvent('keydown', (event) => {
-		if (!isPanelFocused) {
-			return
-		}
-
-		if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'A', 'a'].includes(event.key)) {
-			event.preventDefault()
-
-			const visibleItems = getVisibleItems()
-
-			const lastSelectedId = selectedIds.at(-1)
-			const lastSelectedIndex = visibleItems.findIndex((item) => item.id === lastSelectedId)
-
-			// if nothing is selected, select the first or last item depending on the key pressed
-			if (lastSelectedIndex === -1) {
-				let itemToSelect: EditableObjectJson | undefined
-				if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
-					itemToSelect = visibleItems.at(-1)
-				} else if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
-					itemToSelect = visibleItems.at(0)
-				}
-
-				if (itemToSelect) {
-					selectAndScrollIntoView(itemToSelect.id)
-				}
-
-				return
-			}
-
-			const lastSelectedItem = visibleItems[lastSelectedIndex]
-
-			const handleArrowUp = () => {
-				if (lastSelectedIndex <= 0) {
-					return
-				}
-
-				const prevItem = visibleItems[lastSelectedIndex - 1]
-				if (!event.shiftKey) {
-					selectAndScrollIntoView(prevItem.id)
-					return
-				}
-
-				const currentItemParent = findParentContainer(lastSelectedItem.id, visibleItems)
-				const prevItemParent = findParentContainer(prevItem.id, visibleItems)
-				const hasSameParent = currentItemParent === prevItemParent
-				if (!hasSameParent) {
-					return
-				}
-
-				const isPrevItemSelected = selectedIds.includes(prevItem.id)
-				if (isPrevItemSelected) {
-					state.app?.commands.emit('remove-object-from-selection', prevItem.id)
-				} else {
-					state.app?.commands.emit('add-object-to-selection', prevItem.id)
-					scrollIntoView(prevItem.id)
-				}
-			}
-
-			const handleArrowDown = () => {
-				if (lastSelectedIndex >= visibleItems.length - 1) {
-					return
-				}
-
-				const nextItem = visibleItems[lastSelectedIndex + 1]
-				if (!event.shiftKey) {
-					selectAndScrollIntoView(nextItem.id)
-					return
-				}
-
-				const currentItemParent = findParentContainer(lastSelectedItem.id, visibleItems)
-				const nextItemParent = findParentContainer(nextItem.id, visibleItems)
-				const hasSameParent = currentItemParent === nextItemParent
-				if (!hasSameParent) {
-					return
-				}
-
-				const isNextItemSelected = selectedIds.includes(nextItem.id)
-				if (isNextItemSelected) {
-					state.app?.commands.emit('remove-object-from-selection', nextItem.id)
-				} else {
-					state.app?.commands.emit('add-object-to-selection', nextItem.id)
-					scrollIntoView(nextItem.id)
-				}
-			}
-
-			switch (event.key) {
-				case 'ArrowUp':
-					handleArrowUp()
-					break
-
-				case 'ArrowDown':
-					handleArrowDown()
-					break
-
-				case 'ArrowRight':
-					if (lastSelectedItem.type === 'Container') {
-						if (lastSelectedItem.id === objId && !isOpen) {
-							setIsOpen(true)
-						}
-					} else {
-						// TODO find the parent container of the current item
-						// then find the next sibling of the parent container and select it
-					}
-					break
-
-				case 'ArrowLeft':
-					if (lastSelectedItem.type === 'Container') {
-						if (lastSelectedItem.id === objId && isOpen) {
-							setIsOpen(false)
-						}
-					} else {
-						const parentContainer = findParentContainer(lastSelectedItem.id, visibleItems)
-						if (parentContainer) {
-							selectAndScrollIntoView(parentContainer.id)
-						}
-					}
-					break
-
-				case 'A':
-				case 'a':
-					if (event.ctrlKey || event.metaKey) {
-						const siblingsIds = state.canvas.siblingIds(lastSelectedItem.id)
-						state.app?.commands.emit('select-objects', siblingsIds)
-					}
-					break
-			}
-		}
-	})
-
 	const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
 		if (e.shiftKey) {
 			const lastSelectedId = selectedIds.at(-1)
 			if (!lastSelectedId) {
-				selectAndScrollIntoView(objId)
+				state.app?.commands.emit('select-object', objId)
 				return
 			}
 
@@ -516,6 +371,16 @@ export default function HierarchyItem({
 		}
 
 		state.app?.commands.emit('select-object', objId)
+	}
+
+	const handleToggleOpen = (e: React.MouseEvent) => {
+		if (objSnap.type === 'Container') {
+			if (e.shiftKey) {
+				// TODO recursively toggle open/close all children
+			} else {
+				onToggleOpen?.(objId)
+			}
+		}
 	}
 
 	return (
@@ -572,15 +437,7 @@ export default function HierarchyItem({
 					<div style={{ width: 16, height: 16, cursor: 'pointer' }}>
 						{objSnap.type === 'Container' && (
 							<div
-								onClick={(e) => {
-									if (objSnap.type === 'Container') {
-										if (e.shiftKey) {
-											// TODO recursively toggle open/close all children
-										} else {
-											setIsOpen((prev) => !prev)
-										}
-									}
-								}}
+								onClick={handleToggleOpen}
 								className={clsx(styles.chevron, {
 									[styles.chevronOpen]: isOpen,
 									[styles.chevronClosed]: !isOpen,
@@ -631,6 +488,8 @@ export default function HierarchyItem({
 								isLastChild={index === arr.length - 1}
 								activeEditContextId={activeEditContextId}
 								isPanelFocused={isPanelFocused}
+								onToggleOpen={onToggleOpen}
+								openedItems={openedItems}
 							/>
 						)
 					})

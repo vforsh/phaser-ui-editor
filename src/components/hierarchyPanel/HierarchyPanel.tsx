@@ -2,6 +2,7 @@ import { DropIndicator } from '@atlaskit/pragmatic-drag-and-drop-react-drop-indi
 import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine'
 import { monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
 import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
+import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { Divider, Paper, ScrollArea, Stack } from '@mantine/core'
 import { useWindowEvent } from '@mantine/hooks'
 import { state, useSnapshot } from '@state/State'
@@ -25,6 +26,46 @@ interface DropPreview {
 	top: number
 }
 
+// Helper functions for keyboard handling
+function getVisibleItems(): EditableObjectJson[] {
+	// find all dom elements with id starting with 'hierarchy-item-'
+	const items = document.querySelectorAll(
+		`#${HIERARCHY_ITEMS_CONTAINER_ID} [id^="hierarchy-item-"]`
+	) as NodeListOf<HTMLDivElement>
+
+	const objs: EditableObjectJson[] = []
+
+	for (const item of items) {
+		const objId = item.dataset.objId
+		const obj = state.canvas.objectById(objId!)
+		if (obj) {
+			objs.push(obj)
+		}
+	}
+
+	return objs
+}
+
+function findParentContainer(objId: string, objs: EditableObjectJson[]): EditableObjectJson | undefined {
+	for (const obj of objs) {
+		if (obj.type === 'Container' && obj.children.some((child) => child.id === objId)) {
+			return obj
+		}
+	}
+}
+
+function selectAndScrollIntoView(objId: string) {
+	state.app?.commands.emit('select-object', objId)
+	scrollIntoView(objId)
+}
+
+function scrollIntoView(objId: string) {
+	const element = document.getElementById(`hierarchy-item-${objId}`)
+	if (element) {
+		element.scrollIntoView({ block: 'nearest', behavior: 'instant' })
+	}
+}
+
 export default function HierarchyPanel(props: HierarchyPanelProps) {
 	const { logger } = props
 
@@ -32,11 +73,48 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 	const scrollAreaRef = useRef<HTMLDivElement>(null)
 	const [isFocused, setIsFocused] = useState(document.activeElement === panelRef.current)
 	const [dropPreview, setDropPreview] = useState<DropPreview | null>(null)
+	const [openedItems, setOpenedItems] = useState<Set<string>>(new Set())
 	const canvasSnap = useSnapshot(state.canvas)
 	const rootState = canvasSnap.root && state.canvas.objectById(canvasSnap.root.id)
 
 	if (rootState && rootState.type !== 'Container') {
 		throw new Error('Root must be a container')
+	}
+
+	// Update openedItems when rootState changes
+	useEffect(() => {
+		if (!rootState) {
+			return
+		}
+
+		const containersIds = new Set<string>()
+
+		const addContainersRecursively = (obj: EditableObjectJson) => {
+			if (obj.type === 'Container') {
+				containersIds.add(obj.id)
+				obj.children.forEach((child) => {
+					const childObj = state.canvas.objectById(child.id)
+					if (childObj) {
+						addContainersRecursively(childObj)
+					}
+				})
+			}
+		}
+
+		addContainersRecursively(rootState)
+		setOpenedItems(containersIds)
+	}, [rootState])
+
+	const handleToggleOpen = (objId: string) => {
+		setOpenedItems((prev) => {
+			const next = new Set(prev)
+			if (next.has(objId)) {
+				next.delete(objId)
+			} else {
+				next.add(objId)
+			}
+			return next
+		})
 	}
 
 	useWindowEvent('keydown', (event) => {
@@ -56,13 +134,143 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 
 		if (event.key === 'Delete' || event.key === 'Backspace') {
 			event.preventDefault()
-
 			state.app?.commands.emit('delete-objects', canvasSnap.selection as string[])
+			return
 		}
 
 		if (event.key === 'Escape') {
 			event.preventDefault()
 			// TODO focus on the canvas
+			return
+		}
+
+		if (event.key === 'F2') {
+			event.preventDefault()
+
+			const lastSelectedId = canvasSnap.selection.at(-1)
+			if (!lastSelectedId) {
+				return
+			}
+
+			// TODO start renaming the HierarchyItem with the last selected item id
+			return
+		}
+
+		if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'A', 'a'].includes(event.key)) {
+			event.preventDefault()
+
+			const visibleItems = getVisibleItems()
+			const lastSelectedId = canvasSnap.selection.at(-1)
+			const lastSelectedIndex = visibleItems.findIndex((item) => item.id === lastSelectedId)
+
+			// if nothing is selected, select the first or last item depending on the key pressed
+			if (lastSelectedIndex === -1) {
+				let itemToSelect: EditableObjectJson | undefined
+				if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+					itemToSelect = visibleItems.at(-1)
+				} else if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+					itemToSelect = visibleItems.at(0)
+				}
+
+				if (itemToSelect) {
+					selectAndScrollIntoView(itemToSelect.id)
+				}
+
+				return
+			}
+
+			const lastSelectedItem = visibleItems[lastSelectedIndex]
+
+			const handleArrowUp = () => {
+				if (lastSelectedIndex <= 0) {
+					return
+				}
+
+				const prevItem = visibleItems[lastSelectedIndex - 1]
+				if (!event.shiftKey) {
+					selectAndScrollIntoView(prevItem.id)
+					return
+				}
+
+				const currentItemParent = findParentContainer(lastSelectedItem.id, visibleItems)
+				const prevItemParent = findParentContainer(prevItem.id, visibleItems)
+				const hasSameParent = currentItemParent === prevItemParent
+				if (!hasSameParent) {
+					return
+				}
+
+				const isPrevItemSelected = canvasSnap.selection.includes(prevItem.id)
+				if (isPrevItemSelected) {
+					state.app?.commands.emit('remove-object-from-selection', prevItem.id)
+				} else {
+					state.app?.commands.emit('add-object-to-selection', prevItem.id)
+					scrollIntoView(prevItem.id)
+				}
+			}
+
+			const handleArrowDown = () => {
+				if (lastSelectedIndex >= visibleItems.length - 1) {
+					return
+				}
+
+				const nextItem = visibleItems[lastSelectedIndex + 1]
+				if (!event.shiftKey) {
+					selectAndScrollIntoView(nextItem.id)
+					return
+				}
+
+				const currentItemParent = findParentContainer(lastSelectedItem.id, visibleItems)
+				const nextItemParent = findParentContainer(nextItem.id, visibleItems)
+				const hasSameParent = currentItemParent === nextItemParent
+				if (!hasSameParent) {
+					return
+				}
+
+				const isNextItemSelected = canvasSnap.selection.includes(nextItem.id)
+				if (isNextItemSelected) {
+					state.app?.commands.emit('remove-object-from-selection', nextItem.id)
+				} else {
+					state.app?.commands.emit('add-object-to-selection', nextItem.id)
+					scrollIntoView(nextItem.id)
+				}
+			}
+
+			switch (event.key) {
+				case 'ArrowUp':
+					handleArrowUp()
+					break
+
+				case 'ArrowDown':
+					handleArrowDown()
+					break
+
+				case 'ArrowRight': {
+					if (lastSelectedItem.type === 'Container' && !openedItems.has(lastSelectedItem.id)) {
+						handleToggleOpen(lastSelectedItem.id)
+					}
+					break
+				}
+
+				case 'ArrowLeft': {
+					if (lastSelectedItem.type === 'Container' && openedItems.has(lastSelectedItem.id)) {
+						handleToggleOpen(lastSelectedItem.id)
+					} else {
+						const parentContainer = findParentContainer(lastSelectedItem.id, visibleItems)
+						if (parentContainer) {
+							selectAndScrollIntoView(parentContainer.id)
+						}
+					}
+					break
+				}
+
+				case 'A':
+				case 'a':
+					if (event.ctrlKey || event.metaKey) {
+						const siblingsIds = state.canvas.siblingIds(lastSelectedItem.id)
+						state.app?.commands.emit('select-objects', siblingsIds)
+					}
+					break
+			}
 		}
 	})
 
@@ -226,6 +434,8 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 								isRoot={true}
 								activeEditContextId={canvasSnap.activeContextId}
 								isPanelFocused={isFocused}
+								onToggleOpen={handleToggleOpen}
+								openedItems={openedItems}
 							/>
 						)}
 						{dropPreview && (
