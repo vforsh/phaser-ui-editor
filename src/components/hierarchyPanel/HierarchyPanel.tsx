@@ -74,6 +74,7 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 	const [isFocused, setIsFocused] = useState(document.activeElement === panelRef.current)
 	const [dropPreview, setDropPreview] = useState<DropPreview | null>(null)
 	const [openedItems, setOpenedItems] = useState<Set<string>>(new Set())
+	const [itemToRename, setItemToRename] = useState<string | null>(null)
 	const canvasSnap = useSnapshot(state.canvas)
 	const rootState = canvasSnap.root && state.canvas.objectById(canvasSnap.root.id)
 
@@ -117,6 +118,19 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 		})
 	}
 
+	const startRename = (objId: string) => {
+		setItemToRename(objId)
+	}
+
+	const completeRename = (objId: string, newName: string) => {
+		const objState = state.canvas.objectById(objId)
+		if (objState) {
+			objState.name = newName
+		}
+
+		setItemToRename(null)
+	}
+
 	useWindowEvent('keydown', (event) => {
 		if (!isFocused) {
 			return
@@ -146,14 +160,12 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 
 		if (event.key === 'F2') {
 			event.preventDefault()
-
+			
+			// Get the last selected object
 			const lastSelectedId = canvasSnap.selection.at(-1)
-			if (!lastSelectedId) {
-				return
+			if (lastSelectedId) {
+				startRename(lastSelectedId)
 			}
-
-			// TODO start renaming the HierarchyItem with the last selected item id
-			return
 		}
 
 		if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'A', 'a'].includes(event.key)) {
@@ -436,6 +448,8 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 								isPanelFocused={isFocused}
 								onToggleOpen={handleToggleOpen}
 								openedItems={openedItems}
+								itemToRename={itemToRename}
+								onRenameComplete={completeRename}
 							/>
 						)}
 						{dropPreview && (

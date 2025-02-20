@@ -9,7 +9,6 @@ import {
 	EditableObjectJsonType,
 } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { Group, Text, useMantineTheme } from '@mantine/core'
-import { useWindowEvent } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
 import { until } from '@open-draft/until'
 import { state, unproxy } from '@state/State'
@@ -210,6 +209,8 @@ interface HierarchyItemProps {
 	isPanelFocused?: boolean
 	onToggleOpen?: (objId: string) => void
 	openedItems: Set<string>
+	itemToRename: string | null
+	onRenameComplete: (objId: string, newName: string) => void
 }
 
 export default function HierarchyItem({
@@ -224,11 +225,14 @@ export default function HierarchyItem({
 	isPanelFocused = false,
 	onToggleOpen,
 	openedItems,
+	itemToRename,
+	onRenameComplete,
 }: HierarchyItemProps) {
 	const theme = useMantineTheme()
 	const [isHovered, setIsHovered] = useState(false)
 	const { showContextMenu } = useContextMenu()
 	const itemRef = useRef<HTMLDivElement>(null)
+	const inputRef = useRef<HTMLInputElement>(null)
 
 	const objSnap = useSnapshot(objState)
 
@@ -237,6 +241,8 @@ export default function HierarchyItem({
 	const isHoveredInCanvas = hoveredIds.includes(objId)
 	const isActiveEditContext = activeEditContextId === objId
 	const isOpen = openedItems.has(objId)
+
+	const [editValue, setEditValue] = useState('')
 
 	// Setup drag and drop
 	useEffect(() => {
@@ -383,6 +389,52 @@ export default function HierarchyItem({
 		}
 	}
 
+	const handleRenameSubmit = (e: React.FormEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+
+		const isValidName = /^[a-zA-Z0-9_-]+$/.test(editValue)
+		if (!isValidName || editValue.trim() === '') {
+			return
+		}
+
+		onRenameComplete(objId, editValue)
+	}
+
+	const handleRenameCancel = () => {
+		onRenameComplete(objId, objSnap.name)
+	}
+
+	const handleRenameKeyDown = (e: React.KeyboardEvent) => {
+		e.stopPropagation()
+
+		if (e.key === 'Escape') {
+			handleRenameCancel()
+		}
+	}
+
+	const handleRenameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setEditValue(e.target.value)
+	}
+
+	const isValidInput = /^[a-zA-Z0-9_-]+$/.test(editValue)
+
+	useEffect(() => {
+		if (itemToRename === objId) {
+			setEditValue(objSnap.name)
+		}
+	}, [itemToRename, objId, objSnap.name])
+
+	useEffect(() => {
+		if (itemToRename === objId && inputRef.current) {
+			// Use a small timeout to ensure the input is mounted and focused
+			const timeoutId = setTimeout(() => {
+				inputRef.current?.select()
+			}, 50)
+			return () => clearTimeout(timeoutId)
+		}
+	}, [itemToRename, objId])
+
 	return (
 		<>
 			<div
@@ -449,20 +501,49 @@ export default function HierarchyItem({
 						)}
 					</div>
 					<div className={styles.icon}>{icon}</div>
-					<Text
-						size="sm"
-						className={clsx(styles.itemName, {
-							[styles.itemNameHovered]: isHovered,
-							[styles.itemNameNormal]: !isHovered,
-							[styles.hiddenItem]: !objSnap.visible,
-						})}
-						style={{
-							fontWeight: isActiveEditContext ? 'bold' : 'normal',
-							textDecoration: isActiveEditContext ? 'underline' : 'none',
-						}}
-					>
-						{objSnap.name}
-					</Text>
+					{itemToRename === objId ? (
+						<form onSubmit={handleRenameSubmit} style={{ flex: 1, margin: 0, padding: 0, display: 'flex' }}>
+							<input
+								ref={inputRef}
+								value={editValue}
+								onChange={handleRenameChange}
+								onKeyDown={handleRenameKeyDown}
+								onBlur={handleRenameCancel}
+								autoFocus
+								style={{
+									backgroundColor: 'transparent',
+									border: 'none',
+									width: '100%',
+									borderRadius: '3px',
+									outline: isValidInput ? 'none' : '1px solid red',
+									padding: '2px 0px',
+									margin: 0,
+									fontSize: '14px',
+									lineHeight: '20px',
+									color: 'inherit',
+									minHeight: '24px',
+								}}
+							/>
+						</form>
+					) : (
+						<Text
+							size="sm"
+							className={clsx(styles.itemName, {
+								[styles.itemNameHovered]: isHovered,
+								[styles.itemNameNormal]: !isHovered,
+								[styles.hiddenItem]: !objSnap.visible,
+							})}
+							style={{
+								fontWeight: isActiveEditContext ? 'bold' : 'normal',
+								textDecoration: isActiveEditContext ? 'underline' : 'none',
+								padding: '2px 0',
+								minHeight: '24px',
+								lineHeight: '20px',
+							}}
+						>
+							{objSnap.name}
+						</Text>
+					)}
 
 					<HierarchyItemIcons objState={objState} isHovered={isHovered} linkedAssetId={linkedAssetId} />
 				</Group>
@@ -490,6 +571,8 @@ export default function HierarchyItem({
 								isPanelFocused={isPanelFocused}
 								onToggleOpen={onToggleOpen}
 								openedItems={openedItems}
+								itemToRename={itemToRename}
+								onRenameComplete={onRenameComplete}
 							/>
 						)
 					})
