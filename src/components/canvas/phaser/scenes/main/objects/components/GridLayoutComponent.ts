@@ -140,8 +140,7 @@ export class GridLayoutComponent extends BaseEditableComponent<GridLayoutCompone
 	override onAdded(parent: EditableObject): void {
 		super.onAdded(parent)
 
-		this._obj.events.on('editable-added', this.updateLayout, this, this.destroySignal)
-		this._obj.events.on('editable-removed', this.updateLayout, this, this.destroySignal)
+		this._obj.events.on('hierarchy-changed', this.updateLayout, this, this.destroySignal)
 
 		this.updateLayout()
 	}
