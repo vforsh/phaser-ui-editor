@@ -1,9 +1,6 @@
 import { Main } from '../Main'
 
 declare global {
-	// whether we are in bolt.dev environment or not
-	let BOLT: boolean
-
 	interface Window {
 		gameInstance: Main
 		__Phaser3ExtensionsApplied: boolean
@@ -28,6 +25,10 @@ declare global {
 	}
 
 	interface Array<T> {
-		at(index: number): T
+		at(index: number): T | undefined
+	}
+
+	interface ReadonlyArray<T> {
+		at(index: number): T | undefined
 	}
 }

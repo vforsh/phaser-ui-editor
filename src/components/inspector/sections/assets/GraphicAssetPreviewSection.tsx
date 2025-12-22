@@ -105,12 +105,6 @@ export function GraphicAssetPreviewSection({ data }: GraphicAssetPreviewSectionP
 
 	// fetch image url
 	useEffect(() => {
-		// TODO remove later
-		if (BOLT) {
-			setImageUrl(getImageUrlForBolt())
-			return
-		}
-
 		const ac = new AbortController()
 
 		const fetchData = async () => {
@@ -135,12 +129,6 @@ export function GraphicAssetPreviewSection({ data }: GraphicAssetPreviewSectionP
 
 	// fetch image file size
 	useEffect(() => {
-		// TODO remove later
-		if (BOLT) {
-			setImageFileSize(randomInt(1000, 1000000))
-			return
-		}
-
 		const ac = new AbortController()
 
 		const fetchData = async () => {

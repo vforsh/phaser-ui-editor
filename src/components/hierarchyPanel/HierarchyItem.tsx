@@ -205,7 +205,7 @@ interface HierarchyItemProps {
 	level: number
 	selectedIds: readonly string[]
 	hoveredIds: readonly string[]
-	isLastChild?: Boolean
+	isLastChild?: boolean
 	isPanelFocused?: boolean
 	onToggleOpen?: (objId: string) => void
 	openedItems: Set<string>
