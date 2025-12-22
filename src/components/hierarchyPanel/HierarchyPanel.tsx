@@ -67,8 +67,6 @@ function scrollIntoView(objId: string) {
 }
 
 export default function HierarchyPanel(props: HierarchyPanelProps) {
-	const { logger } = props
-
 	const panelRef = useRef<HTMLDivElement>(null)
 	const scrollAreaRef = useRef<HTMLDivElement>(null)
 	const [isFocused, setIsFocused] = useState(document.activeElement === panelRef.current)
@@ -421,7 +419,11 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 					title={canvasSnap.currentPrefab?.name || 'Hierarchy'}
 					hasUnsavedChanges={canvasSnap.hasUnsavedChanges}
 					onSave={() => state.app?.commands.emit('save-prefab')}
-					onDiscard={() => state.app?.commands.emit('discard-unsaved-prefab')}
+					onDiscard={() => {
+						if (confirm('Are you sure you want to discard all unsaved changes?')) {
+							state.app?.commands.emit('discard-unsaved-prefab')
+						}
+					}}
 				/>
 				<Divider />
 				<ScrollArea

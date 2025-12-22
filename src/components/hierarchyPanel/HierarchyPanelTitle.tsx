@@ -18,7 +18,7 @@ export const HierarchyPanelTitle = ({ title, hasUnsavedChanges, onSave, onDiscar
 				{hasUnsavedChanges ? ' *' : ''}
 			</Title>
 			<Group gap="xs">
-				{/* <Tooltip label="Discard unsaved changes">
+				<Tooltip label="Discard unsaved changes">
 					<ActionIcon
 						variant="subtle"
 						size="md"
@@ -28,7 +28,7 @@ export const HierarchyPanelTitle = ({ title, hasUnsavedChanges, onSave, onDiscar
 					>
 						<Undo2 size={14} />
 					</ActionIcon>
-				</Tooltip> */}
+				</Tooltip>
 				<Tooltip label="Save">
 					<ActionIcon
 						variant="subtle"

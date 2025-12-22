@@ -511,6 +511,7 @@ export class MainScene extends BaseScene {
 		appCommands.on('move-object-in-hierarchy', this.moveObjectInHierarchy, this, false, signal)
 		appCommands.on('get-object-path', this.getObjectPath, this, false, signal)
 		appCommands.on('save-prefab', this.savePrefab, this, false, signal)
+		appCommands.on('discard-unsaved-prefab', this.restart, this, false, signal)
 	}
 
 	private selectObject(objId: string) {
