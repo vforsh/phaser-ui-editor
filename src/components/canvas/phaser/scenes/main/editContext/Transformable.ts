@@ -1,4 +1,5 @@
 import { EditableObject } from '../objects/EditableObject'
+import { getEditableWorldBounds } from './object-bounds'
 
 export function calculateBounds(objects: EditableObject[], rect?: Phaser.Geom.Rectangle): Phaser.Geom.Rectangle {
 	if (objects.length === 1) {
@@ -7,12 +8,21 @@ export function calculateBounds(objects: EditableObject[], rect?: Phaser.Geom.Re
 
 	const point = new Phaser.Math.Vector2()
 	const offset = new Phaser.Math.Vector2()
-	let left = Infinity,
-		right = -Infinity,
-		top = Infinity,
-		bottom = -Infinity
+	let left = Infinity
+	let right = -Infinity
+	let top = Infinity
+	let bottom = -Infinity
 
 	objects.forEach((obj) => {
+		if (obj.kind === 'Container') {
+			const bounds = getEditableWorldBounds(obj)
+			left = Math.min(left, bounds.left)
+			right = Math.max(right, bounds.right)
+			top = Math.min(top, bounds.top)
+			bottom = Math.max(bottom, bounds.bottom)
+			return
+		}
+
 		const sin = Math.sin(obj.rotation)
 		const cos = Math.cos(obj.rotation)
 		const originX = obj.getData('originX') ?? obj.originX
@@ -63,6 +73,10 @@ export function calculateBounds(objects: EditableObject[], rect?: Phaser.Geom.Re
 }
 
 export function calculateBoundsSingle(obj: EditableObject, rect?: Phaser.Geom.Rectangle): Phaser.Geom.Rectangle {
+	if (obj.kind === 'Container') {
+		return getEditableWorldBounds(obj, rect)
+	}
+
 	const originX = obj.getData('originX') ?? obj.originX
 	const originY = obj.getData('originY') ?? obj.originY
 	const w = obj.displayWidth

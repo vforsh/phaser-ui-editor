@@ -4,10 +4,11 @@ import { Logger } from 'tslog'
 import { ReadonlyDeep } from 'type-fest'
 import { signalFromEvent } from '../../../robowhale/utils/events/create-abort-signal-from-event'
 import { EditableObject } from '../objects/EditableObject'
-import { Selection } from './Selection'
-import { canChangeOrigin } from './Transformable'
 import arrowsHorizontalCursor from './cursors/arrows-horizontal.svg?raw'
 import arrowsLeftDownCursor from './cursors/arrows-left-down.svg?raw'
+import { Selection } from './Selection'
+import { getSelectionFrame, type SelectionFrame } from './selection-frame'
+import { canChangeOrigin } from './Transformable'
 
 type Events = {
 	'start-follow': (selection: Selection) => void
@@ -275,7 +276,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	 * As of now rotation is done separately for each object in the selection.
 	 * @note Hold SHIFT to change rotation in 15 degrees increments.
 	 */
-	private rotate(knob: Phaser.GameObjects.Image, pointer: Phaser.Input.Pointer, x: number, y: number) {
+	private rotate(knob: Phaser.GameObjects.Image, pointer: Phaser.Input.Pointer, _x: number, _y: number) {
 		const selection = this.target
 		if (!selection) {
 			return
@@ -370,7 +371,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	 * @note Resizing is done by changing the `displayWidth` and `displayHeight` of the objects.
 	 * @note Hold SHIFT to keep the aspect ratio.
 	 */
-	private resize(knob: Phaser.GameObjects.Image, pointer: Phaser.Input.Pointer, x: number, y: number) {
+	private resize(knob: Phaser.GameObjects.Image, pointer: Phaser.Input.Pointer, _x: number, _y: number) {
 		const selection = this.target
 		if (!selection) {
 			return
@@ -449,9 +450,9 @@ export class TransformControls extends Phaser.GameObjects.Container {
 				const childOffsetY = -obj.displayHeight * (newOrigin[1] - 0.5)
 				obj.list.forEach((child) => {
 					if ('setPosition' in child && typeof child.setPosition === 'function') {
-						// @ts-expect-error
+						// @ts-expect-error store original position on untyped Phaser child
 						child.setData('originalPosition', { x: child.x, y: child.y })
-						// @ts-expect-error
+						// @ts-expect-error move untyped Phaser child position
 						child.setPosition(child.x + childOffsetX / obj.scaleX, child.y + childOffsetY / obj.scaleY)
 					}
 				})
@@ -531,7 +532,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 						// manually restore container origin by moving children back to their original positions
 						obj.list.forEach((child) => {
 							const originalPosition = child.getData('originalPosition')
-							// @ts-expect-error
+							// @ts-expect-error restore untyped Phaser child position
 							child.setPosition(originalPosition.x, originalPosition.y)
 						})
 
@@ -613,7 +614,8 @@ export class TransformControls extends Phaser.GameObjects.Container {
 
 	private createOriginKnobTexture(textureKey: string) {
 		const resolution = this.options.originKnob.resolution
-		let { radius, lineThickness, lineColor } = this.options.originKnob
+		let { radius, lineThickness } = this.options.originKnob
+		const { lineColor } = this.options.originKnob
 		radius *= resolution
 		lineThickness *= resolution
 
@@ -766,27 +768,23 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	}
 
 	private adjustToSelection(selection: Selection): void {
-		this.adjustToSelectionSize(selection)
-		this.adjustToSelectionOrigin(selection)
+		const frame = getSelectionFrame(selection)
+
+		this.adjustToSelectionSize(frame)
+		this.adjustToSelectionOrigin(frame)
 		this.adjustToSelectionAngle(selection)
-		this.adjustToSelectionPosition(selection)
+		this.adjustToSelectionPosition(frame)
 	}
 
-	private adjustToSelectionSize(selection: Selection): void {
-		this.resizeBorders(selection)
+	private adjustToSelectionSize(frame: SelectionFrame): void {
+		this.resizeBorders(frame)
 		this.alignResizeKnobs()
 		this.alignRotateKnobs()
 	}
 
-	private resizeBorders(selection: Selection) {
-		let width = selection.width
-		let height = selection.height
-
-		if (selection.count === 1) {
-			const obj = selection.objects[0]
-			width = obj.displayWidth
-			height = obj.displayHeight
-		}
+	private resizeBorders(frame: SelectionFrame) {
+		const width = frame.width
+		const height = frame.height
 
 		// top border has origin at (0, 0.5)
 		// so when we increase its width, it expands to the right
@@ -837,24 +835,11 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		this.bottomRightRotateKnob.y = this.bottomRightKnob.y
 	}
 
-	private adjustToSelectionOrigin(selection: Selection): void {
-		let width = selection.width
-		let height = selection.height
-		let originX = selection.originX
-		let originY = selection.originY
-
-		if (selection.count === 1) {
-			const obj = selection.objects[0]
-			width = obj.displayWidth
-			height = obj.displayHeight
-			originX = obj.originX
-			originY = obj.originY
-		}
-
-		const offsetX = -width * originX
-		const offsetY = -height * originY
+	private adjustToSelectionOrigin(frame: SelectionFrame): void {
+		const offsetX = -frame.width * frame.originX
+		const offsetY = -frame.height * frame.originY
 		this.innerContainer.setPosition(offsetX, offsetY)
-		this.originKnob.setPosition(width * originX, height * originY)
+		this.originKnob.setPosition(frame.width * frame.originX, frame.height * frame.originY)
 	}
 
 	private adjustToSelectionAngle(selection: Selection): void {
@@ -866,16 +851,11 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		}
 	}
 
-	private adjustToSelectionPosition(selection: Selection): void {
-		if (selection.count === 1) {
-			const obj = selection.objects[0]
-			this.setPosition(obj.x, obj.y)
-		} else {
-			this.setPosition(selection.x, selection.y)
-		}
+	private adjustToSelectionPosition(frame: SelectionFrame): void {
+		this.setPosition(frame.positionX, frame.positionY)
 	}
 
-	private onUpdate(time: number, deltaMs: number): void {
+	private onUpdate(_time: number, _deltaMs: number): void {
 		if (!this.target) {
 			return
 		}
