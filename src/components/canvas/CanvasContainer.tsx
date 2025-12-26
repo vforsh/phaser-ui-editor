@@ -1,14 +1,10 @@
 import { Center, Text } from '@mantine/core'
 import { useMemo, useRef, useState } from 'react'
-import { useAppCommands, useAppEvents } from '../../di/DiContext'
+import { useAppCommands, useAppEvents, useUndoHub } from '../../di/DiContext'
 import { state, useSnapshot } from '../../state/State'
 import { isDraggableAsset, type AssetTreeItemData } from '../../types/assets'
 import AlignmentControls from './AlignmentControls'
 import { Canvas } from './Canvas'
-
-const MIN_ZOOM = 0.1
-const MAX_ZOOM = 5
-const ZOOM_STEP = 0.1
 
 interface DropPreview {
 	x: number
@@ -20,11 +16,11 @@ interface DropPreview {
 export default function CanvasContainer() {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [isDragOver, setIsDragOver] = useState(false)
-	const [zoom, setZoom] = useState(1)
 	const [dropPreview, setDropPreview] = useState<DropPreview | null>(null)
 	const snap = useSnapshot(state)
 	const appEvents = useAppEvents()
 	const appCommands = useAppCommands()
+	const undoHub = useUndoHub()
 
 	const handleDragOver = (e: React.DragEvent) => {
 		e.preventDefault()
@@ -45,7 +41,7 @@ export default function CanvasContainer() {
 					})
 				}
 			}
-		} catch (error) {
+		} catch {
 			// Invalid drag data, ignore
 		}
 	}
@@ -77,26 +73,9 @@ export default function CanvasContainer() {
 					position: { x, y },
 				})
 			}
-		} catch (error) {
+		} catch {
 			console.error('Invalid drop data')
 		}
-	}
-
-	const handleZoomIn = () => {
-		setZoom((prev) => Math.min(prev + ZOOM_STEP, MAX_ZOOM))
-	}
-
-	const handleZoomOut = () => {
-		setZoom((prev) => Math.max(prev - ZOOM_STEP, MIN_ZOOM))
-	}
-
-	const handleZoomReset = () => {
-		setZoom(1)
-	}
-
-	const handleZoomFit = () => {
-		// TODO: Implement fit to view logic
-		setZoom(1)
 	}
 
 	// use memo to prevent re-rendering of the canvas element
@@ -111,9 +90,10 @@ export default function CanvasContainer() {
 				projectConfig={snap.project}
 				appEvents={appEvents}
 				appCommands={appCommands}
+				undoHub={undoHub}
 			/>
 		)
-	}, [snap.project, snap.assets, appEvents, appCommands])
+	}, [snap.project, snap.assets, appEvents, appCommands, undoHub])
 
 	return (
 		<div

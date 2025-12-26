@@ -16,6 +16,8 @@ import EditorLayout from './components/EditorLayout'
 import { DiProvider } from './di/DiContext'
 import { createContainer } from './di/createContainer'
 import { TOKENS } from './di/tokens'
+import { UndoHub } from './history/UndoHub'
+import { state } from './state/State'
 
 const theme = createTheme({
 	primaryColor: 'blue',
@@ -37,6 +39,12 @@ function App() {
 
 		container.registerInstance(TOKENS.AppEvents, new TypedEventEmitter<AppEvents>())
 		container.registerInstance(TOKENS.AppCommands, new CommandEmitter<AppCommands>('app'))
+		const undoHub = new UndoHub({
+			onChange: (historyState) => {
+				state.app.history = historyState
+			},
+		})
+		container.registerInstance(TOKENS.UndoHub, undoHub)
 
 		return container
 	}, [])

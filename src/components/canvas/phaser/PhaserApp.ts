@@ -7,9 +7,10 @@ import { urlParams } from '@url-params'
 import { getErrorLog } from '@utils/error/utils'
 import ResizeSensor from 'css-element-queries/src/ResizeSensor'
 import { debounce } from 'es-toolkit'
-import { Logger } from 'tslog'
+import { ILogObj, Logger } from 'tslog'
 import { AppCommands, AppCommandsEmitter } from '../../../AppCommands'
 import { AppEvents, AppEventsEmitter } from '../../../AppEvents'
+import { UndoHub } from '../../../history/UndoHub'
 import { Project } from '../../../project/Project'
 import { ProjectConfig } from '../../../project/ProjectConfig'
 import trpc from '../../../trpc'
@@ -42,19 +43,22 @@ export interface PhaserGameExtra {
 	/** to receive commands from the parent React app */
 	appCommands: AppCommandsEmitter
 
+	undoHub: UndoHub
+
 	/** logger for the Phaser app */
-	logger: Logger<{}>
+	logger: Logger<ILogObj>
 
 	destroySignal: AbortSignal
 }
 
 export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
-	public logger: Logger<{}>
+	public logger: Logger<ILogObj>
 	public projectConfig: ProjectConfig
 	public ev3nts = new TypedEventEmitter<PhaserAppEvents>()
 	public commands = new CommandEmitter<PhaserAppCommands>('phaser-app')
 	public appEvents: AppEventsEmitter
 	public appCommands: AppCommandsEmitter
+	public undoHub: UndoHub
 	private resizeSensor: ResizeSensor
 	private destroyController = new AbortController()
 
@@ -62,7 +66,8 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 		phaserConfig: Phaser.Types.Core.GameConfig,
 		projectConfig: ProjectConfig,
 		appEvents: TypedEventEmitter<AppEvents>,
-		appCommands: CommandEmitter<AppCommands>
+		appCommands: CommandEmitter<AppCommands>,
+		undoHub: UndoHub
 	) {
 		Phaser3Extensions.extend()
 
@@ -72,7 +77,7 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 			console.clear()
 		}
 
-		this.canvas.addEventListener('pointerdown', (e) => this.canvas.focus(), { signal: this.destroySignal })
+		this.canvas.addEventListener('pointerdown', () => this.canvas.focus(), { signal: this.destroySignal })
 
 		this.logger = logger.getOrCreate('canvas')
 		this.logger.info('PhaserApp created')
@@ -81,9 +86,13 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 
 		this.appEvents = appEvents
 
+		this.undoHub = undoHub
+
 		this.appCommands = appCommands
 		this.appCommands.on('open-prefab', this.openPrefab, this, false, this.destroySignal)
 		this.appCommands.on('discard-unsaved-prefab', this.discardUnsavedPrefab, this, false, this.destroySignal)
+		this.appCommands.on('undo', () => this.undoHub.undo(), this, false, this.destroySignal)
+		this.appCommands.on('redo', () => this.undoHub.redo(), this, false, this.destroySignal)
 
 		this.resizeSensor = this.setupScaling()
 

@@ -439,6 +439,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 			'transform-start',
 			(type) => {
 				this.setHoverMode('disabled')
+				this.scene.startTransformControlsUndo(type)
 			},
 			this,
 			this.destroySignal
@@ -448,6 +449,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 			'transform-end',
 			(type) => {
 				this.setHoverMode('normal')
+				this.scene.stopTransformControlsUndo()
 			},
 			this,
 			this.destroySignal

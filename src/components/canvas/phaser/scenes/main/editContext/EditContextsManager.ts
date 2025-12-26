@@ -188,6 +188,12 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		this.savedBounds.clear()
 	}
 
+	public reset(): void {
+		this.contexts.forEach((context) => context.destroy())
+		this.contexts.clear()
+		this.savedBounds.clear()
+	}
+
 	public get current(): EditContext | undefined {
 		for (const context of this.contexts.values()) {
 			if (context.active) {

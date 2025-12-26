@@ -3,6 +3,7 @@ import Phaser from 'phaser'
 import { useLayoutEffect, useRef } from 'react'
 import { AppCommands } from '../../AppCommands'
 import { AppEvents } from '../../AppEvents'
+import { UndoHub } from '../../history/UndoHub'
 import { ProjectConfig } from '../../project/ProjectConfig'
 import { usePhaserScope } from '../../di/DiContext'
 import { PhaserApp } from './phaser/PhaserApp'
@@ -13,9 +14,10 @@ type Props = {
 	projectConfig: ProjectConfig
 	appEvents: TypedEventEmitter<AppEvents>
 	appCommands: CommandEmitter<AppCommands>
+	undoHub: UndoHub
 }
 
-export const Canvas: React.FC<Props> = ({ projectConfig, appEvents, appCommands }) => {
+export const Canvas: React.FC<Props> = ({ projectConfig, appEvents, appCommands, undoHub }) => {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null)
 	const phaserAppRef = useRef<PhaserApp | null>(null)
 	const phaserScope = usePhaserScope()
@@ -26,7 +28,7 @@ export const Canvas: React.FC<Props> = ({ projectConfig, appEvents, appCommands 
 			return
 		}
 
-		const phaserApp = createPhaserApp(canvasRef.current, projectConfig, appEvents, appCommands)
+		const phaserApp = createPhaserApp(canvasRef.current, projectConfig, appEvents, appCommands, undoHub)
 
 		phaserScope.events = phaserApp.ev3nts
 		phaserScope.commands = phaserApp.commands
@@ -44,7 +46,7 @@ export const Canvas: React.FC<Props> = ({ projectConfig, appEvents, appCommands 
 				phaserAppRef.current = null
 			}
 		}
-	}, [projectConfig, appEvents, appCommands, phaserScope]) // Only recreate when these props change
+	}, [projectConfig, appEvents, appCommands, phaserScope, undoHub]) // Only recreate when these props change
 
 	// use a unique key to force re-rendering of the canvas
 	const key = Date.now()
@@ -69,7 +71,8 @@ function createPhaserApp(
 	canvas: HTMLCanvasElement,
 	projectConfig: ProjectConfig,
 	appEvents: TypedEventEmitter<AppEvents>,
-	appCommands: CommandEmitter<AppCommands>
+	appCommands: CommandEmitter<AppCommands>,
+	undoHub: UndoHub
 ) {
 	const config: Phaser.Types.Core.GameConfig = {
 		type: Phaser.WEBGL,
@@ -95,5 +98,5 @@ function createPhaserApp(
 		},
 	}
 
-	return new PhaserApp(config, projectConfig, appEvents, appCommands)
+	return new PhaserApp(config, projectConfig, appEvents, appCommands, undoHub)
 }

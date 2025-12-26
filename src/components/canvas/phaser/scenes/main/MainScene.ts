@@ -7,7 +7,7 @@ import { getErrorLog } from '@utils/error/utils'
 import { once } from 'es-toolkit'
 import { err, ok, Result } from 'neverthrow'
 import { match } from 'ts-pattern'
-import { Logger } from 'tslog'
+import { Logger, ILogObj } from 'tslog'
 import WebFont from 'webfontloader'
 import { AppCommandsEmitter } from '../../../../../AppCommands'
 import { logger } from '../../../../../logs/logs'
@@ -60,6 +60,15 @@ import { Rulers } from './Rulers'
 
 type PhaserBmfontData = Phaser.Types.GameObjects.BitmapText.BitmapFontData
 
+type CanvasDocumentSnapshot = {
+	rootJson: EditableContainerJson
+	activeContextId?: string
+	selectionIds: string[]
+	camera?: { zoom: number; scrollX: number; scrollY: number }
+}
+
+const deepEqual = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
+
 export type MainSceneInitData = {
 	project: Project
 	prefabAsset: AssetTreePrefabData
@@ -80,11 +89,15 @@ type SelectionDragData = {
 
 export class MainScene extends BaseScene {
 	public declare initData: MainSceneInitData
-	private logger!: Logger<{}>
+	private logger!: Logger<ILogObj>
 	private sceneClickedAt: number | undefined
 	private cameraDrag = false
 	private cameraDragStart: { x: number; y: number } | undefined
 	private selectionDrag: SelectionDragData | undefined
+	private selectionDragSnapshot: CanvasDocumentSnapshot | undefined
+	private transformControlsSnapshot:
+		| { before: CanvasDocumentSnapshot; type: 'rotate' | 'resize' | 'origin' }
+		| undefined
 	private grid!: Grid
 	private rulers!: Rulers
 	private editContexts!: EditContextsManager
@@ -96,6 +109,8 @@ export class MainScene extends BaseScene {
 	private componentsFactory!: EditableComponentsFactory
 	private clipboard!: CanvasClipboard
 	private aligner!: Aligner
+	private baselineRootJson?: EditableContainerJson
+	private isRestoringFromHistory = false
 
 	public init(data: MainSceneInitData) {
 		super.init(data)
@@ -110,6 +125,186 @@ export class MainScene extends BaseScene {
 		this.logger.info('MainScene init', data)
 
 		this.sceneClickedAt = 0
+	}
+
+	private async applySnapshot(snapshot: CanvasDocumentSnapshot) {
+		if (!snapshot.rootJson) {
+			return
+		}
+
+		this.isRestoringFromHistory = true
+
+		try {
+			if (this.root) {
+				this.root.destroy()
+			}
+
+			this.editContexts.reset()
+
+			this.root = this.objectsFactory.fromJson(snapshot.rootJson, true) as EditableContainer
+			this.superRoot.add(this.root)
+
+			let targetContext: EditableContainer | undefined = this.root
+			if (snapshot.activeContextId) {
+				const obj = this.objectsFactory.getObjectById(snapshot.activeContextId)
+				if (obj && isObjectOfType(obj, 'Container')) {
+					targetContext = obj
+				}
+			}
+
+			if (targetContext) {
+				this.editContexts.switchTo(targetContext)
+			}
+
+			const context = this.editContexts.current
+			if (context && snapshot.selectionIds?.length) {
+				const selectableObjects = snapshot.selectionIds
+					.map((id) => this.objectsFactory.getObjectById(id))
+					.filter((obj): obj is EditableObject => Boolean(obj))
+					.filter((obj) => obj.parentContainer === context.target)
+
+				if (selectableObjects.length) {
+					context.setSelection(selectableObjects)
+				} else {
+					context.cancelSelection()
+				}
+			} else if (context) {
+				context.cancelSelection()
+			}
+
+			if (snapshot.camera) {
+				const camera = this.cameras.main
+				camera.setZoom(snapshot.camera.zoom)
+				camera.setScroll(snapshot.camera.scrollX, snapshot.camera.scrollY)
+				this.onResizeOrCameraChange()
+			}
+
+			state.canvas.root = this.root.stateObj
+			state.canvas.objectById = (id: string) => this.objectsFactory.getObjectById(id)?.stateObj
+			state.canvas.siblingIds = (id: string) => this.getObjectSiblingsIds(id)
+			state.canvas.selection = snapshot.selectionIds ?? []
+			state.canvas.activeContextId = snapshot.activeContextId
+
+			this.updateUnsavedChanges()
+		} finally {
+			this.isRestoringFromHistory = false
+		}
+	}
+
+	private updateUnsavedChanges() {
+		if (!this.baselineRootJson) {
+			state.canvas.hasUnsavedChanges = true
+			return
+		}
+
+		const currentJson = this.rootToJson()
+		state.canvas.hasUnsavedChanges = !deepEqual(currentJson, this.baselineRootJson)
+	}
+
+	private async pushCanvasHistory(label: string, before: CanvasDocumentSnapshot, after: CanvasDocumentSnapshot) {
+		if (deepEqual(before.rootJson, after.rootJson)) {
+			return
+		}
+
+		const prefabId = this.initData.prefabAsset.id
+
+		this.undoHub.push({
+			label,
+			domains: ['canvas'],
+			timestamp: Date.now(),
+			isValid: () => state.canvas.currentPrefab?.id === prefabId,
+			undo: async () => {
+				await this.applySnapshot(before)
+				this.updateUnsavedChanges()
+			},
+			redo: async () => {
+				await this.applySnapshot(after)
+				this.updateUnsavedChanges()
+			},
+		})
+
+		this.updateUnsavedChanges()
+	}
+
+	/**
+	 * Wraps a mutation function with undo/redo support.
+	 * Captures snapshots before and after the operation and pushes them to the global UndoHub.
+	 */
+	private async withUndo<T>(label: string, fn: () => T | Promise<T>): Promise<T> {
+		if (this.isRestoringFromHistory) {
+			return await fn()
+		}
+
+		const before = this.captureSnapshot()
+		const result = await fn()
+		const after = this.captureSnapshot()
+		await this.pushCanvasHistory(label, before, after)
+		return result
+	}
+
+	private get undoHub() {
+		return (this.game as PhaserGameExtra).undoHub
+	}
+
+	private get currentPrefabId(): string | undefined {
+		return this.initData?.prefabAsset.id ?? state.canvas.currentPrefab?.id
+	}
+
+	private get stateSelectionIds(): string[] {
+		const selection = this.editContexts.current?.selection
+		return selection ? selection.objects.map((obj) => obj.id) : []
+	}
+
+	private captureSnapshot(): CanvasDocumentSnapshot {
+		return {
+			rootJson: this.rootToJson(),
+			activeContextId: this.editContexts.current?.target.id,
+			selectionIds: this.stateSelectionIds,
+			camera: {
+				zoom: this.cameras.main.zoom,
+				scrollX: this.cameras.main.scrollX,
+				scrollY: this.cameras.main.scrollY,
+			},
+		}
+	}
+
+	/**
+	 * TransformControls (resize/rotate/origin) mutates objects directly during pointer move,
+	 * so we integrate undo/redo by capturing a snapshot on transform start and pushing history on transform end.
+	 */
+	public startTransformControlsUndo(type: 'rotate' | 'resize' | 'origin'): void {
+		if (this.isRestoringFromHistory) {
+			return
+		}
+
+		// guard against re-entrancy / overlapping transforms
+		if (this.transformControlsSnapshot) {
+			return
+		}
+
+		this.transformControlsSnapshot = { before: this.captureSnapshot(), type }
+	}
+
+	public stopTransformControlsUndo(): void {
+		if (!this.transformControlsSnapshot) {
+			return
+		}
+
+		const { before, type } = this.transformControlsSnapshot
+		this.transformControlsSnapshot = undefined
+
+		const label = match(type)
+			.with('rotate', () => 'Rotate')
+			.with('resize', () => 'Resize')
+			.with('origin', () => 'Change origin')
+			.exhaustive()
+
+		const after = this.captureSnapshot()
+		void this.pushCanvasHistory(label, before, after)
+	}
+
+	private rootToJson(): EditableContainerJson {
+		return this.root.toJson()
 	}
 
 	public async create() {
@@ -169,12 +364,16 @@ export class MainScene extends BaseScene {
 		state.canvas.root = this.root.stateObj
 		state.canvas.objectById = (id: string) => this.objectsFactory.getObjectById(id)?.stateObj
 		state.canvas.siblingIds = (id: string) => this.getObjectSiblingsIds(id)
-		state.canvas.hasUnsavedChanges = false
+		this.baselineRootJson = this.rootToJson()
+		this.updateUnsavedChanges()
 
 		subscribe(
 			state.canvas.root,
 			() => {
-				state.canvas.hasUnsavedChanges = true
+				if (this.isRestoringFromHistory) {
+					return
+				}
+				this.updateUnsavedChanges()
 			},
 			{ signal: this.shutdownSignal }
 		)
@@ -349,10 +548,10 @@ export class MainScene extends BaseScene {
 	/**
 	 * Saves the prefab to the file system.
 	 */
-	public async savePrefab(): Promise<Result<{}, string>> {
+	public async savePrefab(): Promise<Result<void, string>> {
 		if (!state.canvas.hasUnsavedChanges) {
 			this.logger.info(`no changes in '${this.initData.prefabAsset.name}', skipping save`)
-			return ok({})
+			return ok(undefined)
 		}
 
 		const prefabFilePath = this.initData.prefabAsset.path
@@ -361,7 +560,7 @@ export class MainScene extends BaseScene {
 
 		const prefabFile: PrefabFile = {
 			content: prefabContent,
-			assetPack: this.calculatePrefabAssetPack(prefabContent),
+			assetPack: this.calculatePrefabAssetPack(),
 		}
 
 		const { error } = await until(() =>
@@ -376,18 +575,17 @@ export class MainScene extends BaseScene {
 
 		this.logger.info(`saved '${this.initData.prefabAsset.name}' at ${prefabFilePath}`)
 
+		this.baselineRootJson = prefabContent
 		state.canvas.hasUnsavedChanges = false
 
-		return ok({})
+		return ok(undefined)
 	}
 
 	/**
 	 * Calculates the asset pack for the prefab.
 	 * @note Asset pack is used in RUNTIME, not in EDITOR.
 	 */
-	private calculatePrefabAssetPack(prefabRoot: EditableContainerJson): PrefabFile['assetPack'] {
-		const assets = this.calculatePrefabAssets(prefabRoot)
-
+	private calculatePrefabAssetPack(): PrefabFile['assetPack'] {
 		// TODO prefabs: convert the assets to Phaser AssetPack
 		// https://docs.phaser.io/api-documentation/class/loader-loaderplugin#pack
 
@@ -412,20 +610,21 @@ export class MainScene extends BaseScene {
 		const appCommands = (this.game as PhaserGameExtra).appCommands as AppCommandsEmitter
 		appCommands.on(
 			'align',
-			(type) => {
-				const context = this.editContexts.current!
-				const selection = context.selection
-				if (!selection) {
-					return
-				}
+			(type) =>
+				this.withUndo('Align', () => {
+					const context = this.editContexts.current!
+					const selection = context.selection
+					if (!selection) {
+						return
+					}
 
-				this.aligner.logger.debug(`aligning ${selection.objectsAsString} to ${type}`)
+					this.aligner.logger.debug(`aligning ${selection.objectsAsString} to ${type}`)
 
-				const wasAligned = this.aligner.align(type, selection.objects, context)
-				if (wasAligned) {
-					selection.updateBounds()
-				}
-			},
+					const wasAligned = this.aligner.align(type, selection.objects, context)
+					if (wasAligned) {
+						selection.updateBounds()
+					}
+				}),
 			this,
 			false,
 			this.shutdownSignal
@@ -649,6 +848,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private createObject(data: { clickedObjId: string; type: EditableObjectType }) {
+		const before = this.isRestoringFromHistory ? null : this.captureSnapshot()
 		const clickedObj = this.objectsFactory.getObjectById(data.clickedObjId)
 		if (!clickedObj) {
 			return
@@ -683,6 +883,10 @@ export class MainScene extends BaseScene {
 		editContext.target.add(newObj)
 
 		editContext.setSelection([newObj])
+
+		if (before) {
+			void this.pushCanvasHistory('Create object', before, this.captureSnapshot())
+		}
 	}
 
 	private copyObject(objId: string) {
@@ -696,6 +900,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private duplicateObject(objId: string) {
+		const before = this.isRestoringFromHistory ? null : this.captureSnapshot()
 		const obj = this.objectsFactory.getObjectById(objId)
 		if (!obj) {
 			return
@@ -719,6 +924,10 @@ export class MainScene extends BaseScene {
 		editContext.target.add(newObj)
 
 		editContext.setSelection([newObj])
+
+		if (before) {
+			void this.pushCanvasHistory('Duplicate object', before, this.captureSnapshot())
+		}
 	}
 
 	private cutObject(objId: string) {
@@ -742,6 +951,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private deleteObjects(objIds: string[]) {
+		const before = this.isRestoringFromHistory ? null : this.captureSnapshot()
 		for (const objId of objIds) {
 			const obj = this.objectsFactory.getObjectById(objId)
 			if (!obj) {
@@ -755,9 +965,14 @@ export class MainScene extends BaseScene {
 
 			obj.destroy()
 		}
+
+		if (before) {
+			void this.pushCanvasHistory('Delete objects', before, this.captureSnapshot())
+		}
 	}
 
 	private moveObjectInHierarchy(objId: string, newParentId: string, newParentIndex: number) {
+		const before = this.isRestoringFromHistory ? null : this.captureSnapshot()
 		if (objId === newParentId) {
 			this.logger.warn(`can't move object to itself`)
 			return
@@ -796,6 +1011,10 @@ export class MainScene extends BaseScene {
 		} else {
 			newParent.addAt(obj, newParentIndex)
 		}
+
+		if (before) {
+			void this.pushCanvasHistory('Move in hierarchy', before, this.captureSnapshot())
+		}
 	}
 
 	private getObjectPath(objId: string): string {
@@ -832,6 +1051,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private addComponent(data: { componentType: EditableComponentType; objectId: string }): AddComponentResult {
+		const before = this.isRestoringFromHistory ? null : this.captureSnapshot()
 		const obj = this.objectsFactory.getObjectById(data.objectId)
 		if (!obj) {
 			return err(`failed to find object with id '${data.objectId}'`)
@@ -842,37 +1062,65 @@ export class MainScene extends BaseScene {
 			return err(`failed to create component '${data.componentType}'`)
 		}
 
-		return obj.components.add(component)
+		const result = obj.components.add(component)
+
+		if (before && result.isOk()) {
+			void this.pushCanvasHistory('Add component', before, this.captureSnapshot())
+		}
+
+		return result
 	}
 
 	private removeComponent(data: { componentType: EditableComponentType; objectId: string }): RemoveComponentResult {
+		const before = this.isRestoringFromHistory ? null : this.captureSnapshot()
 		const obj = this.objectsFactory.getObjectById(data.objectId)
 		if (!obj) {
 			return err(`failed to find object with id '${data.objectId}'`)
 		}
 
-		return obj.components.remove(data.componentType)
+		const result = obj.components.remove(data.componentType)
+
+		if (before && result.isOk()) {
+			void this.pushCanvasHistory('Remove component', before, this.captureSnapshot())
+		}
+
+		return result
 	}
 
 	private moveComponentUp(data: { componentType: EditableComponentType; objectId: string }): MoveComponentResult {
+		const before = this.isRestoringFromHistory ? null : this.captureSnapshot()
 		const obj = this.objectsFactory.getObjectById(data.objectId)
 		if (!obj) {
 			return err(`failed to find object with id '${data.objectId}'`)
 		}
 
-		return obj.components.moveUp(data.componentType)
+		const result = obj.components.moveUp(data.componentType)
+
+		if (before && result.isOk()) {
+			void this.pushCanvasHistory('Move component up', before, this.captureSnapshot())
+		}
+
+		return result
 	}
 
 	private moveComponentDown(data: { componentType: EditableComponentType; objectId: string }): MoveComponentResult {
+		const before = this.isRestoringFromHistory ? null : this.captureSnapshot()
 		const obj = this.objectsFactory.getObjectById(data.objectId)
 		if (!obj) {
 			return err(`failed to find object with id '${data.objectId}'`)
 		}
 
-		return obj.components.moveDown(data.componentType)
+		const result = obj.components.moveDown(data.componentType)
+
+		if (before && result.isOk()) {
+			void this.pushCanvasHistory('Move component down', before, this.captureSnapshot())
+		}
+
+		return result
 	}
 
 	private pasteComponent(data: { componentData: EditableComponentJson; objectId: string }): AddComponentResult {
+		const before = this.isRestoringFromHistory ? null : this.captureSnapshot()
 		const obj = this.objectsFactory.getObjectById(data.objectId)
 		if (!obj) {
 			return err(`failed to find object with id '${data.objectId}'`)
@@ -883,7 +1131,13 @@ export class MainScene extends BaseScene {
 			return err(`failed to create component '${data.componentData.type}'`)
 		}
 
-		return obj.components.add(component)
+		const result = obj.components.add(component)
+
+		if (before && result.isOk()) {
+			void this.pushCanvasHistory('Paste component', before, this.captureSnapshot())
+		}
+
+		return result
 	}
 
 	/**
@@ -891,6 +1145,7 @@ export class MainScene extends BaseScene {
 	 * @returns The created editable object or null if the object could not be created.
 	 */
 	private async handleAssetDrop(data: { asset: AssetTreeItemData; position: { x: number; y: number } }) {
+		const before = this.isRestoringFromHistory ? null : this.captureSnapshot()
 		// adding objects to super root is not allowed
 		if (this.editContexts.current?.target === this.superRoot) {
 			this.logger.warn(`adding objects to super root is not allowed`)
@@ -914,6 +1169,10 @@ export class MainScene extends BaseScene {
 		}
 
 		this.editContexts.current!.target.add(obj)
+
+		if (before) {
+			await this.pushCanvasHistory('Create from asset', before, this.captureSnapshot())
+		}
 
 		return obj
 	}
@@ -1199,7 +1458,7 @@ export class MainScene extends BaseScene {
 			}
 
 			return ok({
-				// @ts-expect-error
+				// @ts-expect-error accessing Phaser texture internal frame map
 				frame: texture.frames['__BASE'] as Phaser.Textures.Frame,
 				fromAtlas: false as const,
 			})
@@ -1210,7 +1469,7 @@ export class MainScene extends BaseScene {
 		// const atlasTexture = this.textures.get(atlasJson.texture.path)
 		// const fontFrame = ...
 		return ok({
-			// @ts-expect-error
+			// @ts-expect-error placeholder atlas frame until implemented
 			frame: null as Phaser.Textures.Frame,
 			frameKey: '',
 			fromAtlas: true as const,
@@ -1318,11 +1577,14 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		if (event.shiftKey) {
-			this.ungroup(selected, editContext)
-		} else {
-			this.group(selected, editContext)
-		}
+		const label = event.shiftKey ? 'Ungroup' : 'Group'
+		void this.withUndo(label, () => {
+			if (event.shiftKey) {
+				this.ungroup(selected, editContext)
+			} else {
+				this.group(selected, editContext)
+			}
+		})
 
 		event.preventDefault()
 	}
@@ -1410,8 +1672,10 @@ export class MainScene extends BaseScene {
 	}
 
 	private cut(event: KeyboardEvent): void {
-		this.copy(event)
-		this.removeSelection()
+		void this.withUndo('Cut', () => {
+			this.copy(event)
+			this.removeSelection()
+		})
 	}
 
 	private paste(event: KeyboardEvent): void {
@@ -1425,24 +1689,26 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		const copiedObjs = this.clipboard.paste()
-		if (!copiedObjs) {
-			return
-		}
+		void this.withUndo('Paste', () => {
+			const copiedObjs = this.clipboard.paste()
+			if (!copiedObjs) {
+				return
+			}
 
-		const editContext = this.editContexts.current!
+			const editContext = this.editContexts.current!
 
-		copiedObjs.forEach((obj) => {
-			const name = this.getNewObjectName(editContext, obj)
-			obj.setName(name)
-			obj.setPosition(obj.x + 30, obj.y + 30)
-			editContext.target.add(obj)
-			this.logger.debug(`pasted '${name}'`)
+			copiedObjs.forEach((obj) => {
+				const name = this.getNewObjectName(editContext, obj)
+				obj.setName(name)
+				obj.setPosition(obj.x + 30, obj.y + 30)
+				editContext.target.add(obj)
+				this.logger.debug(`pasted '${name}'`)
+			})
+
+			editContext.selection?.destroy()
+			editContext.selection = editContext.createSelection(copiedObjs)
+			editContext.transformControls.startFollow(editContext.selection)
 		})
-
-		editContext.selection?.destroy()
-		editContext.selection = editContext.createSelection(copiedObjs)
-		editContext.transformControls.startFollow(editContext.selection)
 
 		event.preventDefault()
 	}
@@ -1457,10 +1723,12 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		// create a copy of the objects array bc obj.destroy() will remove it from the original array `selection.objects`
-		selection.objects.slice(0).forEach((obj) => {
-			// delete it like this to trigger removeHandler in EditableContainer
-			obj.parentContainer.remove(obj, true)
+		void this.withUndo('Delete objects', () => {
+			// create a copy of the objects array bc obj.destroy() will remove it from the original array `selection.objects`
+			selection.objects.slice(0).forEach((obj) => {
+				// delete it like this to trigger removeHandler in EditableContainer
+				obj.parentContainer.remove(obj, true)
+			})
 		})
 	}
 
@@ -1470,7 +1738,9 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		selected.move(dx * (event.shiftKey ? 10 : 1), dy * (event.shiftKey ? 10 : 1))
+		void this.withUndo('Move', () => {
+			selected.move(dx * (event.shiftKey ? 10 : 1), dy * (event.shiftKey ? 10 : 1))
+		})
 
 		event.preventDefault()
 	}
@@ -1481,12 +1751,14 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		selected.objects.forEach((obj) => {
-			if (event.shiftKey) {
-				obj.parentContainer.sendToBack(obj)
-			} else {
-				obj.parentContainer.moveDown(obj)
-			}
+		void this.withUndo('Move down in hierarchy', () => {
+			selected.objects.forEach((obj) => {
+				if (event.shiftKey) {
+					obj.parentContainer.sendToBack(obj)
+				} else {
+					obj.parentContainer.moveDown(obj)
+				}
+			})
 		})
 	}
 
@@ -1496,12 +1768,14 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		selected.objects.forEach((obj) => {
-			if (event.shiftKey) {
-				obj.parentContainer.bringToTop(obj)
-			} else {
-				obj.parentContainer.moveUp(obj)
-			}
+		void this.withUndo('Move up in hierarchy', () => {
+			selected.objects.forEach((obj) => {
+				if (event.shiftKey) {
+					obj.parentContainer.bringToTop(obj)
+				} else {
+					obj.parentContainer.moveUp(obj)
+				}
+			})
 		})
 	}
 
@@ -1672,6 +1946,10 @@ export class MainScene extends BaseScene {
 			return
 		}
 
+		if (!this.isRestoringFromHistory) {
+			this.selectionDragSnapshot = this.captureSnapshot()
+		}
+
 		const camera = this.cameras.main
 		const { x, y } = pointer.positionToCamera(camera) as Phaser.Math.Vector2
 		this.selectionDrag = {
@@ -1694,12 +1972,18 @@ export class MainScene extends BaseScene {
 		editContext.onDragEnd(this.selectionDrag.target)
 
 		this.selectionDrag = undefined
+
+		if (this.selectionDragSnapshot) {
+			const after = this.captureSnapshot()
+			void this.pushCanvasHistory('Move', this.selectionDragSnapshot, after)
+			this.selectionDragSnapshot = undefined
+		}
 	}
 
 	private onPointerMove(pointer: Phaser.Input.Pointer): void {
 		if (this.cameraDrag && this.cameraDragStart) {
-			let dx = pointer.x - this.cameraDragStart.x
-			let dy = pointer.y - this.cameraDragStart.y
+			const dx = pointer.x - this.cameraDragStart.x
+			const dy = pointer.y - this.cameraDragStart.y
 
 			const camera = this.cameras.main
 			camera.scrollX -= dx / camera.zoom
@@ -1738,12 +2022,12 @@ export class MainScene extends BaseScene {
 		dx: number,
 		dy: number
 	): void {
-		let camera = this.cameras.main
+		const camera = this.cameras.main
 
-		let factor = pointer.event.ctrlKey || pointer.event.metaKey ? 1.3 : 1.1
+		const factor = pointer.event.ctrlKey || pointer.event.metaKey ? 1.3 : 1.1
 		let newZoom = camera.zoom
 
-		let direction = Phaser.Math.Sign(dy) * -1
+		const direction = Phaser.Math.Sign(dy) * -1
 		if (direction > 0) {
 			// Zooming in
 			newZoom *= factor
@@ -1769,7 +2053,7 @@ export class MainScene extends BaseScene {
 		camera.zoom = newZoom
 
 		// hack to update the camera matrix and get the new pointer position
-		// @ts-expect-error
+		// @ts-expect-error Phaser camera exposes preRender at runtime
 		camera.preRender()
 
 		const pointerPosAfterZoom = pointer.positionToCamera(camera) as Phaser.Math.Vector2
@@ -1785,12 +2069,14 @@ export class MainScene extends BaseScene {
 			return
 		}
 
-		selection.objects.forEach((obj) => {
-			obj.setRotation(0)
-			obj.setScale(1)
-		})
+		void this.withUndo('Reset transform', () => {
+			selection.objects.forEach((obj) => {
+				obj.setRotation(0)
+				obj.setScale(1)
+			})
 
-		selection.updateBounds()
+			selection.updateBounds()
+		})
 	}
 
 	private setCameraZoom(zoom: number): void {
@@ -1809,7 +2095,7 @@ export class MainScene extends BaseScene {
 	private onResizeOrCameraChange(gameSize?: Phaser.Structs.Size) {
 		gameSize ??= this.scale.gameSize
 
-		let camera = this.cameras.main
+		const camera = this.cameras.main
 		this.grid.redraw(gameSize, camera, camera.scrollX, camera.scrollY)
 		this.rulers.redraw(gameSize, camera.zoom, camera.scrollX, camera.scrollY)
 
@@ -1857,7 +2143,7 @@ export class MainScene extends BaseScene {
 		this.editContexts.destroy()
 
 		this.clipboard?.destroy()
-		// @ts-expect-error
+		// @ts-expect-error clipboard cleared on shutdown to break references
 		this.clipboard = undefined
 
 		state.canvas.root = null

@@ -281,6 +281,8 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			return
 		}
 
+		this.events.emit('transform-start', 'rotate')
+
 		this.logger.debug(`rotate start [${selection.objects.map((obj) => obj.name).join(', ')}] (${selection.count})`)
 
 		const cursorAngleOffset = this.getRotateCursorAngleOffset(knob)
@@ -299,8 +301,6 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		const selectedTransforms = new Map<EditableObject, { angleDeg: number }>(
 			selection.objects.map((obj) => [obj, { angleDeg: obj.angle }])
 		)
-
-		this.events.emit('transform-start', 'rotate')
 
 		this.scene.input.on(
 			Phaser.Input.Events.POINTER_MOVE,
@@ -375,6 +375,8 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		if (!selection) {
 			return
 		}
+
+		this.events.emit('transform-start', 'resize')
 
 		const selectionCenter = { x: selection.centerX, y: selection.centerY }
 
@@ -477,8 +479,6 @@ export class TransformControls extends Phaser.GameObjects.Container {
 		selection.setOrigin(newOrigin[0], newOrigin[1])
 
 		selection.updateBounds()
-
-		this.events.emit('transform-start', 'resize')
 
 		// actually resizing is done here, on pointer move
 		this.scene.input.on(

@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { projectConfigSchema } from '../project/ProjectConfig'
 import { state, stateSchema } from '../state/State'
 import trpc from '../trpc'
+import { useUndoHub } from '../di/DiContext'
 import AssetsPanel from './assetsPanel/AssetsPanel'
 import { buildAssetTree } from './assetsPanel/build-asset-tree'
 import CanvasContainer from './canvas/CanvasContainer'
@@ -22,6 +23,7 @@ const MAX_PANEL_HEIGHT = 800
 
 export default function EditorLayout() {
 	const theme = useMantineTheme()
+	const undoHub = useUndoHub()
 
 	const { leftPanelWidth: lpw, rightPanelWidth: rpw, hierarchyHeight: hh } = state.panelDimensions
 	const [leftPanelWidth, setLeftPanelWidth] = useState(lpw)
@@ -76,6 +78,42 @@ export default function EditorLayout() {
 
 		return () => window.removeEventListener('keydown', onKeyDown)
 	}, [])
+
+	// global undo/redo shortcuts
+	useEffect(() => {
+		const onKeyDown = (event: KeyboardEvent) => {
+			const activeElement = document.activeElement
+			const isInputFocused =
+				activeElement instanceof HTMLElement &&
+				(activeElement.tagName === 'INPUT' ||
+					activeElement.tagName === 'TEXTAREA' ||
+					activeElement.isContentEditable)
+
+			if (isInputFocused) {
+				return
+			}
+
+			const isModifierPressed = event.metaKey || event.ctrlKey
+			if (!isModifierPressed) {
+				return
+			}
+
+			const key = event.key.toLowerCase()
+			if (key === 'z' && !event.shiftKey) {
+				event.preventDefault()
+				void undoHub.undo()
+				return
+			}
+
+			if (key === 'y' || (key === 'z' && event.shiftKey)) {
+				event.preventDefault()
+				void undoHub.redo()
+			}
+		}
+
+		window.addEventListener('keydown', onKeyDown)
+		return () => window.removeEventListener('keydown', onKeyDown)
+	}, [undoHub])
 
 	// open project from query param or from saved state if present
 	useEffect(() => {

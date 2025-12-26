@@ -20,6 +20,15 @@ export const stateSchema = z.object({
 			lastOpenedAt: z.number().positive().int(),
 		})
 	),
+	app: z.object({
+		history: z.object({
+			canUndo: z.boolean().default(false),
+			canRedo: z.boolean().default(false),
+			undoLabel: z.string().optional(),
+			redoLabel: z.string().optional(),
+			length: z.number().int().nonnegative().default(0),
+		}),
+	}),
 	panelDimensions: z.object({
 		leftPanelWidth: z.number().int().positive(),
 		rightPanelWidth: z.number().int().positive(),
@@ -72,6 +81,13 @@ const initialStateParsed = merge(
 	// {},
 	{
 		recentProjects: [],
+		app: {
+			history: {
+				canUndo: false,
+				canRedo: false,
+				length: 0,
+			},
+		},
 		panelDimensions: {
 			leftPanelWidth: 400,
 			rightPanelWidth: 400,

@@ -2,6 +2,7 @@ import { createContext, ReactNode, useContext } from 'react'
 import { DependencyContainer } from 'tsyringe'
 
 import { TOKENS, type PhaserScope } from './tokens'
+import { UndoHub } from '../history/UndoHub'
 
 type DiProviderProps = {
 	container: DependencyContainer
@@ -57,5 +58,10 @@ export function usePhaserCommands() {
 	}
 
 	return phaserScope.commands
+}
+
+export function useUndoHub(): UndoHub {
+	const container = useDi()
+	return container.resolve(TOKENS.UndoHub)
 }
 
