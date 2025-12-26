@@ -45,6 +45,7 @@ import styles from './AssetsPanel.module.css'
 import { AssetsSearch } from './AssetsSearch'
 import AssetTreeItem from './AssetTreeItem'
 import { addAssetId } from './build-asset-tree'
+import { useAppCommands } from '../../di/DiContext'
 
 interface AssetsPanelProps {
 	logger: Logger<{}>
@@ -172,6 +173,7 @@ const getVisibleItems = (
 export default function AssetsPanel({ logger }: AssetsPanelProps) {
 	const assetsSnap = useSnapshot(state.assets)
 	const { showContextMenu } = useContextMenu()
+	const appCommands = useAppCommands()
 	const [itemToRename, setItemToRename] = useState<string | null>(null)
 	const [openFolders, setOpenFolders] = useState<Set<string>>(new Set())
 	const [lastSelectedId, setLastSelectedId] = useState<string | null>(null)
@@ -239,7 +241,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		// - if confirmed, save and then open the selected prefab
 		// - if cancelled, do nothing
 
-		state.app?.commands.emit('open-prefab', prefabAssetId)
+		appCommands.emit('open-prefab', prefabAssetId)
 	}
 
 	const handleDoubleClick = (item: Snapshot<AssetTreeItemData>) => {

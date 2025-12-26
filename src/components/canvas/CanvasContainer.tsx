@@ -1,13 +1,10 @@
 import { Center, Text } from '@mantine/core'
 import { useMemo, useRef, useState } from 'react'
-import { AppCommands } from '../../AppCommands'
-import { AppEvents } from '../../AppEvents'
+import { useAppCommands, useAppEvents } from '../../di/DiContext'
 import { state, useSnapshot } from '../../state/State'
 import { isDraggableAsset, type AssetTreeItemData } from '../../types/assets'
 import AlignmentControls from './AlignmentControls'
 import { Canvas } from './Canvas'
-import { TypedEventEmitter } from './phaser/robowhale/phaser3/TypedEventEmitter'
-import { CommandEmitter } from './phaser/robowhale/utils/events/CommandEmitter'
 
 const MIN_ZOOM = 0.1
 const MAX_ZOOM = 5
@@ -26,6 +23,8 @@ export default function CanvasContainer() {
 	const [zoom, setZoom] = useState(1)
 	const [dropPreview, setDropPreview] = useState<DropPreview | null>(null)
 	const snap = useSnapshot(state)
+	const appEvents = useAppEvents()
+	const appCommands = useAppCommands()
 
 	const handleDragOver = (e: React.DragEvent) => {
 		e.preventDefault()
@@ -73,12 +72,10 @@ export default function CanvasContainer() {
 				const x = e.clientX - rect.left
 				const y = e.clientY - rect.top
 
-				if (state.app?.commands) {
-					state.app.commands.emit('handle-asset-drop', {
-						asset: item,
-						position: { x, y },
-					})
-				}
+				appCommands.emit('handle-asset-drop', {
+					asset: item,
+					position: { x, y },
+				})
 			}
 		} catch (error) {
 			console.error('Invalid drop data')
@@ -105,18 +102,18 @@ export default function CanvasContainer() {
 	// use memo to prevent re-rendering of the canvas element
 	const canvas = useMemo(() => {
 		// Only create canvas if we have all required props
-		if (!snap.project || !snap.app?.events || !snap.app?.commands || !snap.assets) {
+		if (!snap.project || !snap.assets) {
 			return null
 		}
 
 		return (
 			<Canvas
 				projectConfig={snap.project}
-				appEvents={snap.app.events as TypedEventEmitter<AppEvents>}
-				appCommands={snap.app.commands as CommandEmitter<AppCommands>}
+				appEvents={appEvents}
+				appCommands={appCommands}
 			/>
 		)
-	}, [snap.project, snap.app?.events, snap.app?.commands])
+	}, [snap.project, snap.assets, appEvents, appCommands])
 
 	return (
 		<div
@@ -160,18 +157,18 @@ export default function CanvasContainer() {
 
 			<AlignmentControls
 				orientation="horizontal"
-				onAlignStart={() => state.app?.commands.emit('align', 'left')}
-				onAlignCenter={() => state.app?.commands.emit('align', 'horizontal-center')}
-				onAlignEnd={() => state.app?.commands.emit('align', 'right')}
-				onDistribute={() => state.app?.commands.emit('align', 'distribute-horizontal')}
+				onAlignStart={() => appCommands.emit('align', 'left')}
+				onAlignCenter={() => appCommands.emit('align', 'horizontal-center')}
+				onAlignEnd={() => appCommands.emit('align', 'right')}
+				onDistribute={() => appCommands.emit('align', 'distribute-horizontal')}
 			/>
 
 			<AlignmentControls
 				orientation="vertical"
-				onAlignStart={() => state.app?.commands.emit('align', 'top')}
-				onAlignCenter={() => state.app?.commands.emit('align', 'vertical-center')}
-				onAlignEnd={() => state.app?.commands.emit('align', 'bottom')}
-				onDistribute={() => state.app?.commands.emit('align', 'distribute-vertical')}
+				onAlignStart={() => appCommands.emit('align', 'top')}
+				onAlignCenter={() => appCommands.emit('align', 'vertical-center')}
+				onAlignEnd={() => appCommands.emit('align', 'bottom')}
+				onDistribute={() => appCommands.emit('align', 'distribute-vertical')}
 			/>
 
 			{isDragOver && !dropPreview && (

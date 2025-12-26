@@ -5,12 +5,6 @@ import { debounce, merge } from 'es-toolkit'
 import { PartialDeep } from 'type-fest'
 import { proxy, subscribe as subscribeValtio, useSnapshot } from 'valtio'
 import { z } from 'zod'
-import { AppCommands } from '../AppCommands'
-import { AppEvents } from '../AppEvents'
-import { PhaserAppCommands } from '../components/canvas/phaser/PhaserAppCommands'
-import { PhaserAppEvents } from '../components/canvas/phaser/PhaserAppEvents'
-import { TypedEventEmitter } from '../components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
-import { CommandEmitter } from '../components/canvas/phaser/robowhale/utils/events/CommandEmitter'
 import { projectConfigSchema } from '../project/ProjectConfig'
 import { AssetTreeItemData } from '../types/assets'
 import { getObjectKeys } from '../utils/collection/get-object-keys'
@@ -69,22 +63,6 @@ export const stateSchema = z.object({
 	inspector: z.object({
 		componentsClipboard: z.array(z.string()),
 	}),
-	// TODO move it out of state
-	app: z
-		.object({
-			events: z.instanceof(TypedEventEmitter<AppEvents>),
-			commands: z.instanceof(CommandEmitter<AppCommands>),
-		})
-		.required()
-		.nullable(),
-	// TODO move it out of state
-	phaser: z
-		.object({
-			events: z.instanceof(TypedEventEmitter<PhaserAppEvents>),
-			commands: z.instanceof(CommandEmitter<PhaserAppCommands>),
-		})
-		.required()
-		.nullable(),
 })
 
 export type State = z.infer<typeof stateSchema>
@@ -121,10 +99,8 @@ const initialStateParsed = merge(
 		inspector: {
 			componentsClipboard: [],
 		},
-		app: null,
-		phaser: null,
 	} satisfies PartialDeep<State>,
-	// @ts-expect-error
+	// @ts-expect-error persisted state shape is unknown until parsed
 	JSON.parse(localStorage.getItem('state') || '{}')
 )
 

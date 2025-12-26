@@ -8,6 +8,7 @@ import { useWindowEvent } from '@mantine/hooks'
 import { state, useSnapshot } from '@state/State'
 import { useEffect, useRef, useState } from 'react'
 import { Logger } from 'tslog'
+import { useAppCommands } from '../../di/DiContext'
 import HierarchyItem from './HierarchyItem'
 import styles from './HierarchyPanel.module.css'
 import { HierarchyPanelTitle } from './HierarchyPanelTitle'
@@ -54,11 +55,6 @@ function findParentContainer(objId: string, objs: EditableObjectJson[]): Editabl
 	}
 }
 
-function selectAndScrollIntoView(objId: string) {
-	state.app?.commands.emit('select-object', objId)
-	scrollIntoView(objId)
-}
-
 function scrollIntoView(objId: string) {
 	const element = document.getElementById(`hierarchy-item-${objId}`)
 	if (element) {
@@ -75,6 +71,12 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 	const [itemToRename, setItemToRename] = useState<string | null>(null)
 	const canvasSnap = useSnapshot(state.canvas)
 	const rootState = canvasSnap.root && state.canvas.objectById(canvasSnap.root.id)
+	const appCommands = useAppCommands()
+
+	const selectAndScrollIntoView = (objId: string) => {
+		appCommands.emit('select-object', objId)
+		scrollIntoView(objId)
+	}
 
 	if (rootState && rootState.type !== 'Container') {
 		throw new Error('Root must be a container')
@@ -138,7 +140,7 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 			event.preventDefault()
 
 			if (canvasSnap.hasUnsavedChanges) {
-				state.app?.commands.emit('save-prefab')
+				appCommands.emit('save-prefab')
 			}
 
 			return
@@ -146,7 +148,7 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 
 		if (event.key === 'Delete' || event.key === 'Backspace') {
 			event.preventDefault()
-			state.app?.commands.emit('delete-objects', canvasSnap.selection as string[])
+			appCommands.emit('delete-objects', canvasSnap.selection as string[])
 			return
 		}
 
@@ -211,9 +213,9 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 
 				const isPrevItemSelected = canvasSnap.selection.includes(prevItem.id)
 				if (isPrevItemSelected) {
-					state.app?.commands.emit('remove-object-from-selection', prevItem.id)
+					appCommands.emit('remove-object-from-selection', prevItem.id)
 				} else {
-					state.app?.commands.emit('add-object-to-selection', prevItem.id)
+					appCommands.emit('add-object-to-selection', prevItem.id)
 					scrollIntoView(prevItem.id)
 				}
 			}
@@ -238,9 +240,9 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 
 				const isNextItemSelected = canvasSnap.selection.includes(nextItem.id)
 				if (isNextItemSelected) {
-					state.app?.commands.emit('remove-object-from-selection', nextItem.id)
+					appCommands.emit('remove-object-from-selection', nextItem.id)
 				} else {
-					state.app?.commands.emit('add-object-to-selection', nextItem.id)
+					appCommands.emit('add-object-to-selection', nextItem.id)
 					scrollIntoView(nextItem.id)
 				}
 			}
@@ -277,7 +279,7 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 				case 'a':
 					if (event.ctrlKey || event.metaKey) {
 						const siblingsIds = state.canvas.siblingIds(lastSelectedItem.id)
-						state.app?.commands.emit('select-objects', siblingsIds)
+						appCommands.emit('select-objects', siblingsIds)
 					}
 					break
 			}
@@ -389,7 +391,7 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 					}
 
 					// Emit move command
-					state.app?.commands.emit('move-object-in-hierarchy', sourceId, targetParent!.id, targetParentIndex)
+					appCommands.emit('move-object-in-hierarchy', sourceId, targetParent!.id, targetParentIndex)
 
 					setDropPreview(null)
 				},
@@ -418,10 +420,10 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 				<HierarchyPanelTitle
 					title={canvasSnap.currentPrefab?.name || 'Hierarchy'}
 					hasUnsavedChanges={canvasSnap.hasUnsavedChanges}
-					onSave={() => state.app?.commands.emit('save-prefab')}
+					onSave={() => appCommands.emit('save-prefab')}
 					onDiscard={() => {
 						if (confirm('Are you sure you want to discard all unsaved changes?')) {
-							state.app?.commands.emit('discard-unsaved-prefab')
+							appCommands.emit('discard-unsaved-prefab')
 						}
 					}}
 				/>
@@ -431,7 +433,7 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 					viewportRef={scrollAreaRef}
 					onClick={(e) => {
 						if (e.target === scrollAreaRef.current) {
-							state.app?.commands.emit('clear-selection')
+							appCommands.emit('clear-selection')
 						}
 					}}
 				>

@@ -8,7 +8,7 @@ import {
 	EditableObjectJson,
 	EditableObjectJsonType,
 } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
-import { Group, Text, useMantineTheme } from '@mantine/core'
+import { Group, Text } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { until } from '@open-draft/until'
 import { state, unproxy } from '@state/State'
@@ -34,6 +34,9 @@ import styles from './HierarchyItem.module.css'
 import HierarchyItemIcons from './HierarchyItemIcons'
 import { HIERARCHY_ITEMS_CONTAINER_ID } from './HierarchyPanel'
 import { getHierarchyItemIcon, getLinkedAssetId } from './hierarchyUtils'
+import { useAppCommands } from '../../di/DiContext'
+import { AppCommands } from '../../AppCommands'
+import { CommandEmitter } from '../canvas/phaser/robowhale/utils/events/CommandEmitter'
 
 export interface HierarchyItemDragData {
 	id: string
@@ -43,13 +46,15 @@ export interface HierarchyItemDragData {
 	isRoot: boolean
 }
 
-function createContextMenuItems(obj: Snapshot<EditableObjectJson>, isRoot = false): ContextMenuItemOptions[] {
+function createContextMenuItems(
+	obj: Snapshot<EditableObjectJson>,
+	appCommands: CommandEmitter<AppCommands>,
+	isRoot = false
+): ContextMenuItemOptions[] {
 	let dividers = 1
 	const divider = () => {
 		return { key: `divider-${dividers++}` }
 	}
-
-	const appCommands = state.app?.commands
 
 	const linkedAssetId = getLinkedAssetId(obj as EditableObjectJson, isRoot)
 
@@ -65,7 +70,7 @@ function createContextMenuItems(obj: Snapshot<EditableObjectJson>, isRoot = fals
 					icon: getHierarchyItemIcon('Container'),
 					title: 'Container',
 					onClick: () => {
-						appCommands?.emit('create-object', { clickedObjId: obj.id, type: 'Container' })
+						appCommands.emit('create-object', { clickedObjId: obj.id, type: 'Container' })
 					},
 				},
 			],
@@ -76,7 +81,7 @@ function createContextMenuItems(obj: Snapshot<EditableObjectJson>, isRoot = fals
 			title: 'Copy',
 			icon: <ClipboardCopy size={16} />,
 			onClick: () => {
-				appCommands?.emit('copy-object', obj.id)
+				appCommands.emit('copy-object', obj.id)
 			},
 		},
 		{
@@ -85,7 +90,7 @@ function createContextMenuItems(obj: Snapshot<EditableObjectJson>, isRoot = fals
 			icon: <Copy size={16} />,
 			disabled: isRoot,
 			onClick: () => {
-				appCommands?.emit('duplicate-object', obj.id)
+				appCommands.emit('duplicate-object', obj.id)
 			},
 		},
 		{
@@ -94,7 +99,7 @@ function createContextMenuItems(obj: Snapshot<EditableObjectJson>, isRoot = fals
 			icon: <Scissors size={16} />,
 			disabled: isRoot,
 			onClick: () => {
-				appCommands?.emit('cut-object', obj.id)
+				appCommands.emit('cut-object', obj.id)
 			},
 		},
 		{
@@ -102,7 +107,7 @@ function createContextMenuItems(obj: Snapshot<EditableObjectJson>, isRoot = fals
 			title: 'Paste',
 			icon: <ClipboardPaste size={16} />,
 			onClick: () => {
-				appCommands?.emit('paste-object', obj.id)
+				appCommands.emit('paste-object', obj.id)
 			},
 		},
 		divider(),
@@ -130,8 +135,8 @@ function createContextMenuItems(obj: Snapshot<EditableObjectJson>, isRoot = fals
 			icon: <Trash2 size={16} />,
 			color: 'red',
 			disabled: isRoot,
-			onClick: (event) => {
-				appCommands?.emit('delete-objects', [obj.id])
+			onClick: () => {
+				appCommands.emit('delete-objects', [obj.id])
 			},
 		},
 		divider(),
@@ -166,7 +171,7 @@ function createContextMenuItems(obj: Snapshot<EditableObjectJson>, isRoot = fals
 			title: 'Copy Path',
 			icon: <ClipboardCopy size={16} />,
 			onClick: async () => {
-				const path = appCommands?.emit('get-object-path', obj.id)
+				const path = appCommands.emit('get-object-path', obj.id)
 				if (!path) {
 					return
 				}
@@ -228,7 +233,7 @@ export default function HierarchyItem({
 	itemToRename,
 	onRenameComplete,
 }: HierarchyItemProps) {
-	const theme = useMantineTheme()
+	const appCommands = useAppCommands()
 	const [isHovered, setIsHovered] = useState(false)
 	const { showContextMenu } = useContextMenu()
 	const itemRef = useRef<HTMLDivElement>(null)
@@ -238,7 +243,6 @@ export default function HierarchyItem({
 
 	const objId = objState.id
 	const isSelectedInCanvas = selectedIds.includes(objId)
-	const isHoveredInCanvas = hoveredIds.includes(objId)
 	const isActiveEditContext = activeEditContextId === objId
 	const isOpen = openedItems.has(objId)
 
@@ -250,10 +254,12 @@ export default function HierarchyItem({
 			return
 		}
 
+		const element = itemRef.current
+
 		const cleanup = combine(
 			draggable({
-				element: itemRef.current,
-				dragHandle: itemRef.current,
+				element,
+				dragHandle: element,
 				getInitialData: () =>
 					({
 						id: objId,
@@ -264,18 +270,17 @@ export default function HierarchyItem({
 					}) satisfies HierarchyItemDragData,
 			}),
 			dropTargetForElements({
-				element: itemRef.current,
+				element,
 				getData: () => ({
 					id: objId,
 					type: objState.type,
 					parentId: parentId,
 					metaType: 'hierarchy-item',
 					index: Array.from(document.querySelectorAll(`[data-parent-id="${parentId}"]`)).indexOf(
-						itemRef.current!
+						element!
 					),
 				}),
 				canDrop: (args: ElementDropTargetGetFeedbackArgs) => {
-					const sourceId = args.source.data.id as string
 					const isSourceRoot = args.source.data.isRoot as boolean
 
 					// Don't allow dropping root item
@@ -295,13 +300,13 @@ export default function HierarchyItem({
 			e.dataTransfer?.setDragImage(emptyImg, 0, 0)
 		}
 
-		itemRef.current.addEventListener('dragstart', handleDragStart)
+		element.addEventListener('dragstart', handleDragStart)
 
 		return () => {
 			cleanup()
-			itemRef.current?.removeEventListener('dragstart', handleDragStart)
+			element.removeEventListener('dragstart', handleDragStart)
 		}
-	}, [objId, objSnap.name, isRoot, parentId])
+	}, [objId, objSnap.name, objSnap.type, objState.type, isRoot, parentId])
 
 	const icon = useMemo(() => {
 		return getHierarchyItemIcon(objSnap.type)
@@ -334,7 +339,7 @@ export default function HierarchyItem({
 		if (e.shiftKey) {
 			const lastSelectedId = selectedIds.at(-1)
 			if (!lastSelectedId) {
-				state.app?.commands.emit('select-object', objId)
+				appCommands.emit('select-object', objId)
 				return
 			}
 
@@ -345,7 +350,7 @@ export default function HierarchyItem({
 			}
 
 			if (selectedIds.includes(clickedElementId)) {
-				state.app?.commands.emit('remove-object-from-selection', clickedElementId)
+				appCommands.emit('remove-object-from-selection', clickedElementId)
 				return
 			}
 
@@ -359,7 +364,7 @@ export default function HierarchyItem({
 			for (let index = startIndex; index <= endIndex; index++) {
 				const item = visibleItems[index]
 				if (item && !selectedIds.includes(item.id)) {
-					state.app?.commands.emit('add-object-to-selection', item.id)
+					appCommands.emit('add-object-to-selection', item.id)
 				}
 			}
 
@@ -368,15 +373,15 @@ export default function HierarchyItem({
 
 		if (e.ctrlKey || e.metaKey) {
 			if (isSelectedInCanvas) {
-				state.app?.commands.emit('remove-object-from-selection', objId)
+				appCommands.emit('remove-object-from-selection', objId)
 			} else {
-				state.app?.commands.emit('add-object-to-selection', objId)
+				appCommands.emit('add-object-to-selection', objId)
 			}
 
 			return
 		}
 
-		state.app?.commands.emit('select-object', objId)
+		appCommands.emit('select-object', objId)
 	}
 
 	const handleToggleOpen = (e: React.MouseEvent) => {
@@ -447,10 +452,10 @@ export default function HierarchyItem({
 				onMouseLeave={() => setIsHovered(false)}
 				onContextMenu={(e) => {
 					e.preventDefault()
-					const menuItems = createContextMenuItems(objState, isRoot)
+					const menuItems = createContextMenuItems(objState, appCommands, isRoot)
 					const menuOptions: ContextMenuOptions = { style: { width: 200 } }
 					showContextMenu(menuItems, menuOptions)(e)
-					state.app?.commands.emit('select-object', objId)
+					appCommands.emit('select-object', objId)
 				}}
 				onClick={handleClick}
 				className={clsx(styles.itemContainer, {

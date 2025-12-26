@@ -1,11 +1,10 @@
 import { NinePatchPlugin } from '@koreez/phaser3-ninepatch'
 import Phaser from 'phaser'
 import { useLayoutEffect, useRef } from 'react'
-import { ref } from 'valtio'
 import { AppCommands } from '../../AppCommands'
 import { AppEvents } from '../../AppEvents'
 import { ProjectConfig } from '../../project/ProjectConfig'
-import { state } from '../../state/State'
+import { usePhaserScope } from '../../di/DiContext'
 import { PhaserApp } from './phaser/PhaserApp'
 import { TypedEventEmitter } from './phaser/robowhale/phaser3/TypedEventEmitter'
 import { CommandEmitter } from './phaser/robowhale/utils/events/CommandEmitter'
@@ -19,6 +18,7 @@ type Props = {
 export const Canvas: React.FC<Props> = ({ projectConfig, appEvents, appCommands }) => {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null)
 	const phaserAppRef = useRef<PhaserApp | null>(null)
+	const phaserScope = usePhaserScope()
 
 	useLayoutEffect(() => {
 		// Only create Phaser app if we have all required props
@@ -28,24 +28,23 @@ export const Canvas: React.FC<Props> = ({ projectConfig, appEvents, appCommands 
 
 		const phaserApp = createPhaserApp(canvasRef.current, projectConfig, appEvents, appCommands)
 
-		state.phaser = ref({
-			events: phaserApp.ev3nts,
-			commands: phaserApp.commands,
-		})
+		phaserScope.events = phaserApp.ev3nts
+		phaserScope.commands = phaserApp.commands
 
 		phaserAppRef.current = phaserApp
 
 		return () => {
 			if (phaserAppRef.current) {
-				state.phaser?.events?.destroy()
-				state.phaser?.commands?.destroy()
-				state.phaser = null
+				phaserScope.events?.destroy()
+				phaserScope.commands?.destroy()
+				phaserScope.events = null
+				phaserScope.commands = null
 
 				phaserAppRef.current.destroy(true)
 				phaserAppRef.current = null
 			}
 		}
-	}, [projectConfig, appEvents, appCommands]) // Only recreate when these props change
+	}, [projectConfig, appEvents, appCommands, phaserScope]) // Only recreate when these props change
 
 	// use a unique key to force re-rendering of the canvas
 	const key = Date.now()

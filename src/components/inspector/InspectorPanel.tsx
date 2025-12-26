@@ -9,6 +9,7 @@ import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import { useSnapshot } from 'valtio'
 import { getAssetById, isGraphicAsset, type AssetTreeItemData } from '../../types/assets'
+import { useAppCommands } from '../../di/DiContext'
 import { InspectorSection, InspectorSectionDef } from './InspectorSection'
 import { NoSelection } from './NoSelection'
 import { AssetSection } from './sections/assets/AssetSection'
@@ -44,6 +45,7 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 	const forceUpdate = useForceUpdate()
 	const canvasSnap = useSnapshot(state.canvas)
 	const assetsSnap = useSnapshot(state.assets)
+	const appCommands = useAppCommands()
 
 	// Don't show anything if multiple items are selected
 	if (assetsSnap.selection.length > 1 || canvasSnap.selection.length > 1) {
@@ -108,7 +110,7 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 											// TODO components - implement reset functionality
 										}}
 										onMoveUp={() => {
-											const moveUpResult = state.app?.commands.emit('move-component-up', {
+											const moveUpResult = appCommands.emit('move-component-up', {
 												componentType: componentData.type,
 												objectId: selectedObjectId,
 											})!
@@ -125,7 +127,7 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 											}
 										}}
 										onMoveDown={() => {
-											const moveDownResult = state.app?.commands.emit('move-component-down', {
+											const moveDownResult = appCommands.emit('move-component-down', {
 												componentType: componentData.type,
 												objectId: selectedObjectId,
 											})!
@@ -142,7 +144,7 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 											}
 										}}
 										onRemove={() => {
-											const removeResult = state.app?.commands.emit('remove-component', {
+											const removeResult = appCommands.emit('remove-component', {
 												componentType: componentData.type,
 												objectId: selectedObjectId,
 											})!
@@ -198,7 +200,7 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 										return
 									}
 
-									const pasteResult = state.app?.commands.emit('paste-component', {
+									const pasteResult = appCommands.emit('paste-component', {
 										componentData: componentParsed as EditableComponentJson,
 										objectId: selectedObjectId,
 									})
@@ -224,7 +226,7 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 
 							<AddComponentButton
 								onAddComponent={(type) => {
-									const addResult = state.app?.commands.emit('add-component', {
+									const addResult = appCommands.emit('add-component', {
 										componentType: type,
 										objectId: selectedObjectId,
 									})!
