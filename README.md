@@ -15,12 +15,6 @@ Visually and logically the editor is split into **4 main parts**:
 - **Mantine UI** (`@mantine/core`, `@mantine/hooks`)
 - **Phaser** `3.87`
 - **valtio** for reactive shared state
-- **ts-pattern** for pattern matching
-
-## Requirements
-
-- **Node.js**: `>= 24.11.0`
-- **npm**: (bundled with Node)
 
 ## Getting started
 
