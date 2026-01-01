@@ -3,10 +3,11 @@
 	"tasks": [
 		{
 			"label": "Start Dev",
+			"detail": "Run the Vite development server and TypeScript type checker in watch mode.",
 			"dependsOrder": "parallel",
 			"dependsOn": [
-				"vite",
-				"typecheck"
+				"vite: dev",
+				"tsc: watch"
 			],
 			"group": {
 				"kind": "build",
@@ -14,27 +15,27 @@
 			}
 		},
 		{
+			"label": "vite: dev",
+			"detail": "Start the Vite development server with network access.",
 			"type": "npm",
 			"script": "start",
 			"problemMatcher": [],
-			"label": "vite",
-			"detail": "vite --host",
 			"isBackground": true
 		},
 		{
+			"label": "tsc: watch",
+			"detail": "Run the TypeScript compiler in watch mode to catch errors during development.",
 			"type": "npm",
 			"script": "typecheck-dev",
 			"problemMatcher": ["$tsc-watch"],
-			"label": "typecheck",
-			"detail": "tsc --noEmit --watch --pretty false --project tsconfig.app.json",
 			"isBackground": true
 		},
 		{
+			"label": "Update Types",
+			"detail": "Build and push TypeScript type definitions for the project.",
 			"type": "shell",
 			"command": "node scripts/build-types.ts --push",
-			"problemMatcher": [],
-			"label": "Update Types",
-			"detail": "Build and push TypeScript type definitions"
+			"problemMatcher": []
 		}
 	]
 }
