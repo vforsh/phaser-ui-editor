@@ -701,6 +701,7 @@ export class MainScene extends BaseScene {
 		appCommands.on('move-component-up', this.moveComponentUp, this, false, signal)
 		appCommands.on('move-component-down', this.moveComponentDown, this, false, signal)
 		appCommands.on('paste-component', this.pasteComponent, this, false, signal)
+		appCommands.on('reset-image-original-size', this.resetImageOriginalSize, this, false, signal)
 
 		appCommands.on('handle-asset-drop', this.handleAssetDrop, this, false, signal)
 
@@ -723,6 +724,29 @@ export class MainScene extends BaseScene {
 		appCommands.on('get-object-path', this.getObjectPath, this, false, signal)
 		appCommands.on('save-prefab', this.savePrefab, this, false, signal)
 		appCommands.on('discard-unsaved-prefab', this.restart, this, false, signal)
+	}
+
+	private resetImageOriginalSize(data: { objectId: string }) {
+		const obj = this.objectsFactory.getObjectById(data.objectId)
+		if (!obj || obj.kind !== 'Image') {
+			return
+		}
+
+		const assets = state.assets.items
+		const asset = getAssetById(assets, obj.asset.id)
+		if (!asset || (asset.type !== 'image' && asset.type !== 'spritesheet-frame')) {
+			return
+		}
+
+		const size = asset.size
+		if (!size || size.w === 0 || size.h === 0) {
+			return
+		}
+
+		void this.withUndo('Reset image original size', () => {
+			obj.setDisplaySize(size.w, size.h)
+			obj.setScale(1)
+		})
 	}
 
 	private selectObject(objId: string) {

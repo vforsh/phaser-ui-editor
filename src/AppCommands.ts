@@ -49,6 +49,7 @@ export type AppCommands = {
 	'move-component-up': (data: { componentType: EditableComponentType; objectId: string }) => MoveComponentResult
 	'move-component-down': (data: { componentType: EditableComponentType; objectId: string }) => MoveComponentResult
 	'paste-component': (data: { componentData: EditableComponentJson; objectId: string }) => AddComponentResult
+	'reset-image-original-size': (data: { objectId: string }) => void
 
 	// history
 	undo: () => void
