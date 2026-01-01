@@ -8,8 +8,7 @@ import {
 import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { state } from '@state/State'
-import { ActionIcon, Group, SegmentedControl, Stack, Text, Tooltip } from '@mantine/core'
-import { Lock, Unlock } from 'lucide-react'
+import { Box, Group, SegmentedControl, Stack, Text } from '@mantine/core'
 import { useSnapshot } from 'valtio'
 import { BaseSectionProps } from '../BaseSection'
 import { NumberInputCustom } from '../common/NumberInputCustom'
@@ -181,38 +180,54 @@ function ScalarInput({
 	onToggleUnit: () => void
 }) {
 	const isPercent = scalar.unit === 'percent'
+	const displayValue = isPercent ? scalar.value * 100 : scalar.value
+
+	const handleChange = (value: number) => {
+		if (!Number.isFinite(value)) {
+			return
+		}
+
+		const nextValue = isPercent ? value / 100 : value
+		onChange(nextValue)
+	}
 
 	return (
 		<NumberInputCustom
 			label={label}
-			value={scalar.value}
-			onChange={onChange}
-			step={isPercent ? 0.01 : 1}
-			decimalScale={isPercent ? 3 : 0}
+			value={displayValue}
+			onChange={handleChange}
+			step={1}
+			decimalScale={isPercent ? 2 : 0}
 			size="xs"
-			rightSection={<UnitToggle unit={scalar.unit} onToggle={onToggleUnit} />}
-			rightSectionWidth={40}
+			rightSection={<UnitSegmentedControl unit={scalar.unit} onToggle={onToggleUnit} />}
+			rightSectionWidth={96}
 		/>
 	)
 }
 
-function UnitToggle({ unit, onToggle }: { unit: LayoutUnit; onToggle: () => void }) {
-	const label = unit === 'percent' ? 'Percent (locked to parent size)' : 'Pixels'
-	const Icon = unit === 'percent' ? Lock : Unlock
+function UnitSegmentedControl({ unit, onToggle }: { unit: LayoutUnit; onToggle: () => void }) {
+	const data = [
+		{ label: 'px', value: 'px' },
+		{ label: '%', value: 'percent' },
+	]
 
 	return (
-		<Tooltip label={label}>
-			<ActionIcon
-				variant="light"
-				size="sm"
-				onClick={(event) => {
-					event.stopPropagation()
+		<Box
+			onMouseDown={(event) => event.stopPropagation()}
+			onClick={(event) => event.stopPropagation()}
+		>
+			<SegmentedControl
+				size="xs"
+				value={unit}
+				data={data}
+				onChange={(value) => {
+					if (value === unit) {
+						return
+					}
 					onToggle()
 				}}
-			>
-				<Icon size={14} />
-			</ActionIcon>
-		</Tooltip>
+			/>
+		</Box>
 	)
 }
 
@@ -277,6 +292,26 @@ function getScalar(
 	}
 }
 
+function getMutableScalar(
+	constraint: HorizontalConstraint | VerticalConstraint,
+	key: 'start' | 'center' | 'end'
+): LayoutScalar | null {
+	switch (constraint.mode) {
+		case 'start':
+			return key === 'start' ? constraint.start : null
+		case 'center':
+			return key === 'center' ? constraint.center : null
+		case 'end':
+			return key === 'end' ? constraint.end : null
+		case 'stretch':
+			if (key === 'start') return constraint.start
+			if (key === 'end') return constraint.end
+			return null
+		case 'none':
+			return null
+	}
+}
+
 function cloneScalar(scalar: LayoutScalar): LayoutScalar {
 	return { value: scalar.value, unit: scalar.unit }
 }
@@ -288,7 +323,7 @@ function updateScalarValue(
 	value: number
 ) {
 	const target = axis === 'horizontal' ? data.horizontal : data.vertical
-	const scalar = (target as any)[key] as LayoutScalar | undefined
+	const scalar = getMutableScalar(target, key)
 	if (!scalar) {
 		return
 	}
@@ -302,7 +337,7 @@ function toggleScalarUnit(
 	parentSize: number
 ) {
 	const target = axis === 'horizontal' ? data.horizontal : data.vertical
-	const scalar = (target as any)[key] as LayoutScalar | undefined
+	const scalar = getMutableScalar(target, key)
 	if (!scalar) {
 		return
 	}
