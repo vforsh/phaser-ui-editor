@@ -47,6 +47,7 @@ import { TransformControls } from './editContext/TransformControls'
 import { EditContextFrame } from './EditContextFrame'
 import { Grid } from './Grid'
 import { LayoutSystem } from './layout/LayoutSystem'
+import { getEditableWorldBounds } from './editContext/object-bounds'
 import {
 	AddComponentResult,
 	MoveComponentResult,
@@ -702,6 +703,7 @@ export class MainScene extends BaseScene {
 		appCommands.on('move-component-down', this.moveComponentDown, this, false, signal)
 		appCommands.on('paste-component', this.pasteComponent, this, false, signal)
 		appCommands.on('reset-image-original-size', this.resetImageOriginalSize, this, false, signal)
+		appCommands.on('adjust-container-to-children-bounds', this.adjustContainerToChildrenBounds, this, false, signal)
 
 		appCommands.on('handle-asset-drop', this.handleAssetDrop, this, false, signal)
 
@@ -746,6 +748,78 @@ export class MainScene extends BaseScene {
 		void this.withUndo('Reset image original size', () => {
 			obj.setDisplaySize(size.w, size.h)
 			obj.setScale(1)
+		})
+	}
+
+	private adjustContainerToChildrenBounds(data: { objectId: string }) {
+		const obj = this.objectsFactory.getObjectById(data.objectId)
+		if (!obj || !isObjectOfType(obj, 'Container')) {
+			return
+		}
+
+		const container = obj
+		const children = container.editables
+		if (children.length === 0) {
+			return
+		}
+
+		const containerWorldMatrix = container.getWorldTransformMatrix()
+		const tempVec = new Phaser.Math.Vector2()
+
+		let minX = Infinity
+		let minY = Infinity
+		let maxX = -Infinity
+		let maxY = -Infinity
+
+		children.forEach((child) => {
+			const bounds = getEditableWorldBounds(child)
+			const left = bounds.left
+			const right = bounds.right
+			const top = bounds.top
+			const bottom = bounds.bottom
+
+			const corners = [
+				[left, top],
+				[right, top],
+				[right, bottom],
+				[left, bottom],
+			]
+
+			corners.forEach(([x, y]) => {
+				const local = containerWorldMatrix.applyInverse(x, y, tempVec)
+				minX = Math.min(minX, local.x)
+				minY = Math.min(minY, local.y)
+				maxX = Math.max(maxX, local.x)
+				maxY = Math.max(maxY, local.y)
+			})
+		})
+
+		if (!Number.isFinite(minX) || !Number.isFinite(minY) || !Number.isFinite(maxX) || !Number.isFinite(maxY)) {
+			return
+		}
+
+		const width = Math.max(0, maxX - minX)
+		const height = Math.max(0, maxY - minY)
+		const centerLocalX = (minX + maxX) * 0.5
+		const centerLocalY = (minY + maxY) * 0.5
+		const cos = Math.cos(container.rotation)
+		const sin = Math.sin(container.rotation)
+		const scaledX = centerLocalX * container.scaleX
+		const scaledY = centerLocalY * container.scaleY
+		const offsetX = scaledX * cos - scaledY * sin
+		const offsetY = scaledX * sin + scaledY * cos
+
+		void this.withUndo('Adjust container to children bounds', () => {
+			container.setPosition(container.x + offsetX, container.y + offsetY)
+			children.forEach((child) => {
+				child.setPosition(child.x - centerLocalX, child.y - centerLocalY)
+			})
+			container.setSize(width, height)
+
+			const selection = this.editContexts.current?.selection
+			if (selection && selection.objects.includes(container)) {
+				selection.updateBounds()
+			}
 		})
 	}
 
