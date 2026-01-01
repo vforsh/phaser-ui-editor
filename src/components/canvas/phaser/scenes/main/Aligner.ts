@@ -182,9 +182,13 @@ export class Aligner extends TypedEventEmitter<Events> {
 			return new Phaser.Geom.Rectangle(0, 0, projectFrame.width, projectFrame.height)
 		}
 
-		return context.target.editables.length === 1
-			? this.getRotatedBounds(context.target.editables[0])
-			: calculateBounds(context.target.editables)
+		const target = context.target
+		const originX = target.getData('originX') ?? target.originX
+		const originY = target.getData('originY') ?? target.originY
+		const left = -originX * target.width
+		const top = -originY * target.height
+
+		return new Phaser.Geom.Rectangle(left, top, target.width, target.height)
 	}
 
 	/**
