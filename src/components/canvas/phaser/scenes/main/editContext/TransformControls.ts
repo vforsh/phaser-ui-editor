@@ -70,7 +70,6 @@ export class TransformControls extends Phaser.GameObjects.Container {
 
 			border.on('pointerover', this.onBorderPointerOver.bind(this, border), this, this.destroySignal)
 			border.on('pointerout', this.onBorderPointerOut.bind(this, border), this, this.destroySignal)
-			// border.on('pointerdown', this.onBorderPointerDown.bind(this, border), this, this.destroySignal)
 		})
 	}
 
@@ -93,6 +92,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			this.cursorManager,
 			this.options,
 			this.handles.resizeKnobs,
+			this.handles.borders,
 			() => this.target,
 			() => this.angle,
 			this.events,

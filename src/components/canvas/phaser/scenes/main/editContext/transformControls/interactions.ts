@@ -12,8 +12,9 @@ import {
 	getRotateCursorAngleOffsetByName,
 	CursorManager,
 	type ReadonlyTransformControlOptions,
+	type ResizeDirection,
 } from './types-math-cursor'
-import type { CornerHandles, TransformControlHandles } from './factories'
+import type { BorderHandles, CornerHandles, TransformControlHandles } from './factories'
 import { setCircleHitArea, setRectHitArea } from './factories'
 
 export class RotateInteraction {
@@ -147,6 +148,7 @@ export class ResizeInteraction {
 		private readonly cursorManager: CursorManager,
 		private readonly options: ReadonlyTransformControlOptions,
 		private readonly resizeKnobs: CornerHandles,
+		private readonly resizeBorders: BorderHandles,
 		private readonly getSelection: () => Selection | null,
 		private readonly getControlsAngle: () => number,
 		private readonly events: Phaser.Events.EventEmitter,
@@ -171,6 +173,17 @@ export class ResizeInteraction {
 			knob.on('pointerdown', this.resize.bind(this, knob), this, this.destroySignal)
 			knob.setScale(1 / this.options.resizeKnobs.resolution)
 			knob.setTintFill(this.options.resizeKnobs.fillColor)
+		})
+
+		const borders = [
+			this.resizeBorders.top,
+			this.resizeBorders.bottom,
+			this.resizeBorders.left,
+			this.resizeBorders.right,
+		]
+
+		borders.forEach((border) => {
+			border.on('pointerdown', this.resizeFromBorder.bind(this, border), this, this.destroySignal)
 		})
 	}
 
@@ -199,8 +212,6 @@ export class ResizeInteraction {
 			return
 		}
 
-		this.events.emit('transform-start', 'resize')
-
 		const selectionCenter = { x: selection.centerX, y: selection.centerY }
 
 		// Convert pointer world position to selection local position
@@ -216,6 +227,53 @@ export class ResizeInteraction {
 
 		// Determine resize direction based on where click happened relative to selection center
 		const resizeDirection = getResizeDirectionFromRotatedDelta(rotatedX, rotatedY)
+
+		this.performResize(selection, pointer, resizeDirection, 'both', true)
+	}
+
+	private resizeFromBorder(
+		border: Phaser.GameObjects.Image,
+		pointer: Phaser.Input.Pointer,
+		_x: number,
+		_y: number
+	) {
+		const selection = this.getSelection()
+		if (!selection) {
+			return
+		}
+
+		const isVertical =
+			border === this.resizeBorders.top || border === this.resizeBorders.bottom
+		const resizeDirection = this.getResizeDirectionForBorder(border)
+		const axis = isVertical ? 'y' : 'x'
+
+		this.performResize(selection, pointer, resizeDirection, axis, false)
+	}
+
+	private getResizeDirectionForBorder(border: Phaser.GameObjects.Image): ResizeDirection {
+		if (border === this.resizeBorders.top) {
+			return 'top-left'
+		}
+		if (border === this.resizeBorders.bottom) {
+			return 'bottom-left'
+		}
+		if (border === this.resizeBorders.left) {
+			return 'top-left'
+		}
+		return 'top-right'
+	}
+
+	private performResize(
+		selection: Selection,
+		pointer: Phaser.Input.Pointer,
+		resizeDirection: ResizeDirection,
+		axis: 'both' | 'x' | 'y',
+		allowAspectRatio: boolean
+	) {
+		this.events.emit('transform-start', 'resize')
+
+		const sin = Math.sin(-selection.rotation)
+		const cos = Math.cos(-selection.rotation)
 
 		const newOrigin = getOriginForResizeDirection(resizeDirection)
 
@@ -301,15 +359,19 @@ export class ResizeInteraction {
 
 				const kx = knobIsLeft ? -1 : 1
 				const ky = knobIsTop ? -1 : 1
-				const deltaX = rotatedDx * kx
-				const deltaY = rotatedDy * ky
+				const deltaX = axis === 'y' ? 0 : rotatedDx * kx
+				const deltaY = axis === 'x' ? 0 : rotatedDy * ky
 
 				// resize selected objects separately
 				selectedTransforms.forEach((transform, obj) => {
-					// keep the aspect ratio if shift is pressed
-					const adjustedDy = pointer.event.shiftKey ? deltaX / transform.aspectRatio : deltaY
-					const newDisplayWidth = Math.max(transform.width + deltaX, MIN_DISPLAY_SIZE)
-					const newDisplayHeight = Math.max(transform.height + adjustedDy, MIN_DISPLAY_SIZE)
+					const useAspectRatio = allowAspectRatio && axis === 'both' && pointer.event.shiftKey
+					const adjustedDy = useAspectRatio ? deltaX / transform.aspectRatio : deltaY
+					const newDisplayWidth =
+						axis === 'y' ? transform.width : Math.max(transform.width + deltaX, MIN_DISPLAY_SIZE)
+					const newDisplayHeight =
+						axis === 'x'
+							? transform.height
+							: Math.max(transform.height + adjustedDy, MIN_DISPLAY_SIZE)
 
 					if (obj.kind === 'Container') {
 						const scaleX = transform.scaleX === 0 ? 1 : Math.abs(transform.scaleX)
