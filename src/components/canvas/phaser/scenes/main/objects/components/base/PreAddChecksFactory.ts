@@ -10,6 +10,9 @@ export type PreAddCheck = (parent: EditableObject) => Result<{}, string>
 export class PreAddChecksFactory {
 	constructor() {}
 
+	/**
+	 * Ensures the parent object is one of the allowed types before attaching the component.
+	 */
 	public requireObjectType(...allowedTypes: EditableObjectType[]): PreAddCheck {
 		return (parent: EditableObject) => {
 			if (!allowedTypes.includes(parent.type)) {
@@ -20,6 +23,9 @@ export class PreAddChecksFactory {
 		}
 	}
 
+	/**
+	 * Ensures the parent object does **not** already have any of the conflicting component types.
+	 */
 	public requireNoComponentOfType(...types: EditableComponentType[]): PreAddCheck {
 		return (parent: EditableObject) => {
 			const conflictingComponent = types.find((type) => parent.components.get(type))
@@ -31,6 +37,9 @@ export class PreAddChecksFactory {
 		}
 	}
 
+	/**
+	 * Ensures the parent object already has a required component type before attaching this one.
+	 */
 	public requireComponentOfType(type: EditableComponentType): PreAddCheck {
 		return (parent: EditableObject) => {
 			if (!parent.components.get(type)) {
