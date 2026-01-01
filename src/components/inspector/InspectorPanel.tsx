@@ -4,7 +4,7 @@ import { Button, Divider, Group, ScrollArea, Stack } from '@mantine/core'
 import { useForceUpdate } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
 import { state } from '@state/State'
-import { ClipboardPaste, Eye, Group as GroupIcon, Image, Info, Move, Scaling, Type, TypeOutline } from 'lucide-react'
+import { ClipboardPaste, Eye, Image, Info, Move, Scaling, Type, TypeOutline } from 'lucide-react'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import { useSnapshot } from 'valtio'
@@ -23,7 +23,6 @@ import { HorizontalLayoutSection } from './sections/components/HorizontalLayoutS
 import { LayoutSection } from './sections/components/LayoutSection'
 import { VerticalLayoutSection } from './sections/components/VerticalLayoutSection'
 import { BitmapTextSection } from './sections/objects/BitmapTextSection'
-import { ContainerSection } from './sections/objects/ContainerSection'
 import { ContainerSizeSection } from './sections/objects/ContainerSizeSection'
 import { DisplaySection } from './sections/objects/DisplaySection'
 import { ImageSection } from './sections/objects/ImageSection'
@@ -349,14 +348,6 @@ function getObjectSections(obj: EditableObjectJson): InspectorSectionDef[] {
 					icon: Scaling,
 					data: container,
 					content: <ContainerSizeSection data={container} />,
-					defaultExpanded: true,
-				},
-				{
-					type: 'obj-container',
-					title: 'Container',
-					icon: GroupIcon,
-					data: container,
-					content: <ContainerSection data={container} />,
 					defaultExpanded: true,
 				},
 			]

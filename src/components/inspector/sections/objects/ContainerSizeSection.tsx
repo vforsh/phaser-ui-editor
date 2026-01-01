@@ -1,14 +1,18 @@
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
 import { NumberInputCustom } from '@components/inspector/sections/common/NumberInputCustom'
-import { Group, Stack } from '@mantine/core'
+import { useAppCommands } from '../../../../di/DiContext'
+import { Button, Group, Stack, Tooltip } from '@mantine/core'
+import { Info } from 'lucide-react'
 import { match } from 'ts-pattern'
 import { useSnapshot } from 'valtio'
 import { BaseSectionProps } from '../BaseSection'
 
-interface ContainerSizeSectionProps extends BaseSectionProps<EditableObjectJson> {}
+interface ContainerSizeSectionProps extends BaseSectionProps<EditableContainerJson> {}
 
 export function ContainerSizeSection({ data }: ContainerSizeSectionProps) {
 	const snap = useSnapshot(data)
+	const appCommands = useAppCommands()
+	const hasChildren = snap.children.length > 0
 
 	const hasActiveSizeControllingComps = snap.components.some((comp) =>
 		match(comp.type)
@@ -24,6 +28,7 @@ export function ContainerSizeSection({ data }: ContainerSizeSectionProps) {
 					value={snap.width}
 					onChange={(val) => (data.width = val)}
 					size="xs"
+					decimalScale={2}
 					// TODO add tooltip that explains that the width is controlled by the layout component
 					readOnly={hasActiveSizeControllingComps}
 				/>
@@ -32,10 +37,26 @@ export function ContainerSizeSection({ data }: ContainerSizeSectionProps) {
 					value={snap.height}
 					onChange={(val) => (data.height = val)}
 					size="xs"
+					decimalScale={2}
 					// TODO add tooltip that explains that the height is controlled by the layout component
 					readOnly={hasActiveSizeControllingComps}
 				/>
 			</Group>
+
+			<Button
+				variant='light'
+				size='xs'
+				mt='xs'
+				disabled={!hasChildren}
+				onClick={() => appCommands.emit('adjust-container-to-children-bounds', { objectId: data.id })}
+				rightSection={
+					<Tooltip label="Adjusts the container size to the union of its children's bounds.">
+						<Info size={14} />
+					</Tooltip>
+				}
+			>
+				Adjust to Children Bounds
+			</Button>
 
 			{/* <Group grow>
 				<NumberInputCustom
