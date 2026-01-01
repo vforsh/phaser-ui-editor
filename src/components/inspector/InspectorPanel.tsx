@@ -20,6 +20,7 @@ import { ComponentSection } from './sections/components/ComponentSection'
 import { ComponentsListData } from './sections/components/ComponentsListData'
 import { GridLayoutSection } from './sections/components/GridLayoutSection'
 import { HorizontalLayoutSection } from './sections/components/HorizontalLayoutSection'
+import { LayoutSection } from './sections/components/LayoutSection'
 import { VerticalLayoutSection } from './sections/components/VerticalLayoutSection'
 import { BitmapTextSection } from './sections/objects/BitmapTextSection'
 import { ContainerSizeSection } from './sections/objects/ContainerSizeSection'
@@ -457,6 +458,16 @@ function getComponentSections(obj: EditableObjectJson): InspectorSectionDef[] {
 					icon: componentInfo.icon,
 					data: gridLayout,
 					content: <GridLayoutSection data={gridLayout} />,
+					defaultExpanded: true,
+				}
+			})
+			.with({ type: 'layout' }, (layout) => {
+				return {
+					type: 'comp-layout',
+					title: componentInfo.title,
+					icon: componentInfo.icon,
+					data: layout,
+					content: <LayoutSection data={layout} objectId={obj.id} />,
 					defaultExpanded: true,
 				}
 			})

@@ -1,5 +1,6 @@
 import { GridLayoutComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/GridLayoutComponent'
 import { HorizontalLayoutComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/HorizontalLayoutComponent'
+import { LayoutComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/LayoutComponent'
 import { VerticalLayoutComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/VerticalLayoutComponent'
 import { EditableBitmapTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableBitmapText'
 import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
@@ -44,6 +45,7 @@ type ComponentSectionDef =
 	| { type: 'comp-horizontal-layout'; data: HorizontalLayoutComponentJson }
 	| { type: 'comp-vertical-layout'; data: VerticalLayoutComponentJson }
 	| { type: 'comp-grid-layout'; data: GridLayoutComponentJson }
+	| { type: 'comp-layout'; data: LayoutComponentJson }
 
 type SectionDefBase = AssetSectionDef | ObjectSectionDef | ComponentSectionDef
 

@@ -1,4 +1,4 @@
-import { Columns3, Globe, Grid2x2Plus, LayoutGrid, LucideIcon, Pointer, Rows3 } from 'lucide-react'
+import { Columns3, Dock, Globe, LayoutGrid, LucideIcon, Pointer, Rows3 } from 'lucide-react'
 import { EditableComponentType } from '../../../canvas/phaser/scenes/main/objects/components/base/EditableComponent'
 
 export type ComponentListItemData = {
@@ -33,6 +33,13 @@ export const ComponentsListData = {
 		description: 'Grid Layout Component',
 		group: 'Layout',
 		icon: LayoutGrid,
+	},
+	layout: {
+		type: 'layout',
+		title: 'Layout',
+		description: 'Align object to parent bounds',
+		group: 'Layout',
+		icon: Dock,
 	},
 	'localization': {
 		type: 'localization',

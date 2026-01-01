@@ -46,6 +46,7 @@ import { Selection } from './editContext/Selection'
 import { TransformControls } from './editContext/TransformControls'
 import { EditContextFrame } from './EditContextFrame'
 import { Grid } from './Grid'
+import { LayoutSystem } from './layout/LayoutSystem'
 import {
 	AddComponentResult,
 	MoveComponentResult,
@@ -106,6 +107,7 @@ export class MainScene extends BaseScene {
 	// TODO move to a separate class, it should emit events on resize
 	public contextFrame!: EditContextFrame
 	public objectsFactory!: EditableObjectsFactory
+	public layoutSystem!: LayoutSystem
 	private componentsFactory!: EditableComponentsFactory
 	private clipboard!: CanvasClipboard
 	private aligner!: Aligner
@@ -324,6 +326,8 @@ export class MainScene extends BaseScene {
 
 		this.initObjectsFactory()
 
+		this.initLayoutSystem()
+
 		this.initClipboard()
 
 		this.initEditContexts()
@@ -407,6 +411,14 @@ export class MainScene extends BaseScene {
 			this,
 			this.shutdownSignal
 		)
+	}
+
+	private initLayoutSystem() {
+		this.layoutSystem = new LayoutSystem({
+			scene: this,
+			objectsFactory: this.objectsFactory,
+			logger: this.logger.getSubLogger({ name: ':layout' }),
+		})
 	}
 
 	private initClipboard() {
