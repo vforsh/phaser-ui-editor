@@ -4,7 +4,6 @@
 import { EditableComponentJson } from '../../components/canvas/phaser/scenes/main/objects/components/base/EditableComponent'
 import { GridLayoutComponentJson } from '../../components/canvas/phaser/scenes/main/objects/components/GridLayoutComponent'
 import { HorizontalLayoutComponentJson } from '../../components/canvas/phaser/scenes/main/objects/components/HorizontalLayoutComponent'
-import { PinnerComponentJson } from '../../components/canvas/phaser/scenes/main/objects/components/PinnerComponent'
 import { VerticalLayoutComponentJson } from '../../components/canvas/phaser/scenes/main/objects/components/VerticalLayoutComponent'
 import { EditableBitmapTextJson } from '../../components/canvas/phaser/scenes/main/objects/EditableBitmapText'
 import { EditableContainerJson } from '../../components/canvas/phaser/scenes/main/objects/EditableContainer'
@@ -24,7 +23,6 @@ export type {
 	EditableTextJson,
 	GridLayoutComponentJson,
 	HorizontalLayoutComponentJson,
-	PinnerComponentJson,
 	PrefabFile,
 	VerticalLayoutComponentJson,
 }

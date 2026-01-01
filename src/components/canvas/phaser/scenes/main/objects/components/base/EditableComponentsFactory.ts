@@ -3,7 +3,6 @@ import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import { GridLayoutComponent, GridLayoutComponentJson } from '../GridLayoutComponent'
 import { HorizontalLayoutComponent, HorizontalLayoutComponentJson } from '../HorizontalLayoutComponent'
-import { PinnerComponent, PinnerComponentJson } from '../PinnerComponent'
 import { VerticalLayoutComponent, VerticalLayoutComponentJson } from '../VerticalLayoutComponent'
 import { EditableComponent, EditableComponentJson, EditableComponentType } from './EditableComponent'
 
@@ -39,19 +38,12 @@ export class EditableComponentsFactory {
 
 	public create(type: EditableComponentType): EditableComponent {
 		return match(type)
-			.with('pinner', () => this.pinner())
 			.with('localization', () => this.localization())
 			.with('input', () => this.input())
 			.with('horizontal-layout', () => this.horizontalLayout())
 			.with('vertical-layout', () => this.verticalLayout())
 			.with('grid-layout', () => this.gridLayout())
 			.exhaustive()
-	}
-
-	private pinner(initialState?: PinnerComponentJson) {
-		const id = this.getOrCreateId(initialState)
-		const pinner = new PinnerComponent(id, initialState)
-		return pinner
 	}
 
 	private localization() {
@@ -82,7 +74,6 @@ export class EditableComponentsFactory {
 
 	public fromJson(json: EditableComponentJson): EditableComponent {
 		return match(json)
-			.with({ type: 'pinner' }, (json) => this.pinner(json))
 			.with({ type: 'horizontal-layout' }, (json) => this.horizontalLayout(json))
 			.with({ type: 'vertical-layout' }, (json) => this.verticalLayout(json))
 			.with({ type: 'grid-layout' }, (json) => this.gridLayout(json))

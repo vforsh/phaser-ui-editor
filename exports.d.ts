@@ -236,16 +236,6 @@ type HorizontalLayoutComponentJson = {
 	spacingX: number
 }
 
-type PinnerComponentJson = {
-	type: 'pinner'
-	id: string
-	active: boolean
-	x: number
-	y: number
-	xOffset: string
-	yOffset: string
-}
-
 type VerticalLayoutComponentJson = {
 	type: 'vertical-layout'
 	id: string
@@ -256,11 +246,7 @@ type VerticalLayoutComponentJson = {
 	spacingY: number
 }
 
-type EditableComponentJson =
-	| PinnerComponentJson
-	| HorizontalLayoutComponentJson
-	| VerticalLayoutComponentJson
-	| GridLayoutComponentJson
+type EditableComponentJson = HorizontalLayoutComponentJson | VerticalLayoutComponentJson | GridLayoutComponentJson
 
 type PrefabFile = {
 	content: EditableContainerJson | null
@@ -280,7 +266,6 @@ export type {
 	EditableTextJson,
 	GridLayoutComponentJson,
 	HorizontalLayoutComponentJson,
-	PinnerComponentJson,
 	PrefabFile,
 	VerticalLayoutComponentJson,
 }

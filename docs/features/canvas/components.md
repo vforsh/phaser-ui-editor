@@ -102,13 +102,6 @@ Because `stateObj` is a proxy of `toJson()`, “saved state” is always aligned
 
 ### Existing components (in `src/components/canvas/phaser/scenes/main/objects/components/`)
 
-- **Pinner** (`PinnerComponent`)
-  - Pins an object relative to its parent container size (`x`, `y` are normalized 0..1).
-  - Supports absolute or percentage offsets (e.g. `"10"`, `"50%"`).
-  - Listens to:
-    - `added-to-container` on the object
-    - `size-changed` on the parent container (until removed from that parent)
-
 - **Horizontal Layout** (`HorizontalLayoutComponent`)
   - Applies a “row layout” to children of a container.
   - Listens to `hierarchy-changed` on the container to recompute layout.

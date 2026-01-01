@@ -20,7 +20,6 @@ import { ComponentSection } from './sections/components/ComponentSection'
 import { ComponentsListData } from './sections/components/ComponentsListData'
 import { GridLayoutSection } from './sections/components/GridLayoutSection'
 import { HorizontalLayoutSection } from './sections/components/HorizontalLayoutSection'
-import { PinnerSection } from './sections/components/PinnerSection'
 import { VerticalLayoutSection } from './sections/components/VerticalLayoutSection'
 import { BitmapTextSection } from './sections/objects/BitmapTextSection'
 import { ContainerSizeSection } from './sections/objects/ContainerSizeSection'
@@ -431,16 +430,6 @@ function getComponentSections(obj: EditableObjectJson): InspectorSectionDef[] {
 
 		return match(component)
 			.returnType<InspectorSectionDef>()
-			.with({ type: 'pinner' }, (pinner) => {
-				return {
-					type: 'comp-pinner',
-					title: componentInfo.title,
-					icon: componentInfo.icon,
-					data: pinner,
-					content: <PinnerSection data={pinner} />,
-					defaultExpanded: true,
-				}
-			})
 			.with({ type: 'horizontal-layout' }, (horizontalLayout) => {
 				return {
 					type: 'comp-horizontal-layout',

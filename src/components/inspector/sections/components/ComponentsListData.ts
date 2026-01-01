@@ -13,13 +13,6 @@ export type ComponentListItemData = {
  * Data we use to display the list of components when adding a component to an object.
  */
 export const ComponentsListData = {
-	'pinner': {
-		type: 'pinner',
-		title: 'Pinner',
-		description: 'Pinner Component',
-		group: 'Layout',
-		icon: Grid2x2Plus,
-	},
 	'horizontal-layout': {
 		type: 'horizontal-layout',
 		title: 'Horizontal Layout',
