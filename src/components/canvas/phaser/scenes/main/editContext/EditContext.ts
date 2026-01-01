@@ -15,7 +15,6 @@ type Events = {
 	'container-added': (container: EditableContainer) => void
 	'container-removed': (container: EditableContainer) => void
 	'container-double-clicked': (container: EditableContainer) => void
-	'bounds-changed': (bounds: Phaser.Geom.Rectangle) => void
 	'selection-changed': (selection: Selection | null) => void
 	'pre-destroy': () => void
 }
@@ -78,11 +77,6 @@ export class EditContext extends TypedEventEmitter<Events> {
 	private destroyController = new AbortController()
 	private debugGraphics: Phaser.GameObjects.Graphics | null = null
 	public objectsUnderSelectionRect: EditableObject[] = []
-
-	/**
-	 * Target bounds saved before the edit context was activated.
-	 */
-	private savedBounds: Phaser.Geom.Rectangle | undefined
 
 	/**
 	 * Whether the edit context is active.
@@ -687,8 +681,6 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.selectables.forEach((selectable) => {
 			selectable.setInteractive()
 		})
-
-		this.savedBounds = this.getBounds()
 	}
 
 	/**
@@ -706,9 +698,6 @@ export class EditContext extends TypedEventEmitter<Events> {
 		this.selectables.forEach((selectable) => {
 			selectable.disableInteractive()
 		})
-
-		this.updateBounds(this.savedBounds!)
-		this.savedBounds = undefined
 	}
 
 	/**
@@ -723,62 +712,6 @@ export class EditContext extends TypedEventEmitter<Events> {
 
 	public getBounds(): Phaser.Geom.Rectangle {
 		return calculateBounds(this.selectables)
-	}
-
-	/**
-	 * @param savedBounds - the bounds before the context was edited
-	 * @returns true if the bounds has changed, false otherwise
-	 * @emits bounds-changed
-	 */
-	public updateBounds(savedBounds: Phaser.Geom.Rectangle): boolean {
-		if (this.isRoot) {
-			return false
-		}
-
-		const bounds = calculateBounds(this.selectables)
-
-		const didBoundsChange = this.areBoundsEqual(savedBounds, bounds) === false
-		if (!didBoundsChange) {
-			return false
-		}
-
-		// Calculate the change in center position between old and new bounds
-		const prevCenterX = savedBounds.centerX
-		const prevCenterY = savedBounds.centerY
-		const newCenterX = bounds.centerX
-		const newCenterY = bounds.centerY
-
-		// Calculate the offset needed to maintain positions relative to center
-		const dx = newCenterX - prevCenterX
-		const dy = newCenterY - prevCenterY
-
-		// Adjust all selectables to maintain their positions relative to the new center
-		this.selectables.forEach((child) => {
-			child.x -= dx
-			child.y -= dy
-		})
-
-		// Update the container size and position
-		this.target.input?.hitArea?.setSize(bounds.width, bounds.height)
-		this.target.setSize(bounds.width, bounds.height)
-		this.target.setPosition(this.target.x + dx, this.target.y + dy)
-
-		this.logger.debug(
-			`updated bounds for '${this.name}': ${savedBounds.width}x${savedBounds.height} -> ${bounds.width}x${bounds.height}`
-		)
-
-		this.emit('bounds-changed', bounds)
-
-		return true
-	}
-
-	private areBoundsEqual(a: Phaser.Geom.Rectangle, b: Phaser.Geom.Rectangle, tolerance = 0.1): boolean {
-		return (
-			Math.abs(a.x - b.x) < tolerance &&
-			Math.abs(a.y - b.y) < tolerance &&
-			Math.abs(a.width - b.width) < tolerance &&
-			Math.abs(a.height - b.height) < tolerance
-		)
 	}
 
 	public destroy(): void {

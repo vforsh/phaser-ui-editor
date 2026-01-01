@@ -1,5 +1,5 @@
 import { EditableObject } from '../objects/EditableObject'
-import { getEditableWorldBounds } from './object-bounds'
+import { getContainerBoxWorldBounds } from './object-bounds'
 
 export function calculateBounds(objects: EditableObject[], rect?: Phaser.Geom.Rectangle): Phaser.Geom.Rectangle {
 	if (objects.length === 1) {
@@ -15,7 +15,7 @@ export function calculateBounds(objects: EditableObject[], rect?: Phaser.Geom.Re
 
 	objects.forEach((obj) => {
 		if (obj.kind === 'Container') {
-			const bounds = getEditableWorldBounds(obj)
+			const bounds = getContainerBoxWorldBounds(obj)
 			left = Math.min(left, bounds.left)
 			right = Math.max(right, bounds.right)
 			top = Math.min(top, bounds.top)
@@ -74,7 +74,7 @@ export function calculateBounds(objects: EditableObject[], rect?: Phaser.Geom.Re
 
 export function calculateBoundsSingle(obj: EditableObject, rect?: Phaser.Geom.Rectangle): Phaser.Geom.Rectangle {
 	if (obj.kind === 'Container') {
-		return getEditableWorldBounds(obj, rect)
+		return getContainerBoxWorldBounds(obj, rect)
 	}
 
 	const originX = obj.getData('originX') ?? obj.originX

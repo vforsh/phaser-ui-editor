@@ -2,7 +2,6 @@ import { ReadonlyDeep } from 'type-fest'
 import { TypedEventEmitter } from '../../../robowhale/phaser3/TypedEventEmitter'
 import { EditableObject } from '../objects/EditableObject'
 import { calculateBounds } from './Transformable'
-import { getEditableWorldBounds } from './object-bounds'
 
 type Events = {
 	changed: (type: 'add' | 'remove', object: EditableObject) => void
@@ -74,15 +73,8 @@ export class Selection extends TypedEventEmitter<Events> {
 		if (this.objects.length === 1) {
 			const obj = this.objects[0]
 			if (obj.kind === 'Container') {
-				const bounds = getEditableWorldBounds(obj)
-				if (bounds.width <= 0 || bounds.height <= 0) {
-					this._originX = 0.5
-					this._originY = 0.5
-					return
-				}
-
-				this._originX = clamp01((obj.x - bounds.left) / bounds.width)
-				this._originY = clamp01((obj.y - bounds.top) / bounds.height)
+				this._originX = 0.5
+				this._originY = 0.5
 				return
 			}
 

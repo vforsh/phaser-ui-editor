@@ -35,7 +35,6 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 	private logger: Logger<{}>
 	private destroyController: AbortController
 	private contexts: Map<Phaser.GameObjects.Container, EditContext> = new Map()
-	private savedBounds: Map<EditContext, Phaser.Geom.Rectangle> = new Map()
 
 	constructor(options: EditContextsManagerOptions) {
 		super()
@@ -71,7 +70,6 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		context.on('container-added', (container) => this.add(container), this, signal)
 		// context.on('container-removed', (container) => this.remove(container), this, signal)
 		context.on('container-double-clicked', (container) => this.switchTo(container), this, signal)
-		// context.on('bounds-changed', (bounds) => this.onContextBoundsChanged(context, bounds), this, signal)
 		context.on('selection-changed', (selection) => this.emit('selection-changed', selection), this, signal)
 		context.once('pre-destroy', () => this.remove(container), this, signal)
 
@@ -123,8 +121,6 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 			this.logger.info(`exited '${exitedContextName}' context`)
 		}
 
-		this.savedBounds = this.getParentContextsBounds(editContext)
-
 		editContext.onEnter()
 
 		this.logger.info(`entered '${editContext.name}' context`)
@@ -132,33 +128,6 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 		this.emit('context-switched', editContext)
 
 		return editContext
-	}
-
-	private getParentContextsBounds(context: EditContext): Map<EditContext, Phaser.Geom.Rectangle> {
-		let boundsMap = new Map<EditContext, Phaser.Geom.Rectangle>()
-
-		let parent = context.target.parentContainer
-		while (parent && this.contexts.has(parent)) {
-			const parentContext = this.contexts.get(parent)
-			if (!parentContext) {
-				break
-			}
-			boundsMap.set(parentContext, parentContext.getBounds())
-			parent = parent.parentContainer
-		}
-
-		return boundsMap
-	}
-
-	private onContextBoundsChanged(context: EditContext, bounds: Phaser.Geom.Rectangle) {
-		// propagate bounds change to parent context
-		const parentContext = this.contexts.get(context.target.parentContainer)
-		if (parentContext) {
-			const savedBounds = this.savedBounds.get(parentContext)
-			if (savedBounds) {
-				parentContext.updateBounds(savedBounds)
-			}
-		}
 	}
 
 	/**
@@ -184,14 +153,11 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 
 		this.contexts.forEach((context) => context.destroy())
 		this.contexts.clear()
-
-		this.savedBounds.clear()
 	}
 
 	public reset(): void {
 		this.contexts.forEach((context) => context.destroy())
 		this.contexts.clear()
-		this.savedBounds.clear()
 	}
 
 	public get current(): EditContext | undefined {

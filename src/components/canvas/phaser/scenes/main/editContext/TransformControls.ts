@@ -429,11 +429,18 @@ export class TransformControls extends Phaser.GameObjects.Container {
 				originX: number
 				originY: number
 				aspectRatio: number
+				x: number
+				y: number
+				scaleX: number
+				scaleY: number
+				rotation: number
 			}
 		>()
 
 		selection.objects.forEach((obj) => {
 			const currentOrigin = [obj.originX, obj.originY]
+			const containerDisplayWidth = Math.abs(obj.width * obj.scaleX)
+			const containerDisplayHeight = Math.abs(obj.height * obj.scaleY)
 
 			if (canChangeOrigin(obj)) {
 				const offsetX = obj.displayWidth * (newOrigin[0] - currentOrigin[0])
@@ -444,36 +451,24 @@ export class TransformControls extends Phaser.GameObjects.Container {
 				obj.y += offsetX * Math.sin(angleRad) + offsetY * Math.cos(angleRad)
 			}
 
-			if (obj.kind === 'Container') {
-				// manually set container origin by moving its children
-				const childOffsetX = -obj.displayWidth * (newOrigin[0] - 0.5)
-				const childOffsetY = -obj.displayHeight * (newOrigin[1] - 0.5)
-				obj.list.forEach((child) => {
-					if ('setPosition' in child && typeof child.setPosition === 'function') {
-						// @ts-expect-error store original position on untyped Phaser child
-						child.setData('originalPosition', { x: child.x, y: child.y })
-						// @ts-expect-error move untyped Phaser child position
-						child.setPosition(child.x + childOffsetX / obj.scaleX, child.y + childOffsetY / obj.scaleY)
-					}
-				})
-
-				// account for container angle
-				const offsetX = obj.displayWidth * (newOrigin[0] - 0.5)
-				const offsetY = obj.displayHeight * (newOrigin[1] - 0.5)
-				const angleRad = obj.angle * Phaser.Math.DEG_TO_RAD
-				obj.x += offsetX * Math.cos(angleRad) - offsetY * Math.sin(angleRad)
-				obj.y += offsetX * Math.sin(angleRad) + offsetY * Math.cos(angleRad)
-
-				obj.setData('originX', newOrigin[0])
-				obj.setData('originY', newOrigin[1])
-			}
-
 			selectedTransforms.set(obj, {
-				width: obj.displayWidth,
-				height: obj.displayHeight,
+				width: obj.kind === 'Container' ? containerDisplayWidth : obj.displayWidth,
+				height: obj.kind === 'Container' ? containerDisplayHeight : obj.displayHeight,
 				originX: currentOrigin[0],
 				originY: currentOrigin[1],
-				aspectRatio: obj.displayWidth / obj.displayHeight,
+				aspectRatio: (() => {
+					const displayWidth = obj.kind === 'Container' ? containerDisplayWidth : obj.displayWidth
+					const displayHeight = obj.kind === 'Container' ? containerDisplayHeight : obj.displayHeight
+					if (displayHeight === 0 || displayWidth === 0) {
+						return 1
+					}
+					return displayWidth / displayHeight
+				})(),
+				x: obj.x,
+				y: obj.y,
+				scaleX: obj.scaleX,
+				scaleY: obj.scaleY,
+				rotation: obj.rotation,
 			})
 		})
 
@@ -503,7 +498,30 @@ export class TransformControls extends Phaser.GameObjects.Container {
 					// keep the aspect ratio if shift is pressed
 					const _dy = pointer.event.shiftKey ? dx / transform.aspectRatio : dy
 					// WTF is 16?
-					obj.setDisplaySize(Math.max(transform.width + dx, 16), Math.max(transform.height + _dy, 16))
+					const newDisplayWidth = Math.max(transform.width + dx, 16)
+					const newDisplayHeight = Math.max(transform.height + _dy, 16)
+
+					if (obj.kind === 'Container') {
+						const scaleX = transform.scaleX === 0 ? 1 : Math.abs(transform.scaleX)
+						const scaleY = transform.scaleY === 0 ? 1 : Math.abs(transform.scaleY)
+						const unscaledWidth = newDisplayWidth / scaleX
+						const unscaledHeight = newDisplayHeight / scaleY
+
+						const signX = resizeDirection.includes('left') ? 1 : -1
+						const signY = resizeDirection.includes('top') ? 1 : -1
+						const offsetLocalX = (signX * (transform.width - newDisplayWidth)) / 2
+						const offsetLocalY = (signY * (transform.height - newDisplayHeight)) / 2
+						const sinObj = Math.sin(transform.rotation)
+						const cosObj = Math.cos(transform.rotation)
+						const offsetWorldX = offsetLocalX * cosObj - offsetLocalY * sinObj
+						const offsetWorldY = offsetLocalX * sinObj + offsetLocalY * cosObj
+
+						obj.setSize(unscaledWidth, unscaledHeight)
+						obj.setPosition(transform.x + offsetWorldX, transform.y + offsetWorldY)
+						return
+					}
+
+					obj.setDisplaySize(newDisplayWidth, newDisplayHeight)
 				})
 
 				selection.updateBounds()
@@ -526,26 +544,6 @@ export class TransformControls extends Phaser.GameObjects.Container {
 						obj.setOrigin(originalOriginX, originalOriginY)
 						obj.x += offsetX * Math.cos(angleRad) - offsetY * Math.sin(angleRad)
 						obj.y += offsetX * Math.sin(angleRad) + offsetY * Math.cos(angleRad)
-					}
-
-					if (obj.kind === 'Container') {
-						// manually restore container origin by moving children back to their original positions
-						obj.list.forEach((child) => {
-							const originalPosition = child.getData('originalPosition')
-							// @ts-expect-error restore untyped Phaser child position
-							child.setPosition(originalPosition.x, originalPosition.y)
-						})
-
-						const originalOriginX = 0.5
-						const originalOriginY = 0.5
-						const offsetX = obj.displayWidth * (originalOriginX - obj.getData('originX'))
-						const offsetY = obj.displayHeight * (originalOriginY - obj.getData('originY'))
-						const angleRad = obj.angle * Phaser.Math.DEG_TO_RAD
-						obj.x += offsetX * Math.cos(angleRad) - offsetY * Math.sin(angleRad)
-						obj.y += offsetX * Math.sin(angleRad) + offsetY * Math.cos(angleRad)
-
-						obj.setData('originX', originalOriginX)
-						obj.setData('originY', originalOriginY)
 					}
 				})
 
