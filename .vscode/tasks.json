@@ -61,6 +61,21 @@
 			"type": "shell",
 			"command": "pkill -f \"${workspaceFolder}/out/main/main.js\" > /dev/null 2>&1 || true",
 			"problemMatcher": []
+		},
+		{
+			"label": "git: create worktree",
+			"detail": "Creates a new branch and a git worktree in /Users/vlad/dev/phaser-ui-editor-worktrees",
+			"type": "shell",
+			"command": "node scripts/git/create-worktree.ts ${input:branchName}",
+			"problemMatcher": []
+		}
+	],
+	"inputs": [
+		{
+			"id": "branchName",
+			"description": "Enter the name for the new branch",
+			"type": "promptString",
+			"default": ""
 		}
 	]
 }
