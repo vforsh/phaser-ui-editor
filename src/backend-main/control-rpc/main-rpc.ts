@@ -3,19 +3,27 @@ import { WebSocketServer, type RawData, type WebSocket } from 'ws'
 import {
 	CONTROL_RPC_REQUEST_CHANNEL,
 	CONTROL_RPC_RESPONSE_CHANNEL,
-	JsonRpcRequest,
 	JsonRpcResponse,
 	createJsonRpcError,
 } from '../../control-rpc/rpc'
-import { controlContract, isControlMethod, type ControlMethod } from '../../control-rpc/contract'
+import { validateControlRequest } from '../../control-rpc/jsonrpc-validate'
+import {
+	ERR_NO_RENDERER_WINDOW,
+	ERR_RENDERER_TIMEOUT,
+	JSONRPC_PARSE_ERROR,
+} from '../../control-rpc/jsonrpc-errors'
+import { logger } from '../../logs/logs'
 
 type PendingRequest = {
 	ws: WebSocket
 	windowId: number
+	method: string
+	timeout: NodeJS.Timeout
 }
 
 type RpcRouterOptions = {
 	port: number
+	timeoutMs?: number
 }
 
 /**
@@ -29,11 +37,15 @@ export class ControlRpcServer {
 	private server: WebSocketServer | null = null
 	private readonly pending = new Map<string, PendingRequest>()
 	private readonly windowRequests = new Map<number, Set<string>>()
+	private readonly timeoutMs: number
+	private readonly logger = logger.getOrCreate('control-rpc')
 
 	/**
 	 * @param options - Runtime options (currently only port binding).
 	 */
-	constructor(private readonly options: RpcRouterOptions) {}
+	constructor(private readonly options: RpcRouterOptions) {
+		this.timeoutMs = options.timeoutMs ?? 10000
+	}
 
 	/**
 	 * Starts the WebSocket server and begins listening for renderer responses over IPC.
@@ -88,53 +100,44 @@ export class ControlRpcServer {
 	 * - Forwards the request to renderer over IPC
 	 *
 	 * Error responses are sent as JSON-RPC errors:
-	 * - 400: invalid json / invalid json-rpc request
-	 * - 503: no renderer window available
+	 * - -32700: parse error
+	 * - -32600: invalid request
+	 * - -32601: method not found
+	 * - -32602: invalid params
+	 * - -32001: no renderer window available
 	 */
 	private handleMessage(ws: WebSocket, data: RawData): void {
 		let parsed: unknown
 		try {
 			parsed = JSON.parse(data.toString())
 		} catch {
-			this.sendJson(ws, createJsonRpcError(null, 400, 'invalid json'))
+			this.sendJson(ws, createJsonRpcError(null, JSONRPC_PARSE_ERROR, 'parse error'))
 			return
 		}
 
-		if (!isRecord(parsed)) {
-			this.sendJson(ws, createJsonRpcError(null, 400, 'invalid json-rpc request'))
+		const validation = validateControlRequest(parsed)
+		if (!validation.ok) {
+			this.sendJson(ws, validation.response)
 			return
 		}
 
-		const { id, jsonrpc, method, params } = parsed
-		if (jsonrpc !== '2.0' || !isValidId(id) || typeof method !== 'string') {
-			this.sendJson(ws, createJsonRpcError(isValidId(id) ? id : null, 400, 'invalid json-rpc request'))
-			return
-		}
+		const { request, traceId } = validation
+		this.logger.info({ traceId, method: request.method, phase: 'recv' })
 
-		if (!isControlMethod(method)) {
-			this.sendJson(ws, createJsonRpcError(id, 404, `unknown method '${method}'`))
-			return
-		}
-
-		const parsedParams = controlContract[method].input.safeParse(params ?? {})
-		if (!parsedParams.success) {
-			this.sendJson(ws, createJsonRpcError(id, 400, 'invalid params', parsedParams.error.flatten()))
-			return
-		}
-
-		const request: JsonRpcRequest<ControlMethod> = {
-			jsonrpc: '2.0',
-			id,
-			method,
-			params: parsedParams.data,
-		}
 		const targetWindow = BrowserWindow.getAllWindows()[0]
 		if (!targetWindow || targetWindow.isDestroyed()) {
-			this.sendJson(ws, createJsonRpcError(request.id, 503, 'no renderer window available'))
+			const errorResponse = createJsonRpcError(request.id, ERR_NO_RENDERER_WINDOW, 'no renderer window available', {
+				kind: 'operational',
+				reason: 'no_window',
+				traceId,
+			})
+			this.sendJson(ws, errorResponse)
+			this.logger.error({ traceId, method: request.method, phase: 'error', code: ERR_NO_RENDERER_WINDOW })
 			return
 		}
 
-		this.trackRequest(request.id, ws, targetWindow.id)
+		this.trackRequest(request.id, request.method, ws, targetWindow.id)
+		this.logger.info({ traceId, method: request.method, phase: 'forward' })
 		targetWindow.webContents.send(CONTROL_RPC_REQUEST_CHANNEL, request)
 	}
 
@@ -156,6 +159,7 @@ export class ControlRpcServer {
 			return
 		}
 
+		clearTimeout(pending.timeout)
 		this.pending.delete(key)
 		const windowSet = this.windowRequests.get(pending.windowId)
 		if (windowSet) {
@@ -165,6 +169,10 @@ export class ControlRpcServer {
 			}
 		}
 
+		const traceId = key
+		const ok = !('error' in response)
+		this.logger.info({ traceId, method: pending.method, phase: 'reply', ok })
+
 		this.sendJson(pending.ws, response)
 	}
 
@@ -172,12 +180,40 @@ export class ControlRpcServer {
 	 * Tracks a pending request so the corresponding renderer response can be routed back to the
 	 * originating WebSocket connection.
 	 */
-	private trackRequest(id: string | number, ws: WebSocket, windowId: number): void {
+	private trackRequest(id: string | number, method: string, ws: WebSocket, windowId: number): void {
 		const key = id.toString()
-		this.pending.set(key, { ws, windowId })
+		const timeout = setTimeout(() => {
+			this.handleTimeout(key)
+		}, this.timeoutMs)
+
+		this.pending.set(key, { ws, windowId, method, timeout })
 		const set = this.windowRequests.get(windowId) ?? new Set<string>()
 		set.add(key)
 		this.windowRequests.set(windowId, set)
+	}
+
+	private handleTimeout(id: string): void {
+		const pending = this.pending.get(id)
+		if (!pending) {
+			return
+		}
+
+		this.pending.delete(id)
+		const windowSet = this.windowRequests.get(pending.windowId)
+		if (windowSet) {
+			windowSet.delete(id)
+		}
+
+		this.logger.info({ traceId: id, method: pending.method, phase: 'timeout' })
+
+		this.sendJson(
+			pending.ws,
+			createJsonRpcError(id, ERR_RENDERER_TIMEOUT, 'renderer timeout', {
+				kind: 'operational',
+				reason: 'timeout',
+				traceId: id,
+			})
+		)
 	}
 
 	/**
@@ -186,6 +222,7 @@ export class ControlRpcServer {
 	private cleanupSocket(ws: WebSocket): void {
 		for (const [key, pending] of this.pending) {
 			if (pending.ws === ws) {
+				clearTimeout(pending.timeout)
 				this.pending.delete(key)
 				const windowSet = this.windowRequests.get(pending.windowId)
 				if (windowSet) {
@@ -207,12 +244,4 @@ export class ControlRpcServer {
 		}
 		ws.send(JSON.stringify(payload))
 	}
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === 'object' && value !== null
-}
-
-function isValidId(id: unknown): id is string | number {
-	return typeof id === 'string' || typeof id === 'number'
 }

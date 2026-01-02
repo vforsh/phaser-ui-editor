@@ -36,13 +36,14 @@ export class EditorControlService {
 	 *
 	 * @throws If neither `assetId` nor a resolvable `path` is provided.
 	 */
-	async openPrefab(params: ControlInput<'open-prefab'>): Promise<void> {
+	async openPrefab(params: ControlInput<'open-prefab'>): Promise<ControlOutput<'open-prefab'>> {
 		const assetId = params.assetId ?? (params.path ? this.resolvePrefabIdByPath(params.path) : undefined)
 		if (!assetId) {
 			throw new Error('open-prefab requires assetId or a valid prefab path')
 		}
 
 		this.appCommands.emit('open-prefab', assetId)
+		return { success: true }
 	}
 
 	/**
@@ -51,7 +52,7 @@ export class EditorControlService {
 	 * @throws If `params.path` is missing.
 	 * @throws If the project could not be opened.
 	 */
-	async openProject(params: ControlInput<'open-project'>): Promise<void> {
+	async openProject(params: ControlInput<'open-project'>): Promise<ControlOutput<'open-project'>> {
 		if (!params.path) {
 			throw new Error('open-project requires a path')
 		}
@@ -60,6 +61,8 @@ export class EditorControlService {
 		if (!opened) {
 			throw new Error(`failed to open project at '${params.path}'`)
 		}
+
+		return { success: true }
 	}
 
 	/**
@@ -83,9 +86,10 @@ export class EditorControlService {
 	 * @throws If no prefab is currently open when resolving by path.
 	 * @throws If the object cannot be found for the provided path.
 	 */
-	async selectObject(params: ControlInput<'select-object'>): Promise<void> {
+	async selectObject(params: ControlInput<'select-object'>): Promise<ControlOutput<'select-object'>> {
 		const id = this.resolveObjectId(params)
 		this.appCommands.emit('select-object', id)
+		return { success: true }
 	}
 
 	/**
@@ -95,9 +99,10 @@ export class EditorControlService {
 	 * @throws If no prefab is currently open when resolving by path.
 	 * @throws If the object cannot be found for the provided path.
 	 */
-	async switchToContext(params: ControlInput<'switch-to-context'>): Promise<void> {
+	async switchToContext(params: ControlInput<'switch-to-context'>): Promise<ControlOutput<'switch-to-context'>> {
 		const id = this.resolveObjectId(params)
 		this.appCommands.emit('switch-to-context', id)
+		return { success: true }
 	}
 
 	/**
@@ -105,12 +110,13 @@ export class EditorControlService {
 	 *
 	 * @throws If `params.ids` is missing or empty.
 	 */
-	async deleteObjects(params: ControlInput<'delete-objects'>): Promise<void> {
+	async deleteObjects(params: ControlInput<'delete-objects'>): Promise<ControlOutput<'delete-objects'>> {
 		if (!Array.isArray(params.ids) || params.ids.length === 0) {
 			throw new Error('delete-objects requires a non-empty ids array')
 		}
 
 		this.appCommands.emit('delete-objects', params.ids)
+		return { success: true }
 	}
 
 	/**

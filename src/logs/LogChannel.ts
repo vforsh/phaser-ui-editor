@@ -6,6 +6,7 @@ const CHANNELS = [
 	'hierarchy',
 	'inspector',
 	'url-params',
+	'control-rpc',
 ] as const
 
 export type LogChannel = (typeof CHANNELS)[number]

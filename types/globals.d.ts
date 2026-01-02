@@ -1,21 +1,11 @@
 import { Main } from '../Main'
-import type {
-	HierarchyNode,
-	ControlInput,
-} from '../src/control-rpc/contract'
+import type { WindowEditorApi } from '../src/control-rpc/expose-window-editor'
 
 declare global {
 	interface Window {
 		gameInstance: Main
 		__Phaser3ExtensionsApplied: boolean
-		editor?: {
-			openProject(params: ControlInput<'open-project'>): Promise<void>
-			openPrefab(params: ControlInput<'open-prefab'>): Promise<void>
-			listHierarchy(): Promise<HierarchyNode>
-			selectObject(params: ControlInput<'select-object'>): Promise<void>
-			switchToContext(params: ControlInput<'switch-to-context'>): Promise<void>
-			deleteObjects(params: ControlInput<'delete-objects'>): Promise<void>
-		}
+		editor?: WindowEditorApi
 		/**
 		 * Displays a directory picker which allows the user to select a directory.
 		 * @returns A promise that resolves with a FileSystemDirectoryHandle object representing the selected directory.

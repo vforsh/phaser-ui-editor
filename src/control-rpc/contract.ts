@@ -67,6 +67,12 @@ export type ControlInput<M extends ControlMethod> = z.input<ControlContract[M]['
  */
 export type ControlOutput<M extends ControlMethod> = z.output<ControlContract[M]['output']>
 
+/**
+ * Strongly-typed representation of the entire control RPC API.
+ *
+ * This type maps each method name from the `controlContract` to its corresponding
+ * async function signature, ensuring that both inputs and outputs match the Zod schemas.
+ */
 export type ControlApi = {
 	[M in ControlMethod]: (input: ControlInput<M>) => Promise<ControlOutput<M>>
 }
