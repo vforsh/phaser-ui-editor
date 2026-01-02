@@ -8,14 +8,13 @@ export function register(program: Command, ctx: Ctx) {
 		.option('--asset-id <assetId>', 'Prefab asset id')
 		.option('--path <path>', 'Prefab path')
 		.action(async (options: { assetId?: string; path?: string }) => {
-			if (!options.assetId && !options.path) {
+			const params = options.assetId ? { assetId: options.assetId } : { path: options.path }
+
+			if (!params.assetId && !params.path) {
 				throw new Error('open-prefab requires --asset-id or --path')
 			}
 
-			const result = await ctx.rpc.request('open-prefab', {
-				assetId: options.assetId,
-				path: options.path,
-			})
+			const result = await ctx.rpc.request('open-prefab', params as any)
 			ctx.output.printKV(result)
 		})
 }

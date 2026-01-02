@@ -8,14 +8,13 @@ export function register(program: Command, ctx: Ctx) {
 		.option('--id <id>', 'Object id')
 		.option('--path <path>', 'Object path')
 		.action(async (options: { id?: string; path?: string }) => {
-			if (!options.id && !options.path) {
+			const params = options.id ? { id: options.id } : { path: options.path }
+
+			if (!params.id && !params.path) {
 				throw new Error('select-object requires --id or --path')
 			}
 
-			const result = await ctx.rpc.request('select-object', {
-				id: options.id,
-				path: options.path,
-			})
+			const result = await ctx.rpc.request('select-object', params as any)
 			ctx.output.printKV(result)
 		})
 }

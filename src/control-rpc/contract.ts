@@ -24,7 +24,10 @@ export const controlContract = {
 		output: successSchema,
 	},
 	'open-prefab': {
-		input: z.object({ assetId: z.string().optional(), path: z.string().optional() }),
+		input: z.union([
+			z.object({ assetId: z.string().min(1) }).strict(),
+			z.object({ path: z.string().min(1) }).strict(),
+		]),
 		output: successSchema,
 	},
 	'list-hierarchy': {
@@ -32,11 +35,17 @@ export const controlContract = {
 		output: hierarchyNodeSchema,
 	},
 	'select-object': {
-		input: z.object({ id: z.string().optional(), path: z.string().optional() }),
+		input: z.union([
+			z.object({ id: z.string().min(1) }).strict(),
+			z.object({ path: z.string().min(1) }).strict(),
+		]),
 		output: successSchema,
 	},
 	'switch-to-context': {
-		input: z.object({ id: z.string().optional(), path: z.string().optional() }),
+		input: z.union([
+			z.object({ id: z.string().min(1) }).strict(),
+			z.object({ path: z.string().min(1) }).strict(),
+		]),
 		output: successSchema,
 	},
 	'delete-objects': {

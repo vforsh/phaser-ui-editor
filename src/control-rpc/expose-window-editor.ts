@@ -16,8 +16,8 @@ type KebabToCamelCase<S extends string> = S extends `${infer T}-${infer U}`
  * to camelCase methods (e.g., 'openProject') used in the renderer.
  */
 export type WindowEditorApi = {
-	[M in ControlMethod as KebabToCamelCase<M>]: keyof ControlInput<M> extends never
-		? () => Promise<ControlOutput<M>>
+	[M in ControlMethod as KebabToCamelCase<M>]: {} extends ControlInput<M>
+		? (params?: ControlInput<M>) => Promise<ControlOutput<M>>
 		: (params: ControlInput<M>) => Promise<ControlOutput<M>>
 }
 

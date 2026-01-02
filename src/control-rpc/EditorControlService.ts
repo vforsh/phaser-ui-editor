@@ -1,9 +1,10 @@
+import { P, match } from 'ts-pattern'
 import { AppCommandsEmitter } from '../AppCommands'
 import type { EditableContainerJson } from '../components/canvas/phaser/scenes/main/objects/EditableContainer'
 import type { EditableObjectJson } from '../components/canvas/phaser/scenes/main/objects/EditableObject'
-import { getAssetsOfType } from '../types/assets'
-import { state } from '../state/State'
 import { openProjectByPath } from '../project/open-project'
+import { state } from '../state/State'
+import { getAssetsOfType } from '../types/assets'
 import type { ControlInput, ControlOutput, HierarchyNode } from './contract'
 
 type PathSegment = {
@@ -37,7 +38,11 @@ export class EditorControlService {
 	 * @throws If neither `assetId` nor a resolvable `path` is provided.
 	 */
 	async openPrefab(params: ControlInput<'open-prefab'>): Promise<ControlOutput<'open-prefab'>> {
-		const assetId = params.assetId ?? (params.path ? this.resolvePrefabIdByPath(params.path) : undefined)
+		const assetId = match(params)
+			.with({ assetId: P.string }, ({ assetId }) => assetId)
+			.with({ path: P.string }, ({ path }) => this.resolvePrefabIdByPath(path))
+			.exhaustive()
+
 		if (!assetId) {
 			throw new Error('open-prefab requires assetId or a valid prefab path')
 		}
@@ -138,23 +143,20 @@ export class EditorControlService {
 	 * @throws If the object cannot be found for the provided path.
 	 */
 	private resolveObjectId(params: ControlInput<'select-object'> | ControlInput<'switch-to-context'>): string {
-		if (params.id) {
-			return params.id
-		}
-
-		if (!params.path) {
-			throw new Error('id or path must be provided')
-		}
-
-		const root = state.canvas.root
-		if (!root) {
-			throw new Error('no prefab is open')
-		}
-
-		const id = resolveObjectIdByPath(root, params.path)
-		if (!id) {
-			throw new Error(`object not found for path '${params.path}'`)
-		}
+		const id = match(params)
+			.with({ id: P.string }, ({ id }) => id)
+			.with({ path: P.string }, ({ path }) => {
+				const root = state.canvas.root
+				if (!root) {
+					throw new Error('no prefab is open')
+				}
+				const resolvedId = resolveObjectIdByPath(root, path)
+				if (!resolvedId) {
+					throw new Error(`object not found for path '${path}'`)
+				}
+				return resolvedId
+			})
+			.exhaustive()
 
 		return id
 	}
