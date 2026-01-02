@@ -86,6 +86,7 @@ function handleRpcRequest(
 				.with('select-object', (_m) => service.selectObject(input as ControlInput<typeof _m>))
 				.with('switch-to-context', (_m) => service.switchToContext(input as ControlInput<typeof _m>))
 				.with('delete-objects', (_m) => service.deleteObjects(input as ControlInput<typeof _m>))
+				.with('get-asset-info', (_m) => service.getAssetInfo(input as ControlInput<typeof _m>))
 				.with('list-editors', () => service.listEditors())
 				.exhaustive()
 		)

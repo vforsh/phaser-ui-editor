@@ -6,7 +6,7 @@ import { openProjectByPath } from '../project/open-project'
 import { state, unproxy } from '../state/State'
 import path from 'path-browserify-esm'
 import type { AssetTreeItemData } from '../types/assets'
-import { getAssetsOfType } from '../types/assets'
+import { getAssetById, getAssetsOfType } from '../types/assets'
 import type { AssetNode, AssetType, ControlInput, ControlOutput, HierarchyNode } from './contract'
 
 type PathSegment = {
@@ -150,6 +150,37 @@ export class EditorControlService {
 
 		this.appCommands.emit('delete-objects', params.ids)
 		return { success: true }
+	}
+
+	/**
+	 * Returns detailed information about an asset by `id` or project-relative `path`.
+	 *
+	 * @throws If neither `id` nor `path` is provided.
+	 * @throws If no project is currently open.
+	 * @throws If the asset cannot be found.
+	 */
+	async getAssetInfo(params: ControlInput<'get-asset-info'>): Promise<ControlOutput<'get-asset-info'>> {
+		if (!state.projectDir) {
+			throw new Error('no project is open')
+		}
+
+		const id = match(params)
+			.with({ id: P.string }, ({ id }) => id)
+			.with({ path: P.string }, ({ path }) => {
+				const asset = findAssetByPath(state.assets.items, path, state.projectDir!)
+				if (!asset) {
+					throw new Error(`asset not found for path '${path}'`)
+				}
+				return asset.id
+			})
+			.exhaustive()
+
+		const assetData = getAssetById(state.assets.items, id)
+		if (!assetData) {
+			throw new Error(`asset not found for id '${id}'`)
+		}
+
+		return normalizeAssetPaths(unproxy(assetData) as AssetTreeItemData, state.projectDir)
 	}
 
 	/**
@@ -299,6 +330,32 @@ function normalizeAssetPaths(asset: AssetTreeItemData, projectDir: string): Asse
 			path: toProjectRelativePath(file.path, projectDir),
 		}))
 		.exhaustive()
+}
+
+function findAssetByPath(
+	items: AssetTreeItemData[],
+	projectRelativePath: string,
+	projectDir: string
+): AssetTreeItemData | undefined {
+	for (const item of items) {
+		if (toProjectRelativePath(item.path, projectDir) === projectRelativePath) {
+			return item
+		}
+
+		const children = match(item)
+			.with({ type: 'folder' }, (f) => f.children)
+			.with({ type: 'spritesheet' }, (s) => s.frames)
+			.with({ type: 'spritesheet-folder' }, (f) => f.children)
+			.otherwise(() => undefined)
+
+		if (children) {
+			const found = findAssetByPath(children as AssetTreeItemData[], projectRelativePath, projectDir)
+			if (found) {
+				return found
+			}
+		}
+	}
+	return undefined
 }
 
 function pruneAssetByType(asset: AssetNode, types: Set<AssetType>): AssetNode | null {

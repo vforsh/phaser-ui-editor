@@ -228,6 +228,13 @@ export const controlContract = {
 		input: z.object({ ids: z.array(z.string()) }),
 		output: successSchema,
 	},
+	'get-asset-info': {
+		input: z.union([
+			z.object({ id: z.string().min(1) }).strict(),
+			z.object({ path: z.string().min(1) }).strict(),
+		]),
+		output: assetNodeSchema,
+	},
 	'list-editors': {
 		input: z.object({}),
 		output: z.object({
