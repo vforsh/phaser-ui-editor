@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron'
 import type { ControlIpc } from '../../control-rpc/rpc'
-import { CONTROL_RPC_REQUEST_CHANNEL, CONTROL_RPC_RESPONSE_CHANNEL } from '../../control-rpc/rpc'
+import { CONTROL_RPC_REQUEST_CHANNEL, CONTROL_RPC_RESPONSE_CHANNEL, CONTROL_EDITOR_STATUS_CHANNEL } from '../../control-rpc/rpc'
 
 export function createControlIpc(): ControlIpc {
 	return {
@@ -14,6 +14,9 @@ export function createControlIpc(): ControlIpc {
 		},
 		sendRpcResponse: (response) => {
 			ipcRenderer.send(CONTROL_RPC_RESPONSE_CHANNEL, response)
+		},
+		sendEditorStatus: (status) => {
+			ipcRenderer.send(CONTROL_EDITOR_STATUS_CHANNEL, status)
 		},
 	}
 }

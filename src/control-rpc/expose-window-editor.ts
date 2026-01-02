@@ -35,6 +35,7 @@ export function exposeWindowEditor(appCommands: AppCommandsEmitter): void {
 		selectObject: (params) => service.selectObject(params),
 		switchToContext: (params) => service.switchToContext(params),
 		deleteObjects: (params) => service.deleteObjects(params),
+		listEditors: () => service.listEditors(),
 	}
 
 	window.editor = editor

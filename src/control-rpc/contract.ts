@@ -43,6 +43,17 @@ export const controlContract = {
 		input: z.object({ ids: z.array(z.string()) }),
 		output: successSchema,
 	},
+	'list-editors': {
+		input: z.object({}),
+		output: z.object({
+			editors: z.array(
+				z.object({
+					windowId: z.number(),
+					projectPath: z.string().nullable(),
+				})
+			),
+		}),
+	},
 } as const
 
 /**

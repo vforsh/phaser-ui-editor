@@ -2,6 +2,7 @@ import type { ControlMethod, ControlOutput } from './contract'
 
 export const CONTROL_RPC_REQUEST_CHANNEL = 'control:rpc-request'
 export const CONTROL_RPC_RESPONSE_CHANNEL = 'control:rpc-response'
+export const CONTROL_EDITOR_STATUS_CHANNEL = 'control:editor-status'
 
 export type JsonRpcId = string | number
 
@@ -33,6 +34,7 @@ export type JsonRpcResponse<M extends ControlMethod = ControlMethod> = JsonRpcSu
 export type ControlIpc = {
 	onRpcRequest: (handler: (request: JsonRpcRequest) => void) => () => void
 	sendRpcResponse: (response: JsonRpcResponse) => void
+	sendEditorStatus: (status: { projectPath: string | null }) => void
 }
 
 export function createJsonRpcResult<M extends ControlMethod>(

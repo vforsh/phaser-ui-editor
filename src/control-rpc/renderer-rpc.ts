@@ -8,6 +8,7 @@ import { validateControlRequest } from './jsonrpc-validate'
 import { ERR_INVALID_RPC_RESPONSE, JSONRPC_INTERNAL_ERROR } from './jsonrpc-errors'
 import { RpcScheduler } from './rpc-scheduler'
 import { logger } from '../logs/logs'
+import { state, subscribe } from '../state/State'
 
 /**
  * Installs a renderer-side bridge for the external control RPC.
@@ -32,12 +33,25 @@ export function useControlRpcBridge(appCommands: AppCommandsEmitter): void {
 		}
 
 		const service = new EditorControlService(appCommands)
+
+		// Hardening: push current status and watch for changes
+		controlIpc.sendEditorStatus({ projectPath: state.projectDir })
+		const unsubscribeStatus = subscribe(state, (ops) => {
+			const isProjectDirChanged = ops.some((op) => op[1].length === 1 && op[1][0] === 'projectDir')
+			if (isProjectDirChanged) {
+				controlIpc.sendEditorStatus({ projectPath: state.projectDir })
+			}
+		})
+
 		const unsubscribe = controlIpc.onRpcRequest(async (request: JsonRpcRequest) => {
 			const response = await handleRpcRequest(service, scheduler, request)
 			controlIpc.sendRpcResponse(response)
 		})
 
-		return () => unsubscribe()
+		return () => {
+			unsubscribeStatus()
+			unsubscribe()
+		}
 	}, [appCommands, scheduler])
 }
 
@@ -71,6 +85,7 @@ function handleRpcRequest(
 				.with('select-object', (_m) => service.selectObject(input as ControlInput<typeof _m>))
 				.with('switch-to-context', (_m) => service.switchToContext(input as ControlInput<typeof _m>))
 				.with('delete-objects', (_m) => service.deleteObjects(input as ControlInput<typeof _m>))
+				.with('list-editors', () => service.listEditors())
 				.exhaustive()
 		)
 

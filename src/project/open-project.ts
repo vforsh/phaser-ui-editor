@@ -59,6 +59,10 @@ export async function openProjectByPath(projectDirPath: string, log?: AppLogger)
 	state.project = openedProject.projectConfig
 	state.projectDir = projectDirPath
 
+	if (typeof window !== 'undefined' && (window as any).controlIpc) {
+		;(window as any).controlIpc.sendEditorStatus({ projectPath: projectDirPath })
+	}
+
 	return true
 }
 

@@ -120,6 +120,16 @@ export class EditorControlService {
 	}
 
 	/**
+	 * Returns a list of active editors.
+	 *
+	 * Note: this method is normally intercepted by the main process for external RPC.
+	 * In the renderer, it is not implemented as discovery is a main-process responsibility.
+	 */
+	async listEditors(): Promise<ControlOutput<'list-editors'>> {
+		throw new Error('list-editors is only available via the external control RPC')
+	}
+
+	/**
 	 * Resolves an object id either directly (`params.id`) or by searching the currently open
 	 * prefab tree using a hierarchy `path`.
 	 *
