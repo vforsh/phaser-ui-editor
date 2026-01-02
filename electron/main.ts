@@ -5,25 +5,30 @@ import { registerBackendHandlers } from '../src/backend-main/ipc/register-backen
 let mainWindow: BrowserWindow | null = null
 
 const createAppMenu = () => {
+	const isMac = process.platform === 'darwin'
+	const macAppMenu: Electron.MenuItemConstructorOptions[] = isMac
+		? [
+				{
+					label: app.name,
+					submenu: [
+						{ role: 'about' },
+						{ type: 'separator' },
+						{ role: 'services' },
+						{ type: 'separator' },
+						{ role: 'hide' },
+						{ role: 'hideOthers' },
+						{ role: 'unhide' },
+						{ type: 'separator' },
+						{ role: 'quit' },
+					],
+				},
+			]
+		: []
+
+	const macWindowMenu: Electron.MenuItemConstructorOptions[] = isMac ? [{ role: 'front' }] : []
+
 	const template: Electron.MenuItemConstructorOptions[] = [
-		...(process.platform === 'darwin'
-			? [
-					{
-						label: app.name,
-						submenu: [
-							{ role: 'about' },
-							{ type: 'separator' },
-							{ role: 'services' },
-							{ type: 'separator' },
-							{ role: 'hide' },
-							{ role: 'hideOthers' },
-							{ role: 'unhide' },
-							{ type: 'separator' },
-							{ role: 'quit' },
-						],
-					},
-				]
-			: []),
+		...macAppMenu,
 		{ role: 'editMenu' },
 		{
 			label: 'View',
@@ -45,7 +50,7 @@ const createAppMenu = () => {
 			submenu: [
 				{ role: 'minimize' },
 				{ role: 'close' },
-				...(process.platform === 'darwin' ? [{ role: 'front' }] : []),
+				...macWindowMenu,
 			],
 		},
 	]
@@ -59,13 +64,28 @@ const createWindow = () => {
 	mainWindow = new BrowserWindow({
 		width: 1400,
 		height: 900,
+		show: false,
+		backgroundColor: '#0b0b0b',
 		webPreferences: {
 			contextIsolation: true,
 			nodeIntegration: false,
 			preload: preloadPath,
 		},
 	})
-	mainWindow.maximize()
+
+	mainWindow.once('ready-to-show', () => {
+		if (!mainWindow) {
+			return
+		}
+
+		mainWindow.maximize()
+		mainWindow.show()
+
+		if (!app.isPackaged) {
+			// DevTools can noticeably slow down initial paint; open it right after the first render.
+			setTimeout(() => mainWindow?.webContents.openDevTools({ mode: 'right' }), 250)
+		}
+	})
 
 	const rendererUrl = process.env.ELECTRON_RENDERER_URL
 	if (rendererUrl) {
@@ -74,16 +94,13 @@ const createWindow = () => {
 		const indexPath = path.join(__dirname, '../renderer/index.html')
 		mainWindow.loadFile(indexPath)
 	}
-
-	if (!app.isPackaged) {
-		mainWindow.webContents.openDevTools({ mode: 'right' })
-	}
 }
 
 app.whenReady().then(() => {
-	registerBackendHandlers()
-	createAppMenu()
 	createWindow()
+	// Kick off the renderer ASAP; do the rest right after.
+	setImmediate(() => registerBackendHandlers())
+	setImmediate(() => createAppMenu())
 
 	app.on('activate', () => {
 		if (BrowserWindow.getAllWindows().length === 0) {
