@@ -1,7 +1,7 @@
 import { state } from '@state/State'
 import path from 'path-browserify-esm'
 import { match } from 'ts-pattern'
-import trpc from '../trpc'
+import { backend } from '../backend-renderer/backend'
 import { imageDataToUrl } from '../utils/image-data-to-url'
 
 export type AssetTreeData = AssetTreeItemData[]
@@ -243,26 +243,26 @@ export async function fetchImageUrl(asset: GraphicAssetData, signal?: AbortSigna
 	return imgUrl
 }
 
-async function fetchImageData(asset: GraphicAssetData, signal?: AbortSignal): Promise<number[]> {
+async function fetchImageData(asset: GraphicAssetData, signal?: AbortSignal): Promise<Uint8Array> {
 	const res = await match(asset)
 		.with({ type: 'image' }, async (image) => {
-			return trpc.readFile.query({ path: image.path }, { signal })
+			return backend.readFile({ path: image.path })
 		})
 		.with({ type: 'spritesheet' }, async (spritesheet) => {
-			return trpc.readFile.query({ path: spritesheet.image.path }, { signal })
+			return backend.readFile({ path: spritesheet.image.path })
 		})
 		.with({ type: 'spritesheet-frame' }, async (spritesheetFrame) => {
-			return trpc.readSpritesheetFrame.query(
-				{ spritesheetPath: spritesheetFrame.imagePath, frameName: spritesheetFrame.pathInHierarchy },
-				{ signal }
-			)
+			return backend.readSpritesheetFrame({
+				spritesheetPath: spritesheetFrame.imagePath,
+				frameName: spritesheetFrame.pathInHierarchy,
+			})
 		})
 		.with({ type: 'bitmap-font' }, async (bitmapFont) => {
-			return trpc.readFile.query({ path: bitmapFont.image.path }, { signal })
+			return backend.readFile({ path: bitmapFont.image.path })
 		})
 		.exhaustive()
 
-	return res.data
+	return res.bytes
 }
 
 /**

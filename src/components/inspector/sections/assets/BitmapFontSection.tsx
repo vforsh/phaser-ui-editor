@@ -6,7 +6,7 @@ import { Group, NumberInput, Stack, Textarea, TextInput } from '@mantine/core'
 import { until } from '@open-draft/until'
 import { useEffect, useState } from 'react'
 import { match } from 'ts-pattern'
-import trpc from '../../../../trpc'
+import { backend } from '../../../../backend-renderer/backend'
 import { AssetTreeBitmapFontData } from '../../../../types/assets'
 import { BaseSectionProps } from '../BaseSection'
 
@@ -78,7 +78,7 @@ export function BitmapFontSection({ data: asset }: BitmapFontSectionProps) {
 
 async function loadFontData(data: AssetTreeBitmapFontData['data'], ac: AbortSignal): Promise<BmFontData> {
 	return match(data)
-		.with({ type: 'json' }, (data) => trpc.readJson.query({ path: data.path }, { signal: ac }))
-		.with({ type: 'xml' }, (data) => trpc.readBmfontXml.query({ path: data.path }, { signal: ac }))
+		.with({ type: 'json' }, (data) => backend.readJson({ path: data.path }))
+		.with({ type: 'xml' }, (data) => backend.readBmfontXml({ path: data.path }))
 		.exhaustive()
 }

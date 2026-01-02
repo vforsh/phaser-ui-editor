@@ -6,10 +6,11 @@ interface ProjectPathInputProps {
   value: string;
   onChange: (value: string) => void;
   onSubmit: (e: React.FormEvent) => void;
+  onBrowse?: () => void;
   autoFocus?: boolean;
 }
 
-export function ProjectPathInput({ value, onChange, onSubmit, autoFocus }: ProjectPathInputProps) {
+export function ProjectPathInput({ value, onChange, onSubmit, onBrowse, autoFocus }: ProjectPathInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { isValid, validationMessage } = useProjectPathValidation(value);
 
@@ -31,11 +32,12 @@ export function ProjectPathInput({ value, onChange, onSubmit, autoFocus }: Proje
         style={{ flex: 1 }}
         data-autofocus={autoFocus}
       />
-      <Button 
-        type="submit" 
-        style={{ width: 'auto' }}
-        disabled={!isValid}
-      >
+      {onBrowse && (
+        <Button type="button" variant="default" style={{ width: 'auto' }} onClick={onBrowse}>
+          Browse
+        </Button>
+      )}
+      <Button type="submit" style={{ width: 'auto' }} disabled={!isValid}>
         Open
       </Button>
     </Group>

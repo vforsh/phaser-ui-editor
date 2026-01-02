@@ -13,7 +13,7 @@ import { AppEvents, AppEventsEmitter } from '../../../AppEvents'
 import { UndoHub } from '../../../history/UndoHub'
 import { Project } from '../../../project/Project'
 import { ProjectConfig } from '../../../project/ProjectConfig'
-import trpc from '../../../trpc'
+import { backend } from '../../../backend-renderer/backend'
 import { getAssetById, isAssetOfType } from '../../../types/assets'
 import { PrefabFile } from '../../../types/prefabs/PrefabFile'
 import { PhaserAppCommands, PhaserAppCommandsEmitter } from './PhaserAppCommands'
@@ -164,7 +164,7 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 			} */
 		}
 
-		const { error, data } = await until(() => trpc.readJson.query({ path: prefabAsset.path }))
+		const { error, data } = await until(() => backend.readJson({ path: prefabAsset.path }))
 		if (error) {
 			this.logger.error(`failed to load prefab from '${prefabAsset.path}' (${getErrorLog(error)})`)
 			return

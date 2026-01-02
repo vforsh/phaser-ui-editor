@@ -1,6 +1,6 @@
 # Phaser UI Editor
 
-A web-based editor for creating and editing **UI prefabs for Phaser 3 games**.
+A desktop editor (Electron) for creating and editing **UI prefabs for Phaser 3 games**.
 
 Visually and logically the editor is split into **4 main parts**:
 
@@ -11,10 +11,18 @@ Visually and logically the editor is split into **4 main parts**:
 
 ## Tech stack
 
-- **Vite** + **React** + **TypeScript**
+- **Electron** (desktop shell)
+- **electron-vite** (main + preload + renderer)
+- **Vite** + **React** + **TypeScript** (renderer)
 - **Mantine UI** (`@mantine/core`, `@mantine/hooks`)
 - **Phaser** `3.87`
 - **valtio** for reactive shared state
+
+## How it works (high level)
+
+- **Main process** owns filesystem access and heavy operations (image/font parsing, shell open).
+- **Preload** exposes a narrow `window.backend` API via `contextBridge`.
+- **Renderer** (React + Phaser) calls `backend.*` for all filesystem work using typed IPC.
 
 ## Getting started
 
@@ -24,10 +32,10 @@ Install dependencies:
 npm install
 ```
 
-Start dev server:
+Start Electron + Vite dev mode:
 
 ```bash
-npm run start
+npm run dev
 ```
 
 Build for production:
@@ -51,19 +59,26 @@ npm run lint
 
 ## Useful scripts
 
-- `npm run start`: start Vite dev server (uses `vite --host`)
+- `npm run dev`: start Electron + Vite dev (electron-vite)
+- `npm run start`: alias for `npm run dev`
 - `npm run typecheck`: `tsc --noEmit` (app tsconfig)
 - `npm run typecheck-dev`: typecheck in watch mode
-- `npm run build`: production build
-- `npm run preview`: preview build output
+- `npm run build`: production build (electron-vite)
+- `npm run preview`: preview build output (electron-vite)
+- `npm run test:paths`: run path normalization matrix
 - `npm run build-types`: build published type exports (`exports.d.ts`)
 - `npm run update-types`: build + push updated types
 
 ## Project structure (high level)
 
+- `electron/`: Electron main + preload entrypoints
 - `src/components/assetsPanel/`: Assets Panel UI
 - `src/components/canvas/`: React wrapper for Phaser + canvas controls
   - `src/components/canvas/phaser/`: Phaser app/scene/editor logic
+- `src/backend-contract/`: shared IPC contract + schemas
+- `src/backend-main/`: Electron main-process IPC handlers/services
+- `src/backend-preload/`: preload bridge (`window.backend`)
+- `src/backend-renderer/`: renderer IPC client wrapper
 - `src/components/hierarchyPanel/`: Hierarchy tree UI
 - `src/components/inspector/`: Inspector UI and sections
 - `src/state/`: Valtio state + schemas
@@ -79,4 +94,3 @@ npm run lint
   - [Inspector: add component](./docs/features/inspector/add-component.md)
   - [Asset picker](./docs/features/asset-picker/asset-picker.md)
   - [Assets search](./docs/features/assets-search/assets-search.md)
-

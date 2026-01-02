@@ -5,7 +5,7 @@ import path from 'path-browserify-esm'
 import prettyBytes from 'pretty-bytes'
 import { useEffect, useState } from 'react'
 import { match } from 'ts-pattern'
-import trpc from '../../../../trpc'
+import { backend } from '../../../../backend-renderer/backend'
 import { GraphicAssetData } from '../../../../types/assets'
 import { imageDataToUrl } from '../../../../utils/image-data-to-url'
 import { BaseSectionProps } from '../BaseSection'
@@ -23,19 +23,19 @@ function getImageUrlForBolt(): string {
 function readImageData(asset: GraphicAssetData, signal?: AbortSignal) {
 	return match(asset)
 		.with({ type: 'image' }, async (image) => {
-			return trpc.readFile.query({ path: image.path }, { signal })
+			return backend.readFile({ path: image.path })
 		})
 		.with({ type: 'spritesheet' }, async (spritesheet) => {
-			return trpc.readFile.query({ path: spritesheet.image.path }, { signal })
+			return backend.readFile({ path: spritesheet.image.path })
 		})
 		.with({ type: 'spritesheet-frame' }, async (spritesheetFrame) => {
-			return trpc.readSpritesheetFrame.query(
-				{ spritesheetPath: spritesheetFrame.imagePath, frameName: spritesheetFrame.pathInHierarchy },
-				{ signal }
-			)
+			return backend.readSpritesheetFrame({
+				spritesheetPath: spritesheetFrame.imagePath,
+				frameName: spritesheetFrame.pathInHierarchy,
+			})
 		})
 		.with({ type: 'bitmap-font' }, async (bitmapFont) => {
-			return trpc.readFile.query({ path: bitmapFont.image.path }, { signal })
+			return backend.readFile({ path: bitmapFont.image.path })
 		})
 		.exhaustive()
 }
@@ -71,16 +71,16 @@ function detectImageType(asset: GraphicAssetData) {
 async function getImageFileSize(asset: GraphicAssetData, signal?: AbortSignal) {
 	const stats = await match(asset)
 		.with({ type: 'image' }, async (image) => {
-			return trpc.stat.query({ path: image.path }, { signal })
+			return backend.stat({ path: image.path })
 		})
 		.with({ type: 'spritesheet' }, async (spritesheet) => {
-			return trpc.stat.query({ path: spritesheet.image.path }, { signal })
+			return backend.stat({ path: spritesheet.image.path })
 		})
 		.with({ type: 'spritesheet-frame' }, async (spritesheetFrame) => {
 			return { size: 0 }
 		})
 		.with({ type: 'bitmap-font' }, async (bitmapFont) => {
-			return trpc.stat.query({ path: bitmapFont.image.path }, { signal })
+			return backend.stat({ path: bitmapFont.image.path })
 		})
 		.exhaustive()
 
@@ -118,7 +118,7 @@ export function GraphicAssetPreviewSection({ data }: GraphicAssetPreviewSectionP
 			}
 
 			const imageType = detectImageType(data)
-			const imageUrl = imageDataToUrl(imageData.data, imageType)
+			const imageUrl = imageDataToUrl(imageData.bytes, imageType)
 			setImageUrl(imageUrl)
 		}
 

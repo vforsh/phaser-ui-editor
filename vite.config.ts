@@ -1,24 +1,24 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
-import { apiServerPlugin } from './scripts/vite-plugins/api-server/vite-api-server'
 
 /**
  * @link https://vitejs.dev/config/
  */
 export default defineConfig({
-	plugins: [react(), tsconfigPaths(), apiServerPlugin],
+	plugins: [react(), tsconfigPaths()],
 	optimizeDeps: {
 		exclude: ['lucide-react'],
 	},
 	define: {
-		__ESM_POLYFILL__: true
+		__ESM_POLYFILL__: true,
 	},
+	base: './',
 	build: {
 		rollupOptions: {
 			input: {
-				polyfills: 'core-js/actual/iterator'
-			}
-		}
-	}
+				polyfills: 'core-js/actual/iterator',
+			},
+		},
+	},
 })

@@ -1,9 +1,11 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { state } from '../state/State';
 import { useSnapshot } from 'valtio';
+import { backend } from '../backend-renderer/backend';
 
 export function useRecentProjects() {
   const snap = useSnapshot(state);
+  const [existsMap, setExistsMap] = useState<Record<string, boolean>>({});
 
   const removeProject = useCallback((projectDir: string) => {
     state.recentProjects = state.recentProjects.filter(
@@ -11,14 +13,44 @@ export function useRecentProjects() {
     );
   }, []);
 
-  const checkProjectExists = useCallback((projectDir: string) => {
-    try {
-      // TODO replace with real call to fse.exist()
-      return Math.random() > 0.25;
-    } catch {
-      return false;
-    }
-  }, []);
+  useEffect(() => {
+    let canceled = false;
+
+    const checkProjects = async () => {
+      const entries = await Promise.all(
+        (snap.recentProjects ?? []).map(async (project) => {
+          try {
+            const exists = await backend.exists({ path: project.dir });
+            return [project.dir, exists] as const;
+          } catch {
+            return [project.dir, false] as const;
+          }
+        })
+      );
+
+      if (canceled) {
+        return;
+      }
+
+      const next: Record<string, boolean> = {};
+      entries.forEach(([dir, exists]) => {
+        next[dir] = exists;
+      });
+
+      setExistsMap(next);
+    };
+
+    checkProjects();
+
+    return () => {
+      canceled = true;
+    };
+  }, [snap.recentProjects]);
+
+  const checkProjectExists = useCallback(
+    (projectDir: string) => existsMap[projectDir] ?? true,
+    [existsMap]
+  );
 
   // Sort projects by last opened date (most recent first)
   const recentProjects = [...snap.recentProjects].sort(

@@ -6,7 +6,7 @@ import path from 'path-browserify-esm'
 import { useCallback, useEffect, useState } from 'react'
 import { projectConfigSchema } from '../project/ProjectConfig'
 import { state, stateSchema } from '../state/State'
-import trpc from '../trpc'
+import { backend } from '../backend-renderer/backend'
 import { useUndoHub } from '../di/DiContext'
 import AssetsPanel from './assetsPanel/AssetsPanel'
 import { buildAssetTree } from './assetsPanel/build-asset-tree'
@@ -159,7 +159,7 @@ export default function EditorLayout() {
 		const assetsToIgnore = openedProject.projectConfig.assetsIgnore.map((item) =>
 			path.join(openedProject.assetsDir, item)
 		)
-		const assets = await trpc.globby.query({
+		const assets = await backend.globby({
 			patterns: [assetsGlob],
 			// TODO use objectMode
 			options: { ignore: assetsToIgnore, markDirectories: true },
@@ -194,7 +194,7 @@ export default function EditorLayout() {
 		// return mockOpenedProject
 
 		const files = (
-			await trpc.globby.query({
+			await backend.globby({
 				patterns: ['**/*'],
 				options: {
 					cwd: projectDirPath,
@@ -211,12 +211,12 @@ export default function EditorLayout() {
 			return null
 		}
 
-		const projectConfigRaw = await trpc.readText.query({ path: projectConfigPath })
+		const projectConfigRaw = await backend.readText({ path: projectConfigPath })
 		const projectConfigParsed = JSON5.parse(projectConfigRaw.content)
 		const projectConfig = projectConfigSchema.parse(projectConfigParsed)
 
 		const assetsDirPath = path.join(projectDirPath, projectConfig.assetsDir)
-		const assetsDirStats = await trpc.stat.query({ path: assetsDirPath })
+		const assetsDirStats = await backend.stat({ path: assetsDirPath })
 		if (assetsDirStats.isDirectory === false) {
 			// TODO show mantine warning toast
 			console.log(`assetsDir ${assetsDirPath} not found`)
