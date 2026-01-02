@@ -1,15 +1,11 @@
 import { logger } from '@logs/logs'
-import { Box, Group, Paper, Stack, useMantineTheme } from '@mantine/core'
+import { Box, Group, Paper, Stack } from '@mantine/core'
 import { urlParams } from '@url-params'
-import JSON5 from 'json5'
-import path from 'path-browserify-esm'
 import { useCallback, useEffect, useState } from 'react'
-import { projectConfigSchema } from '../project/ProjectConfig'
-import { state, stateSchema } from '../state/State'
-import { backend } from '../backend-renderer/backend'
 import { useUndoHub } from '../di/DiContext'
+import { openProjectByPath } from '../project/open-project'
+import { state, useSnapshot } from '../state/State'
 import AssetsPanel from './assetsPanel/AssetsPanel'
-import { buildAssetTree } from './assetsPanel/build-asset-tree'
 import CanvasContainer from './canvas/CanvasContainer'
 import OpenProjectDialog from './dialogs/OpenProjectDialog'
 import HierarchyPanel from './hierarchyPanel/HierarchyPanel'
@@ -22,8 +18,8 @@ const MIN_PANEL_HEIGHT = 300
 const MAX_PANEL_HEIGHT = 800
 
 export default function EditorLayout() {
-	const theme = useMantineTheme()
 	const undoHub = useUndoHub()
+	const snap = useSnapshot(state)
 
 	const { leftPanelWidth: lpw, rightPanelWidth: rpw, hierarchyHeight: hh } = state.panelDimensions
 	const [leftPanelWidth, setLeftPanelWidth] = useState(lpw)
@@ -135,99 +131,15 @@ export default function EditorLayout() {
 
 	// display OpenProjectDialog if state.project is null
 	useEffect(() => {
-		if (state.project) {
+		if (snap.project) {
 			return
 		}
 
 		setOpenProjectDialogOpen(true)
-	}, [state.project])
+	}, [snap.project])
 
 	const openProject = async (projectDirPath: string) => {
-		if (path.isAbsolute(projectDirPath) === false) {
-			// TODO show mantine toast
-			return
-		}
-
-		const openedProject = await doOpenProject(projectDirPath)
-		if (!openedProject) {
-			return
-		}
-
-		logger.info('project opened', openedProject)
-
-		const assetsGlob = path.join(openedProject.assetsDir, '**/*')
-		const assetsToIgnore = openedProject.projectConfig.assetsIgnore.map((item) =>
-			path.join(openedProject.assetsDir, item)
-		)
-		const assets = await backend.globby({
-			patterns: [assetsGlob],
-			// TODO use objectMode
-			options: { ignore: assetsToIgnore, markDirectories: true },
-		})
-		// console.log('assets paths', assets)
-
-		const assetTree = await buildAssetTree(assets, openedProject.assetsDir)
-		// console.log('assetTree', assetTree)
-		state.assets.items = stateSchema.shape.assets.shape.items.parse(assetTree)
-
-		state.lastOpenedProjectDir = projectDirPath
-
-		// update recent projects in state
-		state.recentProjects ??= []
-		const recentProject = state.recentProjects.find((item) => item.dir === projectDirPath)
-		if (recentProject) {
-			recentProject.lastOpenedAt = Date.now()
-		} else {
-			state.recentProjects.push({
-				name: openedProject.projectConfig.name,
-				dir: projectDirPath,
-				lastOpenedAt: Date.now(),
-			})
-		}
-
-		state.project = openedProject.projectConfig
-		state.projectDir = projectDirPath
-	}
-
-	// TODO return Result (neverthrow)
-	const doOpenProject = async (projectDirPath: string) => {
-		// return mockOpenedProject
-
-		const files = (
-			await backend.globby({
-				patterns: ['**/*'],
-				options: {
-					cwd: projectDirPath,
-					gitignore: true,
-				},
-			})
-		).map((item) => path.join(projectDirPath, item))
-
-		const projectConfigFileName = 'project.json5'
-		const projectConfigPath = files.find((item) => item.endsWith(projectConfigFileName))
-		if (!projectConfigPath) {
-			// TODO show mantine warning toast
-			console.log(`${projectConfigFileName} is not found in the ${projectDirPath}`)
-			return null
-		}
-
-		const projectConfigRaw = await backend.readText({ path: projectConfigPath })
-		const projectConfigParsed = JSON5.parse(projectConfigRaw.content)
-		const projectConfig = projectConfigSchema.parse(projectConfigParsed)
-
-		const assetsDirPath = path.join(projectDirPath, projectConfig.assetsDir)
-		const assetsDirStats = await backend.stat({ path: assetsDirPath })
-		if (assetsDirStats.isDirectory === false) {
-			// TODO show mantine warning toast
-			console.log(`assetsDir ${assetsDirPath} not found`)
-			return null
-		}
-
-		return {
-			projectDir: projectDirPath,
-			projectConfig,
-			assetsDir: assetsDirPath,
-		}
+		await openProjectByPath(projectDirPath, logger)
 	}
 
 	const hideHierarchyPanel = urlParams.getBool('hierarchy', '0')

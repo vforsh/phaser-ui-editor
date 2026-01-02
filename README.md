@@ -75,6 +75,7 @@ npm run lint
 
 - `npm run dev`: start Electron + Vite dev (electron-vite)
 - `npm run start`: alias for `npm run dev`
+- `npm run editorctl -- <command>`: dev-only CLI control via JSON-RPC
 - `npm run typecheck`: `tsc --noEmit` (app tsconfig)
 - `npm run typecheck-dev`: typecheck in watch mode
 - `npm run build`: production build (electron-vite)
@@ -98,6 +99,60 @@ npm run lint
 - `src/state/`: Valtio state + schemas
 - `src/history/`: Undo/Redo hub and history domains
 - `docs/`: internal documentation
+
+## External control (dev-only)
+
+The editor exposes a small dev-only control surface for automation/testing.
+
+### Window API (renderer)
+
+Available in dev only as `window.editor`:
+
+- `openProject({ path })`
+- `openPrefab({ assetId?, path? })`
+- `listHierarchy()`
+- `selectObject({ id?, path? })`
+- `switchToContext({ id?, path? })`
+- `deleteObjects({ ids })`
+
+### WebSocket JSON-RPC (main process)
+
+In dev, Electron main starts a local WS server:
+
+- `ws://127.0.0.1:17870` (default)
+- Override with `EDITOR_CONTROL_WS_PORT=<port>`
+
+Methods (JSON-RPC 2.0, kebab-case):
+
+- `open-project`
+- `open-prefab`
+- `list-hierarchy`
+- `select-object`
+- `switch-to-context`
+- `delete-objects`
+
+### CLI (`editorctl`)
+
+```bash
+# List hierarchy (prints JSON)
+npm run editorctl -- hierarchy
+
+# Open prefab
+npm run editorctl -- open-prefab --asset-id <id>
+npm run editorctl -- open-prefab --path /abs/path/to/prefab.prefab
+
+# Open project
+npm run editorctl -- open-project --path /abs/path/to/project
+
+# Select / switch context
+npm run editorctl -- select --id <id>
+npm run editorctl -- select --path root/menu/playButton
+npm run editorctl -- switch-context --id <id>
+npm run editorctl -- switch-context --path root/menu
+
+# Delete
+npm run editorctl -- delete --ids id1,id2,id3
+```
 
 ## Documentation
 

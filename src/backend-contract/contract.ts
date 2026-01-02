@@ -163,6 +163,37 @@ export const backendContract = {
 			.optional(),
 		output: z.object({ canceled: z.boolean(), path: z.string().nullable() }),
 	},
+	'open-project': {
+		input: z.object({ path: absPathSchema }),
+		output: z.object({ success: z.literal(true) }),
+	},
+	'open-prefab': {
+		input: z.object({ assetId: z.string().optional(), path: z.string().optional() }),
+		output: z.object({ success: z.literal(true) }),
+	},
+	'list-hierarchy': {
+		input: z.object({}),
+		output: z.array(
+			z.object({
+				id: z.string(),
+				name: z.string(),
+				type: z.string(),
+				parentId: z.string().optional(),
+			}),
+		),
+	},
+	'select-object': {
+		input: z.object({ id: z.string().optional(), path: z.string().optional() }),
+		output: z.object({ success: z.literal(true) }),
+	},
+	'switch-to-context': {
+		input: z.object({ id: z.string().optional(), path: z.string().optional() }),
+		output: z.object({ success: z.literal(true) }),
+	},
+	'delete-objects': {
+		input: z.object({ ids: z.array(z.string()) }),
+		output: z.object({ success: z.literal(true) }),
+	},
 } as const
 
 export type BackendContract = typeof backendContract

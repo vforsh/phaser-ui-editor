@@ -13,8 +13,10 @@ import { AppEvents } from './AppEvents'
 import { TypedEventEmitter } from './components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { CommandEmitter } from './components/canvas/phaser/robowhale/utils/events/CommandEmitter'
 import EditorLayout from './components/EditorLayout'
-import { DiProvider } from './di/DiContext'
+import { exposeWindowEditor } from './control-rpc/expose-window-editor'
+import { useControlRpcBridge } from './control-rpc/renderer-rpc'
 import { createContainer } from './di/createContainer'
+import { DiProvider } from './di/DiContext'
 import { TOKENS } from './di/tokens'
 import { UndoHub } from './history/UndoHub'
 import { state } from './state/State'
@@ -38,7 +40,9 @@ function App() {
 		const container = createContainer()
 
 		container.registerInstance(TOKENS.AppEvents, new TypedEventEmitter<AppEvents>())
-		container.registerInstance(TOKENS.AppCommands, new CommandEmitter<AppCommands>('app'))
+		const appCommands = new CommandEmitter<AppCommands>('app')
+		container.registerInstance(TOKENS.AppCommands, appCommands)
+		exposeWindowEditor(appCommands)
 		const undoHub = new UndoHub({
 			onChange: (historyState) => {
 				state.app.history = historyState
@@ -48,6 +52,9 @@ function App() {
 
 		return container
 	}, [])
+
+	const appCommands = diContainer.resolve(TOKENS.AppCommands)
+	useControlRpcBridge(appCommands)
 
 	return (
 		<MantineProvider theme={theme} defaultColorScheme="dark">

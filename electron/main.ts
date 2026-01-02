@@ -1,8 +1,10 @@
 import { app, BrowserWindow, Menu } from 'electron'
 import path from 'node:path'
 import { registerBackendHandlers } from '../src/backend-main/ipc/register-backend-handlers'
+import { ControlRpcServer } from '../src/backend-main/control-rpc/main-rpc'
 
 let mainWindow: BrowserWindow | null = null
+let controlRpcServer: ControlRpcServer | null = null
 
 const isPlaywrightE2E = process.env.PW_E2E === '1'
 
@@ -110,6 +112,13 @@ app.whenReady().then(() => {
 	setImmediate(() => registerBackendHandlers())
 	setImmediate(() => createAppMenu())
 
+	if (!app.isPackaged) {
+		const port = Number(process.env.EDITOR_CONTROL_WS_PORT) || 17870
+		controlRpcServer = new ControlRpcServer({ port })
+		controlRpcServer.start()
+		console.log(`[control-rpc] ws://127.0.0.1:${port}`)
+	}
+
 	app.on('activate', () => {
 		if (BrowserWindow.getAllWindows().length === 0) {
 			createWindow()
@@ -118,5 +127,6 @@ app.whenReady().then(() => {
 })
 
 app.on('window-all-closed', () => {
+	controlRpcServer?.stop()
 	app.quit()
 })
