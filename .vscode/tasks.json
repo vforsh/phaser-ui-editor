@@ -12,11 +12,8 @@
 			"label": "Start Desktop App",
 			"detail": "Runs electron-vite in dev mode (Vite dev server + Electron main/preload).",
 			"type": "shell",
-			"dependsOn": [
-				"Kill Desktop App Instances"
-			],
-			"dependsOrder": "sequence",
-			"command": "npm run dev",
+			"command": "node",
+			"args": ["scripts/start-desktop-app-with-cleanup.mjs"],
 			"isBackground": true,
 			"group": {
 				"kind": "build",

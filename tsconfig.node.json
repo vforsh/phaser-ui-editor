@@ -18,5 +18,5 @@
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true
 	},
-	"include": ["vite.config.ts", "src/backend-main/**/*.ts", "src/backend-preload/**/*.ts"]
+	"include": ["electron.vite.config.ts", "src/backend-main/**/*.ts", "src/backend-preload/**/*.ts"]
 }
