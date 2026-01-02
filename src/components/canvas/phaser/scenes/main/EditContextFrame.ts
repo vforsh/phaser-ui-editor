@@ -55,9 +55,15 @@ export class EditContextFrame extends Phaser.GameObjects.Container {
 		this.graphics.lineStyle(this.options.thickness, this.options.color, 1)
 		this.graphics.strokeRect(0, 0, container.displayWidth, container.displayHeight)
 
+		this.setSize(container.displayWidth, container.displayHeight)
+
 		// adjust to object origin
-		const offsetX = -container.displayWidth * (container.getData('originX') ?? container.originX)
-		const offsetY = -container.displayHeight * (container.getData('originY') ?? container.originY)
+		// In this editor we treat edit-context containers as centered by default.
+		const originX = container.getData('originX') ?? 0.5
+		const originY = container.getData('originY') ?? 0.5
+
+		const offsetX = -container.displayWidth * originX
+		const offsetY = -container.displayHeight * originY
 		this.graphics.setPosition(offsetX, offsetY)
 	}
 

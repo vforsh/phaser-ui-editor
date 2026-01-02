@@ -2,22 +2,20 @@ import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 import { TypedEventEmitter } from '../../robowhale/phaser3/TypedEventEmitter'
 import { EditContext } from './editContext/EditContext'
+import { getContainerBoxWorldBounds } from './editContext/object-bounds'
 import { calculateBounds } from './editContext/Transformable'
 import { MainScene } from './MainScene'
 import { EditableObject } from './objects/EditableObject'
 
-const ALIGN_TYPES = [
-	'top',
-	'vertical-center',
-	'bottom',
-	'distribute-vertical',
-	'left',
-	'horizontal-center',
-	'right',
-	'distribute-horizontal',
-] as const
-
-export type AlignType = (typeof ALIGN_TYPES)[number]
+export type AlignType =
+	| 'top'
+	| 'vertical-center'
+	| 'bottom'
+	| 'distribute-vertical'
+	| 'left'
+	| 'horizontal-center'
+	| 'right'
+	| 'distribute-horizontal'
 
 type Events = {
 	// align: (alignment: Alignment) => void
@@ -87,8 +85,8 @@ export class Aligner extends TypedEventEmitter<Events> {
 
 				// Sort objects by their visual centers
 				const sortedObjs = [...objs].sort((a, b) => {
-					const aCenterY = a.y + a.displayHeight * (0.5 - a.originY)
-					const bCenterY = b.y + b.displayHeight * (0.5 - b.originY)
+					const aCenterY = a.y + a.displayHeight * (0.5 - this.getOriginY(a))
+					const bCenterY = b.y + b.displayHeight * (0.5 - this.getOriginY(b))
 					return aCenterY - bCenterY
 				})
 
@@ -96,8 +94,8 @@ export class Aligner extends TypedEventEmitter<Events> {
 				const firstObj = sortedObjs[0]
 				const lastObj = sortedObjs[sortedObjs.length - 1]
 
-				const firstCenter = firstObj.y + firstObj.displayHeight * (0.5 - firstObj.originY)
-				const lastCenter = lastObj.y + lastObj.displayHeight * (0.5 - lastObj.originY)
+				const firstCenter = firstObj.y + firstObj.displayHeight * (0.5 - this.getOriginY(firstObj))
+				const lastCenter = lastObj.y + lastObj.displayHeight * (0.5 - this.getOriginY(lastObj))
 
 				const totalHeight = lastCenter - firstCenter
 				const spacing = totalHeight / (objs.length - 1)
@@ -105,7 +103,8 @@ export class Aligner extends TypedEventEmitter<Events> {
 				// distribute CENTERS of objects vertically
 				sortedObjs.forEach((obj, index) => {
 					const centerY = firstCenter + spacing * index
-					obj.setY(centerY - obj.displayHeight * (0.5 - obj.originY))
+					const newY = centerY - obj.displayHeight * (0.5 - this.getOriginY(obj))
+					obj.setY(newY)
 				})
 
 				return true
@@ -150,8 +149,8 @@ export class Aligner extends TypedEventEmitter<Events> {
 
 				// Sort objects by their visual centers
 				const sortedObjs = [...objs].sort((a, b) => {
-					const aCenterX = a.x + a.displayWidth * (0.5 - a.originX)
-					const bCenterX = b.x + b.displayWidth * (0.5 - b.originX)
+					const aCenterX = a.x + a.displayWidth * (0.5 - this.getOriginX(a))
+					const bCenterX = b.x + b.displayWidth * (0.5 - this.getOriginX(b))
 					return aCenterX - bCenterX
 				})
 
@@ -159,8 +158,8 @@ export class Aligner extends TypedEventEmitter<Events> {
 				const firstObj = sortedObjs[0]
 				const lastObj = sortedObjs[sortedObjs.length - 1]
 
-				const firstCenter = firstObj.x + firstObj.displayWidth * (0.5 - firstObj.originX)
-				const lastCenter = lastObj.x + lastObj.displayWidth * (0.5 - lastObj.originX)
+				const firstCenter = firstObj.x + firstObj.displayWidth * (0.5 - this.getOriginX(firstObj))
+				const lastCenter = lastObj.x + lastObj.displayWidth * (0.5 - this.getOriginX(lastObj))
 
 				const totalWidth = lastCenter - firstCenter
 				const spacing = totalWidth / (objs.length - 1)
@@ -168,7 +167,8 @@ export class Aligner extends TypedEventEmitter<Events> {
 				// distribute CENTERS of objects horizontally
 				sortedObjs.forEach((obj, index) => {
 					const centerX = firstCenter + spacing * index
-					obj.setX(centerX - obj.displayWidth * (0.5 - obj.originX))
+					const newX = centerX - obj.displayWidth * (0.5 - this.getOriginX(obj))
+					obj.setX(newX)
 				})
 
 				return true
@@ -177,18 +177,41 @@ export class Aligner extends TypedEventEmitter<Events> {
 	}
 
 	private getContextBounds(context: EditContext): Phaser.Geom.Rectangle {
-		if (context.isRoot) {
-			const projectFrame = this.scene.contextFrame!
-			return new Phaser.Geom.Rectangle(0, 0, projectFrame.width, projectFrame.height)
-		}
-
 		const target = context.target
-		const originX = target.getData('originX') ?? target.originX
-		const originY = target.getData('originY') ?? target.originY
+		const originX = this.getOriginX(target)
+		const originY = this.getOriginY(target)
 		const left = -originX * target.width
 		const top = -originY * target.height
 
 		return new Phaser.Geom.Rectangle(left, top, target.width, target.height)
+	}
+
+	private getOriginX(obj: EditableObject): number {
+		const fromData = obj.getData('originX')
+		if (typeof fromData === 'number') {
+			return fromData
+		}
+
+		if (obj.kind === 'Container') {
+			// In this editor we treat containers as centered by default (origin 0.5/0.5)
+			// to match how the edit context frame and alignment behave.
+			return 0.5
+		}
+
+		return obj.originX
+	}
+
+	private getOriginY(obj: EditableObject): number {
+		const fromData = obj.getData('originY')
+		if (typeof fromData === 'number') {
+			return fromData
+		}
+
+		if (obj.kind === 'Container') {
+			return 0.5
+		}
+
+		return obj.originY
 	}
 
 	/**
@@ -199,19 +222,25 @@ export class Aligner extends TypedEventEmitter<Events> {
 	 *  - and so on...
 	 */
 	public getRotatedBounds(obj: EditableObject, rect?: Phaser.Geom.Rectangle): Phaser.Geom.Rectangle {
+		if (obj.kind === 'Container') {
+			return getContainerBoxWorldBounds(obj, rect)
+		}
+
 		const width = obj.displayWidth
 		const height = obj.displayHeight
 		const rotation = obj.rotation // in radians
+		const originX = this.getOriginX(obj)
+		const originY = this.getOriginY(obj)
 
 		// Calculate the corners of the rectangle
 		const cos = Math.cos(rotation)
 		const sin = Math.sin(rotation)
 
 		const corners = [
-			{ x: -width * obj.originX, y: -height * obj.originY },
-			{ x: width * (1 - obj.originX), y: -height * obj.originY },
-			{ x: width * (1 - obj.originX), y: height * (1 - obj.originY) },
-			{ x: -width * obj.originX, y: height * (1 - obj.originY) },
+			{ x: -width * originX, y: -height * originY },
+			{ x: width * (1 - originX), y: -height * originY },
+			{ x: width * (1 - originX), y: height * (1 - originY) },
+			{ x: -width * originX, y: height * (1 - originY) },
 		].map((point) => ({
 			x: obj.x + (point.x * cos - point.y * sin),
 			y: obj.y + (point.x * sin + point.y * cos),

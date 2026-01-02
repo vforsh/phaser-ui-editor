@@ -62,8 +62,14 @@ export function getContainerBoxWorldBounds(
 		return obj.getBounds(rect)
 	}
 
-	const halfW = obj.width * 0.5
-	const halfH = obj.height * 0.5
+	const originX = obj.getData('originX') ?? 0.5
+	const originY = obj.getData('originY') ?? 0.5
+
+	const leftLocal = -originX * obj.width
+	const topLocal = -originY * obj.height
+	const rightLocal = (1 - originX) * obj.width
+	const bottomLocal = (1 - originY) * obj.height
+
 	const sin = Math.sin(obj.rotation)
 	const cos = Math.cos(obj.rotation)
 	const scaleX = obj.scaleX
@@ -90,16 +96,15 @@ export function getContainerBoxWorldBounds(
 		bottom = Math.max(bottom, worldY)
 	}
 
-	applyCorner(-halfW, -halfH)
-	applyCorner(halfW, -halfH)
-	applyCorner(halfW, halfH)
-	applyCorner(-halfW, halfH)
+	applyCorner(leftLocal, topLocal)
+	applyCorner(rightLocal, topLocal)
+	applyCorner(rightLocal, bottomLocal)
+	applyCorner(leftLocal, bottomLocal)
 
-	if (rect) {
-		return rect.setTo(left, top, right - left, bottom - top)
-	}
+	const result = rect || new Phaser.Geom.Rectangle()
+	result.setTo(left, top, right - left, bottom - top)
 
-	return new Phaser.Geom.Rectangle(left, top, right - left, bottom - top)
+	return result
 }
 
 function hasEditables(obj: EditableObject): obj is ContainerWithEditables {
