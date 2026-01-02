@@ -1,23 +1,20 @@
 import { Main } from '../Main'
 import type {
-	DeleteObjectsParams,
 	HierarchyNode,
-	IdOrPathParams,
-	OpenPrefabParams,
-	OpenProjectParams,
-} from '../src/control-rpc/rpc'
+	ControlInput,
+} from '../src/control-rpc/contract'
 
 declare global {
 	interface Window {
 		gameInstance: Main
 		__Phaser3ExtensionsApplied: boolean
 		editor?: {
-			openProject(params: OpenProjectParams): Promise<void>
-			openPrefab(params: OpenPrefabParams): Promise<void>
+			openProject(params: ControlInput<'open-project'>): Promise<void>
+			openPrefab(params: ControlInput<'open-prefab'>): Promise<void>
 			listHierarchy(): Promise<HierarchyNode>
-			selectObject(params: IdOrPathParams): Promise<void>
-			switchToContext(params: IdOrPathParams): Promise<void>
-			deleteObjects(params: DeleteObjectsParams): Promise<void>
+			selectObject(params: ControlInput<'select-object'>): Promise<void>
+			switchToContext(params: ControlInput<'switch-to-context'>): Promise<void>
+			deleteObjects(params: ControlInput<'delete-objects'>): Promise<void>
 		}
 		/**
 		 * Displays a directory picker which allows the user to select a directory.

@@ -4,13 +4,7 @@ import type { EditableObjectJson } from '../components/canvas/phaser/scenes/main
 import { getAssetsOfType } from '../types/assets'
 import { state } from '../state/State'
 import { openProjectByPath } from '../project/open-project'
-import type {
-	DeleteObjectsParams,
-	HierarchyNode,
-	IdOrPathParams,
-	OpenPrefabParams,
-	OpenProjectParams,
-} from './rpc'
+import type { ControlInput, ControlOutput, HierarchyNode } from './contract'
 
 type PathSegment = {
 	name: string
@@ -42,7 +36,7 @@ export class EditorControlService {
 	 *
 	 * @throws If neither `assetId` nor a resolvable `path` is provided.
 	 */
-	async openPrefab(params: OpenPrefabParams): Promise<void> {
+	async openPrefab(params: ControlInput<'open-prefab'>): Promise<void> {
 		const assetId = params.assetId ?? (params.path ? this.resolvePrefabIdByPath(params.path) : undefined)
 		if (!assetId) {
 			throw new Error('open-prefab requires assetId or a valid prefab path')
@@ -57,7 +51,7 @@ export class EditorControlService {
 	 * @throws If `params.path` is missing.
 	 * @throws If the project could not be opened.
 	 */
-	async openProject(params: OpenProjectParams): Promise<void> {
+	async openProject(params: ControlInput<'open-project'>): Promise<void> {
 		if (!params.path) {
 			throw new Error('open-project requires a path')
 		}
@@ -73,7 +67,7 @@ export class EditorControlService {
 	 *
 	 * @throws If no prefab is currently open.
 	 */
-	async listHierarchy(): Promise<HierarchyNode> {
+	async listHierarchy(): Promise<ControlOutput<'list-hierarchy'>> {
 		const root = state.canvas.root
 		if (!root) {
 			throw new Error('no prefab is open')
@@ -89,7 +83,7 @@ export class EditorControlService {
 	 * @throws If no prefab is currently open when resolving by path.
 	 * @throws If the object cannot be found for the provided path.
 	 */
-	async selectObject(params: IdOrPathParams): Promise<void> {
+	async selectObject(params: ControlInput<'select-object'>): Promise<void> {
 		const id = this.resolveObjectId(params)
 		this.appCommands.emit('select-object', id)
 	}
@@ -101,7 +95,7 @@ export class EditorControlService {
 	 * @throws If no prefab is currently open when resolving by path.
 	 * @throws If the object cannot be found for the provided path.
 	 */
-	async switchToContext(params: IdOrPathParams): Promise<void> {
+	async switchToContext(params: ControlInput<'switch-to-context'>): Promise<void> {
 		const id = this.resolveObjectId(params)
 		this.appCommands.emit('switch-to-context', id)
 	}
@@ -111,7 +105,7 @@ export class EditorControlService {
 	 *
 	 * @throws If `params.ids` is missing or empty.
 	 */
-	async deleteObjects(params: DeleteObjectsParams): Promise<void> {
+	async deleteObjects(params: ControlInput<'delete-objects'>): Promise<void> {
 		if (!Array.isArray(params.ids) || params.ids.length === 0) {
 			throw new Error('delete-objects requires a non-empty ids array')
 		}
@@ -127,7 +121,7 @@ export class EditorControlService {
 	 * @throws If no prefab is currently open.
 	 * @throws If the object cannot be found for the provided path.
 	 */
-	private resolveObjectId(params: IdOrPathParams): string {
+	private resolveObjectId(params: ControlInput<'select-object'> | ControlInput<'switch-to-context'>): string {
 		if (params.id) {
 			return params.id
 		}

@@ -1,18 +1,18 @@
-import type { BackendInput, BackendMethod, BackendOutput } from '../../../../src/backend-contract/types'
+import type { ControlInput, ControlMethod, ControlOutput } from '../../../../src/control-rpc/contract'
 
-export type { BackendInput, BackendMethod, BackendOutput }
+export type { ControlInput, ControlMethod, ControlOutput }
 
-export interface JsonRpcRequest<M extends BackendMethod = BackendMethod> {
+export interface JsonRpcRequest<M extends ControlMethod = ControlMethod> {
 	jsonrpc: '2.0'
 	id: string
 	method: M
-	params: BackendInput<M>
+	params: ControlInput<M>
 }
 
-export interface JsonRpcResponse<M extends BackendMethod = BackendMethod> {
+export interface JsonRpcResponse<M extends ControlMethod = ControlMethod> {
 	jsonrpc: '2.0'
 	id: string | null
-	result?: BackendOutput<M>
+	result?: ControlOutput<M>
 	error?: {
 		code: number
 		message: string
@@ -20,5 +20,5 @@ export interface JsonRpcResponse<M extends BackendMethod = BackendMethod> {
 	}
 }
 
-export type InputFor<M extends BackendMethod> = BackendInput<M>
-export type OutputFor<M extends BackendMethod> = BackendOutput<M>
+export type InputFor<M extends ControlMethod> = ControlInput<M>
+export type OutputFor<M extends ControlMethod> = ControlOutput<M>

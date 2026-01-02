@@ -24,7 +24,7 @@ Path: `scripts/editorctl/`
 
 - Uses `commander` to define CLI commands (e.g. `open-project`, `hierarchy`, `select-object`).
 - Sends JSON-RPC over WebSocket using `WsTransport` (`scripts/editorctl/lib/transport/ws.ts`) and `RpcClient` (`scripts/editorctl/lib/rpc/client.ts`).
-- **Type source**: `scripts/editorctl/lib/rpc/types.ts` imports types from `src/backend-contract/types.ts`, which are derived from `src/backend-contract/contract.ts`.
+- **Type source**: `scripts/editorctl/lib/rpc/types.ts` imports types from `src/control-rpc/contract.ts`.
 
 ### Main process WebSocket router: `ControlRpcServer`
 
@@ -40,7 +40,7 @@ Responsibilities:
 Important behavior:
 
 - Always targets **the first BrowserWindow** (`BrowserWindow.getAllWindows()[0]`).
-- Validation uses `isJsonRpcRequest` from `src/control-rpc/rpc.ts`, which means the **allowed `method` set is enforced in main**.
+- Validation uses the **control contract** (`src/control-rpc/contract.ts`) for both method allowlisting and parameter parsing.
 
 ### Preload IPC bridge: `window.controlIpc`
 
@@ -132,29 +132,17 @@ sequenceDiagram
 - **External methods are kebab-case** (e.g. `open-project`, `switch-to-context`).
 - Internally, `EditorControlService` typically emits the same string on the app command bus.
 
-### Where “truth” currently lives (keep this in sync)
+### Where “truth” lives (single authority)
 
-There are two separate places describing the same command surface:
+There is now a **single control contract**:
 
-- `src/control-rpc/rpc.ts`
-  - Defines `RPC_METHODS` (what main + renderer consider a valid JSON-RPC `method`).
-  - Defines JSON-RPC request/response types used by the WS bridge (`JsonRpcRequest`, `JsonRpcResponse`).
-  - Defines renderer-side parameter types used by `EditorControlService` and `window.editor` typings.
-- `src/backend-contract/contract.ts`
-  - Defines Zod schemas for methods (and therefore the `BackendMethod`/input/output types).
-  - `editorctl` compiles against these types via `src/backend-contract/types.ts`.
+- `src/control-rpc/contract.ts`
+  - Defines Zod schemas for inputs/outputs (runtime validation).
+  - Provides derived `ControlMethod` / `ControlInput` / `ControlOutput` types.
 
-If these drift, you can get situations where:
+All callers (main WS router, renderer bridge, `EditorControlService`, and `editorctl`) derive types from this contract.
 
-- The WS server rejects a method name (main validates against `RPC_METHODS`),
-- or `editorctl` compiles while the renderer expects a different payload shape,
-- or the CLI expects one response shape while the renderer returns another.
-
-**Known mismatch (current):**
-
-- `src/control-rpc/EditorControlService.listHierarchy()` returns a **tree** (`HierarchyNode` with `children?`).
-- `src/backend-contract/contract.ts` declares `list-hierarchy` output as a **flat array** with optional `parentId`.
-- `scripts/editorctl/commands/hierarchy.ts` expects the **flat array** shape.
+**Note:** `list-hierarchy` returns a **tree** (`HierarchyNode` with `children?`). `editorctl` flattens the tree only for human-readable table output; `--json` prints the raw tree.
 
 ## How to add new command
 
@@ -164,14 +152,14 @@ This checklist covers the end-to-end path: **external JSON-RPC → main WS route
 
 Pick a **kebab-case** method string, e.g. `duplicate-object`.
 
-### 2) Add the method to `src/control-rpc/rpc.ts`
+### 2) Add the method to `src/control-rpc/contract.ts`
 
-File: `src/control-rpc/rpc.ts`
+File: `src/control-rpc/contract.ts`
 
-- Add the method to `RPC_METHODS`.
-- Add/extend parameter and result types as needed (keep them minimal and RPC-facing).
+- Add a new entry with `input` and `output` Zod schemas.
+- Keep names **kebab-case**.
 
-Why: both main and renderer validate incoming requests using `isJsonRpcRequest`, which uses `RPC_METHODS`.
+Why: both main and renderer validate incoming requests using this contract, and all types are derived from it.
 
 ### 3) Implement the behavior in `EditorControlService`
 
@@ -189,9 +177,7 @@ File: `src/control-rpc/renderer-rpc.ts`
 
 - Add a `case '<your-method>'` to `handleRpcRequest`.
 - Call your new `EditorControlService` method.
-- Return:
-  - `createJsonRpcResult(id, null)` for “fire and forget” commands, or
-  - `createJsonRpcResult(id, <data>)` for query-style commands.
+- Return the contract-shaped result (usually `{ success: true }` for commands, data for queries).
 
 ### 5) Expose it on `window.editor` (optional but recommended for dev)
 
@@ -203,17 +189,12 @@ Also update typings:
 
 - File: `types/globals.d.ts` → extend the `window.editor` interface with your method.
 
-### 6) Keep `editorctl` types in sync (backend contract)
+### 6) Keep `editorctl` types in sync (control contract)
 
-Files:
+No extra work needed beyond the control contract:
 
-- `src/backend-contract/contract.ts`:
-  - Add a new entry for your method with Zod `input`/`output` schemas.
-  - Keep names **kebab-case**.
-- `src/backend-contract/types.ts`:
-  - No direct edit typically needed (types are derived automatically).
-
-Why: `editorctl` uses these types for compile-time safety (`BackendMethod`, `BackendInput`, `BackendOutput`).
+- `scripts/editorctl/lib/rpc/types.ts` imports from `src/control-rpc/contract.ts`.
+- `editorctl` will pick up new types automatically.
 
 ### 7) Add the CLI command in `scripts/editorctl/`
 
@@ -230,6 +211,4 @@ Files:
 - Main always targets `BrowserWindow.getAllWindows()[0]`.
   - If you ever support multiple windows, you’ll need routing logic (window selection) in `ControlRpcServer`.
 - Make sure your request `params` are JSON-serializable.
-- Make sure your response shape matches both:
-  - `src/control-rpc/*` (what renderer actually returns), and
-  - `src/backend-contract/contract.ts` (what `editorctl` thinks it returns).
+- Make sure your response shape matches the control contract output schema.

@@ -1,11 +1,11 @@
 import { WsTransport } from '../transport/ws'
 import { generateId } from './id'
-import { BackendMethod, JsonRpcRequest, JsonRpcResponse, OutputFor } from './types'
+import { ControlMethod, JsonRpcRequest, JsonRpcResponse, OutputFor } from './types'
 
 export class RpcClient {
 	constructor(private transport: WsTransport) {}
 
-	async request<M extends BackendMethod>(method: M, params: JsonRpcRequest<M>['params']): Promise<OutputFor<M>> {
+	async request<M extends ControlMethod>(method: M, params: JsonRpcRequest<M>['params']): Promise<OutputFor<M>> {
 		const request: JsonRpcRequest<M> = {
 			jsonrpc: '2.0',
 			id: generateId(),

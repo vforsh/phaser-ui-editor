@@ -6,8 +6,8 @@ import {
 	JsonRpcRequest,
 	JsonRpcResponse,
 	createJsonRpcError,
-	isJsonRpcRequest,
 } from '../../control-rpc/rpc'
+import { controlContract, isControlMethod, type ControlMethod } from '../../control-rpc/contract'
 
 type PendingRequest = {
 	ws: WebSocket
@@ -100,13 +100,34 @@ export class ControlRpcServer {
 			return
 		}
 
-		if (!isJsonRpcRequest(parsed)) {
-			const id = isRecord(parsed) ? (parsed as { id?: unknown }).id : null
+		if (!isRecord(parsed)) {
+			this.sendJson(ws, createJsonRpcError(null, 400, 'invalid json-rpc request'))
+			return
+		}
+
+		const { id, jsonrpc, method, params } = parsed
+		if (jsonrpc !== '2.0' || !isValidId(id) || typeof method !== 'string') {
 			this.sendJson(ws, createJsonRpcError(isValidId(id) ? id : null, 400, 'invalid json-rpc request'))
 			return
 		}
 
-		const request = parsed as JsonRpcRequest
+		if (!isControlMethod(method)) {
+			this.sendJson(ws, createJsonRpcError(id, 404, `unknown method '${method}'`))
+			return
+		}
+
+		const parsedParams = controlContract[method].input.safeParse(params ?? {})
+		if (!parsedParams.success) {
+			this.sendJson(ws, createJsonRpcError(id, 400, 'invalid params', parsedParams.error.flatten()))
+			return
+		}
+
+		const request: JsonRpcRequest<ControlMethod> = {
+			jsonrpc: '2.0',
+			id,
+			method,
+			params: parsedParams.data,
+		}
 		const targetWindow = BrowserWindow.getAllWindows()[0]
 		if (!targetWindow || targetWindow.isDestroyed()) {
 			this.sendJson(ws, createJsonRpcError(request.id, 503, 'no renderer window available'))

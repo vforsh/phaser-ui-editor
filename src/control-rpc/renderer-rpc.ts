@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
+import { match } from 'ts-pattern'
 import type { AppCommandsEmitter } from '../AppCommands'
 import { EditorControlService } from './EditorControlService'
-import { createJsonRpcError, createJsonRpcResult, isJsonRpcRequest, JsonRpcRequest, JsonRpcResponse } from './rpc'
+import { controlContract, isControlMethod, type ControlInput, type ControlMethod } from './contract'
+import { createJsonRpcError, createJsonRpcResult, JsonRpcRequest, JsonRpcResponse } from './rpc'
 
 /**
  * Installs a renderer-side bridge for the external control RPC.
@@ -34,38 +36,69 @@ export function useControlRpcBridge(appCommands: AppCommandsEmitter): void {
 }
 
 function handleRpcRequest(service: EditorControlService, request: JsonRpcRequest): Promise<JsonRpcResponse> {
-	if (!isJsonRpcRequest(request)) {
+	if (!isRecord(request)) {
 		return Promise.resolve(createJsonRpcError(null, 400, 'invalid json-rpc request'))
 	}
 
-	const { id, method, params } = request
+	const { id, jsonrpc, method, params } = request
+	if (jsonrpc !== '2.0' || !isValidId(id) || typeof method !== 'string') {
+		return Promise.resolve(createJsonRpcError(isValidId(id) ? id : null, 400, 'invalid json-rpc request'))
+	}
+
+	if (!isControlMethod(method)) {
+		return Promise.resolve(createJsonRpcError(id, 404, `unknown method '${method}'`))
+	}
+
+	const parsedParams = controlContract[method].input.safeParse(params ?? {})
+	if (!parsedParams.success) {
+		return Promise.resolve(createJsonRpcError(id, 400, 'invalid params', parsedParams.error.flatten()))
+	}
+
+	const input = parsedParams.data as ControlInput<ControlMethod>
 
 	const run = async (): Promise<JsonRpcResponse> => {
-		switch (method) {
-			case 'open-project':
-				await service.openProject((params ?? {}) as never)
-				return createJsonRpcResult(id, null)
-			case 'open-prefab':
-				await service.openPrefab((params ?? {}) as never)
-				return createJsonRpcResult(id, null)
-			case 'list-hierarchy':
-				return createJsonRpcResult(id, await service.listHierarchy())
-			case 'select-object':
-				await service.selectObject((params ?? {}) as never)
-				return createJsonRpcResult(id, null)
-			case 'switch-to-context':
-				await service.switchToContext((params ?? {}) as never)
-				return createJsonRpcResult(id, null)
-			case 'delete-objects':
-				await service.deleteObjects((params ?? {}) as never)
-				return createJsonRpcResult(id, null)
-			default:
-				return createJsonRpcError(id, 404, `unknown method '${method}'`)
+		const result = await match(method)
+			.with('open-project', async () => {
+				await service.openProject(input as ControlInput<'open-project'>)
+				return { success: true }
+			})
+			.with('open-prefab', async () => {
+				await service.openPrefab(input as ControlInput<'open-prefab'>)
+				return { success: true }
+			})
+			.with('list-hierarchy', async () => service.listHierarchy())
+			.with('select-object', async () => {
+				await service.selectObject(input as ControlInput<'select-object'>)
+				return { success: true }
+			})
+			.with('switch-to-context', async () => {
+				await service.switchToContext(input as ControlInput<'switch-to-context'>)
+				return { success: true }
+			})
+			.with('delete-objects', async () => {
+				await service.deleteObjects(input as ControlInput<'delete-objects'>)
+				return { success: true }
+			})
+			.exhaustive()
+
+		const parsedOutput = controlContract[method].output.safeParse(result)
+		if (!parsedOutput.success) {
+			return createJsonRpcError(id, 500, 'invalid rpc response', parsedOutput.error.flatten())
 		}
+
+		return createJsonRpcResult(id, parsedOutput.data)
 	}
 
 	return run().catch((error: unknown) => {
 		const message = error instanceof Error ? error.message : 'internal error'
 		return createJsonRpcError(id, 500, message)
 	})
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null
+}
+
+function isValidId(id: unknown): id is string | number {
+	return typeof id === 'string' || typeof id === 'number'
 }
