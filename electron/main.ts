@@ -24,6 +24,7 @@ const createAppMenu = () => {
 					},
 				]
 			: []),
+		{ role: 'editMenu' },
 		{
 			label: 'View',
 			submenu: [
