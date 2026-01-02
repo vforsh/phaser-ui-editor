@@ -2,29 +2,45 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "Kill Desktop App Instances",
-			"detail": "Stops any running Electron app instances for this workspace (does not fail if none are running).",
-			"type": "shell",
-			"command": "pkill -f \"${workspaceFolder}/out/main/main.js\" > /dev/null 2>&1 || true",
+			"label": "Start Dev",
+			"detail": "Starts the app and typechecking in watch mode.",
+			"dependsOn": ["start: app", "tsc: watch"],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
 			"problemMatcher": []
 		},
 		{
-			"label": "Start Desktop App",
+			"label": "start: app",
 			"detail": "Runs electron-vite in dev mode (Vite dev server + Electron main/preload).",
 			"type": "shell",
 			"command": "node",
 			"args": ["scripts/start-desktop-app-with-cleanup.mjs"],
 			"isBackground": true,
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
-			"problemMatcher": [
-				"$tsc-watch"
-			]
+			"group": "build",
+			"problemMatcher": ["$tsc-watch"]
 		},
 		{
-			"label": "Build Desktop App",
+			"label": "tsc: watch",
+			"detail": "Typechecks the app with tsc in watch mode",
+			"type": "shell",
+			"command": "npm run typecheck-dev",
+			"group": "build",
+			"isBackground": true,
+			"problemMatcher": ["$tsc-watch"]
+		},
+		{
+			"label": "tsc",
+			"detail": "Typechecks the app with tsc",
+			"type": "shell",
+			"command": "npm run typecheck",
+			"group": "build",
+			"isBackground": true,
+			"problemMatcher": ["$tsc-watch"]
+		},
+		{
+			"label": "build: app",
 			"detail": "Builds main/preload/renderer bundles with electron-vite.",
 			"type": "shell",
 			"command": "npm run build",
@@ -32,11 +48,18 @@
 			"problemMatcher": []
 		},
 		{
-			"label": "Preview Desktop App",
+			"label": "preview: app",
 			"detail": "Previews the production build via electron-vite.",
 			"type": "shell",
 			"command": "npm run preview",
 			"group": "build",
+			"problemMatcher": []
+		},
+		{
+			"label": "kill: apps",
+			"detail": "Stops any running Electron app instances for this workspace (does not fail if none are running).",
+			"type": "shell",
+			"command": "pkill -f \"${workspaceFolder}/out/main/main.js\" > /dev/null 2>&1 || true",
 			"problemMatcher": []
 		}
 	]
