@@ -11,12 +11,18 @@ function requireBackend(): BackendApi {
 
 const rawBackend = requireBackend()
 
-export const backend = (Object.keys(backendContract) as BackendMethod[]).reduce((api, method) => {
-	api[method] = (async (input) => {
+function createBackendMethod<M extends BackendMethod>(method: M): BackendApi[M] {
+	return (async (input) => {
 		const parsedInput = backendContract[method].input.parse(input)
 		const result = await rawBackend[method](parsedInput as never)
 		return backendContract[method].output.parse(result)
-	}) as BackendApi[BackendMethod]
+	}) as BackendApi[M]
+}
 
-	return api
-}, {} as BackendApi)
+const backendImpl = {} as Record<BackendMethod, BackendApi[BackendMethod]>
+
+for (const method of Object.keys(backendContract) as BackendMethod[]) {
+	backendImpl[method] = createBackendMethod(method)
+}
+
+export const backend = backendImpl as BackendApi

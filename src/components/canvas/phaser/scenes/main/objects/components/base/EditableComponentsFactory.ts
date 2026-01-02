@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid'
 import { match } from 'ts-pattern'
-import { Logger } from 'tslog'
+import { ILogObj, Logger } from 'tslog'
 import { GridLayoutComponent, GridLayoutComponentJson } from '../GridLayoutComponent'
 import { HorizontalLayoutComponent, HorizontalLayoutComponentJson } from '../HorizontalLayoutComponent'
 import { LayoutComponent, LayoutComponentJson } from '../LayoutComponent'
@@ -8,7 +8,7 @@ import { VerticalLayoutComponent, VerticalLayoutComponentJson } from '../Vertica
 import { EditableComponent, EditableComponentJson, EditableComponentType } from './EditableComponent'
 
 interface EditableComponentsFactoryOptions {
-	logger: Logger<{}>
+	logger: Logger<ILogObj>
 }
 
 export class EditableComponentsFactory {

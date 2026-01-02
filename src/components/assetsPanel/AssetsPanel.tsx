@@ -26,7 +26,7 @@ import { nanoid } from 'nanoid'
 import path from 'path-browserify-esm'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { match } from 'ts-pattern'
-import { Logger } from 'tslog'
+import { ILogObj, Logger } from 'tslog'
 import { Snapshot } from 'valtio'
 import { backend } from '../../backend-renderer/backend'
 import {
@@ -48,7 +48,7 @@ import { addAssetId } from './build-asset-tree'
 import { useAppCommands } from '../../di/DiContext'
 
 interface AssetsPanelProps {
-	logger: Logger<{}>
+	logger: Logger<ILogObj>
 }
 
 // Helper function to flatten the asset tree - moved outside component for better performance

@@ -1,4 +1,4 @@
-import type { Logger } from 'tslog'
+import type { ILogObj, Logger } from 'tslog'
 import type { ReadonlyDeep } from 'type-fest'
 import type { Selection } from '../Selection'
 import { match } from 'ts-pattern'
@@ -19,7 +19,7 @@ export type ResizeDirection = 'top-left' | 'top-right' | 'bottom-left' | 'bottom
 export const MIN_DISPLAY_SIZE = 16
 
 export interface TransformControlOptions {
-	logger: Logger<{}>
+	logger: Logger<ILogObj>
 	resizeBorders: {
 		thickness: number
 		color: number

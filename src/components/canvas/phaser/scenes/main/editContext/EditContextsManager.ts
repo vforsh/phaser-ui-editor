@@ -1,4 +1,4 @@
-import { Logger } from 'tslog'
+import { ILogObj, Logger } from 'tslog'
 import { TypedEventEmitter } from '../../../robowhale/phaser3/TypedEventEmitter'
 import { MainScene } from '../MainScene'
 import { EditableContainer } from '../objects/EditableContainer'
@@ -26,13 +26,13 @@ type EditContextsManagerEvents = {
 
 export interface EditContextsManagerOptions {
 	scene: MainScene
-	logger: Logger<{}>
+	logger: Logger<ILogObj>
 }
 
 export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEvents> {
 	private options: EditContextsManagerOptions
 	private scene: MainScene
-	private logger: Logger<{}>
+	private logger: Logger<ILogObj>
 	private destroyController: AbortController
 	private contexts: Map<Phaser.GameObjects.Container, EditContext> = new Map()
 

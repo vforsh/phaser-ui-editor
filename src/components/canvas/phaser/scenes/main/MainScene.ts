@@ -10,7 +10,7 @@ import { match } from 'ts-pattern'
 import { Logger, ILogObj } from 'tslog'
 import WebFont from 'webfontloader'
 import { AppCommandsEmitter } from '../../../../../AppCommands'
-import { logger } from '../../../../../logs/logs'
+import { logger } from '@logs/logs'
 import { Project } from '../../../../../project/Project'
 import { backend } from '../../../../../backend-renderer/backend'
 import type { WebFontParsed } from '../../../../../backend-contract/types'
@@ -37,6 +37,7 @@ import {
 } from '../../../../../types/prefabs/PrefabAsset'
 import { PrefabFile } from '../../../../../types/prefabs/PrefabFile'
 import { parseJsonBitmapFont } from '../../robowhale/phaser3/gameObjects/bitmap-text/parse-json-bitmap-font'
+import type { BmFontData } from '../../robowhale/phaser3/gameObjects/bitmap-text/create-bmfont-data'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { signalFromEvent } from '../../robowhale/utils/events/create-abort-signal-from-event'
 import { Aligner } from './Aligner'
@@ -1591,7 +1592,7 @@ export class MainScene extends BaseScene {
 		let data: PhaserBmfontData
 
 		if (asset.data.type === 'json') {
-			const dataJson = await backend.readJson({ path: asset.data.path })
+			const dataJson = (await backend.readJson({ path: asset.data.path })) as BmFontData
 			if (!dataJson) {
 				return err('failed to load bitmap font json data')
 			}

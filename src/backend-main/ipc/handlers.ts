@@ -3,13 +3,12 @@ import { Font, FontCollection, create } from 'fontkit'
 import fse from 'fs-extra'
 import { globby } from 'globby'
 import sizeOf from 'image-size'
-import open from 'open'
 import path from 'node:path'
+import open from 'open'
+import parseBmfontXml from 'parse-bmfont-xml'
 import sharp from 'sharp'
 import trash from 'trash'
-import xml2js from 'xml2js'
-// @ts-expect-error
-import parseBmfontXml from 'parse-bmfont-xml'
+import type { TexturePacker } from '../../../types/texture-packer'
 import type { BackendApi } from '../../backend-contract/types'
 import { normalizeAbsolutePath } from '../utils/path'
 
@@ -99,9 +98,7 @@ export const backendHandlers: BackendApi = {
 		const normalizedSpritesheetPath = normalizeAbsolutePath(spritesheetPath)
 		const jsonPath = normalizedSpritesheetPath.replace(path.extname(normalizedSpritesheetPath), '.json')
 		const json = (await fse.readJson(jsonPath)) as TexturePacker.Atlas
-		const texture = json.textures.find((texture) =>
-			texture.frames.find((frame) => frame.filename === frameName)
-		)
+		const texture = json.textures.find((texture) => texture.frames.find((frame) => frame.filename === frameName))
 		const frameData = texture?.frames.find((frame) => frame.filename === frameName)
 
 		if (!frameData) {
@@ -151,7 +148,7 @@ export const backendHandlers: BackendApi = {
 			fullName: font.fullName,
 			familyName: font.familyName,
 			subfamilyName: font.subfamilyName,
-			version: font.version,
+			version: font.version.toString(),
 			numGlyphs: font.numGlyphs,
 			unitsPerEm: font.unitsPerEm,
 			bbox: font.bbox,
@@ -176,7 +173,7 @@ export const backendHandlers: BackendApi = {
 
 		return {
 			canceled: result.canceled,
-			path: result.canceled ? null : result.filePaths[0] ?? null,
+			path: result.canceled ? null : (result.filePaths[0] ?? null),
 		}
 	},
 }
@@ -185,10 +182,7 @@ function isFontCollection(font: Font | FontCollection): font is FontCollection {
 	return font.type === 'TTC' || font.type === 'DFont'
 }
 
-async function extractFrameFromSpritesheet(
-	spritesheetPath: string,
-	frameData: TexturePacker.Frame
-): Promise<Buffer> {
+async function extractFrameFromSpritesheet(spritesheetPath: string, frameData: TexturePacker.Frame): Promise<Buffer> {
 	const image = sharp(spritesheetPath)
 
 	const frame = image.extract({

@@ -1,5 +1,5 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
-import { Logger } from 'tslog'
+import { ILogObj, Logger } from 'tslog'
 import { MainScene } from '../MainScene'
 import { EditableContainer } from '../objects/EditableContainer'
 import { EditableObject, isEditable } from '../objects/EditableObject'
@@ -21,7 +21,7 @@ type Events = {
 
 export type EditContextOptions = {
 	scene: MainScene
-	logger: Logger<{}>
+	logger: Logger<ILogObj>
 	target: EditableContainer
 	isRoot: boolean
 }
@@ -33,7 +33,7 @@ export type EditContextOptions = {
  */
 export class EditContext extends TypedEventEmitter<Events> {
 	private readonly options: EditContextOptions
-	public readonly logger: Logger<{}>
+	public readonly logger: Logger<ILogObj>
 	private readonly scene: MainScene
 	public readonly target: EditableContainer
 	public selectables: EditableObject[] = []

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Logger } from 'tslog'
+import { ILogObj, Logger } from 'tslog'
 import { isDraggableAsset, type AssetTreeItemData } from '../types/assets'
 import { Snapshot } from 'valtio'
 
@@ -25,7 +25,7 @@ function calculatePreviewDimensions(width: number, height: number) {
 }
 
 export interface DragAndDropProps {
-	logger: Logger<{}>
+	logger: Logger<ILogObj>
 }
 
 export function useDragAndDrop({ logger }: DragAndDropProps) {

@@ -1,4 +1,4 @@
-import type { Logger } from 'tslog'
+import type { ILogObj, Logger } from 'tslog'
 import { signalFromEvent } from '../../../../robowhale/utils/events/create-abort-signal-from-event'
 import type { EditableObject } from '../../objects/EditableObject'
 import { canChangeOrigin } from '../Transformable'
@@ -23,7 +23,7 @@ export class RotateInteraction {
 	 */
 	constructor(
 		private readonly scene: Phaser.Scene,
-		private readonly logger: Logger<{}>,
+		private readonly logger: Logger<ILogObj>,
 		private readonly cursorManager: CursorManager,
 		private readonly options: ReadonlyTransformControlOptions,
 		private readonly rotateKnobs: CornerHandles,
@@ -144,7 +144,7 @@ export class ResizeInteraction {
 	 */
 	constructor(
 		private readonly scene: Phaser.Scene,
-		private readonly logger: Logger<{}>,
+		private readonly logger: Logger<ILogObj>,
 		private readonly cursorManager: CursorManager,
 		private readonly options: ReadonlyTransformControlOptions,
 		private readonly resizeKnobs: CornerHandles,

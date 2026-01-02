@@ -2,6 +2,7 @@ import { state } from '@state/State'
 import md5 from 'blueimp-md5'
 import path from 'path-browserify-esm'
 import { match } from 'ts-pattern'
+import type { TexturePacker } from '../../../types/texture-packer'
 import { backend } from '../../backend-renderer/backend'
 import {
 	AssetTreeBitmapFontData,
@@ -400,7 +401,9 @@ const doBuildAssetTree = async (
 								return spritesheet
 							})
 							.with('bitmap-font', async () => {
-								const bitmapFontData = await backend.readJson({ path: jsonFile.path })
+								const bitmapFontData = (await backend.readJson({ path: jsonFile.path })) as {
+									extra?: AssetTreeBitmapFontData['imageExtra']
+								}
 								const bitmapFont: AssetTreeBitmapFontData = addAssetId({
 									type: 'bitmap-font',
 									name: path.basename(fileTreeItem.name, path.extname(fileTreeItem.name)),

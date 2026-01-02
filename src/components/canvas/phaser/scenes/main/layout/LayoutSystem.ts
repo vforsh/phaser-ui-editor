@@ -1,4 +1,4 @@
-import type { Logger } from 'tslog'
+import type { ILogObj, Logger } from 'tslog'
 import type { MainScene } from '../MainScene'
 import { EditableContainer } from '../objects/EditableContainer'
 import type { EditableObject } from '../objects/EditableObject'
@@ -8,7 +8,7 @@ import { LayoutComponent } from '../objects/components/LayoutComponent'
 type LayoutSystemOptions = {
 	scene: MainScene
 	objectsFactory: EditableObjectsFactory
-	logger: Logger<{}>
+	logger: Logger<ILogObj>
 }
 
 /**

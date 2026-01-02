@@ -78,7 +78,7 @@ export function BitmapFontSection({ data: asset }: BitmapFontSectionProps) {
 
 async function loadFontData(data: AssetTreeBitmapFontData['data'], ac: AbortSignal): Promise<BmFontData> {
 	return match(data)
-		.with({ type: 'json' }, (data) => backend.readJson({ path: data.path }))
-		.with({ type: 'xml' }, (data) => backend.readBmfontXml({ path: data.path }))
+		.with({ type: 'json' }, (data) => backend.readJson({ path: data.path }) as Promise<BmFontData>)
+		.with({ type: 'xml' }, (data) => backend.readBmfontXml({ path: data.path }) as Promise<BmFontData>)
 		.exhaustive()
 }

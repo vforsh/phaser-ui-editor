@@ -1,5 +1,5 @@
 import { match } from 'ts-pattern'
-import { Logger } from 'tslog'
+import { ILogObj, Logger } from 'tslog'
 import { TypedEventEmitter } from '../../robowhale/phaser3/TypedEventEmitter'
 import { EditContext } from './editContext/EditContext'
 import { getContainerBoxWorldBounds } from './editContext/object-bounds'
@@ -23,13 +23,13 @@ type Events = {
 
 export type AlignerOptions = {
 	scene: MainScene
-	logger: Logger<{}>
+	logger: Logger<ILogObj>
 }
 
 export class Aligner extends TypedEventEmitter<Events> {
 	private options: AlignerOptions
 	private scene: MainScene
-	public logger: Logger<{}>
+	public logger: Logger<ILogObj>
 
 	constructor(options: AlignerOptions) {
 		super()

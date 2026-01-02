@@ -1,5 +1,5 @@
-import { Logger } from 'tslog'
-import { logger } from './logs/logs'
+import { ILogObj, Logger } from 'tslog'
+import { logger } from '@logs/logs'
 
 export type UrlParam = GenericUrlParam
 
@@ -16,13 +16,13 @@ export type GenericUrlParam =
 	| 'scan'
 
 export type UrlParamsOptions = {
-	logger: Logger<{}>
+	logger: Logger<ILogObj>
 	search: string
 }
 
 export class UrlParams {
 	private options: UrlParamsOptions
-	private logger: Logger<{}>
+	private logger: Logger<ILogObj>
 	private usp: URLSearchParams & { originalSearch?: string }
 
 	constructor(options: UrlParamsOptions) {

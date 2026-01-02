@@ -1,4 +1,4 @@
-namespace TexturePacker {
+export namespace TexturePacker {
 	export interface Atlas {
 		textures: Texture[]
 		meta: Meta
