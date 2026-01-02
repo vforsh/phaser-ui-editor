@@ -2,7 +2,11 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'electron-vite'
 import fs from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import tsconfigPaths from 'vite-tsconfig-paths'
+
+const configDir = path.dirname(fileURLToPath(import.meta.url))
+const rendererTsconfig = path.resolve(configDir, 'tsconfig.app.json')
 
 export default defineConfig({
 	main: {
@@ -52,7 +56,7 @@ export default defineConfig({
 	},
 	renderer: {
 		root: process.cwd(),
-		plugins: [react(), tsconfigPaths()],
+		plugins: [react(), tsconfigPaths({ projects: [rendererTsconfig] })],
 		optimizeDeps: {
 			exclude: ['lucide-react'],
 		},
@@ -60,10 +64,7 @@ export default defineConfig({
 			__ESM_POLYFILL__: true,
 		},
 		server: {
-			https: {
-				key: fs.readFileSync(path.resolve(__dirname, 'certs/localhost-key.pem')),
-				cert: fs.readFileSync(path.resolve(__dirname, 'certs/localhost.pem')),
-			},
+			https: false,
 		},
 		base: './',
 		build: {
