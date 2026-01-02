@@ -130,3 +130,6 @@ dist
 .pnp.*
 
 .DS_Store
+
+# Local dev HTTPS certs
+certs/

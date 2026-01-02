@@ -53,7 +53,7 @@ const createAppMenu = () => {
 }
 
 const createWindow = () => {
-	const preloadPath = path.join(__dirname, '../preload/preload.mjs')
+	const preloadPath = path.join(__dirname, '../preload/preload.cjs')
 
 	mainWindow = new BrowserWindow({
 		width: 1400,

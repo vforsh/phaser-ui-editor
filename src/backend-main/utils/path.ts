@@ -5,7 +5,15 @@ export function isAbsolutePath(value: string): boolean {
 }
 
 export function normalizePath(value: string): string {
+	if (process.platform !== 'win32' && value.includes('\\')) {
+		value = value.replace(/\\/g, '/')
+	}
+
 	if (path.win32.isAbsolute(value)) {
+		if (process.platform !== 'win32') {
+			return path.posix.normalize(value)
+		}
+
 		return path.win32.normalize(value)
 	}
 
