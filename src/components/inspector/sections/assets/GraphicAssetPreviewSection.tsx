@@ -1,6 +1,5 @@
 import { Box, Image, Stack, Text } from '@mantine/core'
 import { until } from '@open-draft/until'
-import { randomInt } from 'es-toolkit'
 import path from 'path-browserify-esm'
 import prettyBytes from 'pretty-bytes'
 import { useEffect, useState } from 'react'
@@ -11,14 +10,6 @@ import { imageDataToUrl } from '../../../../utils/image-data-to-url'
 import { BaseSectionProps } from '../BaseSection'
 
 export type GraphicAssetPreviewSectionData = Readonly<GraphicAssetData>
-
-function getImageUrlForBolt(): string {
-	const seeds = ['game-asset', 'pixel-art', 'game-sprite', 'game-texture', 'game-ui']
-
-	const seed = seeds[Math.floor(Math.random() * seeds.length)]
-
-	return `https://source.unsplash.com/featured/512x512?${seed}`
-}
 
 function readImageData(asset: GraphicAssetData, signal?: AbortSignal) {
 	return match(asset)
