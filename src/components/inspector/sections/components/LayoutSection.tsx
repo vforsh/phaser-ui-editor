@@ -9,6 +9,7 @@ import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/obj
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { Group, SegmentedControl, Stack, Text, UnstyledButton } from '@mantine/core'
 import { state } from '@state/State'
+import { match } from 'ts-pattern'
 import { useSnapshot } from 'valtio'
 import { BaseSectionProps } from '../BaseSection'
 import { NumberInputCustom } from '../common/NumberInputCustom'
@@ -46,7 +47,12 @@ export function LayoutSection({ data, objectId }: LayoutSectionProps) {
 				size="xs"
 				value={snap.horizontal.mode}
 				onChange={(value) => {
-					data.horizontal = buildHorizontalConstraint(value as HorizontalConstraint['mode'], snap.horizontal)
+					data.horizontal = buildHorizontalConstraint(
+						value as HorizontalConstraint['mode'],
+						snap.horizontal,
+						selectedObject,
+						parent
+					)
 				}}
 				data={[
 					{ label: 'None', value: 'none' },
@@ -71,7 +77,12 @@ export function LayoutSection({ data, objectId }: LayoutSectionProps) {
 				size="xs"
 				value={snap.vertical.mode}
 				onChange={(value) => {
-					data.vertical = buildVerticalConstraint(value as VerticalConstraint['mode'], snap.vertical)
+					data.vertical = buildVerticalConstraint(
+						value as VerticalConstraint['mode'],
+						snap.vertical,
+						selectedObject,
+						parent
+					)
 				}}
 				data={[
 					{ label: 'None', value: 'none' },
@@ -119,54 +130,53 @@ function renderAxisInputs(args: {
 }) {
 	const { axis, constraint, data, parentSize, labels } = args
 
-	switch (constraint.mode) {
-		case 'none':
-			return null
-		case 'start':
-			return (
-				<ScalarInput
-					label={labels.start}
-					scalar={constraint.start}
-					onChange={(value) => updateScalarValue(data, axis, 'start', value)}
-					onToggleUnit={() => toggleScalarUnit(data, axis, 'start', parentSize)}
-				/>
-			)
-		case 'center':
-			return (
-				<ScalarInput
-					label={labels.center}
-					scalar={constraint.center}
-					onChange={(value) => updateScalarValue(data, axis, 'center', value)}
-					onToggleUnit={() => toggleScalarUnit(data, axis, 'center', parentSize)}
-				/>
-			)
-		case 'end':
-			return (
-				<ScalarInput
-					label={labels.end}
-					scalar={constraint.end}
-					onChange={(value) => updateScalarValue(data, axis, 'end', value)}
-					onToggleUnit={() => toggleScalarUnit(data, axis, 'end', parentSize)}
-				/>
-			)
-		case 'stretch':
+	return match(constraint.mode)
+		.returnType<React.ReactNode>()
+		.with('none', () => null)
+		.with('start', () => (
+			<ScalarInput
+				label={labels.start}
+				scalar={(constraint as Extract<typeof constraint, { mode: 'start' }>).start}
+				onChange={(value) => updateScalarValue(data, axis, 'start', value)}
+				onToggleUnit={() => toggleScalarUnit(data, axis, 'start', parentSize)}
+			/>
+		))
+		.with('center', () => (
+			<ScalarInput
+				label={labels.center}
+				scalar={(constraint as Extract<typeof constraint, { mode: 'center' }>).center}
+				onChange={(value) => updateScalarValue(data, axis, 'center', value)}
+				onToggleUnit={() => toggleScalarUnit(data, axis, 'center', parentSize)}
+			/>
+		))
+		.with('end', () => (
+			<ScalarInput
+				label={labels.end}
+				scalar={(constraint as Extract<typeof constraint, { mode: 'end' }>).end}
+				onChange={(value) => updateScalarValue(data, axis, 'end', value)}
+				onToggleUnit={() => toggleScalarUnit(data, axis, 'end', parentSize)}
+			/>
+		))
+		.with('stretch', () => {
+			const c = constraint as Extract<typeof constraint, { mode: 'stretch' }>
 			return (
 				<Group grow>
 					<ScalarInput
 						label={labels.start}
-						scalar={constraint.start}
+						scalar={c.start}
 						onChange={(value) => updateScalarValue(data, axis, 'start', value)}
 						onToggleUnit={() => toggleScalarUnit(data, axis, 'start', parentSize)}
 					/>
 					<ScalarInput
 						label={labels.end}
-						scalar={constraint.end}
+						scalar={c.end}
 						onChange={(value) => updateScalarValue(data, axis, 'end', value)}
 						onToggleUnit={() => toggleScalarUnit(data, axis, 'end', parentSize)}
 					/>
 				</Group>
 			)
-	}
+		})
+		.exhaustive()
 }
 
 function ScalarInput({
@@ -230,83 +240,136 @@ function UnitToggleLabel({ unit, onToggle }: { unit: LayoutUnit; onToggle: () =>
 
 function buildHorizontalConstraint(
 	mode: HorizontalConstraint['mode'],
-	current: HorizontalConstraint
+	current: HorizontalConstraint,
+	selectedObject: EditableObjectJson | undefined,
+	parent: EditableContainerJson | undefined
 ): HorizontalConstraint {
-	switch (mode) {
-		case 'none':
-			return { mode: 'none' }
-		case 'start':
-			return { mode: 'start', start: cloneScalar(getScalar(current, 'start')) }
-		case 'center':
-			return { mode: 'center', center: cloneScalar(getScalar(current, 'center')) }
-		case 'end':
-			return { mode: 'end', end: cloneScalar(getScalar(current, 'end')) }
-		case 'stretch':
-			return {
-				mode: 'stretch',
-				start: cloneScalar(getScalar(current, 'start')),
-				end: cloneScalar(getScalar(current, 'end')),
-			}
+	const parentWidth = parent?.width ?? 0
+	const canCalculate = selectedObject && parent && parentWidth > 0
+	const parentLeft = -parentWidth * (parent?.originX ?? 0)
+
+	const getInitialScalar = (key: 'start' | 'center' | 'end'): LayoutScalar => {
+		const existing = getScalar(current, key)
+		if (existing !== DEFAULT_SCALAR) return cloneScalar(existing)
+		if (!canCalculate) return cloneScalar(DEFAULT_SCALAR)
+
+		const objLeftPx = selectedObject.x - selectedObject.displayWidth * (selectedObject.originX ?? 0)
+
+		const valuePx = match(key)
+			.returnType<number>()
+			.with('start', () => objLeftPx - parentLeft)
+			.with('center', () => objLeftPx - parentLeft + selectedObject.displayWidth / 2 - parentWidth / 2)
+			.with('end', () => parentWidth - (objLeftPx - parentLeft) - selectedObject.displayWidth)
+			.exhaustive()
+
+		// match unit from another available scalar if possible
+		const otherKey = key === 'start' ? 'end' : 'start'
+		const otherScalar = getScalar(current, otherKey)
+		const unit = otherScalar !== DEFAULT_SCALAR ? otherScalar.unit : 'px'
+
+		return {
+			value: unit === 'percent' ? valuePx / parentWidth : valuePx,
+			unit,
+		}
 	}
+
+	return match(mode)
+		.returnType<HorizontalConstraint>()
+		.with('none', () => ({ mode: 'none' }))
+		.with('start', () => ({ mode: 'start', start: getInitialScalar('start') }))
+		.with('center', () => ({ mode: 'center', center: getInitialScalar('center') }))
+		.with('end', () => ({ mode: 'end', end: getInitialScalar('end') }))
+		.with('stretch', () => ({
+			mode: 'stretch',
+			start: getInitialScalar('start'),
+			end: getInitialScalar('end'),
+		}))
+		.exhaustive()
 }
 
-function buildVerticalConstraint(mode: VerticalConstraint['mode'], current: VerticalConstraint): VerticalConstraint {
-	switch (mode) {
-		case 'none':
-			return { mode: 'none' }
-		case 'start':
-			return { mode: 'start', start: cloneScalar(getScalar(current, 'start')) }
-		case 'center':
-			return { mode: 'center', center: cloneScalar(getScalar(current, 'center')) }
-		case 'end':
-			return { mode: 'end', end: cloneScalar(getScalar(current, 'end')) }
-		case 'stretch':
-			return {
-				mode: 'stretch',
-				start: cloneScalar(getScalar(current, 'start')),
-				end: cloneScalar(getScalar(current, 'end')),
-			}
+function buildVerticalConstraint(
+	mode: VerticalConstraint['mode'],
+	current: VerticalConstraint,
+	selectedObject: EditableObjectJson | undefined,
+	parent: EditableContainerJson | undefined
+): VerticalConstraint {
+	const parentHeight = parent?.height ?? 0
+	const canCalculate = selectedObject && parent && parentHeight > 0
+	const parentTop = -parentHeight * (parent?.originY ?? 0)
+
+	const getInitialScalar = (key: 'start' | 'center' | 'end'): LayoutScalar => {
+		const existing = getScalar(current, key)
+		if (existing !== DEFAULT_SCALAR) return cloneScalar(existing)
+		if (!canCalculate) return cloneScalar(DEFAULT_SCALAR)
+
+		const objTopPx = selectedObject.y - selectedObject.displayHeight * (selectedObject.originY ?? 0)
+
+		const valuePx = match(key)
+			.returnType<number>()
+			.with('start', () => objTopPx - parentTop)
+			.with('center', () => objTopPx - parentTop + selectedObject.displayHeight / 2 - parentHeight / 2)
+			.with('end', () => parentHeight - (objTopPx - parentTop) - selectedObject.displayHeight)
+			.exhaustive()
+
+		// match unit from another available scalar if possible
+		const otherKey = key === 'start' ? 'end' : 'start'
+		const otherScalar = getScalar(current, otherKey)
+		const unit = otherScalar !== DEFAULT_SCALAR ? otherScalar.unit : 'px'
+
+		return {
+			value: unit === 'percent' ? valuePx / parentHeight : valuePx,
+			unit,
+		}
 	}
+
+	return match(mode)
+		.returnType<VerticalConstraint>()
+		.with('none', () => ({ mode: 'none' }))
+		.with('start', () => ({ mode: 'start', start: getInitialScalar('start') }))
+		.with('center', () => ({ mode: 'center', center: getInitialScalar('center') }))
+		.with('end', () => ({ mode: 'end', end: getInitialScalar('end') }))
+		.with('stretch', () => ({
+			mode: 'stretch',
+			start: getInitialScalar('start'),
+			end: getInitialScalar('end'),
+		}))
+		.exhaustive()
 }
 
 function getScalar(
 	constraint: HorizontalConstraint | VerticalConstraint,
 	key: 'start' | 'center' | 'end'
 ): LayoutScalar {
-	switch (constraint.mode) {
-		case 'start':
-			return key === 'start' ? constraint.start : DEFAULT_SCALAR
-		case 'center':
-			return key === 'center' ? constraint.center : DEFAULT_SCALAR
-		case 'end':
-			return key === 'end' ? constraint.end : DEFAULT_SCALAR
-		case 'stretch':
-			if (key === 'start') return constraint.start
-			if (key === 'end') return constraint.end
+	return match(constraint)
+		.returnType<LayoutScalar>()
+		.with({ mode: 'start' }, (c) => (key === 'start' ? c.start : DEFAULT_SCALAR))
+		.with({ mode: 'center' }, (c) => (key === 'center' ? c.center : DEFAULT_SCALAR))
+		.with({ mode: 'end' }, (c) => (key === 'end' ? c.end : DEFAULT_SCALAR))
+		.with({ mode: 'stretch' }, (c) => {
+			if (key === 'start') return c.start
+			if (key === 'end') return c.end
 			return DEFAULT_SCALAR
-		case 'none':
-			return DEFAULT_SCALAR
-	}
+		})
+		.with({ mode: 'none' }, () => DEFAULT_SCALAR)
+		.exhaustive()
 }
 
 function getMutableScalar(
 	constraint: HorizontalConstraint | VerticalConstraint,
 	key: 'start' | 'center' | 'end'
 ): LayoutScalar | null {
-	switch (constraint.mode) {
-		case 'start':
-			return key === 'start' ? constraint.start : null
-		case 'center':
-			return key === 'center' ? constraint.center : null
-		case 'end':
-			return key === 'end' ? constraint.end : null
-		case 'stretch':
-			if (key === 'start') return constraint.start
-			if (key === 'end') return constraint.end
+	return match(constraint)
+		.returnType<LayoutScalar | null>()
+		.with({ mode: 'start' }, (c) => (key === 'start' ? c.start : null))
+		.with({ mode: 'center' }, (c) => (key === 'center' ? c.center : null))
+		.with({ mode: 'end' }, (c) => (key === 'end' ? c.end : null))
+		.with({ mode: 'stretch' }, (c) => {
+			if (key === 'start') return c.start
+			if (key === 'end') return c.end
 			return null
-		case 'none':
-			return null
-	}
+		})
+		.with({ mode: 'none' }, () => null)
+		.exhaustive()
 }
 
 function cloneScalar(scalar: LayoutScalar): LayoutScalar {
@@ -372,14 +435,10 @@ function findParentContainerId(root: ReadonlyContainerJson | null, objId: string
 }
 
 function formatLayoutType(type: string): string {
-	switch (type) {
-		case 'horizontal-layout':
-			return 'Horizontal Layout component'
-		case 'vertical-layout':
-			return 'Vertical Layout component'
-		case 'grid-layout':
-			return 'Grid Layout component'
-		default:
-			return 'Layout component'
-	}
+	return match(type)
+		.returnType<string>()
+		.with('horizontal-layout', () => 'Horizontal Layout component')
+		.with('vertical-layout', () => 'Vertical Layout component')
+		.with('grid-layout', () => 'Grid Layout component')
+		.otherwise(() => 'Layout component')
 }

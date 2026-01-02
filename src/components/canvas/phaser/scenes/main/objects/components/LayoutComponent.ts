@@ -188,118 +188,132 @@ export class LayoutComponent extends BaseEditableComponent<LayoutComponentJson> 
 		parent: EditableContainer,
 		args: { left: number; right: number; center: number; logger: Logger<{}> }
 	): void {
-		switch (this.horizontal.mode) {
-			case 'none':
-				this.didWarnNegativeWidth = false
-				return
-			case 'start': {
-				this.didWarnNegativeWidth = false
-				const startPx = resolveScalar(this.horizontal.start, parent.width)
-				const left = args.left + startPx
-				obj.setX(left + obj.displayWidth * obj.originX)
-				return
-			}
-			case 'center': {
-				this.didWarnNegativeWidth = false
-				const centerPx = resolveScalar(this.horizontal.center, parent.width)
-				obj.setX(args.center + centerPx)
-				return
-			}
-			case 'end': {
-				this.didWarnNegativeWidth = false
-				const endPx = resolveScalar(this.horizontal.end, parent.width)
-				const right = args.right - endPx
-				obj.setX(right - obj.displayWidth * (1 - obj.originX))
-				return
-			}
-			case 'stretch': {
-				const startPx = resolveScalar(this.horizontal.start, parent.width)
-				const endPx = resolveScalar(this.horizontal.end, parent.width)
-				let desiredWidth = parent.width - startPx - endPx
-				if (desiredWidth < 0) {
-					desiredWidth = 0
-					if (!this.didWarnNegativeWidth) {
-						args.logger.warn(
-							`Layout stretch resulted in negative width for '${obj.name}'(${obj.id}); clamped to 0.`
-						)
-						this.didWarnNegativeWidth = true
-					}
-				} else {
-					this.didWarnNegativeWidth = false
+	match(this.horizontal.mode)
+		.returnType<void>()
+		.with('none', () => {
+			this.didWarnNegativeWidth = false
+		})
+		.with('start', () => {
+			this.didWarnNegativeWidth = false
+			const startPx = resolveScalar(
+				(this.horizontal as Extract<HorizontalConstraint, { mode: 'start' }>).start,
+				parent.width
+			)
+			const left = args.left + startPx
+			obj.setX(left + obj.displayWidth * obj.originX)
+		})
+		.with('center', () => {
+			this.didWarnNegativeWidth = false
+			const centerPx = resolveScalar(
+				(this.horizontal as Extract<HorizontalConstraint, { mode: 'center' }>).center,
+				parent.width
+			)
+			obj.setX(args.center + centerPx)
+		})
+		.with('end', () => {
+			this.didWarnNegativeWidth = false
+			const endPx = resolveScalar(
+				(this.horizontal as Extract<HorizontalConstraint, { mode: 'end' }>).end,
+				parent.width
+			)
+			const right = args.right - endPx
+			obj.setX(right - obj.displayWidth * (1 - obj.originX))
+		})
+		.with('stretch', () => {
+			const c = this.horizontal as Extract<HorizontalConstraint, { mode: 'stretch' }>
+			const startPx = resolveScalar(c.start, parent.width)
+			const endPx = resolveScalar(c.end, parent.width)
+			let desiredWidth = parent.width - startPx - endPx
+			if (desiredWidth < 0) {
+				desiredWidth = 0
+				if (!this.didWarnNegativeWidth) {
+					args.logger.warn(
+						`Layout stretch resulted in negative width for '${obj.name}'(${obj.id}); clamped to 0.`
+					)
+					this.didWarnNegativeWidth = true
 				}
-
-				const resized = resizeObject(obj, desiredWidth, undefined, args.logger, this.didWarnNonResizable)
-				if (resized === 'non-resizable') {
-					this.didWarnNonResizable = true
-				} else if (resized === 'resized' || resized === 'skipped') {
-					this.didWarnNonResizable = false
-				}
-
-				const left = args.left + startPx
-				obj.setX(left + obj.displayWidth * obj.originX)
-				return
+			} else {
+				this.didWarnNegativeWidth = false
 			}
-		}
-	}
+
+			const resized = resizeObject(obj, desiredWidth, undefined, args.logger, this.didWarnNonResizable)
+			if (resized === 'non-resizable') {
+				this.didWarnNonResizable = true
+			} else if (resized === 'resized' || resized === 'skipped') {
+				this.didWarnNonResizable = false
+			}
+
+			const left = args.left + startPx
+			obj.setX(left + obj.displayWidth * obj.originX)
+		})
+		.exhaustive()
+}
 
 	private applyVertical(
 		obj: EditableObject,
 		parent: EditableContainer,
 		args: { top: number; bottom: number; center: number; logger: Logger<{}> }
 	): void {
-		switch (this.vertical.mode) {
-			case 'none':
-				this.didWarnNegativeHeight = false
-				return
-			case 'start': {
-				this.didWarnNegativeHeight = false
-				const startPx = resolveScalar(this.vertical.start, parent.height)
-				const top = args.top + startPx
-				obj.setY(top + obj.displayHeight * obj.originY)
-				return
-			}
-			case 'center': {
-				this.didWarnNegativeHeight = false
-				const centerPx = resolveScalar(this.vertical.center, parent.height)
-				obj.setY(args.center + centerPx)
-				return
-			}
-			case 'end': {
-				this.didWarnNegativeHeight = false
-				const endPx = resolveScalar(this.vertical.end, parent.height)
-				const bottom = args.bottom - endPx
-				obj.setY(bottom - obj.displayHeight * (1 - obj.originY))
-				return
-			}
-			case 'stretch': {
-				const startPx = resolveScalar(this.vertical.start, parent.height)
-				const endPx = resolveScalar(this.vertical.end, parent.height)
-				let desiredHeight = parent.height - startPx - endPx
-				if (desiredHeight < 0) {
-					desiredHeight = 0
-					if (!this.didWarnNegativeHeight) {
-						args.logger.warn(
-							`Layout stretch resulted in negative height for '${obj.name}'(${obj.id}); clamped to 0.`
-						)
-						this.didWarnNegativeHeight = true
-					}
-				} else {
-					this.didWarnNegativeHeight = false
+	match(this.vertical.mode)
+		.returnType<void>()
+		.with('none', () => {
+			this.didWarnNegativeHeight = false
+		})
+		.with('start', () => {
+			this.didWarnNegativeHeight = false
+			const startPx = resolveScalar(
+				(this.vertical as Extract<VerticalConstraint, { mode: 'start' }>).start,
+				parent.height
+			)
+			const top = args.top + startPx
+			obj.setY(top + obj.displayHeight * obj.originY)
+		})
+		.with('center', () => {
+			this.didWarnNegativeHeight = false
+			const centerPx = resolveScalar(
+				(this.vertical as Extract<VerticalConstraint, { mode: 'center' }>).center,
+				parent.height
+			)
+			obj.setY(args.center + centerPx)
+		})
+		.with('end', () => {
+			this.didWarnNegativeHeight = false
+			const endPx = resolveScalar(
+				(this.vertical as Extract<VerticalConstraint, { mode: 'end' }>).end,
+				parent.height
+			)
+			const bottom = args.bottom - endPx
+			obj.setY(bottom - obj.displayHeight * (1 - obj.originY))
+		})
+		.with('stretch', () => {
+			const c = this.vertical as Extract<VerticalConstraint, { mode: 'stretch' }>
+			const startPx = resolveScalar(c.start, parent.height)
+			const endPx = resolveScalar(c.end, parent.height)
+			let desiredHeight = parent.height - startPx - endPx
+			if (desiredHeight < 0) {
+				desiredHeight = 0
+				if (!this.didWarnNegativeHeight) {
+					args.logger.warn(
+						`Layout stretch resulted in negative height for '${obj.name}'(${obj.id}); clamped to 0.`
+					)
+					this.didWarnNegativeHeight = true
 				}
-
-				const resized = resizeObject(obj, undefined, desiredHeight, args.logger, this.didWarnNonResizable)
-				if (resized === 'non-resizable') {
-					this.didWarnNonResizable = true
-				} else if (resized === 'resized' || resized === 'skipped') {
-					this.didWarnNonResizable = false
-				}
-
-				const top = args.top + startPx
-				obj.setY(top + obj.displayHeight * obj.originY)
-				return
+			} else {
+				this.didWarnNegativeHeight = false
 			}
-		}
-	}
+
+			const resized = resizeObject(obj, undefined, desiredHeight, args.logger, this.didWarnNonResizable)
+			if (resized === 'non-resizable') {
+				this.didWarnNonResizable = true
+			} else if (resized === 'resized' || resized === 'skipped') {
+				this.didWarnNonResizable = false
+			}
+
+			const top = args.top + startPx
+			obj.setY(top + obj.displayHeight * obj.originY)
+		})
+		.exhaustive()
+}
 
 	private getParentLayoutConflict(parent: EditableContainer): 'horizontal-layout' | 'vertical-layout' | 'grid-layout' | null {
 		if (parent.components.get('horizontal-layout')) {
@@ -420,39 +434,55 @@ function cloneScalar(scalar: LayoutScalar): LayoutScalar {
 }
 
 function cloneHorizontalConstraint(constraint: HorizontalConstraint): HorizontalConstraint {
-	switch (constraint.mode) {
-		case 'none':
-			return { mode: 'none' }
-		case 'start':
-			return { mode: 'start', start: cloneScalar(constraint.start ?? DEFAULT_SCALAR) }
-		case 'center':
-			return { mode: 'center', center: cloneScalar(constraint.center ?? DEFAULT_SCALAR) }
-		case 'end':
-			return { mode: 'end', end: cloneScalar(constraint.end ?? DEFAULT_SCALAR) }
-		case 'stretch':
+	return match(constraint.mode)
+		.returnType<HorizontalConstraint>()
+		.with('none', () => ({ mode: 'none' }))
+		.with('start', () => ({
+			mode: 'start',
+			start: cloneScalar((constraint as Extract<HorizontalConstraint, { mode: 'start' }>).start ?? DEFAULT_SCALAR),
+		}))
+		.with('center', () => ({
+			mode: 'center',
+			center: cloneScalar((constraint as Extract<HorizontalConstraint, { mode: 'center' }>).center ?? DEFAULT_SCALAR),
+		}))
+		.with('end', () => ({
+			mode: 'end',
+			end: cloneScalar((constraint as Extract<HorizontalConstraint, { mode: 'end' }>).end ?? DEFAULT_SCALAR),
+		}))
+		.with('stretch', () => {
+			const c = constraint as Extract<HorizontalConstraint, { mode: 'stretch' }>
 			return {
 				mode: 'stretch',
-				start: cloneScalar(constraint.start ?? DEFAULT_SCALAR),
-				end: cloneScalar(constraint.end ?? DEFAULT_SCALAR),
+				start: cloneScalar(c.start ?? DEFAULT_SCALAR),
+				end: cloneScalar(c.end ?? DEFAULT_SCALAR),
 			}
-	}
+		})
+		.exhaustive()
 }
 
 function cloneVerticalConstraint(constraint: VerticalConstraint): VerticalConstraint {
-	switch (constraint.mode) {
-		case 'none':
-			return { mode: 'none' }
-		case 'start':
-			return { mode: 'start', start: cloneScalar(constraint.start ?? DEFAULT_SCALAR) }
-		case 'center':
-			return { mode: 'center', center: cloneScalar(constraint.center ?? DEFAULT_SCALAR) }
-		case 'end':
-			return { mode: 'end', end: cloneScalar(constraint.end ?? DEFAULT_SCALAR) }
-		case 'stretch':
+	return match(constraint.mode)
+		.returnType<VerticalConstraint>()
+		.with('none', () => ({ mode: 'none' }))
+		.with('start', () => ({
+			mode: 'start',
+			start: cloneScalar((constraint as Extract<VerticalConstraint, { mode: 'start' }>).start ?? DEFAULT_SCALAR),
+		}))
+		.with('center', () => ({
+			mode: 'center',
+			center: cloneScalar((constraint as Extract<VerticalConstraint, { mode: 'center' }>).center ?? DEFAULT_SCALAR),
+		}))
+		.with('end', () => ({
+			mode: 'end',
+			end: cloneScalar((constraint as Extract<VerticalConstraint, { mode: 'end' }>).end ?? DEFAULT_SCALAR),
+		}))
+		.with('stretch', () => {
+			const c = constraint as Extract<VerticalConstraint, { mode: 'stretch' }>
 			return {
 				mode: 'stretch',
-				start: cloneScalar(constraint.start ?? DEFAULT_SCALAR),
-				end: cloneScalar(constraint.end ?? DEFAULT_SCALAR),
+				start: cloneScalar(c.start ?? DEFAULT_SCALAR),
+				end: cloneScalar(c.end ?? DEFAULT_SCALAR),
 			}
-	}
+		})
+		.exhaustive()
 }
