@@ -2,9 +2,20 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"label": "Kill Desktop App Instances",
+			"detail": "Stops any running Electron app instances for this workspace (does not fail if none are running).",
+			"type": "shell",
+			"command": "pkill -f \"${workspaceFolder}/out/main/main.js\" > /dev/null 2>&1 || true",
+			"problemMatcher": []
+		},
+		{
 			"label": "Start Desktop App",
 			"detail": "Runs electron-vite in dev mode (Vite dev server + Electron main/preload).",
 			"type": "shell",
+			"dependsOn": [
+				"Kill Desktop App Instances"
+			],
+			"dependsOrder": "sequence",
 			"command": "npm run dev",
 			"isBackground": true,
 			"group": {
