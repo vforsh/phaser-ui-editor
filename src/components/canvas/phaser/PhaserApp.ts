@@ -51,6 +51,23 @@ export interface PhaserGameExtra {
 	destroySignal: AbortSignal
 }
 
+export interface PhaserAppCreateOptions {
+	/** Configuration for the Phaser game instance */
+	phaserConfig: Phaser.Types.Core.GameConfig
+
+	/** Configuration for the project being edited */
+	projectConfig: ProjectConfig
+
+	/** To receive events from the parent React app */
+	appEvents: TypedEventEmitter<AppEvents>
+
+	/** To receive commands from the parent React app */
+	appCommands: CommandEmitter<AppCommands>
+
+	/** To manage undo/redo history */
+	undoHub: UndoHub
+}
+
 export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 	public logger: Logger<ILogObj>
 	public projectConfig: ProjectConfig
@@ -62,13 +79,9 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 	private resizeSensor: ResizeSensor
 	private destroyController = new AbortController()
 
-	constructor(
-		phaserConfig: Phaser.Types.Core.GameConfig,
-		projectConfig: ProjectConfig,
-		appEvents: TypedEventEmitter<AppEvents>,
-		appCommands: CommandEmitter<AppCommands>,
-		undoHub: UndoHub
-	) {
+	constructor(options: PhaserAppCreateOptions) {
+		const { phaserConfig, projectConfig, appEvents, appCommands, undoHub } = options
+
 		Phaser3Extensions.extend()
 
 		super(phaserConfig)

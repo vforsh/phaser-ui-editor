@@ -98,5 +98,11 @@ function createPhaserApp(
 		},
 	}
 
-	return new PhaserApp(config, projectConfig, appEvents, appCommands, undoHub)
+	return new PhaserApp({
+		phaserConfig: config,
+		projectConfig,
+		appEvents,
+		appCommands,
+		undoHub,
+	})
 }
