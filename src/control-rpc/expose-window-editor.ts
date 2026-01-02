@@ -30,6 +30,7 @@ export function exposeWindowEditor(appCommands: AppCommandsEmitter): void {
 
 	const editor: WindowEditorApi = {
 		openProject: (params) => service.openProject(params),
+		getProjectInfo: () => service.getProjectInfo(),
 		openPrefab: (params) => service.openPrefab(params),
 		listHierarchy: () => service.listHierarchy(),
 		listAssets: (params) => service.listAssets(params ?? {}),

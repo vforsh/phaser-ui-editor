@@ -70,6 +70,7 @@ export function printText(lines: string | string[]): void {
  */
 export function printKV(data: Record<string, unknown>): void {
 	for (const [key, value] of Object.entries(data)) {
-		process.stdout.write(`${key}: ${value}\n`)
+		const formattedValue = typeof value === 'object' && value !== null ? JSON.stringify(value) : value
+		process.stdout.write(`${key}: ${formattedValue}\n`)
 	}
 }

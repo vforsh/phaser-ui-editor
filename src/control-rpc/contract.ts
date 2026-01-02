@@ -181,11 +181,34 @@ const assetNodeSchema: z.ZodType<AssetNode> = z.lazy(() => {
 })
 
 const successSchema = z.object({ success: z.literal(true) })
+const projectConfigSchema = z.object({
+	name: z.string().min(1),
+	slug: z.string().min(1).optional(),
+	l10n: z.string().endsWith('.json').optional(),
+	texturePacker: z.object({
+		path: z.string().min(1),
+		mapping: z.record(z.string()).optional(),
+	}),
+	assetsDir: z.string().min(1),
+	assetsIgnore: z.array(z.string()),
+	size: z.object({
+		width: z.number().int().positive(),
+		height: z.number().int().positive(),
+	}),
+})
+
+export type ProjectConfig = z.infer<typeof projectConfigSchema>
 
 export const controlContract = {
 	'open-project': {
 		input: z.object({ path: z.string().min(1, 'path is required') }),
 		output: successSchema,
+	},
+	'get-project-info': {
+		input: z.object({}),
+		output: projectConfigSchema.extend({
+			path: z.string().min(1),
+		}),
 	},
 	'open-prefab': {
 		input: z.union([

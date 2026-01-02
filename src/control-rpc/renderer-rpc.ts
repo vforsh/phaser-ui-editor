@@ -80,6 +80,7 @@ function handleRpcRequest(
 		const result = await scheduler.schedule(method, async () =>
 			match(method)
 				.with('open-project', (_m) => service.openProject(input as ControlInput<typeof _m>))
+				.with('get-project-info', () => service.getProjectInfo())
 				.with('open-prefab', (_m) => service.openPrefab(input as ControlInput<typeof _m>))
 				.with('list-hierarchy', () => service.listHierarchy())
 				.with('list-assets', (_m) => service.listAssets(input as ControlInput<typeof _m>))

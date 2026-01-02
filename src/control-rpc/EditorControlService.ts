@@ -73,6 +73,22 @@ export class EditorControlService {
 	}
 
 	/**
+	 * Returns detailed information about the currently open project.
+	 *
+	 * @throws If no project is currently open.
+	 */
+	async getProjectInfo(): Promise<ControlOutput<'get-project-info'>> {
+		if (!state.project || !state.projectDir) {
+			throw new Error('no project is open')
+		}
+
+		return {
+			...unproxy(state.project),
+			path: state.projectDir,
+		}
+	}
+
+	/**
 	 * Returns the current prefab hierarchy as a JSON tree.
 	 *
 	 * @throws If no prefab is currently open.

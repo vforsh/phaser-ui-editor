@@ -4,7 +4,7 @@ This feature provides **external control of the running editor** by translating 
 
 There are **two entry points**:
 
-- **`editorctl` (CLI)**: Path: `scripts/editorctl/`. Uses `commander` to define CLI commands (e.g. `open-project`, `get-asset-info`, `hierarchy`, `select-object`).
+- **`editorctl` (CLI)**: Path: `scripts/editorctl/`. Uses `commander` to define CLI commands (e.g. `open-project`, `get-project-info`, `get-asset-info`, `hierarchy`, `select-object`).
 - **WebSocket JSON-RPC (main process)**: external tools connect to Electron via `ws://127.0.0.1:<port>`, send JSON-RPC requests, and receive JSON-RPC responses.
 - **Window API (renderer)**: dev-only `window.editor.*` methods that call the same internal service directly (no IPC/WS).
 
