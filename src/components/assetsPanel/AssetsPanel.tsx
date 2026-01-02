@@ -26,9 +26,9 @@ import { nanoid } from 'nanoid'
 import path from 'path-browserify-esm'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { match } from 'ts-pattern'
-import { Logger } from 'tslog'
+import { ILogObj, Logger } from 'tslog'
 import { Snapshot } from 'valtio'
-import trpc from '../../trpc'
+import { backend } from '../../backend-renderer/backend'
 import {
 	AssetTreeFolderData,
 	AssetTreePrefabData,
@@ -48,7 +48,7 @@ import { addAssetId } from './build-asset-tree'
 import { useAppCommands } from '../../di/DiContext'
 
 interface AssetsPanelProps {
-	logger: Logger<{}>
+	logger: Logger<ILogObj>
 }
 
 // Helper function to flatten the asset tree - moved outside component for better performance
@@ -288,7 +288,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 								children: [],
 							})
 
-							const { error } = await until(() => trpc.createFolder.mutate({ path: folderAsset.path }))
+							const { error } = await until(() => backend.createFolder({ path: folderAsset.path }))
 							if (error) {
 								logger.error(
 									`error creating folder at '${folderAsset.path}' (${getErrorLog(error)})`,
@@ -334,7 +334,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 							logger.info(`creating prefab at '${prefabAsset.path}'`)
 
 							const { error } = await until(() =>
-								trpc.createTextFile.mutate({
+								backend.createTextFile({
 									path: prefabAsset.path,
 									content: JSON.stringify(createEmptyPrefabFile()),
 								})
@@ -363,7 +363,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 				title: 'Open',
 				icon: asset.type === 'folder' ? <FolderOpen size={16} /> : <FileJson size={16} />,
 				onClick: async () => {
-					await trpc.open.query({ path: asset.path })
+					await backend.open({ path: asset.path })
 				},
 			},
 			{
@@ -372,7 +372,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 				icon: <ExternalLink size={16} />,
 				onClick: async () => {
 					const pathToOpen = path.dirname(asset.path)
-					await trpc.open.query({ path: pathToOpen })
+					await backend.open({ path: pathToOpen })
 				},
 			},
 			...(asset.type === 'spritesheet' ||
@@ -385,7 +385,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 							icon: <Image size={16} />,
 							onClick: async () => {
 								if (asset.project) {
-									await trpc.open.query({ path: asset.project })
+									await backend.open({ path: asset.project })
 								}
 							},
 						},
@@ -412,7 +412,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 						return
 					}
 
-					const { error, data } = await until(() => trpc.duplicate.mutate({ path: asset.path }))
+					const { error, data } = await until(() => backend.duplicate({ path: asset.path }))
 					if (error) {
 						logger.error(`error duplicating asset '${asset.name}' (${getErrorLog(error)})`, error)
 						// TODO show error toast
@@ -477,7 +477,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 						event.ctrlKey || event.metaKey || confirm(`Are you sure you want to delete ${asset.name}?`)
 					if (shouldDelete) {
 						const absPath = path.join(state.projectDir!, asset.path)
-						const { error } = await until(() => trpc.trash.mutate({ path: absPath }))
+						const { error } = await until(() => backend.trash({ path: absPath }))
 						if (error) {
 							logger.error(`error deleting asset at '${asset.path}' (${getErrorLog(error)})`, error)
 							// TODO show error toast
@@ -510,7 +510,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		const newPath =
 			item.type === 'folder' ? oldPath.replace(item.name, newName) : path.join(path.dirname(item.path), newName)
 
-		const { error } = await until(() => trpc.rename.mutate({ oldPath, newPath }))
+		const { error } = await until(() => backend.rename({ oldPath, newPath }))
 		if (error) {
 			logger.error(`error renaming '${item.name}' to '${newName}' (${getErrorLog(error)})`, error)
 			// TODO show error toast
@@ -550,7 +550,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 						})
 
 						const absPath = path.join(state.projectDir!, folderAsset.path)
-						const { error } = await until(() => trpc.createFolder.mutate({ path: absPath }))
+						const { error } = await until(() => backend.createFolder({ path: absPath }))
 						if (error) {
 							logger.error(
 								`error creating folder at '${folderAsset.path}' (${getErrorLog(error)})`,

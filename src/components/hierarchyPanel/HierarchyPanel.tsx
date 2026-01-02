@@ -7,7 +7,7 @@ import { Divider, Paper, ScrollArea, Stack } from '@mantine/core'
 import { useWindowEvent } from '@mantine/hooks'
 import { state, useSnapshot } from '@state/State'
 import { useEffect, useRef, useState } from 'react'
-import { Logger } from 'tslog'
+import { ILogObj, Logger } from 'tslog'
 import { useAppCommands } from '../../di/DiContext'
 import HierarchyItem from './HierarchyItem'
 import styles from './HierarchyPanel.module.css'
@@ -17,7 +17,7 @@ import { ICON_MARGIN, INDENT_SIZE } from './constants'
 export const HIERARCHY_ITEMS_CONTAINER_ID = 'hierarchy-items-container'
 
 export type HierarchyPanelProps = {
-	logger: Logger<{}>
+	logger: Logger<ILogObj>
 }
 
 interface DropPreview {

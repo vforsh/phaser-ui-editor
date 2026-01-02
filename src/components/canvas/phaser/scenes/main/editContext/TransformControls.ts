@@ -1,5 +1,5 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
-import { Logger } from 'tslog'
+import { ILogObj, Logger } from 'tslog'
 import { signalFromEvent } from '../../../robowhale/utils/events/create-abort-signal-from-event'
 import { Selection } from './Selection'
 import type { Events, TransformControlOptions, ReadonlyTransformControlOptions } from './transformControls/types-math-cursor'
@@ -14,7 +14,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	public static readonly TAG = 'transform-control'
 
 	private readonly options: ReadonlyTransformControlOptions
-	private readonly logger: Logger<{}>
+	private readonly logger: Logger<ILogObj>
 	private destroySignal: AbortSignal
 
 	private readonly cursorManager: CursorManager

@@ -2,39 +2,33 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "Start Dev",
-			"detail": "Run the Vite development server and TypeScript type checker in watch mode.",
-			"dependsOrder": "parallel",
-			"dependsOn": [
-				"vite: dev",
-				"tsc: watch"
-			],
+			"label": "Start Desktop App",
+			"detail": "Runs electron-vite in dev mode (Vite dev server + Electron main/preload).",
+			"type": "shell",
+			"command": "npm run dev",
+			"isBackground": true,
 			"group": {
 				"kind": "build",
 				"isDefault": true
-			}
+			},
+			"problemMatcher": [
+				"$tsc-watch"
+			]
 		},
 		{
-			"label": "vite: dev",
-			"detail": "Start the Vite development server with network access.",
-			"type": "npm",
-			"script": "start",
-			"problemMatcher": [],
-			"isBackground": true
-		},
-		{
-			"label": "tsc: watch",
-			"detail": "Run the TypeScript compiler in watch mode to catch errors during development.",
-			"type": "npm",
-			"script": "typecheck-dev",
-			"problemMatcher": ["$tsc-watch"],
-			"isBackground": true
-		},
-		{
-			"label": "Update Types",
-			"detail": "Build and push TypeScript type definitions for the project.",
+			"label": "Build Desktop App",
+			"detail": "Builds main/preload/renderer bundles with electron-vite.",
 			"type": "shell",
-			"command": "node scripts/build-types.ts --push",
+			"command": "npm run build",
+			"group": "build",
+			"problemMatcher": []
+		},
+		{
+			"label": "Preview Desktop App",
+			"detail": "Previews the production build via electron-vite.",
+			"type": "shell",
+			"command": "npm run preview",
+			"group": "build",
 			"problemMatcher": []
 		}
 	]

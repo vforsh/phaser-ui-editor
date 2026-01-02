@@ -3,6 +3,7 @@ import { Modal, Stack, Text } from '@mantine/core';
 import { useRecentProjects } from '../../hooks/useRecentProjects';
 import { ProjectPathInput } from './ProjectPathInput';
 import { RecentProjectsList } from './RecentProjectsList';
+import { backend } from '../../backend-renderer/backend';
 
 interface OpenProjectDialogProps {
   opened: boolean;
@@ -26,6 +27,17 @@ export default function OpenProjectDialog({
     }
   };
 
+  const handleBrowse = async () => {
+    const result = await backend.selectDirectory({
+      title: 'Select project folder',
+      defaultPath: projectPath || undefined,
+    });
+
+    if (!result.canceled && result.path) {
+      setProjectPath(result.path);
+    }
+  };
+
   const handleRecentProjectClick = (path: string) => {
     onOpenProject(path);
     onClose();
@@ -45,6 +57,7 @@ export default function OpenProjectDialog({
             value={projectPath}
             onChange={setProjectPath}
             onSubmit={handleSubmit}
+            onBrowse={handleBrowse}
             autoFocus={recentProjects.length === 0}
           />
 

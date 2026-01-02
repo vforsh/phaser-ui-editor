@@ -2,7 +2,8 @@ import { state } from '@state/State'
 import md5 from 'blueimp-md5'
 import path from 'path-browserify-esm'
 import { match } from 'ts-pattern'
-import trpc from '../../trpc'
+import type { TexturePacker } from '../../../types/texture-packer'
+import { backend } from '../../backend-renderer/backend'
 import {
 	AssetTreeBitmapFontData,
 	AssetTreeData,
@@ -44,14 +45,14 @@ async function getTexturePackerProjects(): Promise<TexturePackerProject[]> {
 	}
 
 	const { path: baseDir, mapping } = state.project.texturePacker
-	const projects = await trpc.globby.query({
+	const projects = await backend.globby({
 		patterns: [path.join(baseDir, '**/*.tps')],
 	})
 
 	const xmlParser = new DOMParser()
 
 	const parsedProjectsPromises = projects.map(async (projectPath) => {
-		const xmlContent = (await trpc.readText.query({ path: projectPath })).content
+		const xmlContent = (await backend.readText({ path: projectPath })).content
 		const xml = xmlParser.parseFromString(xmlContent, 'application/xml')
 
 		// Extract the DataFile path
@@ -82,14 +83,14 @@ async function getTexturePackerProjects(): Promise<TexturePackerProject[]> {
 		const projectDir = path.dirname(projectPath)
 		const dataFilePath = path.join(projectDir, dataFilePathRelative)
 
-		const dataFileExists = await trpc.exists.query({ path: dataFilePath })
+		const dataFileExists = await backend.exists({ path: dataFilePath })
 		if (!dataFileExists) {
 			return null
 		}
 
 		const textureFilePath = path.join(projectDir, dataFilePathRelative.replace(/\.json$/, `.${textureFormat}`))
 
-		const textureFileExists = await trpc.exists.query({ path: textureFilePath })
+		const textureFileExists = await backend.exists({ path: textureFilePath })
 		if (!textureFileExists) {
 			return null
 		}
@@ -174,7 +175,7 @@ const isSpritesheetOrBitmapFont = async (
 	imagePath: string,
 	jsonPath: string
 ): Promise<'spritesheet' | 'bitmap-font' | null> => {
-	const jsonFileRaw = (await trpc.readText.query({ path: jsonPath })).content
+	const jsonFileRaw = (await backend.readText({ path: jsonPath })).content
 	const json = JSON.parse(jsonFileRaw)
 
 	// @ts-expect-error
@@ -195,7 +196,7 @@ const extractSpritesheetFrames = async (
 	jsonPath: string,
 	tpsProject?: TexturePackerProject
 ): Promise<AssetTreeSpritesheetFrameData[]> => {
-	const jsonFileRaw = (await trpc.readText.query({ path: jsonPath })).content
+	const jsonFileRaw = (await backend.readText({ path: jsonPath })).content
 
 	// as of now it handles only TexturePacker JSON format
 	const atlasJson = JSON.parse(jsonFileRaw) as TexturePacker.Atlas
@@ -354,7 +355,7 @@ const doBuildAssetTree = async (
 			})
 			.with({ type: 'file' }, async (fileTreeItem) => {
 				if (isImageFile(fileTreeItem.name)) {
-					const imageSize = await trpc.readImageSize.query({ path: fileTreeItem.path })
+					const imageSize = await backend.readImageSize({ path: fileTreeItem.path })
 					const image: AssetTreeImageData = addAssetId({
 						type: 'image',
 						name: fileTreeItem.name,
@@ -400,7 +401,9 @@ const doBuildAssetTree = async (
 								return spritesheet
 							})
 							.with('bitmap-font', async () => {
-								const bitmapFontData = await trpc.readJson.query({ path: jsonFile.path })
+								const bitmapFontData = (await backend.readJson({ path: jsonFile.path })) as {
+									extra?: AssetTreeBitmapFontData['imageExtra']
+								}
 								const bitmapFont: AssetTreeBitmapFontData = addAssetId({
 									type: 'bitmap-font',
 									name: path.basename(fileTreeItem.name, path.extname(fileTreeItem.name)),
@@ -458,7 +461,7 @@ const doBuildAssetTree = async (
 						path: fileTreeItem.path,
 					})
 				} else if (isWebFontFile(fileTreeItem.name)) {
-					const webFontData = await trpc.parseWebFont.query({ path: fileTreeItem.path })
+					const webFontData = await backend.parseWebFont({ path: fileTreeItem.path })
 
 					const webFont: AssetTreeWebFontData = addAssetId({
 						type: 'web-font',

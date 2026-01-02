@@ -6,7 +6,7 @@ import { notifications } from '@mantine/notifications'
 import { state } from '@state/State'
 import { ClipboardPaste, Eye, Image, Info, Move, Scaling, Type, TypeOutline } from 'lucide-react'
 import { match } from 'ts-pattern'
-import { Logger } from 'tslog'
+import { ILogObj, Logger } from 'tslog'
 import { useSnapshot } from 'valtio'
 import { getAssetById, isGraphicAsset, type AssetTreeItemData } from '../../types/assets'
 import { useAppCommands } from '../../di/DiContext'
@@ -38,7 +38,7 @@ export type ObjectToInspect = { type: 'object'; data: EditableObjectJson }
 export type ItemToInspect = AssetToInspect | ObjectToInspect
 
 interface InspectorPanelProps {
-	logger: Logger<{}>
+	logger: Logger<ILogObj>
 }
 
 export default function InspectorPanel({ logger }: InspectorPanelProps) {

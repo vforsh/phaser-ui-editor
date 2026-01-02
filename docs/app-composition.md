@@ -63,7 +63,7 @@ Key responsibilities:
   - `'undo'/'redo'` → delegates to `undoHub.undo()` / `undoHub.redo()`
 - **Scene setup**:
   - Registers `MainScene` (the editor scene) and optionally `TestScene`.
-  - Starts `MainScene` by loading a prefab file via `trpc.readJson` when requested.
+- Starts `MainScene` by loading a prefab file via `backend.readJson` (IPC) when requested.
 - **Scaling**:
   - Uses `ResizeSensor` + debounced handler to keep Phaser’s scale in sync with the canvas container.
 - **Prefab lifecycle**:
@@ -105,7 +105,7 @@ Notable interaction patterns:
 
 - Selection and interaction via `state.assets` (valtio).
 - Context menus (Mantine context menu provider).
-- File operations through `trpc` (create folder, create prefab, rename, duplicate, delete, open in OS).
+- File operations through the IPC backend (`backend.*` for create folder, create prefab, rename, duplicate, delete, open in OS).
 
 Key behaviors:
 
@@ -114,12 +114,12 @@ Key behaviors:
   - PhaserApp receives this command and loads/starts `MainScene` with that prefab.
 - **Rename**:
   - Context menu “Rename” or `F2` (when panel is focused) enters rename mode.
-  - Renaming calls `trpc.rename` and then updates `state.assets.items`.
+- Renaming calls `backend.rename` and then updates `state.assets.items`.
 - **Search mode**:
   - Maintains `isSearchMode`, `searchResults`, and keyboard navigation for results.
   - `Cmd/Ctrl+F` expands the search UI (currently handled here; TODO suggests moving to `EditorLayout`).
 - **Create asset items**:
-  - “Create Folder” / “Create Prefab” perform filesystem writes via `trpc.*` and then update the in-memory asset tree.
+- “Create Folder” / “Create Prefab” perform filesystem writes via `backend.*` and then update the in-memory asset tree.
 
 ### Inspector Panel (conceptual)
 
@@ -144,5 +144,4 @@ Two-way binding follows the same pattern:
   - `state` (valtio) is the “live snapshot” used by panels and (in parts) by Phaser logic.
 - **History**:
   - `UndoHub` is created at the app root, passed into Phaser, and its state is reflected in `state.app.history`.
-
 

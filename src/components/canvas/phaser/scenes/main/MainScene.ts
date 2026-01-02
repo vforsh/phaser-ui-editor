@@ -10,9 +10,10 @@ import { match } from 'ts-pattern'
 import { ILogObj, Logger } from 'tslog'
 import WebFont from 'webfontloader'
 import { AppCommandsEmitter } from '../../../../../AppCommands'
-import { logger } from '../../../../../logs/logs'
+import { logger } from '@logs/logs'
 import { Project } from '../../../../../project/Project'
-import trpc, { WebFontParsed } from '../../../../../trpc'
+import { backend } from '../../../../../backend-renderer/backend'
+import type { WebFontParsed } from '../../../../../backend-contract/types'
 import {
 	AssetTreeBitmapFontData,
 	AssetTreeItemData,
@@ -36,6 +37,7 @@ import {
 } from '../../../../../types/prefabs/PrefabAsset'
 import { PrefabFile } from '../../../../../types/prefabs/PrefabFile'
 import { parseJsonBitmapFont } from '../../robowhale/phaser3/gameObjects/bitmap-text/parse-json-bitmap-font'
+import type { BmFontData } from '../../robowhale/phaser3/gameObjects/bitmap-text/create-bmfont-data'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { signalFromEvent } from '../../robowhale/utils/events/create-abort-signal-from-event'
 import { Aligner } from './Aligner'
@@ -578,7 +580,7 @@ export class MainScene extends BaseScene {
 		}
 
 		const { error } = await until(() =>
-			trpc.writeJson.mutate({ path: prefabFilePath, content: prefabFile, options: { spaces: '\t' } })
+			backend.writeJson({ path: prefabFilePath, content: prefabFile, options: { spaces: '\t' } })
 		)
 		if (error) {
 			const errorLog = getErrorLog(error)
@@ -1377,7 +1379,7 @@ export class MainScene extends BaseScene {
 				return bmText
 			})
 			.with({ type: 'prefab' }, async (prefabAsset) => {
-				const { error, data } = await until(() => trpc.readJson.query({ path: prefabAsset.path }))
+				const { error, data } = await until(() => backend.readJson({ path: prefabAsset.path }))
 				if (error) {
 					this.logger.error(`failed to load prefab file '${prefabAsset.path}' (${getErrorLog(error)})`)
 					return null
@@ -1442,7 +1444,7 @@ export class MainScene extends BaseScene {
 			return null
 		}
 
-		const json = await trpc.readJson.query({ path: spritesheetAsset.json.path })
+		const json = await backend.readJson({ path: spritesheetAsset.json.path })
 		if (!json) {
 			return null
 		}
@@ -1487,7 +1489,7 @@ export class MainScene extends BaseScene {
 
 	private async loadWebFont(asset: AssetTreeWebFontData): Promise<WebFontParsed> {
 		// it only supports WOFF, WOFF2 and TTF formats
-		const webFontParsed = await trpc.parseWebFont.query({ path: asset.path })
+		const webFontParsed = await backend.parseWebFont({ path: asset.path })
 		const webFontCss = this.createWebFontCss(webFontParsed)
 		document.head.appendChild(webFontCss)
 
@@ -1599,14 +1601,14 @@ export class MainScene extends BaseScene {
 		let data: PhaserBmfontData
 
 		if (asset.data.type === 'json') {
-			const dataJson = await trpc.readJson.query({ path: asset.data.path })
+			const dataJson = (await backend.readJson({ path: asset.data.path })) as BmFontData
 			if (!dataJson) {
 				return err('failed to load bitmap font json data')
 			}
 
 			data = parseJsonBitmapFont(dataJson, frame)
 		} else {
-			const dataXmlRaw = await trpc.readText.query({ path: asset.data.path })
+			const dataXmlRaw = await backend.readText({ path: asset.data.path })
 			if (!dataXmlRaw) {
 				return err('failed to load bitmap font xml data')
 			}

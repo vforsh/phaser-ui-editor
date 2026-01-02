@@ -2,7 +2,7 @@ import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/T
 import { IPatchesConfig } from '@koreez/phaser3-ninepatch'
 import { customAlphabet } from 'nanoid'
 import { match } from 'ts-pattern'
-import { Logger } from 'tslog'
+import { ILogObj, Logger } from 'tslog'
 import {
 	PrefabBitmapFontAsset,
 	PrefabImageAsset,
@@ -31,13 +31,13 @@ export interface CloneOptions {
 
 export interface EditableObjectsFactoryOptions {
 	scene: Phaser.Scene
-	logger: Logger<{}>
+	logger: Logger<ILogObj>
 	componentsFactory: EditableComponentsFactory
 }
 
 export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 	private scene: Phaser.Scene
-	private logger: Logger<{}>
+	private logger: Logger<ILogObj>
 	private nanoid: (size?: number) => string
 	private componentsFactory: EditableComponentsFactory
 	private idsToObjects: Map<string, EditableObject> = new Map()

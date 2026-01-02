@@ -1,5 +1,5 @@
 import { P, match } from 'ts-pattern'
-import type { Logger } from 'tslog'
+import type { ILogObj, Logger } from 'tslog'
 import { EditableBitmapText } from '../EditableBitmapText'
 import { EditableContainer } from '../EditableContainer'
 import { EditableImage } from '../EditableImage'
@@ -102,7 +102,7 @@ export class LayoutComponent extends BaseEditableComponent<LayoutComponentJson> 
 		return this._isActive
 	}
 
-	public apply(parent: EditableContainer, logger: Logger<{}>): LayoutApplyResult {
+	public apply(parent: EditableContainer, logger: Logger<ILogObj>): LayoutApplyResult {
 		if (!this._obj || !this._isActive) {
 			return {}
 		}
@@ -186,7 +186,7 @@ export class LayoutComponent extends BaseEditableComponent<LayoutComponentJson> 
 	private applyHorizontal(
 		obj: EditableObject,
 		parent: EditableContainer,
-		args: { left: number; right: number; center: number; logger: Logger<{}> }
+		args: { left: number; right: number; center: number; logger: Logger<ILogObj> }
 	): void {
 	match(this.horizontal.mode)
 		.returnType<void>()
@@ -252,7 +252,7 @@ export class LayoutComponent extends BaseEditableComponent<LayoutComponentJson> 
 	private applyVertical(
 		obj: EditableObject,
 		parent: EditableContainer,
-		args: { top: number; bottom: number; center: number; logger: Logger<{}> }
+		args: { top: number; bottom: number; center: number; logger: Logger<ILogObj> }
 	): void {
 	match(this.vertical.mode)
 		.returnType<void>()
@@ -355,7 +355,7 @@ function resizeObject(
 	obj: EditableObject,
 	width: number | undefined,
 	height: number | undefined,
-	logger: Logger<{}>,
+	logger: Logger<ILogObj>,
 	alreadyWarned: boolean
 ): ResizeResult {
 	if (!obj.isResizable) {
