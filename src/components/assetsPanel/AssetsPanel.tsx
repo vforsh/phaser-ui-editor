@@ -794,6 +794,17 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		}
 	}, [])
 
+	// Expose focusPanel through state (so other panels can focus the Assets panel programmatically)
+	useEffect(() => {
+		state.assets.focusPanel = () => {
+			panelRef.current?.focus()
+		}
+
+		return () => {
+			state.assets.focusPanel = undefined
+		}
+	}, [])
+
 	return (
 		<Paper
 			className={styles.panel}

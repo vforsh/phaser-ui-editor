@@ -419,6 +419,7 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 			<Stack gap="xs" p="xs" style={{ height: '100%', minHeight: 0 }}>
 				<HierarchyPanelTitle
 					title={canvasSnap.currentPrefab?.name || 'Hierarchy'}
+					prefabAssetId={canvasSnap.currentPrefab?.id}
 					hasUnsavedChanges={canvasSnap.hasUnsavedChanges}
 					onSave={() => appCommands.emit('save-prefab')}
 					onDiscard={() => {

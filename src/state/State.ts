@@ -42,6 +42,7 @@ export const stateSchema = z.object({
 		items: z.array(z.unknown()) as z.ZodType<AssetTreeItemData[]>,
 		searchHistory: z.array(z.string()).default([]),
 		locateAsset: z.function().args(z.string()).optional(),
+		focusPanel: z.function().optional(),
 	}),
 	canvas: z.object({
 		hasUnsavedChanges: z.boolean().default(false),

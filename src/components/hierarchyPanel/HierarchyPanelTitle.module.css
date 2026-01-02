@@ -1,0 +1,17 @@
+.titleButton {
+	cursor: pointer;
+	user-select: none;
+}
+
+.titleButton:hover {
+	text-decoration: underline;
+}
+
+.titleButtonDisabled {
+	cursor: default;
+}
+
+.titleButtonDisabled:hover {
+	text-decoration: none;
+}
+
