@@ -7,11 +7,12 @@ import {
 } from '@components/canvas/phaser/scenes/main/objects/components/LayoutComponent'
 import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { Group, SegmentedControl, Stack, Text, UnstyledButton } from '@mantine/core'
 import { state } from '@state/State'
-import { Box, Group, SegmentedControl, Stack, Text } from '@mantine/core'
 import { useSnapshot } from 'valtio'
 import { BaseSectionProps } from '../BaseSection'
 import { NumberInputCustom } from '../common/NumberInputCustom'
+import classes from './LayoutSection.module.css'
 
 interface LayoutSectionProps extends BaseSectionProps<LayoutComponentJson> {
 	objectId: string
@@ -199,35 +200,31 @@ function ScalarInput({
 			step={1}
 			decimalScale={isPercent ? 2 : 0}
 			size="xs"
-			rightSection={<UnitSegmentedControl unit={scalar.unit} onToggle={onToggleUnit} />}
-			rightSectionWidth={96}
+			rightSection={<UnitToggleLabel unit={scalar.unit} onToggle={onToggleUnit} />}
+			rightSectionWidth={40}
 		/>
 	)
 }
 
-function UnitSegmentedControl({ unit, onToggle }: { unit: LayoutUnit; onToggle: () => void }) {
-	const data = [
-		{ label: 'px', value: 'px' },
-		{ label: '%', value: 'percent' },
-	]
-
+function UnitToggleLabel({ unit, onToggle }: { unit: LayoutUnit; onToggle: () => void }) {
 	return (
-		<Box
+		<UnstyledButton
 			onMouseDown={(event) => event.stopPropagation()}
-			onClick={(event) => event.stopPropagation()}
+			onClick={(event) => {
+				event.stopPropagation()
+				onToggle()
+			}}
+			style={{
+				height: '100%',
+				display: 'flex',
+				alignItems: 'center',
+				paddingRight: '8px',
+			}}
 		>
-			<SegmentedControl
-				size="xs"
-				value={unit}
-				data={data}
-				onChange={(value) => {
-					if (value === unit) {
-						return
-					}
-					onToggle()
-				}}
-			/>
-		</Box>
+			<Text size="sm" fw={700} className={classes.unitToggle}>
+				{unit === 'px' ? 'px' : '%'}
+			</Text>
+		</UnstyledButton>
 	)
 }
 
