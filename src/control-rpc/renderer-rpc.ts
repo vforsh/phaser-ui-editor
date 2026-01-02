@@ -82,6 +82,7 @@ function handleRpcRequest(
 				.with('open-project', (_m) => service.openProject(input as ControlInput<typeof _m>))
 				.with('open-prefab', (_m) => service.openPrefab(input as ControlInput<typeof _m>))
 				.with('list-hierarchy', () => service.listHierarchy())
+				.with('list-assets', (_m) => service.listAssets(input as ControlInput<typeof _m>))
 				.with('select-object', (_m) => service.selectObject(input as ControlInput<typeof _m>))
 				.with('switch-to-context', (_m) => service.switchToContext(input as ControlInput<typeof _m>))
 				.with('delete-objects', (_m) => service.deleteObjects(input as ControlInput<typeof _m>))

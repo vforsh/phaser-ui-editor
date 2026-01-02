@@ -32,6 +32,7 @@ export function exposeWindowEditor(appCommands: AppCommandsEmitter): void {
 		openProject: (params) => service.openProject(params),
 		openPrefab: (params) => service.openPrefab(params),
 		listHierarchy: () => service.listHierarchy(),
+		listAssets: (params) => service.listAssets(params ?? {}),
 		selectObject: (params) => service.selectObject(params),
 		switchToContext: (params) => service.switchToContext(params),
 		deleteObjects: (params) => service.deleteObjects(params),

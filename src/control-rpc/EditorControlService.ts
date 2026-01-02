@@ -3,9 +3,11 @@ import { AppCommandsEmitter } from '../AppCommands'
 import type { EditableContainerJson } from '../components/canvas/phaser/scenes/main/objects/EditableContainer'
 import type { EditableObjectJson } from '../components/canvas/phaser/scenes/main/objects/EditableObject'
 import { openProjectByPath } from '../project/open-project'
-import { state } from '../state/State'
+import { state, unproxy } from '../state/State'
+import path from 'path-browserify-esm'
+import type { AssetTreeItemData } from '../types/assets'
 import { getAssetsOfType } from '../types/assets'
-import type { ControlInput, ControlOutput, HierarchyNode } from './contract'
+import type { AssetNode, AssetType, ControlInput, ControlOutput, HierarchyNode } from './contract'
 
 type PathSegment = {
 	name: string
@@ -82,6 +84,32 @@ export class EditorControlService {
 		}
 
 		return buildHierarchyNode(root)
+	}
+
+	/**
+	 * Returns the current project's asset tree.
+	 *
+	 * Supports optional filtering by asset `type`. When filtering is used, this returns a pruned tree:
+	 * nodes are kept if they match the filter or if they contain matching descendants.
+	 *
+	 * @throws If no project is currently open.
+	 */
+	async listAssets(params: ControlInput<'list-assets'>): Promise<ControlOutput<'list-assets'>> {
+		if (!state.projectDir) {
+			throw new Error('no project is open')
+		}
+
+		const requestedTypes = params.types?.length ? new Set<AssetType>(params.types) : undefined
+		const assets = unproxy(state.assets.items) as AssetTreeItemData[]
+		const normalized = assets.map((asset) => normalizeAssetPaths(asset, state.projectDir!))
+
+		const filtered = requestedTypes
+			? normalized
+					.map((asset) => pruneAssetByType(asset, requestedTypes))
+					.filter((asset): asset is AssetNode => Boolean(asset))
+			: (normalized as unknown as AssetNode[])
+
+		return { assets: filtered }
 	}
 
 	/**
@@ -171,6 +199,155 @@ export class EditorControlService {
 		const asset = prefabAssets.find((item) => item.path === prefabPath)
 		return asset?.id
 	}
+}
+
+function toProjectRelativePath(filePath: string, projectDir: string): string {
+	if (!filePath) {
+		return filePath
+	}
+
+	if (!path.isAbsolute(filePath)) {
+		return filePath
+	}
+
+	if (!filePath.startsWith(projectDir)) {
+		return filePath
+	}
+
+	return path.relative(projectDir, filePath)
+}
+
+function normalizeAssetPaths(asset: AssetTreeItemData, projectDir: string): AssetNode {
+	return match(asset)
+		.returnType<AssetNode>()
+		.with({ type: 'folder' }, (folder) => ({
+			...folder,
+			path: toProjectRelativePath(folder.path, projectDir),
+			children: folder.children.map((child) => normalizeAssetPaths(child, projectDir)),
+		}))
+		.with({ type: 'spritesheet' }, (spritesheet) => ({
+			...spritesheet,
+			path: toProjectRelativePath(spritesheet.path, projectDir),
+			project: spritesheet.project ? toProjectRelativePath(spritesheet.project, projectDir) : undefined,
+			image: {
+				...spritesheet.image,
+				path: toProjectRelativePath(spritesheet.image.path, projectDir),
+			},
+			json: {
+				...spritesheet.json,
+				path: toProjectRelativePath(spritesheet.json.path, projectDir),
+			},
+			frames: spritesheet.frames.map((child) => normalizeAssetPaths(child, projectDir)) as AssetNode['frames'],
+		}))
+		.with({ type: 'spritesheet-folder' }, (spritesheetFolder) => ({
+			...spritesheetFolder,
+			path: toProjectRelativePath(spritesheetFolder.path, projectDir),
+			imagePath: toProjectRelativePath(spritesheetFolder.imagePath, projectDir),
+			jsonPath: toProjectRelativePath(spritesheetFolder.jsonPath, projectDir),
+			project: spritesheetFolder.project ? toProjectRelativePath(spritesheetFolder.project, projectDir) : undefined,
+			children: spritesheetFolder.children.map((child) => normalizeAssetPaths(child, projectDir)) as AssetNode[],
+		}))
+		.with({ type: 'spritesheet-frame' }, (spritesheetFrame) => ({
+			...spritesheetFrame,
+			path: toProjectRelativePath(spritesheetFrame.path, projectDir),
+			imagePath: toProjectRelativePath(spritesheetFrame.imagePath, projectDir),
+			jsonPath: toProjectRelativePath(spritesheetFrame.jsonPath, projectDir),
+			project: spritesheetFrame.project ? toProjectRelativePath(spritesheetFrame.project, projectDir) : undefined,
+		}))
+		.with({ type: 'bitmap-font' }, (bitmapFont) => ({
+			...bitmapFont,
+			path: toProjectRelativePath(bitmapFont.path, projectDir),
+			image: {
+				...bitmapFont.image,
+				path: toProjectRelativePath(bitmapFont.image.path, projectDir),
+			},
+			data: {
+				...bitmapFont.data,
+				path: toProjectRelativePath(bitmapFont.data.path, projectDir),
+			},
+			imageExtra: bitmapFont.imageExtra
+				? {
+						...bitmapFont.imageExtra,
+						atlas: toProjectRelativePath(bitmapFont.imageExtra.atlas, projectDir),
+						texture: toProjectRelativePath(bitmapFont.imageExtra.texture, projectDir),
+						texturePacker: toProjectRelativePath(bitmapFont.imageExtra.texturePacker, projectDir),
+					}
+				: undefined,
+		}))
+		.with({ type: 'image' }, (image) => ({
+			...image,
+			path: toProjectRelativePath(image.path, projectDir),
+		}))
+		.with({ type: 'json' }, (json) => ({
+			...json,
+			path: toProjectRelativePath(json.path, projectDir),
+		}))
+		.with({ type: 'xml' }, (xml) => ({
+			...xml,
+			path: toProjectRelativePath(xml.path, projectDir),
+		}))
+		.with({ type: 'prefab' }, (prefab) => ({
+			...prefab,
+			path: toProjectRelativePath(prefab.path, projectDir),
+		}))
+		.with({ type: 'web-font' }, (webFont) => ({
+			...webFont,
+			path: toProjectRelativePath(webFont.path, projectDir),
+		}))
+		.with({ type: 'file' }, (file) => ({
+			...file,
+			path: toProjectRelativePath(file.path, projectDir),
+		}))
+		.exhaustive()
+}
+
+function pruneAssetByType(asset: AssetNode, types: Set<AssetType>): AssetNode | null {
+	const keepSelf = types.has(asset.type)
+
+	return match(asset)
+		.with({ type: 'folder' }, (folder) => {
+			const children = folder.children
+				?.map((child) => pruneAssetByType(child, types))
+				.filter((child): child is AssetNode => Boolean(child))
+
+			if (!keepSelf && (!children || children.length === 0)) {
+				return null
+			}
+
+			return {
+				...folder,
+				children: children ?? [],
+			}
+		})
+		.with({ type: 'spritesheet' }, (spritesheet) => {
+			const frames = spritesheet.frames
+				?.map((child) => pruneAssetByType(child as AssetNode, types))
+				.filter((child): child is AssetNode => Boolean(child)) as AssetNode['frames']
+
+			if (!keepSelf && (!frames || frames.length === 0)) {
+				return null
+			}
+
+			return {
+				...spritesheet,
+				frames: frames ?? [],
+			}
+		})
+		.with({ type: 'spritesheet-folder' }, (spritesheetFolder) => {
+			const children = spritesheetFolder.children
+				?.map((child) => pruneAssetByType(child, types))
+				.filter((child): child is AssetNode => Boolean(child))
+
+			if (!keepSelf && (!children || children.length === 0)) {
+				return null
+			}
+
+			return {
+				...spritesheetFolder,
+				children: children ?? [],
+			}
+		})
+		.otherwise(() => (keepSelf ? asset : null))
 }
 
 function buildHierarchyNode(obj: EditableObjectJson): HierarchyNode {

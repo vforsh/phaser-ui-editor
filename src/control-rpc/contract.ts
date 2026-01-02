@@ -16,6 +16,170 @@ const hierarchyNodeSchema: z.ZodType<HierarchyNode> = z.lazy(() =>
 	})
 )
 
+export const assetTypeSchema = z.enum([
+	'folder',
+	'file',
+	'json',
+	'xml',
+	'image',
+	'prefab',
+	'web-font',
+	'bitmap-font',
+	'spritesheet',
+	'spritesheet-folder',
+	'spritesheet-frame',
+])
+
+export type AssetType = z.infer<typeof assetTypeSchema>
+
+export type AssetNode = {
+	type: AssetType
+	id: string
+	name: string
+	/**
+	 * Project-relative path (relative to `projectDir`) for filesystem-backed assets.
+	 *
+	 * For spritesheet frames/folders this is a virtual path used for hierarchy display.
+	 */
+	path: string
+	// folder
+	children?: AssetNode[]
+	// spritesheet
+	image?: {
+		type: 'image'
+		id: string
+		name: string
+		path: string
+		size: { w: number; h: number }
+		scale9Borders?: { x: number; y: number; w: number; h: number }
+	}
+	json?: { type: 'json'; id: string; name: string; path: string }
+	frames?: (AssetNode & ({ type: 'spritesheet-frame' } | { type: 'spritesheet-folder' }))[]
+	project?: string
+	// web-font
+	fontFamily?: string
+	// bitmap-font
+	imageExtra?: { atlas: string; texture: string; texturePacker: string }
+	data?: { type: 'json' | 'xml'; id: string; name: string; path: string }
+	// spritesheet-folder / spritesheet-frame
+	imagePath?: string
+	jsonPath?: string
+	pathInHierarchy?: string
+	size?: { w: number; h: number }
+	anchor?: { x: number; y: number }
+	scale9Borders?: { x: number; y: number; w: number; h: number }
+	parentId?: string
+}
+
+const assetNodeSchema: z.ZodType<AssetNode> = z.lazy(() => {
+	const base = z.object({
+		id: z.string(),
+		name: z.string(),
+		path: z.string().min(1),
+	})
+
+	const imageSchema = base.extend({
+		type: z.literal('image'),
+		size: z.object({ w: z.number(), h: z.number() }),
+		scale9Borders: z
+			.object({
+				x: z.number(),
+				y: z.number(),
+				w: z.number(),
+				h: z.number(),
+			})
+			.optional(),
+	})
+
+	const jsonSchema = base.extend({
+		type: z.literal('json'),
+	})
+
+	const xmlSchema = base.extend({
+		type: z.literal('xml'),
+	})
+
+	const folderSchema = base.extend({
+		type: z.literal('folder'),
+		children: z.array(assetNodeSchema),
+	})
+
+	const fileSchema = base.extend({
+		type: z.literal('file'),
+	})
+
+	const prefabSchema = base.extend({
+		type: z.literal('prefab'),
+	})
+
+	const webFontSchema = base.extend({
+		type: z.literal('web-font'),
+		fontFamily: z.string().min(1),
+	})
+
+	const bitmapFontSchema = base.extend({
+		type: z.literal('bitmap-font'),
+		image: imageSchema,
+		data: z.union([jsonSchema, xmlSchema]),
+		imageExtra: z
+			.object({
+				atlas: z.string().min(1),
+				texture: z.string().min(1),
+				texturePacker: z.string().min(1),
+			})
+			.optional(),
+	})
+
+	const spritesheetFrameSchema = base.extend({
+		type: z.literal('spritesheet-frame'),
+		imagePath: z.string().min(1),
+		jsonPath: z.string().min(1),
+		pathInHierarchy: z.string().min(1),
+		size: z.object({ w: z.number(), h: z.number() }),
+		anchor: z.object({ x: z.number(), y: z.number() }),
+		scale9Borders: z
+			.object({
+				x: z.number(),
+				y: z.number(),
+				w: z.number(),
+				h: z.number(),
+			})
+			.optional(),
+		project: z.string().optional(),
+		parentId: z.string().optional(),
+	})
+
+	const spritesheetFolderSchema = base.extend({
+		type: z.literal('spritesheet-folder'),
+		imagePath: z.string().min(1),
+		jsonPath: z.string().min(1),
+		children: z.array(spritesheetFrameSchema),
+		project: z.string().optional(),
+	})
+
+	const spritesheetSchema = base.extend({
+		type: z.literal('spritesheet'),
+		image: imageSchema,
+		json: jsonSchema,
+		frames: z.array(z.union([spritesheetFrameSchema, spritesheetFolderSchema])),
+		project: z.string().optional(),
+	})
+
+	return z.discriminatedUnion('type', [
+		folderSchema,
+		fileSchema,
+		jsonSchema,
+		xmlSchema,
+		imageSchema,
+		prefabSchema,
+		webFontSchema,
+		bitmapFontSchema,
+		spritesheetSchema,
+		spritesheetFolderSchema,
+		spritesheetFrameSchema,
+	])
+})
+
 const successSchema = z.object({ success: z.literal(true) })
 
 export const controlContract = {
@@ -33,6 +197,18 @@ export const controlContract = {
 	'list-hierarchy': {
 		input: z.object({}),
 		output: hierarchyNodeSchema,
+	},
+	'list-assets': {
+		input: z
+			.object({
+				types: z.array(assetTypeSchema).optional(),
+			})
+			.strict(),
+		output: z
+			.object({
+				assets: z.array(assetNodeSchema),
+			})
+			.strict(),
 	},
 	'select-object': {
 		input: z.union([

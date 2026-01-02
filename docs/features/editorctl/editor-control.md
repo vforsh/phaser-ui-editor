@@ -1,6 +1,6 @@
 ## Editor control (architecture)
 
-This feature provides **external control of the running editor** by translating high-level commands (open project, open prefab, selection, etc.) into internal editor actions.
+This feature provides **external control of the running editor** by translating high-level commands (open project, open prefab, list assets, selection, etc.) into internal editor actions.
 
 There are **two entry points**:
 
@@ -143,6 +143,13 @@ There is now a **single control contract**:
 All callers (main WS router, renderer bridge, `EditorControlService`, and `editorctl`) derive types from this contract.
 
 **Note:** `list-hierarchy` returns a **tree** (`HierarchyNode` with `children?`). `editorctl` flattens the tree only for human-readable table output; `--json` prints the raw tree.
+
+**Note:** `list-assets` returns the **asset tree** (`AssetNode[]`). It supports optional filtering by type:
+
+- Request: `{"method":"list-assets","params":{"types":["prefab","folder"]}}`
+- Response: `{ assets: [...] }` (a pruned tree: nodes are kept if they match the filter or contain matching descendants)
+
+Paths returned by `list-assets` are **project-relative** (relative to `projectDir`). For spritesheet frames/folders, `path` is a **virtual hierarchy path** used for display.
 
 ## How to add new command
 
