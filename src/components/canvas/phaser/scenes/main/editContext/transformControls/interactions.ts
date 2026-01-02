@@ -1,21 +1,22 @@
 import type { Logger } from 'tslog'
 import { signalFromEvent } from '../../../../robowhale/utils/events/create-abort-signal-from-event'
 import type { EditableObject } from '../../objects/EditableObject'
-import { canChangeOrigin } from '../Transformable'
+import { trySetPositionUser } from '../../objects/editing/editRestrictions'
 import type { Selection } from '../Selection'
 import { getSelectionFrame, type SelectionFrame } from '../selection-frame'
+import { canChangeOrigin } from '../Transformable'
+import type { BorderHandles, CornerHandles, TransformControlHandles } from './factories'
+import { setCircleHitArea, setRectHitArea } from './factories'
 import {
+	CursorManager,
 	MIN_DISPLAY_SIZE,
 	getOriginForResizeDirection,
 	getResizeCursorAngleOffsetByName,
 	getResizeDirectionFromRotatedDelta,
 	getRotateCursorAngleOffsetByName,
-	CursorManager,
 	type ReadonlyTransformControlOptions,
 	type ResizeDirection,
 } from './types-math-cursor'
-import type { BorderHandles, CornerHandles, TransformControlHandles } from './factories'
-import { setCircleHitArea, setRectHitArea } from './factories'
 
 export class RotateInteraction {
 	/**
@@ -231,19 +232,13 @@ export class ResizeInteraction {
 		this.performResize(selection, pointer, resizeDirection, 'both', true)
 	}
 
-	private resizeFromBorder(
-		border: Phaser.GameObjects.Image,
-		pointer: Phaser.Input.Pointer,
-		_x: number,
-		_y: number
-	) {
+	private resizeFromBorder(border: Phaser.GameObjects.Image, pointer: Phaser.Input.Pointer, _x: number, _y: number) {
 		const selection = this.getSelection()
 		if (!selection) {
 			return
 		}
 
-		const isVertical =
-			border === this.resizeBorders.top || border === this.resizeBorders.bottom
+		const isVertical = border === this.resizeBorders.top || border === this.resizeBorders.bottom
 		const resizeDirection = this.getResizeDirectionForBorder(border)
 		const axis = isVertical ? 'y' : 'x'
 
@@ -316,8 +311,10 @@ export class ResizeInteraction {
 				const offsetY = obj.displayHeight * (newOrigin[1] - currentOrigin[1])
 				const angleRad = obj.angle * Phaser.Math.DEG_TO_RAD
 				obj.setOrigin(newOrigin[0], newOrigin[1])
-				obj.x += offsetX * Math.cos(angleRad) - offsetY * Math.sin(angleRad)
-				obj.y += offsetX * Math.sin(angleRad) + offsetY * Math.cos(angleRad)
+
+				const nextX = obj.x + (offsetX * Math.cos(angleRad) - offsetY * Math.sin(angleRad))
+				const nextY = obj.y + (offsetX * Math.sin(angleRad) + offsetY * Math.cos(angleRad))
+				trySetPositionUser(obj, nextX, nextY)
 			}
 
 			selectedTransforms.set(obj, {
@@ -369,9 +366,7 @@ export class ResizeInteraction {
 					const newDisplayWidth =
 						axis === 'y' ? transform.width : Math.max(transform.width + deltaX, MIN_DISPLAY_SIZE)
 					const newDisplayHeight =
-						axis === 'x'
-							? transform.height
-							: Math.max(transform.height + adjustedDy, MIN_DISPLAY_SIZE)
+						axis === 'x' ? transform.height : Math.max(transform.height + adjustedDy, MIN_DISPLAY_SIZE)
 
 					if (obj.kind === 'Container') {
 						const scaleX = transform.scaleX === 0 ? 1 : Math.abs(transform.scaleX)
@@ -389,7 +384,7 @@ export class ResizeInteraction {
 						const offsetWorldY = offsetLocalX * sinObj + offsetLocalY * cosObj
 
 						obj.setSize(unscaledWidth, unscaledHeight)
-						obj.setPosition(transform.x + offsetWorldX, transform.y + offsetWorldY)
+						trySetPositionUser(obj, transform.x + offsetWorldX, transform.y + offsetWorldY)
 						return
 					}
 
@@ -414,8 +409,10 @@ export class ResizeInteraction {
 						const offsetY = obj.displayHeight * (originalOriginY - obj.originY)
 						const angleRad = obj.angle * Phaser.Math.DEG_TO_RAD
 						obj.setOrigin(originalOriginX, originalOriginY)
-						obj.x += offsetX * Math.cos(angleRad) - offsetY * Math.sin(angleRad)
-						obj.y += offsetX * Math.sin(angleRad) + offsetY * Math.cos(angleRad)
+
+						const nextX = obj.x + (offsetX * Math.cos(angleRad) - offsetY * Math.sin(angleRad))
+						const nextY = obj.y + (offsetX * Math.sin(angleRad) + offsetY * Math.cos(angleRad))
+						trySetPositionUser(obj, nextX, nextY)
 					}
 				})
 

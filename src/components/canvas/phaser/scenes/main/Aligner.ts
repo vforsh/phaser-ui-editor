@@ -6,6 +6,7 @@ import { getContainerBoxWorldBounds } from './editContext/object-bounds'
 import { calculateBounds } from './editContext/Transformable'
 import { MainScene } from './MainScene'
 import { EditableObject } from './objects/EditableObject'
+import { isPositionLockedForRuntimeObject } from './objects/editing/editRestrictions'
 
 export type AlignType =
 	| 'top'
@@ -40,6 +41,10 @@ export class Aligner extends TypedEventEmitter<Events> {
 	}
 
 	public align(type: AlignType, objs: EditableObject[], context: EditContext): boolean {
+		if (objs.some((obj) => isPositionLockedForRuntimeObject(obj))) {
+			return false
+		}
+
 		const contextBounds = this.getContextBounds(context)
 
 		const isOne = objs.length === 1

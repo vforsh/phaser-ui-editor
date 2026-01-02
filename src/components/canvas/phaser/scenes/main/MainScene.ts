@@ -7,7 +7,7 @@ import { getErrorLog } from '@utils/error/utils'
 import { once } from 'es-toolkit'
 import { err, ok, Result } from 'neverthrow'
 import { match } from 'ts-pattern'
-import { Logger, ILogObj } from 'tslog'
+import { ILogObj, Logger } from 'tslog'
 import WebFont from 'webfontloader'
 import { AppCommandsEmitter } from '../../../../../AppCommands'
 import { logger } from '../../../../../logs/logs'
@@ -42,12 +42,12 @@ import { Aligner } from './Aligner'
 import { CanvasClipboard } from './CanvasClipboard'
 import { EditContext } from './editContext/EditContext'
 import { EditContextsManager } from './editContext/EditContextsManager'
+import { getEditableWorldBounds } from './editContext/object-bounds'
 import { Selection } from './editContext/Selection'
 import { TransformControls } from './editContext/TransformControls'
 import { EditContextFrame } from './EditContextFrame'
 import { Grid } from './Grid'
 import { LayoutSystem } from './layout/LayoutSystem'
-import { getEditableWorldBounds } from './editContext/object-bounds'
 import {
 	AddComponentResult,
 	MoveComponentResult,
@@ -58,6 +58,7 @@ import { EditableComponentsFactory } from './objects/components/base/EditableCom
 import { EditableContainer, EditableContainerJson } from './objects/EditableContainer'
 import { EditableObject, EditableObjectJson, EditableObjectType, isObjectOfType } from './objects/EditableObject'
 import { EditableObjectsFactory } from './objects/EditableObjectsFactory'
+import { isPositionLockedForRuntimeObject } from './objects/editing/editRestrictions'
 import { Rulers } from './Rulers'
 
 type PhaserBmfontData = Phaser.Types.GameObjects.BitmapText.BitmapFontData
@@ -808,6 +809,14 @@ export class MainScene extends BaseScene {
 		const scaledY = centerLocalY * container.scaleY
 		const offsetX = scaledX * cos - scaledY * sin
 		const offsetY = scaledX * sin + scaledY * cos
+
+		if (isPositionLockedForRuntimeObject(container)) {
+			return
+		}
+
+		if (children.some((child) => isPositionLockedForRuntimeObject(child))) {
+			return
+		}
 
 		void this.withUndo('Adjust container to children bounds', () => {
 			container.setPosition(container.x + offsetX, container.y + offsetY)
@@ -2053,6 +2062,10 @@ export class MainScene extends BaseScene {
 
 	public startSelectionDrag(selection: Selection, pointer: Phaser.Input.Pointer, context: EditContext) {
 		if (this.selectionDrag) {
+			return
+		}
+
+		if (selection.objects.some((obj) => isPositionLockedForRuntimeObject(obj))) {
 			return
 		}
 

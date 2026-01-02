@@ -1,5 +1,6 @@
 import { EditableNineSliceJson } from '@components/canvas/phaser/scenes/main/objects/EditableNineSlice'
-import { Group, Stack, TextInput } from '@mantine/core'
+import { isSizeLockedForObjectJson } from '@components/canvas/phaser/scenes/main/objects/editing/editRestrictions'
+import { Box, Group, Stack, TextInput, Tooltip } from '@mantine/core'
 import { useSnapshot } from '@state/State'
 import { useNineSliceAssets } from '../../../../hooks/useNineSliceAssets'
 import { getAssetById } from '../../../../types/assets'
@@ -32,6 +33,7 @@ export function NineSliceSection({ data }: NineSliceSectionProps) {
 	}
 
 	const snap = useSnapshot(data)
+	const sizeLock = isSizeLockedForObjectJson(data)
 
 	// TODO allow to drag and drop texture or frame from the assets panel (like in Cocos Creator)
 	// TODO add button "Open in TexturePacker" if it's a spritesheet
@@ -54,21 +56,43 @@ export function NineSliceSection({ data }: NineSliceSectionProps) {
 			/>
 
 			<Group grow>
-				<NumberInputCustom
-					label="Width"
-					value={snap.width}
-					onChange={(value) => (data.width = value)}
-					size="xs"
-					decimalScale={2}
-				/>
+				<Tooltip
+					label={sizeLock?.reason}
+					disabled={!sizeLock}
+					withArrow
+					position="top"
+					openDelay={200}
+				>
+					<Box>
+						<NumberInputCustom
+							label="Width"
+							value={snap.width}
+							onChange={(value) => (data.width = value)}
+							size="xs"
+							decimalScale={2}
+							disabled={!!sizeLock}
+						/>
+					</Box>
+				</Tooltip>
 
-				<NumberInputCustom
-					label="Height"
-					value={snap.height}
-					onChange={(value) => (data.height = value)}
-					size="xs"
-					decimalScale={2}
-				/>
+				<Tooltip
+					label={sizeLock?.reason}
+					disabled={!sizeLock}
+					withArrow
+					position="top"
+					openDelay={200}
+				>
+					<Box>
+						<NumberInputCustom
+							label="Height"
+							value={snap.height}
+							onChange={(value) => (data.height = value)}
+							size="xs"
+							decimalScale={2}
+							disabled={!!sizeLock}
+						/>
+					</Box>
+				</Tooltip>
 			</Group>
 
 			<Group grow>

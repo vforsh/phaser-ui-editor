@@ -1,9 +1,9 @@
 import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
+import { isSizeLockedForObjectJson } from '@components/canvas/phaser/scenes/main/objects/editing/editRestrictions'
 import { NumberInputCustom } from '@components/inspector/sections/common/NumberInputCustom'
 import { useAppCommands } from '../../../../di/DiContext'
-import { Button, Group, Stack, Tooltip } from '@mantine/core'
+import { Box, Button, Group, Stack, Tooltip } from '@mantine/core'
 import { Info } from 'lucide-react'
-import { match } from 'ts-pattern'
 import { useSnapshot } from 'valtio'
 import { BaseSectionProps } from '../BaseSection'
 
@@ -14,33 +14,47 @@ export function ContainerSizeSection({ data }: ContainerSizeSectionProps) {
 	const appCommands = useAppCommands()
 	const hasChildren = snap.children.length > 0
 
-	const hasActiveSizeControllingComps = snap.components.some((comp) =>
-		match(comp.type)
-			.with('horizontal-layout', 'vertical-layout', 'grid-layout', () => comp.active)
-			.otherwise(() => false)
-	)
+	const sizeLock = isSizeLockedForObjectJson(data)
 
 	return (
 		<Stack gap="xs">
 			<Group grow>
-				<NumberInputCustom
-					label="Width"
-					value={snap.width}
-					onChange={(val) => (data.width = val)}
-					size="xs"
-					decimalScale={2}
-					// TODO add tooltip that explains that the width is controlled by the layout component
-					readOnly={hasActiveSizeControllingComps}
-				/>
-				<NumberInputCustom
-					label="Height"
-					value={snap.height}
-					onChange={(val) => (data.height = val)}
-					size="xs"
-					decimalScale={2}
-					// TODO add tooltip that explains that the height is controlled by the layout component
-					readOnly={hasActiveSizeControllingComps}
-				/>
+				<Tooltip
+					label={sizeLock?.reason}
+					disabled={!sizeLock}
+					withArrow
+					position="top"
+					openDelay={200}
+				>
+					<Box>
+						<NumberInputCustom
+							label="Width"
+							value={snap.width}
+							onChange={(val) => (data.width = val)}
+							size="xs"
+							decimalScale={2}
+							disabled={!!sizeLock}
+						/>
+					</Box>
+				</Tooltip>
+				<Tooltip
+					label={sizeLock?.reason}
+					disabled={!sizeLock}
+					withArrow
+					position="top"
+					openDelay={200}
+				>
+					<Box>
+						<NumberInputCustom
+							label="Height"
+							value={snap.height}
+							onChange={(val) => (data.height = val)}
+							size="xs"
+							decimalScale={2}
+							disabled={!!sizeLock}
+						/>
+					</Box>
+				</Tooltip>
 			</Group>
 
 			<Button

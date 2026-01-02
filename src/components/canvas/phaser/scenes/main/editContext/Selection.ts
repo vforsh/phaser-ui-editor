@@ -1,6 +1,7 @@
 import { ReadonlyDeep } from 'type-fest'
 import { TypedEventEmitter } from '../../../robowhale/phaser3/TypedEventEmitter'
 import { EditableObject } from '../objects/EditableObject'
+import { isPositionLockedForRuntimeObject } from '../objects/editing/editRestrictions'
 import { calculateBounds } from './Transformable'
 
 type Events = {
@@ -100,6 +101,10 @@ export class Selection extends TypedEventEmitter<Events> {
 	}
 
 	public move(dx: number, dy = 0): Selection {
+		if (this.objects.some((obj) => isPositionLockedForRuntimeObject(obj))) {
+			return this
+		}
+
 		this.objects.forEach((obj) => {
 			obj.setPosition(obj.x + dx, obj.y + dy)
 		})

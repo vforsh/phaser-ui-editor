@@ -3,8 +3,12 @@ import {
 	canChangeScale,
 	EditableObjectJson,
 } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
+import { isPositionLockedForObjectJson } from '@components/canvas/phaser/scenes/main/objects/editing/editRestrictions'
 import { NumberInputCustom } from '@components/inspector/sections/common/NumberInputCustom'
-import { Group, Stack } from '@mantine/core'
+import { findParentContainerId } from '@components/inspector/utils/findParentContainerId'
+import { Group, Stack, Tooltip, Box } from '@mantine/core'
+import { state } from '@state/State'
 import { useSnapshot } from 'valtio'
 import { BaseSectionProps } from '../BaseSection'
 
@@ -12,24 +16,55 @@ interface TransformSectionProps extends BaseSectionProps<EditableObjectJson> {}
 
 export function TransformSection({ data }: TransformSectionProps) {
 	const snap = useSnapshot(data)
+	const canvasSnap = useSnapshot(state.canvas)
+
+	const parentId = findParentContainerId(canvasSnap.root as any, data.id)
+	const parent = parentId ? (canvasSnap.objectById(parentId) as EditableContainerJson | undefined) : undefined
+	const positionLock = isPositionLockedForObjectJson(data, parent)
+
+	const renderXInput = () => (
+		<NumberInputCustom
+			label="X"
+			value={snap.x}
+			onChange={(val) => (data.x = val)}
+			decimalScale={2}
+			size="xs"
+			disabled={!!positionLock}
+		/>
+	)
+
+	const renderYInput = () => (
+		<NumberInputCustom
+			label="Y"
+			value={snap.y}
+			onChange={(val) => (data.y = val)}
+			decimalScale={2}
+			size="xs"
+			disabled={!!positionLock}
+		/>
+	)
 
 	return (
 		<Stack gap="xs">
 			<Group grow>
-				<NumberInputCustom
-					label="X"
-					value={snap.x}
-					onChange={(val) => (data.x = val)}
-					decimalScale={2}
-					size="xs"
-				/>
-				<NumberInputCustom
-					label="Y"
-					value={snap.y}
-					onChange={(val) => (data.y = val)}
-					decimalScale={2}
-					size="xs"
-				/>
+				<Tooltip
+					label={positionLock?.reason}
+					disabled={!positionLock}
+					withArrow
+					position="top"
+					openDelay={200}
+				>
+					<Box>{renderXInput()}</Box>
+				</Tooltip>
+				<Tooltip
+					label={positionLock?.reason}
+					disabled={!positionLock}
+					withArrow
+					position="top"
+					openDelay={200}
+				>
+					<Box>{renderYInput()}</Box>
+				</Tooltip>
 			</Group>
 
 			<Group grow>

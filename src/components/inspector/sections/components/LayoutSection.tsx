@@ -13,6 +13,7 @@ import { match } from 'ts-pattern'
 import { useSnapshot } from 'valtio'
 import { BaseSectionProps } from '../BaseSection'
 import { NumberInputCustom } from '../common/NumberInputCustom'
+import { findParentContainerId, ReadonlyContainerJson } from '../../utils/findParentContainerId'
 import classes from './LayoutSection.module.css'
 
 interface LayoutSectionProps extends BaseSectionProps<LayoutComponentJson> {
@@ -410,28 +411,6 @@ function toggleScalarUnit(
 
 	scalar.unit = nextUnit
 	scalar.value = nextValue
-}
-
-type ReadonlyContainerJson = Omit<EditableContainerJson, 'children'> & { children: readonly EditableObjectJson[] }
-
-function findParentContainerId(root: ReadonlyContainerJson | null, objId: string): string | null {
-	if (!root) {
-		return null
-	}
-
-	for (const child of root.children) {
-		if (child.id === objId) {
-			return root.id
-		}
-		if (child.type === 'Container') {
-			const found = findParentContainerId(child, objId)
-			if (found) {
-				return found
-			}
-		}
-	}
-
-	return null
 }
 
 function formatLayoutType(type: string): string {
