@@ -330,7 +330,9 @@ export default function EditorLayout() {
 							borderRadius: 'var(--mantine-radius-sm)',
 						}}
 					>
-						<InspectorPanel logger={logger.getOrCreate('inspector')} />
+						<Box data-testid="inspector-panel" style={{ height: '100%', minHeight: 0 }}>
+							<InspectorPanel logger={logger.getOrCreate('inspector')} />
+						</Box>
 					</Box>
 				</Paper>
 			</Group>

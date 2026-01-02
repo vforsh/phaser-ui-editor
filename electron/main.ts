@@ -4,6 +4,14 @@ import { registerBackendHandlers } from '../src/backend-main/ipc/register-backen
 
 let mainWindow: BrowserWindow | null = null
 
+const isPlaywrightE2E = process.env.PW_E2E === '1'
+
+// Dev-only CDP port for Playwright "attach" mode.
+// Keep this disabled for normal dev to avoid exposing a debugging port by accident.
+if (!app.isPackaged && isPlaywrightE2E) {
+	app.commandLine.appendSwitch('remote-debugging-port', process.env.PW_E2E_CDP_PORT ?? '9222')
+}
+
 const createAppMenu = () => {
 	const isMac = process.platform === 'darwin'
 	const macAppMenu: Electron.MenuItemConstructorOptions[] = isMac
@@ -81,7 +89,7 @@ const createWindow = () => {
 		mainWindow.maximize()
 		mainWindow.show()
 
-		if (!app.isPackaged) {
+		if (!app.isPackaged && !isPlaywrightE2E) {
 			// DevTools can noticeably slow down initial paint; open it right after the first render.
 			setTimeout(() => mainWindow?.webContents.openDevTools({ mode: 'right' }), 250)
 		}

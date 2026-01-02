@@ -97,6 +97,7 @@ export default function CanvasContainer() {
 
 	return (
 		<div
+			data-testid="canvas"
 			ref={containerRef}
 			onDragOver={handleDragOver}
 			onDragLeave={handleDragLeave}

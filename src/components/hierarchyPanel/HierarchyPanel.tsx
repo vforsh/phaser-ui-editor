@@ -409,6 +409,7 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 		<Paper
 			style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
 			radius="sm"
+			data-testid="hierarchy-panel"
 			ref={panelRef}
 			onClick={() => panelRef.current?.focus()}
 			tabIndex={1}

@@ -809,6 +809,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		<Paper
 			className={styles.panel}
 			radius="sm"
+			data-testid="assets-panel"
 			ref={panelRef}
 			onClick={() => panelRef.current?.focus()}
 			tabIndex={2}
