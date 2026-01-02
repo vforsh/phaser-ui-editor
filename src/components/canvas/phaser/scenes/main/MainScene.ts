@@ -74,6 +74,41 @@ type CanvasDocumentSnapshot = {
 
 const deepEqual = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
 
+function formatScreenshotTimestamp(date: Date): string {
+	// 2026-01-02T12-34-56 (filesystem-safe across platforms)
+	return date.toISOString().replace(/\.\d{3}Z$/, '').replace(/:/g, '-')
+}
+
+function sanitizeFileNamePart(value: string): string {
+	const trimmed = value.trim()
+	if (!trimmed) {
+		return 'screenshot'
+	}
+
+	// Replace characters that are commonly invalid/unfriendly in filenames.
+	return trimmed
+		.replace(/[<>:"/\\|?*]/g, '_')
+		.replace(/\s+/g, '_')
+		.replace(/_+/g, '_')
+		.replace(/^_+|_+$/g, '')
+}
+
+function getPrefabBaseName(name: string): string {
+	const trimmed = name.trim()
+	if (!trimmed) {
+		return ''
+	}
+
+	// Handle `.prefab.json` and `.prefab` explicitly (common in this repo).
+	const withoutKnownExt = trimmed.replace(/\.prefab\.json$/i, '').replace(/\.prefab$/i, '')
+	if (withoutKnownExt !== trimmed) {
+		return withoutKnownExt
+	}
+
+	// Fallback: strip the last extension.
+	return trimmed.replace(/\.[^.]+$/, '')
+}
+
 export type MainSceneInitData = {
 	project: Project
 	prefabAsset: AssetTreePrefabData
@@ -729,6 +764,75 @@ export class MainScene extends BaseScene {
 		appCommands.on('get-object-path', this.getObjectPath, this, false, signal)
 		appCommands.on('save-prefab', this.savePrefab, this, false, signal)
 		appCommands.on('discard-unsaved-prefab', this.restart, this, false, signal)
+
+		appCommands.on('take-canvas-screenshot', this.takeCanvasScreenshot, this, false, signal)
+	}
+
+	private async takeCanvasScreenshot(options?: { clean?: boolean }): Promise<string> {
+		const prefabName = this.getPrefabNameForScreenshot()
+		const timestamp = formatScreenshotTimestamp(new Date())
+		const fileBase = sanitizeFileNamePart(`${timestamp}--${prefabName}`)
+		const fileName = `${fileBase}.png`
+
+		const targetDir = '/Users/vlad/dev/phaser-ui-editor/screenshots'
+
+		const capture = async () => {
+			const blob = await this.getRendererSnapshot()
+			const arrayBuffer = await blob.arrayBuffer()
+			const bytes = new Uint8Array(arrayBuffer)
+
+			const result = await backend.saveScreenshot({
+				targetDir,
+				fileName,
+				bytes,
+			})
+
+			this.logger.info(`saved canvas screenshot at ${result.path}`)
+			return result.path
+		}
+
+		if (!options?.clean) {
+			return await capture()
+		}
+
+		const context = this.editContexts.current
+		if (!context) {
+			return await capture()
+		}
+
+		return await context.withEditorOverlaysHidden(capture)
+	}
+
+	private getRendererSnapshot(format = 'image/png', quality = 1): Promise<Blob> {
+		return new Promise<Blob>((resolve) => {
+			this.renderer.snapshot((snapshot) => {
+				if (snapshot instanceof HTMLImageElement) {
+					void (async () => {
+						const res = await fetch(snapshot.src)
+						const blob = await res.blob()
+						resolve(blob)
+					})()
+				} else {
+					// Fallback for cases where it might not be an Image element (though rare in this context)
+					// or handle if it's a Color object (unlikely for full snapshot)
+					throw new Error('Failed to capture renderer snapshot: invalid snapshot type')
+				}
+			}, format, quality)
+		})
+	}
+
+	private getPrefabNameForScreenshot(): string {
+		const rawName = state.canvas.currentPrefab?.name
+		if (!rawName) {
+			return 'no-prefab'
+		}
+
+		const base = getPrefabBaseName(rawName)
+		if (!base) {
+			return 'no-prefab'
+		}
+
+		return base
 	}
 
 	private resetImageOriginalSize(data: { objectId: string }) {

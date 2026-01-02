@@ -623,6 +623,33 @@ export class EditContext extends TypedEventEmitter<Events> {
 		return selection
 	}
 
+	public async withEditorOverlaysHidden<T>(fn: () => Promise<T> | T): Promise<T> {
+		// Guard against being called too early.
+		if (!this.selectionRect || !this.transformControls) {
+			return await fn()
+		}
+
+		const overlays: Phaser.GameObjects.GameObject[] = [
+			this.selectionRect,
+			this.transformControls,
+			...this.hoverRects,
+			...this.subSelectionRects,
+		]
+
+		const previous = overlays.map((obj) => ({
+			obj,
+			active: obj.active,
+		}))
+
+		overlays.forEach((obj) => obj.kill())
+
+		try {
+			return await fn()
+		} finally {
+			previous.forEach(({ obj, active }) => (active ? obj.revive() : obj.kill()))
+		}
+	}
+
 	private onSelectionChanged(type: 'add' | 'remove', object: EditableObject): void {
 		if (type === 'add') {
 			const subSelectionRect = this.getOrCreateSubSelectionRect()

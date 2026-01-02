@@ -51,6 +51,29 @@ const createAppMenu = () => {
 				{ role: 'zoomOut' },
 				{ type: 'separator' },
 				{ role: 'togglefullscreen' },
+				{ type: 'separator' },
+				{
+					label: 'Take Canvas Screenshot',
+					click: () => {
+						const win = BrowserWindow.getFocusedWindow() ?? mainWindow
+						if (!win) {
+							return
+						}
+
+						win.webContents.send('menu:take-canvas-screenshot', { clean: false })
+					},
+				},
+				{
+					label: 'Take Clean Canvas Screenshot',
+					click: () => {
+						const win = BrowserWindow.getFocusedWindow() ?? mainWindow
+						if (!win) {
+							return
+						}
+
+						win.webContents.send('menu:take-canvas-screenshot', { clean: true })
+					},
+				},
 			],
 		},
 		{

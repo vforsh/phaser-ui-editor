@@ -4,10 +4,11 @@ import 'mantine-contextmenu/styles.css'
 import './layout.css'
 
 import { AppShell, MantineProvider, createTheme } from '@mantine/core'
-import { Notifications } from '@mantine/notifications'
+import { notifications, Notifications } from '@mantine/notifications'
 import { urlParams } from '@url-params'
 import { ContextMenuProvider } from 'mantine-contextmenu'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
+import { Check, X } from 'lucide-react'
 import { AppCommands } from './AppCommands'
 import { AppEvents } from './AppEvents'
 import { TypedEventEmitter } from './components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
@@ -17,6 +18,8 @@ import { DiProvider } from './di/DiContext'
 import { createContainer } from './di/createContainer'
 import { TOKENS } from './di/tokens'
 import { UndoHub } from './history/UndoHub'
+import { logger } from './logs/logs'
+import { backend } from './backend-renderer/backend'
 import { state } from './state/State'
 
 const theme = createTheme({
@@ -48,6 +51,50 @@ function App() {
 
 		return container
 	}, [])
+
+	useEffect(() => {
+		if (!window.appMenu) {
+			return
+		}
+
+		const appCommands = diContainer.resolve(TOKENS.AppCommands)
+
+		return window.appMenu.onTakeCanvasScreenshot(({ clean }) => {
+			void (async () => {
+				try {
+					const savedPath = await appCommands.emit('take-canvas-screenshot', { clean })
+					if (!savedPath) {
+						return
+					}
+
+					logger.info('Screenshot saved:', savedPath)
+
+					notifications.show({
+						title: 'Screenshot saved',
+						message: savedPath,
+						color: 'green',
+						autoClose: 10_000,
+						icon: <Check size={16} />,
+						onClick: () => {
+							void backend.open({ path: savedPath })
+						},
+						style: { cursor: 'pointer' },
+					})
+				} catch (error) {
+					const message = error instanceof Error ? error.message : String(error)
+					logger.error('Failed to take screenshot:', message)
+
+					notifications.show({
+						title: 'Screenshot failed',
+						message,
+						color: 'red',
+						autoClose: 10_000,
+						icon: <X size={16} />,
+					})
+				}
+			})()
+		})
+	}, [diContainer])
 
 	return (
 		<MantineProvider theme={theme} defaultColorScheme="dark">

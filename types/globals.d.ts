@@ -4,6 +4,9 @@ declare global {
 	interface Window {
 		gameInstance: Main
 		__Phaser3ExtensionsApplied: boolean
+		appMenu?: {
+			onTakeCanvasScreenshot: (callback: (payload: { clean?: boolean }) => void) => () => void
+		}
 		/**
 		 * Displays a directory picker which allows the user to select a directory.
 		 * @returns A promise that resolves with a FileSystemDirectoryHandle object representing the selected directory.

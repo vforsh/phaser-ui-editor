@@ -221,11 +221,11 @@ declare module Phaser {
 		}
 		
 		interface IKillable {
-			kill()
-			revive()
+			kill(): void
+			revive(): void
 		}
 		
-		interface GameObject extends Scalable, Alignable {
+		interface GameObject extends Scalable, Alignable, IKillable {
 			scene: Phaser.Scene
 		}
 		

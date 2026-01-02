@@ -163,6 +163,14 @@ export const backendContract = {
 			.optional(),
 		output: z.object({ canceled: z.boolean(), path: z.string().nullable() }),
 	},
+	saveScreenshot: {
+		input: z.object({
+			targetDir: absPathSchema,
+			fileName: z.string().min(1),
+			bytes: z.instanceof(Uint8Array),
+		}),
+		output: z.object({ path: absPathSchema }),
+	},
 } as const
 
 export type BackendContract = typeof backendContract

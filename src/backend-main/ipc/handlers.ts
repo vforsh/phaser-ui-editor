@@ -176,6 +176,15 @@ export const backendHandlers: BackendApi = {
 			path: result.canceled ? null : (result.filePaths[0] ?? null),
 		}
 	},
+	async saveScreenshot({ targetDir, fileName, bytes }) {
+		const normalizedDir = normalizeAbsolutePath(targetDir)
+		await fse.ensureDir(normalizedDir)
+
+		const outPath = path.join(normalizedDir, fileName)
+		await fse.writeFile(outPath, Buffer.from(bytes))
+
+		return { path: outPath }
+	},
 }
 
 function isFontCollection(font: Font | FontCollection): font is FontCollection {

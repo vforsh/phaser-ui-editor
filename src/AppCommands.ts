@@ -55,6 +55,9 @@ export type AppCommands = {
 	// history
 	undo: () => void
 	redo: () => void
+
+	// screenshots
+	'take-canvas-screenshot': (options?: { clean?: boolean }) => Promise<string>
 }
 
 export type AppCommandsEmitter = CommandEmitter<AppCommands>
