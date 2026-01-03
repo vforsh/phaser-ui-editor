@@ -31,6 +31,7 @@ import { deleteObjectsCommand } from './commands/deleteObjects'
 import { getCanvasStateCommand } from './commands/getCanvasState'
 import { getCanvasMetricsCommand } from './commands/getCanvasMetrics'
 import { getAssetInfoCommand } from './commands/getAssetInfo'
+import { getSelectedAssetsCommand } from './commands/getSelectedAssets'
 import { getObjectCommand } from './commands/getObject'
 import { getPrefabContentCommand } from './commands/getPrefabContent'
 import { getProjectInfoCommand } from './commands/getProjectInfo'
@@ -39,6 +40,7 @@ import { listEditorsCommand } from './commands/listEditors'
 import { listHierarchyCommand } from './commands/listHierarchy'
 import { openPrefabCommand } from './commands/openPrefab'
 import { openProjectCommand } from './commands/openProject'
+import { selectAssetsCommand } from './commands/selectAssets'
 import { selectObjectCommand } from './commands/selectObject'
 import { setCameraCommand } from './commands/setCamera'
 import { switchToContextCommand } from './commands/switchToContext'
@@ -46,6 +48,7 @@ import { takeCanvasScreenshotCommand } from './commands/takeCanvasScreenshot'
 
 export const controlContract = {
 	openProject: openProjectCommand,
+	selectAssets: selectAssetsCommand,
 	getProjectInfo: getProjectInfoCommand,
 	openPrefab: openPrefabCommand,
 	listHierarchy: listHierarchyCommand,
@@ -54,6 +57,7 @@ export const controlContract = {
 	switchToContext: switchToContextCommand,
 	deleteObjects: deleteObjectsCommand,
 	getAssetInfo: getAssetInfoCommand,
+	getSelectedAssets: getSelectedAssetsCommand,
 	getObject: getObjectCommand,
 	getPrefabContent: getPrefabContentCommand,
 	getCanvasState: getCanvasStateCommand,

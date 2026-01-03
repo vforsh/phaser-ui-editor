@@ -4,6 +4,7 @@ import { deleteObjects } from './handlers/deleteObjects'
 import { getCanvasState } from './handlers/getCanvasState'
 import { getCanvasMetrics } from './handlers/getCanvasMetrics'
 import { getAssetInfo } from './handlers/getAssetInfo'
+import { getSelectedAssets } from './handlers/getSelectedAssets'
 import { getObject } from './handlers/getObject'
 import { getPrefabContent } from './handlers/getPrefabContent'
 import { getProjectInfo } from './handlers/getProjectInfo'
@@ -12,6 +13,7 @@ import { listEditors } from './handlers/listEditors'
 import { listHierarchy } from './handlers/listHierarchy'
 import { openPrefab } from './handlers/openPrefab'
 import { openProject } from './handlers/openProject'
+import { selectAssets } from './handlers/selectAssets'
 import { selectObject } from './handlers/selectObject'
 import { setCamera } from './handlers/setCamera'
 import { switchToContext } from './handlers/switchToContext'
@@ -33,6 +35,7 @@ export class EditorControlService {
 
 		const handlers = {
 			openProject: openProject(this.ctx),
+			selectAssets: selectAssets(this.ctx),
 			getProjectInfo: getProjectInfo(this.ctx),
 			openPrefab: openPrefab(this.ctx),
 			listHierarchy: listHierarchy(this.ctx),
@@ -41,6 +44,7 @@ export class EditorControlService {
 			switchToContext: switchToContext(this.ctx),
 			deleteObjects: deleteObjects(this.ctx),
 			getAssetInfo: getAssetInfo(this.ctx),
+			getSelectedAssets: getSelectedAssets(this.ctx),
 			getObject: getObject(this.ctx),
 			getPrefabContent: getPrefabContent(this.ctx),
 			getCanvasState: getCanvasState(this.ctx),

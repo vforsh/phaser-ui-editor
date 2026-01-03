@@ -26,6 +26,8 @@ export function exposeWindowEditor(appCommands: AppCommandsEmitter): void {
 		listHierarchy: (params) => handlers.listHierarchy(params ?? {}),
 		listAssets: (params) => handlers.listAssets(params ?? {}),
 		selectObject: (params) => handlers.selectObject(params),
+		selectAssets: (params) => handlers.selectAssets(params),
+		getSelectedAssets: (params) => handlers.getSelectedAssets(params ?? {}),
 		switchToContext: (params) => handlers.switchToContext(params),
 		deleteObjects: (params) => handlers.deleteObjects(params),
 		getAssetInfo: (params) => handlers.getAssetInfo(params),
