@@ -70,6 +70,33 @@ npm run lint
 - `npm run build-types`: build published type exports (`exports.d.ts`)
 - `npm run update-types`: build + push updated types
 
+## Type exports (`exports.d.ts`)
+
+This repo maintains a **small, stable, public TypeScript “surface area”** that other projects can depend on (most importantly: the **prefab JSON types** like `PrefabFile`, `EditableObjectJson`, etc.).
+
+- **`src/types/exports/exports.ts`**: the *source entrypoint* for what we consider “public types”. It intentionally re-exports a curated set of types and uses **relative imports** (no path aliases) so the declarations can be bundled cleanly for consumers.
+- **`exports.d.ts` (repo root)**: the *generated* and *bundled* declaration file. It is referenced from `package.json` via `"types": "exports.d.ts"` and included via `"files": ["exports.d.ts"]`, so TypeScript consumers get types by default.
+
+### Why do we need this?
+
+The app itself is an Electron + Vite project and isn’t set up to publish/consume its full source as a typed library. We still want:
+
+- **A shared contract**: external tooling/runtime code can typecheck against the prefab format without importing the whole editor.
+- **A single importable `.d.ts`**: downstream consumers shouldn’t need our TS config, path aliases, or build pipeline to get accurate types.
+- **Controlled API surface**: exporting everything from `src/` would leak internal editor implementation details and be harder to evolve safely.
+- **GitHub dependency friendly**: some projects consume this repo directly via a Git dependency (e.g. `"phaser-ui-editor": "github:vforsh/phaser-ui-editor"`). In that flow, the safest approach is to **commit `exports.d.ts`** so consumers get types immediately without needing to run our type-bundling pipeline.
+
+### `build-types` / `update-types`
+
+- **`npm run build-types`** (`node scripts/build-types.ts`):
+  - Runs `tsc -p tsconfig.dts.json` to emit declarations into `dist/types/`
+  - Bundles declarations starting from the compiled entrypoint `dist/types/src/types/exports/exports.d.ts` using `dtsroll`
+  - Formats the bundled output and writes it to the repo root as `exports.d.ts`
+
+- **`npm run update-types`** (`node scripts/build-types.ts --push`):
+  - Does everything `build-types` does
+  - If `exports.d.ts` changed, it **stages, commits, and pushes** the update so GitHub consumers pick it up (skips if there are no changes)
+
 ## Project structure (high level)
 
 - `electron/`: Electron main + preload entrypoints
