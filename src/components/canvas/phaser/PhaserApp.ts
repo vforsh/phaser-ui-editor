@@ -106,6 +106,7 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 		this.appCommands.on('discard-unsaved-prefab', this.discardUnsavedPrefab, this, false, this.destroySignal)
 		this.appCommands.on('undo', () => this.undoHub.undo(), this, false, this.destroySignal)
 		this.appCommands.on('redo', () => this.undoHub.redo(), this, false, this.destroySignal)
+		this.appCommands.on('get-canvas-metrics', this.getCanvasMetrics, this, false, this.destroySignal)
 
 		this.resizeSensor = this.setupScaling()
 
@@ -200,6 +201,15 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 
 	private async discardUnsavedPrefab() {
 		console.log(`discardUnsavedPrefab`)
+	}
+
+	private getCanvasMetrics() {
+		return {
+			width: this.canvas.width,
+			height: this.canvas.height,
+			isConnected: this.canvas.isConnected,
+			currentPrefabAssetId: state.canvas.lastOpenedPrefabAssetId,
+		}
 	}
 
 	private setupScaling() {

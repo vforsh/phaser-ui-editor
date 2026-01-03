@@ -29,6 +29,7 @@ export { successSchema } from './shared-schemas'
 
 import { deleteObjectsCommand } from './commands/deleteObjects'
 import { getCanvasStateCommand } from './commands/getCanvasState'
+import { getCanvasMetricsCommand } from './commands/getCanvasMetrics'
 import { getAssetInfoCommand } from './commands/getAssetInfo'
 import { getObjectCommand } from './commands/getObject'
 import { getPrefabContentCommand } from './commands/getPrefabContent'
@@ -56,6 +57,7 @@ export const controlContract = {
 	getObject: getObjectCommand,
 	getPrefabContent: getPrefabContentCommand,
 	getCanvasState: getCanvasStateCommand,
+	getCanvasMetrics: getCanvasMetricsCommand,
 	listEditors: listEditorsCommand,
 	setCamera: setCameraCommand,
 	takeCanvasScreenshot: takeCanvasScreenshotCommand,

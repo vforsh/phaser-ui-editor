@@ -2,6 +2,7 @@ import type { AppCommandsEmitter } from '../../AppCommands'
 import type { ControlApi } from '../api/ControlApi'
 import { deleteObjects } from './handlers/deleteObjects'
 import { getCanvasState } from './handlers/getCanvasState'
+import { getCanvasMetrics } from './handlers/getCanvasMetrics'
 import { getAssetInfo } from './handlers/getAssetInfo'
 import { getObject } from './handlers/getObject'
 import { getPrefabContent } from './handlers/getPrefabContent'
@@ -43,6 +44,7 @@ export class EditorControlService {
 			getObject: getObject(this.ctx),
 			getPrefabContent: getPrefabContent(this.ctx),
 			getCanvasState: getCanvasState(this.ctx),
+			getCanvasMetrics: getCanvasMetrics(this.ctx),
 			listEditors: listEditors(this.ctx),
 			setCamera: setCamera(this.ctx),
 			takeCanvasScreenshot: takeCanvasScreenshot(this.ctx),

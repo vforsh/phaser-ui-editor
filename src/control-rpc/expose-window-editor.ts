@@ -17,7 +17,9 @@ export function exposeWindowEditor(appCommands: AppCommandsEmitter): void {
 	const service = new EditorControlService(appCommands)
 	const handlers = service.handlers
 
+	// NEVER EVER use `params: any`
 	const editor: WindowEditorApi = {
+		getCanvasMetrics: (params) => handlers.getCanvasMetrics(params ?? {}),
 		openProject: (params) => handlers.openProject(params),
 		getProjectInfo: (params) => handlers.getProjectInfo(params ?? {}),
 		openPrefab: (params) => handlers.openPrefab(params),

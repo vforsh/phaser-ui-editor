@@ -61,6 +61,14 @@ export type AppCommands = {
 
 	// screenshots
 	'take-canvas-screenshot': (options?: { clean?: boolean; format?: 'png' | 'jpg' | 'webp' }) => Promise<string>
+
+	// diagnostics
+	'get-canvas-metrics': () => {
+		width: number
+		height: number
+		isConnected: boolean
+		currentPrefabAssetId?: string
+	}
 }
 
 export type AppCommandsEmitter = CommandEmitter<AppCommands>
