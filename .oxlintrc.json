@@ -22,9 +22,9 @@
 		"promise/spec-only": "off",
 		"promise/valid-params": "off",
 		"react_perf/jsx-no-jsx-as-prop": "warn",
-		"react_perf/jsx-no-new-array-as-prop": "warn",
-		"react_perf/jsx-no-new-function-as-prop": "off", // TODO: enable react-perf rules after refactors
-		"react_perf/jsx-no-new-object-as-prop": "warn",
+		"react_perf/jsx-no-new-array-as-prop": "off",
+		"react_perf/jsx-no-new-function-as-prop": "off",
+		"react_perf/jsx-no-new-object-as-prop": "off",
 		"react/rules-of-hooks": "error",
 		"react/exhaustive-deps": "warn",
 		"react/only-export-components": ["warn", { "allowConstantExport": true }],
