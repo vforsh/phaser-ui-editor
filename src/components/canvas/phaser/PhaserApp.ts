@@ -112,8 +112,7 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 
 		// TODO add Boot scene where we load editor assets
 		this.scene.add('MainScene', MainScene)
-		this.scene.add('TestScene', TestScene)
-		// TODO add ChoosePrefabScene
+		// this.scene.add('TestScene', TestScene)
 
 		if (urlParams.getBool('test')) {
 			this.scene.start('TestScene', {
