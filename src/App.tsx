@@ -3,12 +3,11 @@ import '@mantine/notifications/styles.css'
 import 'mantine-contextmenu/styles.css'
 import './layout.css'
 
-import { AppShell, MantineProvider, createTheme } from '@mantine/core'
-import { notifications, Notifications } from '@mantine/notifications'
-import { urlParams } from '@url-params'
+import { AppShell, createTheme, MantineProvider } from '@mantine/core'
+import { Notifications, notifications } from '@mantine/notifications'
 import { ContextMenuProvider } from 'mantine-contextmenu'
-import { useEffect, useMemo, useState } from 'react'
 import { Check, X } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { AppCommands } from './AppCommands'
 import { AppEvents } from './AppEvents'
 import { TypedEventEmitter } from './components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
@@ -37,10 +36,6 @@ const theme = createTheme({
 })
 
 function App() {
-	if (urlParams.get('clearConsole') === 'app' || urlParams.getBool('clearConsole')) {
-		console.clear()
-	}
-
 	const diContainer = useMemo(() => {
 		const container = createContainer()
 
@@ -114,6 +109,22 @@ function App() {
 			const nextSection = isSettingsSectionId(section) ? section : 'general'
 			setActiveSettingsSectionId(nextSection)
 			setSettingsOpened(true)
+		})
+	}, [])
+
+	useEffect(() => {
+		if (!window.appMenu?.onTogglePanel) {
+			return
+		}
+
+		return window.appMenu.onTogglePanel(({ panel }) => {
+			if (panel === 'hierarchy') {
+				state.layout.showHierarchyPanel = !state.layout.showHierarchyPanel
+			} else if (panel === 'assets') {
+				state.layout.showAssetsPanel = !state.layout.showAssetsPanel
+			} else if (panel === 'inspector') {
+				state.layout.showInspectorPanel = !state.layout.showInspectorPanel
+			}
 		})
 	}, [])
 

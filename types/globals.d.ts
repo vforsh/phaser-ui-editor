@@ -19,6 +19,7 @@ declare global {
 						| 'misc'
 				}) => void
 			) => () => void
+			onTogglePanel: (callback: (payload: { panel: 'hierarchy' | 'assets' | 'inspector' }) => void) => () => void
 		}
 		editor?: WindowEditorApi
 		/**

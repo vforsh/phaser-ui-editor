@@ -1,6 +1,5 @@
 import { logger } from '@logs/logs'
 import { Box, Group, Paper, Stack } from '@mantine/core'
-import { urlParams } from '@url-params'
 import { useCallback, useEffect, useState } from 'react'
 import { useUndoHub } from '../di/DiContext'
 import { openProjectByPath } from '../project/open-project'
@@ -111,16 +110,8 @@ export default function EditorLayout() {
 		return () => window.removeEventListener('keydown', onKeyDown)
 	}, [undoHub])
 
-	// open project from query param or from saved state if present
+	// open last opened project if present
 	useEffect(() => {
-		const urlParams = new URLSearchParams(window.location.search)
-		const projectDirPath = urlParams.get('projectDir')
-		if (projectDirPath) {
-			openProject(projectDirPath)
-			return
-		}
-
-		// open last opened project
 		const lastOpenedProjectDir = state.lastOpenedProjectDir
 		if (lastOpenedProjectDir) {
 			// TODO handle loading state
@@ -142,14 +133,10 @@ export default function EditorLayout() {
 		await openProjectByPath(projectDirPath, logger)
 	}
 
-	const hideHierarchyPanel = urlParams.getBool('hierarchy', '0')
-	const hideAssetsPanel = urlParams.getBool('assets', '0')
-	const hideInspectorPanel = urlParams.getBool('inspector', '0')
-
-	const displayHierarchyPanel = !hideHierarchyPanel
-	const displayAssetsPanel = !hideAssetsPanel
+	const displayHierarchyPanel = snap.layout.showHierarchyPanel
+	const displayAssetsPanel = snap.layout.showAssetsPanel
 	const displayLeftPanel = displayHierarchyPanel || displayAssetsPanel
-	const displayInspectorPanel = !hideInspectorPanel
+	const displayInspectorPanel = snap.layout.showInspectorPanel
 	const displayRightPanel = displayInspectorPanel
 
 	return (

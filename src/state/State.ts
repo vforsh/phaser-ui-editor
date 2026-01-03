@@ -30,6 +30,11 @@ export const stateSchema = z.object({
 			length: z.number().int().nonnegative().default(0),
 		}),
 	}),
+	layout: z.object({
+		showHierarchyPanel: z.boolean().default(true),
+		showAssetsPanel: z.boolean().default(true),
+		showInspectorPanel: z.boolean().default(true),
+	}),
 	panelDimensions: z.object({
 		leftPanelWidth: z.number().int().positive(),
 		rightPanelWidth: z.number().int().positive(),
@@ -99,6 +104,11 @@ const initialStateParsed = merge(
 				canRedo: false,
 				length: 0,
 			},
+		},
+		layout: {
+			showHierarchyPanel: true,
+			showAssetsPanel: true,
+			showInspectorPanel: true,
 		},
 		panelDimensions: {
 			leftPanelWidth: 400,

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, dialog, clipboard } from 'electron'
+import { app, BrowserWindow, clipboard, dialog, Menu } from 'electron'
 import getPort from 'get-port'
 import path from 'node:path'
 import { ControlRpcServer } from '../src/backend-main/control-rpc/main-rpc'
@@ -85,19 +85,19 @@ const createAppMenu = () => {
 				{
 					label: app.name,
 					submenu: [
-						{ role: 'about' },
-						{ type: 'separator' },
-						{ role: 'services' },
-						{ type: 'separator' },
-						{ role: 'hide' },
-						{ role: 'hideOthers' },
-						{ role: 'unhide' },
 						{
 							label: 'Settings...',
 							accelerator: 'CmdOrCtrl+,',
 							click: openSettings,
 						},
-						{ type: 'separator' },
+						{ role: 'about' },
+						{ type: 'separator' as const },
+						{ role: 'services' },
+						{ type: 'separator' as const },
+						{ role: 'hide' },
+						{ role: 'hideOthers' },
+						{ role: 'unhide' },
+						{ type: 'separator' as const },
 						{ role: 'quit' },
 					],
 				},
@@ -114,24 +114,49 @@ const createAppMenu = () => {
 			submenu: [
 				{ role: 'reload' },
 				{ role: 'forceReload' },
-				{ type: 'separator' },
+				{ type: 'separator' as const },
 				{ role: 'toggleDevTools' },
-				{ type: 'separator' },
+				{ type: 'separator' as const },
 				{ role: 'resetZoom' },
 				{ role: 'zoomIn' },
 				{ role: 'zoomOut' },
-				{ type: 'separator' },
+				{ type: 'separator' as const },
 				{ role: 'togglefullscreen' },
-				{ type: 'separator' },
+				{ type: 'separator' as const },
+				{
+					label: 'Toggle Hierarchy Panel',
+					accelerator: 'CmdOrCtrl+1',
+					click: () => {
+						const win = BrowserWindow.getFocusedWindow() ?? mainWindow
+						win?.webContents.send('menu:toggle-panel', { panel: 'hierarchy' })
+					},
+				},
+				{
+					label: 'Toggle Assets Panel',
+					accelerator: 'CmdOrCtrl+2',
+					click: () => {
+						const win = BrowserWindow.getFocusedWindow() ?? mainWindow
+						win?.webContents.send('menu:toggle-panel', { panel: 'assets' })
+					},
+				},
+				{
+					label: 'Toggle Inspector Panel',
+					accelerator: 'CmdOrCtrl+3',
+					click: () => {
+						const win = BrowserWindow.getFocusedWindow() ?? mainWindow
+						win?.webContents.send('menu:toggle-panel', { panel: 'inspector' })
+					},
+				},
+				{ type: 'separator' as const },
 				...(!isMac
-					? [
+					? ([
 							{
 								label: 'Settings...',
 								accelerator: 'CmdOrCtrl+,',
 								click: openSettings,
 							},
-							{ type: 'separator' },
-						]
+							{ type: 'separator' as const },
+						] as const)
 					: []),
 				{
 					label: 'Take Canvas Screenshot',
@@ -155,11 +180,11 @@ const createAppMenu = () => {
 						win.webContents.send('menu:take-canvas-screenshot', { clean: true })
 					},
 				},
-			],
+			] as Electron.MenuItemConstructorOptions[],
 		},
 		{
 			label: 'Window',
-			submenu: [{ role: 'minimize' }, { role: 'close' }, ...macWindowMenu],
+			submenu: [{ role: 'minimize' }, { role: 'close' }, ...macWindowMenu] as Electron.MenuItemConstructorOptions[],
 		},
 		{
 			label: 'Help',
@@ -168,7 +193,7 @@ const createAppMenu = () => {
 					label: 'Control RPC Address',
 					click: showControlRpcAddressPopup,
 				},
-			],
+			] as Electron.MenuItemConstructorOptions[],
 		},
 	]
 
