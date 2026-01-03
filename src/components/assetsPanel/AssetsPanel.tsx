@@ -819,7 +819,17 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		>
 			<Stack gap="xs" p="xs" style={{ height: '100%', minHeight: 0 }}>
 				<Group justify="space-between" wrap="nowrap">
-					{!isSearchMode && <PanelTitle title="Assets" />}
+					{!isSearchMode && (
+						<PanelTitle
+							title="Assets"
+							onClick={async () => {
+								if (state.projectDir && state.project?.assetsDir) {
+									const absAssetsPath = path.join(state.projectDir, state.project.assetsDir)
+									await backend.open({ path: absAssetsPath })
+								}
+							}}
+						/>
+					)}
 					<AssetsSearch
 						ref={searchRef}
 						flatAssets={allAssetsFlattened}
