@@ -1,5 +1,5 @@
-import { getNameWithoutExtension } from '@components/assetsPanel/AssetTreeItem'
 import { IPatchesConfig } from '@koreez/phaser3-ninepatch'
+import { logger } from '@logs/logs'
 import { until } from '@open-draft/until'
 import { state, subscribe } from '@state/State'
 import { urlParams } from '@url-params'
@@ -10,10 +10,9 @@ import { match } from 'ts-pattern'
 import { ILogObj, Logger } from 'tslog'
 import WebFont from 'webfontloader'
 import { AppCommandsEmitter } from '../../../../../AppCommands'
-import { logger } from '@logs/logs'
-import { Project } from '../../../../../project/Project'
-import { backend } from '../../../../../backend-renderer/backend'
 import type { WebFontParsed } from '../../../../../backend-contract/types'
+import { backend } from '../../../../../backend-renderer/backend'
+import { Project } from '../../../../../project/Project'
 import {
 	AssetTreeBitmapFontData,
 	AssetTreeItemData,
@@ -24,6 +23,7 @@ import {
 	fetchImageUrl,
 	getAssetById,
 	getAssetRelativePath,
+	getNameWithoutExtension,
 	GraphicAssetData,
 	isAssetOfType,
 } from '../../../../../types/assets'
@@ -36,8 +36,8 @@ import {
 	PrefabWebFontAsset,
 } from '../../../../../types/prefabs/PrefabAsset'
 import { PrefabFile } from '../../../../../types/prefabs/PrefabFile'
-import { parseJsonBitmapFont } from '../../robowhale/phaser3/gameObjects/bitmap-text/parse-json-bitmap-font'
 import type { BmFontData } from '../../robowhale/phaser3/gameObjects/bitmap-text/create-bmfont-data'
+import { parseJsonBitmapFont } from '../../robowhale/phaser3/gameObjects/bitmap-text/parse-json-bitmap-font'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { signalFromEvent } from '../../robowhale/utils/events/create-abort-signal-from-event'
 import { Aligner } from './Aligner'
@@ -76,7 +76,10 @@ const deepEqual = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringi
 
 function formatScreenshotTimestamp(date: Date): string {
 	// 2026-01-02T12-34-56 (filesystem-safe across platforms)
-	return date.toISOString().replace(/\.\d{3}Z$/, '').replace(/:/g, '-')
+	return date
+		.toISOString()
+		.replace(/\.\d{3}Z$/, '')
+		.replace(/:/g, '-')
 }
 
 function sanitizeFileNamePart(value: string): string {
@@ -777,7 +780,10 @@ export class MainScene extends BaseScene {
 		appCommands.on('take-canvas-screenshot', this.takeCanvasScreenshot, this, false, signal)
 	}
 
-	private async takeCanvasScreenshot(options?: { clean?: boolean; format?: 'png' | 'jpg' | 'webp' }): Promise<string> {
+	private async takeCanvasScreenshot(options?: {
+		clean?: boolean
+		format?: 'png' | 'jpg' | 'webp'
+	}): Promise<string> {
 		const prefabName = this.getPrefabNameForScreenshot()
 		const timestamp = formatScreenshotTimestamp(new Date())
 		const format = options?.format ?? 'png'

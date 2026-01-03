@@ -402,3 +402,25 @@ export function getParentAsset(assets: AssetTreeItemData[], id: string): AssetTr
 
 	return undefined
 }
+
+export function getExtension(item: { name: string; type: AssetTreeItemDataType }): string {
+	return match(item as AssetTreeItemData)
+		.with({ type: 'folder' }, () => '')
+		.with({ type: 'image' }, () => path.extname(item.name))
+		.with({ type: 'json' }, () => path.extname(item.name))
+		.with({ type: 'xml' }, () => path.extname(item.name))
+		.with({ type: 'web-font' }, () => path.extname(item.name))
+		.with({ type: 'bitmap-font' }, () => path.extname(item.name))
+		.with({ type: 'spritesheet' }, () => path.extname(item.name))
+		.with({ type: 'spritesheet-folder' }, () => '')
+		.with({ type: 'spritesheet-frame' }, () => '')
+		.with({ type: 'file' }, () => path.extname(item.name))
+		.with({
+			type: 'prefab',
+		}, (matched) => (matched.name.endsWith('.prefab.json') ? '.prefab.json' : path.extname(matched.name)))
+		.exhaustive()
+}
+
+export function getNameWithoutExtension(item: { name: string; type: AssetTreeItemDataType }): string {
+	return item.name.replace(getExtension(item), '')
+}
