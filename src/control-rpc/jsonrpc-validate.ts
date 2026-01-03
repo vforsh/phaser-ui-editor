@@ -1,6 +1,7 @@
 import { controlContract, isControlMethod, type ControlInput, type ControlMethod } from './api/ControlApi'
 import { JSONRPC_INVALID_PARAMS, JSONRPC_INVALID_REQUEST, JSONRPC_METHOD_NOT_FOUND } from './jsonrpc-errors'
 import { createJsonRpcError, type JsonRpcError, type JsonRpcId, type JsonRpcRequest } from './rpc'
+import { nanoid } from 'nanoid'
 
 export type ValidationResult<M extends ControlMethod = ControlMethod> =
 	| {
@@ -88,5 +89,5 @@ function getTraceId(payload: unknown): string {
 	if (isRecord(payload) && isValidId(payload.id)) {
 		return String(payload.id)
 	}
-	return 'unknown'
+	return nanoid(8)
 }

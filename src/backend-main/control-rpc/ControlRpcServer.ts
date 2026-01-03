@@ -127,12 +127,12 @@ export class ControlRpcServer {
 		}
 
 		const { request, traceId } = validation
-		this.logger.info({ traceId, method: request.method, phase: 'recv' })
+		this.logger.info(this.formatLog(traceId, request.method, 'recv'))
 
 		if (request.method === 'listEditors') {
 			const editors = editorRegistry.getEditors()
 			this.sendJson(ws, createJsonRpcResult(request.id, { editors }))
-			this.logger.info({ traceId, method: request.method, phase: 'reply', ok: true })
+			this.logger.info(this.formatLog(traceId, request.method, 'reply', { ok: true }))
 			return
 		}
 
@@ -144,12 +144,12 @@ export class ControlRpcServer {
 				traceId,
 			})
 			this.sendJson(ws, errorResponse)
-			this.logger.error({ traceId, method: request.method, phase: 'error', code: ERR_NO_RENDERER_WINDOW })
+			this.logger.error(this.formatLog(traceId, request.method, 'error', { code: ERR_NO_RENDERER_WINDOW }))
 			return
 		}
 
 		this.trackRequest(request.id, request.method, ws, targetWindow.id)
-		this.logger.info({ traceId, method: request.method, phase: 'forward' })
+		this.logger.info(this.formatLog(traceId, request.method, 'forward', { windowId: targetWindow.id }))
 		targetWindow.webContents.send(CONTROL_RPC_REQUEST_CHANNEL, request)
 	}
 
@@ -183,7 +183,7 @@ export class ControlRpcServer {
 
 		const traceId = key
 		const ok = !('error' in response)
-		this.logger.info({ traceId, method: pending.method, phase: 'reply', ok })
+		this.logger.info(this.formatLog(traceId, pending.method, 'reply', { ok }))
 
 		this.sendJson(pending.ws, response)
 	}
@@ -223,7 +223,7 @@ export class ControlRpcServer {
 			windowSet.delete(id)
 		}
 
-		this.logger.info({ traceId: id, method: pending.method, phase: 'timeout' })
+		this.logger.info(this.formatLog(id, pending.method, 'timeout', { timeoutMs: this.timeoutMs }))
 
 		this.sendJson(
 			pending.ws,
@@ -233,6 +233,16 @@ export class ControlRpcServer {
 				traceId: id,
 			})
 		)
+	}
+
+	private formatLog(traceId: string, method: string, phase: string, rest?: unknown): string {
+		const base = `#${traceId} - ${method} (${phase})`
+		if (rest === undefined) {
+			return `${base} <>`
+		}
+
+		const restStr = typeof rest === 'string' ? rest : JSON.stringify(rest)
+		return `${base} <${restStr}>`
 	}
 
 	/**
