@@ -7,10 +7,10 @@ export const getCanvasMetricsCommand = {
 	input: z.object({}).strict().describe('Input parameters for getting canvas metrics (empty)'),
 	output: z
 		.object({
-			width: z.number().int().nonnegative(),
-			height: z.number().int().nonnegative(),
-			isConnected: z.boolean(),
-			currentPrefabAssetId: z.string().optional(),
+			width: z.number().int().nonnegative().describe('Actual width of the canvas element in pixels'),
+			height: z.number().int().nonnegative().describe('Actual height of the canvas element in pixels'),
+			isConnected: z.boolean().describe('Whether the canvas element is currently connected to the DOM'),
+			currentPrefabAssetId: z.string().optional().describe('The ID of the currently opened prefab asset, if any'),
 		})
 		.strict(),
 } satisfies CommandDefinition
