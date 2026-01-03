@@ -12,10 +12,15 @@
 	"private": true,
 	"version": "0.0.10",
 	"type": "module",
+	"bin": {
+		"editorctl": "dist/editorctl/scripts/editorctl/index.js"
+	},
 	"scripts": {
 		"start": "electron-vite dev",
 		"dev": "electron-vite dev",
 		"editorctl": "tsx scripts/editorctl/index.ts",
+		"build:editorctl": "tsc --project tsconfig.editorctl.json",
+		"link:editorctl": "npm run build:editorctl && npm link",
 		"typecheck": "tsc --noEmit --project tsconfig.app.json",
 		"typecheck-dev": "tsc --noEmit --watch --project tsconfig.app.json",
 		"build": "electron-vite build",
@@ -72,7 +77,8 @@
 		"webfontloader": "^1.6.28",
 		"ws": "^8.18.0",
 		"xml2js": "^0.6.2",
-		"zod": "^3.23.8"
+		"zod": "^3.23.8",
+		"zod-to-json-schema": "^3.24.1"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.9.1",
@@ -105,7 +111,6 @@
 		"prettier": "^3.3.3",
 		"prettier-plugin-organize-imports": "^4.1.0",
 		"sharp": "^0.33.5",
-		"table": "^6.9.0",
 		"tailwindcss": "^3.4.1",
 		"trash": "^9.0.0",
 		"tsx": "^4.20.5",

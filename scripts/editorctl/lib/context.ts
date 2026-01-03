@@ -4,7 +4,6 @@ import { WsTransport } from './transport/ws'
 
 export interface Config {
 	port: number
-	outputMode: 'json' | 'human'
 }
 
 export interface Ctx {
@@ -21,7 +20,7 @@ export interface Ctx {
 export function createCtx(config: Config): Ctx {
 	const transport = new WsTransport({ port: config.port })
 	const rpc = new RpcClient(transport)
-	const output = createOutputFacade({ mode: config.outputMode })
+	const output = createOutputFacade()
 
 	return {
 		config,

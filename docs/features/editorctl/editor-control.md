@@ -4,7 +4,7 @@ This feature provides **external control of the running editor** by translating 
 
 There are **two entry points**:
 
-- **`editorctl` (CLI)**: Path: `scripts/editorctl/`. Uses `commander` to define CLI commands (e.g. `openProject`, `getProjectInfo`, `getAssetInfo`, `listHierarchy`, `selectObject`).
+- **`editorctl` (CLI)**: Path: `scripts/editorctl/`. Derives CLI commands from the control contract (`src/control-rpc/api/ControlApi.ts`) and uses JSON-only stdin/stdout.
 - **WebSocket JSON-RPC (main process)**: external tools connect to Electron via `ws://127.0.0.1:<port>`, send JSON-RPC requests, and receive JSON-RPC responses.
 - **Window API (renderer)**: dev-only `window.editor.*` methods that call the same internal service directly (no IPC/WS).
 
@@ -23,9 +23,9 @@ Speaks **JSON-RPC 2.0** over WebSocket:
 
 Path: `scripts/editorctl/`
 
-- Uses `commander` to define CLI commands (e.g. `openProject`, `getAssetInfo`, `listHierarchy`, `selectObject`).
+- Derives one CLI command per control method from `controlContract` (e.g. `openProject`, `getAssetInfo`, `listHierarchy`, `selectObject`), plus `editorctl methods` and `editorctl schema <method>` for introspection.
 - Sends JSON-RPC over WebSocket using `WsTransport` (`scripts/editorctl/lib/transport/ws.ts`) and `RpcClient` (`scripts/editorctl/lib/rpc/client.ts`).
-- **Type source**: `scripts/editorctl/lib/rpc/types.ts` imports types from `src/control-rpc/contract.ts`.
+- **Type source**: `scripts/editorctl/lib/rpc/types.ts` imports types from `src/control-rpc/api/ControlApi.ts`.
 
 ### Main process WebSocket router: `ControlRpcServer`
 
@@ -41,7 +41,7 @@ Responsibilities:
 Important behavior:
 
 - Always targets **the first BrowserWindow** (`BrowserWindow.getAllWindows()[0]`).
-- Validation uses the **control contract** (`src/control-rpc/contract.ts`) for both method allowlisting and parameter parsing.
+- Validation uses the **control contract** (`src/control-rpc/api/ControlApi.ts`) for both method allowlisting and parameter parsing.
 
 ### Preload IPC bridge: `window.controlIpc`
 
@@ -144,7 +144,7 @@ There is now a **single control contract**:
 
 All callers (main WS router, renderer bridge, `EditorControlService`, and `editorctl`) derive types from this contract.
 
-**Note:** `listHierarchy` returns a **tree** (`HierarchyNode` with `children?`). `editorctl` flattens the tree only for human-readable table output; `--json` prints the raw tree.
+**Note:** `listHierarchy` returns a **tree** (`HierarchyNode` with `children?`). `editorctl` prints the raw tree as JSON (there is no human-readable table output anymore).
 
 **Note:** `listAssets` returns the **asset tree** (`AssetNode[]`). It supports optional filtering by type:
 
@@ -207,15 +207,9 @@ No extra work needed beyond the control contract:
 - `scripts/editorctl/lib/rpc/types.ts` imports from `src/control-rpc/api/ControlApi.ts`.
 - `editorctl` will pick up new types automatically.
 
-### 7) Add the CLI command in `scripts/editorctl/`
+### 7) `editorctl` CLI (no changes required)
 
-Files:
-
-- Add a command file in `scripts/editorctl/commands/` (pattern: `openProject.ts`, `selectObject.ts`, etc.)
-  - Parse flags/options with `commander`.
-  - Call `ctx.rpc.request('<yourMethod>', params)`.
-  - Print via `ctx.output`.
-- Register it in `scripts/editorctl/commands/index.ts` in `registerAllCommands`.
+`editorctl` derives its commands directly from `controlContract`. When you add a new RPC method, the CLI is updated automatically without manual command files or registrations.
 
 ### 8) Sanity-check method validation and routing assumptions
 
