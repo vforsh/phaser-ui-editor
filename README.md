@@ -112,6 +112,8 @@ The app itself is an Electron + Vite project and isn’t set up to publish/consu
 - `src/state/`: Valtio state + schemas
 - `src/history/`: Undo/Redo hub and history domains
 - `docs/`: internal documentation
+- `scripts/`: build, release, and development scripts
+- `tests/`: E2E and unit tests
 
 ## External control
 

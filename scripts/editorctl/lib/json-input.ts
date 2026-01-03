@@ -1,25 +1,6 @@
-import process from 'node:process'
 import { createValidationError } from './errors'
 
-export async function readJsonInput(): Promise<unknown | undefined> {
-	if (process.stdin.isTTY) {
-		return undefined
-	}
-
-	const chunks: Buffer[] = []
-	for await (const chunk of process.stdin) {
-		chunks.push(Buffer.from(chunk))
-	}
-
-	if (chunks.length === 0) {
-		return undefined
-	}
-
-	const text = Buffer.concat(chunks).toString('utf8')
-	if (text.trim().length === 0) {
-		return undefined
-	}
-
+export function parseJsonText(text: string): unknown {
 	try {
 		return JSON.parse(text)
 	} catch (error) {

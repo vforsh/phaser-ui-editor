@@ -8,7 +8,7 @@ import {
 } from '../../src/control-rpc/api/ControlApi'
 import type { CommandDefinition } from '../../src/control-rpc/api/ControlApi'
 import { createValidationError } from './lib/errors'
-import { readJsonInput, parseJsonObject } from './lib/json-input'
+import { parseJsonObject, parseJsonText } from './lib/json-input'
 import type { Ctx } from './lib/context'
 
 export function registerContractCommands(program: Command, ctx: Ctx): void {
@@ -18,8 +18,9 @@ export function registerContractCommands(program: Command, ctx: Ctx): void {
 		program
 			.command(method)
 			.description(definition.description)
-			.action(async () => {
-				const params = await readParams()
+			.argument('[input]', 'JSON object params')
+			.action(async (input?: string) => {
+				const params = readParamsFromPositionalArg(input)
 				const parsedParams = definition.input.parse(params)
 				const result = await ctx.rpc.request(method, parsedParams)
 				const parsedResult = definition.output.parse(result)
@@ -30,11 +31,12 @@ export function registerContractCommands(program: Command, ctx: Ctx): void {
 	program
 		.command('call')
 		.argument('<method>', 'Control RPC method name')
-		.description('Call a control RPC method by name with JSON input from stdin')
-		.action(async (method: string) => {
+		.argument('[input]', 'JSON object params')
+		.description('Call a control RPC method by name with JSON params as a positional argument')
+		.action(async (method: string, input?: string) => {
 			const controlMethod = ensureControlMethod(method)
 			const definition = controlContract[controlMethod]
-			const params = await readParams()
+			const params = readParamsFromPositionalArg(input)
 			const parsedParams = definition.input.parse(params)
 			const result = await ctx.rpc.request(controlMethod, parsedParams)
 			const parsedResult = definition.output.parse(result)
@@ -75,10 +77,13 @@ export function registerIntrospectionCommands(program: Command): void {
 		})
 }
 
-async function readParams(): Promise<Record<string, unknown>> {
-	const raw = await readJsonInput()
-	const params = raw ?? {}
-	return parseJsonObject(params)
+function readParamsFromPositionalArg(input: string | undefined): Record<string, unknown> {
+	if (input === undefined) {
+		return {}
+	}
+
+	const raw = parseJsonText(input)
+	return parseJsonObject(raw)
 }
 
 function ensureControlMethod(method: string): ControlMethod {

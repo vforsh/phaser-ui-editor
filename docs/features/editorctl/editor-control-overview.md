@@ -23,6 +23,7 @@ Speaks **JSON-RPC 2.0** over WebSocket:
 
 Path: `scripts/editorctl/`
 
+- Usage doc: [`editorctl.md`](./editorctl.md)
 - Derives one CLI command per control method from `controlContract` (e.g. `openProject`, `getAssetInfo`, `listHierarchy`, `selectObject`), plus `editorctl methods` and `editorctl schema <method>` for introspection.
 - Sends JSON-RPC over WebSocket using `WsTransport` (`scripts/editorctl/lib/transport/ws.ts`) and `RpcClient` (`scripts/editorctl/lib/rpc/client.ts`).
 - **Type source**: `scripts/editorctl/lib/rpc/types.ts` imports types from `src/control-rpc/api/ControlApi.ts`.
