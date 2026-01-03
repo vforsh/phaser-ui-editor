@@ -44,6 +44,7 @@ import { PanelTitle } from './../PanelTitle'
 import styles from './AssetsPanel.module.css'
 import { AssetsSearch } from './AssetsSearch'
 import AssetTreeItem from './AssetTreeItem'
+import { getAssetItemId } from './assetItemId'
 import { addAssetId } from './build-asset-tree'
 import { useAppCommands } from '../../di/DiContext'
 
@@ -894,11 +895,4 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 			</Stack>
 		</Paper>
 	)
-}
-
-/**
- * Creates the id (for the DOM element) of the asset item element
- */
-export function getAssetItemId(assetId: string) {
-	return `asset-item-${assetId}`
 }

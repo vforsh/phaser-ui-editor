@@ -20,7 +20,7 @@ import { match } from 'ts-pattern'
 import { Snapshot, useSnapshot } from 'valtio'
 import { useDragAndDrop } from '../../hooks/useDragAndDrop'
 import { isDraggableAsset, type AssetTreeItemData } from '../../types/assets'
-import { getAssetItemId } from './AssetsPanel'
+import { getAssetItemId } from './assetItemId'
 
 const INDENT_SIZE = 20
 const ICON_SIZE = 16
