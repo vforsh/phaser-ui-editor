@@ -19,33 +19,18 @@ import { useEffect, useRef, useState } from 'react'
 import { match } from 'ts-pattern'
 import { Snapshot, useSnapshot } from 'valtio'
 import { useDragAndDrop } from '../../hooks/useDragAndDrop'
-import { isDraggableAsset, type AssetTreeItemData } from '../../types/assets'
+import {
+	AssetTreeItemData,
+	getExtension,
+	getNameWithoutExtension,
+	isDraggableAsset,
+} from '../../types/assets'
 import { getAssetItemId } from './assetItemId'
 
 const INDENT_SIZE = 20
 const ICON_SIZE = 16
 const ITEM_HEIGHT = 28
 const BASE_PADDING = 3
-
-const getExtension = (item: Snapshot<AssetTreeItemData>) => {
-	return match(item)
-		.with({ type: 'folder' }, () => '')
-		.with({ type: 'image' }, () => path.extname(item.name))
-		.with({ type: 'json' }, () => path.extname(item.name))
-		.with({ type: 'xml' }, () => path.extname(item.name))
-		.with({ type: 'web-font' }, () => path.extname(item.name))
-		.with({ type: 'bitmap-font' }, () => path.extname(item.name))
-		.with({ type: 'spritesheet' }, () => path.extname(item.name))
-		.with({ type: 'spritesheet-folder' }, () => '')
-		.with({ type: 'spritesheet-frame' }, () => '')
-		.with({ type: 'file' }, () => path.extname(item.name))
-		.with({ type: 'prefab' }, () => (item.name.endsWith('.prefab.json') ? '.prefab.json' : path.extname(item.name)))
-		.exhaustive()
-}
-
-export const getNameWithoutExtension = (item: Snapshot<AssetTreeItemData> | AssetTreeItemData) => {
-	return item.name.replace(getExtension(item), '')
-}
 
 interface AssetTreeItemProps {
 	item: Snapshot<AssetTreeItemData>
