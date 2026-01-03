@@ -16,6 +16,9 @@ phaser-ui-editor-worktrees/
   - Keep `master` (or the mainline branch) in `phaser-ui-editor/`; use worktrees for parallel feature/bugfix work.
   - Use `git worktree list` to see all linked worktrees.
   - Prefer short, unique directory names (branch/ticket), because the folder name becomes the “human” identity of that worktree.
+  - When asked to create a new branch/worktree, use names like `feature/some-concise-desc` where the suffix is **kebab-case** and **~3–5 words max**. Common prefixes: `feature/`, `bugfix/`, `docs/` (e.g. `feature/dom-based-rulers`, `bugfix/inspector-zod-parse`, `docs/editorctl-overview`).
+  - Use `/Users/vlad/dev/papa-cherry-2` (has `project.json5`) as the default **testbed project** for testing editor functionality. To open it via `editorctl`, use:
+    - `npm run editorctl -- call openProject '{"path":"/Users/vlad/dev/papa-cherry-2"}'`
 - After creating a new worktree, run `npm ci` inside that worktree (each worktree has its own `node_modules`).
 - Use `fnm` to switch to the Node version specified in `package.json` before installing deps or running scripts.
 
