@@ -1,4 +1,4 @@
-import { ControlMethod } from './contract'
+import { ControlMethod } from './api/ControlApi'
 
 /**
  * Scheduler for RPC commands that ensures write commands are executed sequentially (FIFO)

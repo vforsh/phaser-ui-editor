@@ -1,4 +1,4 @@
-import { controlContract, isControlMethod, type ControlInput, type ControlMethod } from './contract'
+import { controlContract, isControlMethod, type ControlInput, type ControlMethod } from './api/ControlApi'
 import { JSONRPC_INVALID_PARAMS, JSONRPC_INVALID_REQUEST, JSONRPC_METHOD_NOT_FOUND } from './jsonrpc-errors'
 import { createJsonRpcError, type JsonRpcError, type JsonRpcId, type JsonRpcRequest } from './rpc'
 

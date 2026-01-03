@@ -1,4 +1,4 @@
-import type { ControlInput, ControlMethod, ControlOutput } from '../../../../src/control-rpc/contract'
+import type { ControlInput, ControlMethod, ControlOutput } from '../../../../src/control-rpc/api/ControlApi'
 
 export type { ControlInput, ControlMethod, ControlOutput }
 

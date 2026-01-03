@@ -7,7 +7,7 @@ import { state, unproxy } from '../state/State'
 import path from 'path-browserify-esm'
 import type { AssetTreeItemData } from '../types/assets'
 import { getAssetById, getAssetsOfType } from '../types/assets'
-import type { AssetNode, AssetType, ControlInput, ControlOutput, HierarchyNode } from './contract'
+import type { AssetNode, AssetType, ControlInput, ControlOutput, HierarchyNode } from './api/ControlApi'
 
 type PathSegment = {
 	name: string

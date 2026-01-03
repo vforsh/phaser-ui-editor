@@ -1,5 +1,5 @@
 import { Command } from 'commander'
-import type { HierarchyNode } from '../../../src/control-rpc/contract'
+import type { HierarchyNode } from '../../../src/control-rpc/api/ControlApi'
 import { Ctx } from '../lib/context'
 
 export function register(program: Command, ctx: Ctx) {

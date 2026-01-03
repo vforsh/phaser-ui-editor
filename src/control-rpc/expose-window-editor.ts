@@ -1,6 +1,6 @@
 import type { AppCommandsEmitter } from '../AppCommands'
 import { EditorControlService } from './EditorControlService'
-import type { ControlInput, ControlMethod, ControlOutput } from './contract'
+import type { ControlInput, ControlMethod, ControlOutput } from './api/ControlApi'
 
 /**
  * Utility to convert kebab-case strings to camelCase.

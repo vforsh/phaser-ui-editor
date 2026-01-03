@@ -1,4 +1,4 @@
-import type { ControlMethod, ControlOutput } from './contract'
+import type { ControlMethod, ControlOutput } from './api/ControlApi'
 
 export const CONTROL_RPC_REQUEST_CHANNEL = 'control:rpc-request'
 export const CONTROL_RPC_RESPONSE_CHANNEL = 'control:rpc-response'
