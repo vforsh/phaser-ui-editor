@@ -27,7 +27,11 @@ export function exposeWindowEditor(appCommands: AppCommandsEmitter): void {
 		switchToContext: (params) => handlers.switchToContext(params),
 		deleteObjects: (params) => handlers.deleteObjects(params),
 		getAssetInfo: (params) => handlers.getAssetInfo(params),
+		getObject: (params) => handlers.getObject(params),
+		getPrefabContent: (params) => handlers.getPrefabContent(params ?? {}),
+		getCanvasState: (params) => handlers.getCanvasState(params ?? {}),
 		listEditors: (params) => handlers.listEditors(params ?? {}),
+		setCamera: (params) => handlers.setCamera(params ?? {}),
 		takeCanvasScreenshot: (params) => handlers.takeCanvasScreenshot(params ?? {}),
 	}
 

@@ -28,7 +28,10 @@ export { hierarchyNodeSchema, type HierarchyNode } from './commands/listHierarch
 export { successSchema } from './shared-schemas'
 
 import { deleteObjectsCommand } from './commands/deleteObjects'
+import { getCanvasStateCommand } from './commands/getCanvasState'
 import { getAssetInfoCommand } from './commands/getAssetInfo'
+import { getObjectCommand } from './commands/getObject'
+import { getPrefabContentCommand } from './commands/getPrefabContent'
 import { getProjectInfoCommand } from './commands/getProjectInfo'
 import { listAssetsCommand } from './commands/listAssets'
 import { listEditorsCommand } from './commands/listEditors'
@@ -36,6 +39,7 @@ import { listHierarchyCommand } from './commands/listHierarchy'
 import { openPrefabCommand } from './commands/openPrefab'
 import { openProjectCommand } from './commands/openProject'
 import { selectObjectCommand } from './commands/selectObject'
+import { setCameraCommand } from './commands/setCamera'
 import { switchToContextCommand } from './commands/switchToContext'
 import { takeCanvasScreenshotCommand } from './commands/takeCanvasScreenshot'
 
@@ -49,7 +53,11 @@ export const controlContract = {
 	switchToContext: switchToContextCommand,
 	deleteObjects: deleteObjectsCommand,
 	getAssetInfo: getAssetInfoCommand,
+	getObject: getObjectCommand,
+	getPrefabContent: getPrefabContentCommand,
+	getCanvasState: getCanvasStateCommand,
 	listEditors: listEditorsCommand,
+	setCamera: setCameraCommand,
 	takeCanvasScreenshot: takeCanvasScreenshotCommand,
 } as const
 

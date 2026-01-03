@@ -742,6 +742,7 @@ export class MainScene extends BaseScene {
 		appCommands.on('paste-component', this.pasteComponent, this, false, signal)
 		appCommands.on('reset-image-original-size', this.resetImageOriginalSize, this, false, signal)
 		appCommands.on('adjust-container-to-children-bounds', this.adjustContainerToChildrenBounds, this, false, signal)
+		appCommands.on('set-camera', this.setCamera, this, false, signal)
 
 		appCommands.on('handle-asset-drop', this.handleAssetDrop, this, false, signal)
 
@@ -2321,6 +2322,27 @@ export class MainScene extends BaseScene {
 
 	private setCameraZoom(zoom: number): void {
 		this.cameras.main.zoom = zoom
+		this.onResizeOrCameraChange(this.scale.gameSize)
+	}
+
+	private setCamera(params: { zoom?: number; scrollX?: number; scrollY?: number }): void {
+		const { zoom, scrollX, scrollY } = params
+		if (zoom == null && scrollX == null && scrollY == null) {
+			return
+		}
+
+		const camera = this.cameras.main
+
+		if (zoom != null) {
+			camera.setZoom(zoom)
+		}
+
+		if (scrollX != null || scrollY != null) {
+			const nextScrollX = scrollX ?? camera.scrollX
+			const nextScrollY = scrollY ?? camera.scrollY
+			camera.setScroll(nextScrollX, nextScrollY)
+		}
+
 		this.onResizeOrCameraChange(this.scale.gameSize)
 	}
 

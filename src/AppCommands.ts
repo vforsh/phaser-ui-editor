@@ -52,6 +52,9 @@ export type AppCommands = {
 	'reset-image-original-size': (data: { objectId: string }) => void
 	'adjust-container-to-children-bounds': (data: { objectId: string }) => void
 
+	// camera
+	'set-camera': (payload: { zoom?: number; scrollX?: number; scrollY?: number }) => void
+
 	// history
 	undo: () => void
 	redo: () => void
