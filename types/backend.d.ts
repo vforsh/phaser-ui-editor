@@ -1,5 +1,5 @@
-import type { BackendApi } from '../src/backend-contract/types'
-import type { ControlIpc } from '../src/control-rpc/rpc'
+import type { BackendApi } from '../src/renderer/backend-contract/types'
+import type { ControlIpc } from '../src/renderer/control-rpc/rpc'
 
 declare global {
 	interface Window {

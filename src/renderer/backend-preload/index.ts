@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer } from '@electron-toolkit/preload'
 import { backendContract } from '../backend-contract/contract'
 import type { BackendApi, BackendMethod } from '../backend-contract/types'
 import { createControlIpc } from './control-rpc/preload'

@@ -2,7 +2,7 @@ import { state } from '@state/State'
 import md5 from 'blueimp-md5'
 import path from 'path-browserify-esm'
 import { match } from 'ts-pattern'
-import type { TexturePacker } from '../../../types/texture-packer'
+import type { TexturePacker } from '../../../../types/texture-packer'
 import { backend } from '../../backend-renderer/backend'
 import {
 	AssetTreeBitmapFontData,
@@ -202,7 +202,7 @@ const extractSpritesheetFrames = async (
 	const atlasJson = JSON.parse(jsonFileRaw) as TexturePacker.Atlas
 
 	// TODO handle multiple textures
-	const frames = atlasJson.textures[0].frames.map((data) => {
+        const frames = atlasJson.textures[0].frames.map((data: TexturePacker.Frame) => {
 		const frameAsset: AssetTreeSpritesheetFrameData = addAssetId({
 			type: 'spritesheet-frame',
 			name: data.filename,

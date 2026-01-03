@@ -23,15 +23,15 @@
 
 		"types": ["phaser"],
 
-		"paths": {
-			"@state/*": ["./src/state/*"],
-			"@logs/*": ["./src/logs/*"],
-			"@url-params": ["./src/UrlParams.ts"],
-			"@components/*": ["./src/components/*"],
-			"@utils/*": ["./src/utils/*"],
-			"@hooks/*": ["./src/hooks/*"],
-		}
-	},
-	"include": ["src", "types"],
-	"exclude": ["exports.d.ts", "electron", "src/backend-main", "src/backend-preload"]
+                "paths": {
+                        "@state/*": ["./src/renderer/state/*"],
+                        "@logs/*": ["./src/renderer/logs/*"],
+                        "@url-params": ["./src/renderer/UrlParams.ts"],
+                        "@components/*": ["./src/renderer/components/*"],
+                        "@utils/*": ["./src/renderer/utils/*"],
+                        "@hooks/*": ["./src/renderer/hooks/*"],
+                }
+        },
+        "include": ["src/renderer", "types"],
+        "exclude": ["exports.d.ts", "src/main", "src/preload", "src/renderer/backend-main", "src/renderer/backend-preload"]
 }

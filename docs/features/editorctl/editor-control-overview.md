@@ -30,7 +30,7 @@ Path: `scripts/editorctl/`
 
 ### Main process WebSocket router: `ControlRpcServer`
 
-Path: `src/backend-main/control-rpc/main-rpc.ts`
+Path: `src/renderer/backend-main/control-rpc/main-rpc.ts`
 
 Responsibilities:
 
@@ -46,7 +46,7 @@ Important behavior:
 
 ### Preload IPC bridge: `window.controlIpc`
 
-Path: `src/backend-preload/control-rpc/preload.ts` + `src/backend-preload/index.ts`
+Path: `src/renderer/backend-preload/control-rpc/preload.ts` + `src/renderer/backend-preload/index.ts`
 
 Responsibilities:
 

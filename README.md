@@ -99,18 +99,19 @@ The app itself is an Electron + Vite project and isn’t set up to publish/consu
 
 ## Project structure (high level)
 
-- `electron/`: Electron main + preload entrypoints
-- `src/components/assetsPanel/`: Assets Panel UI
-- `src/components/canvas/`: React wrapper for Phaser + canvas controls
-  - `src/components/canvas/phaser/`: Phaser app/scene/editor logic
-- `src/backend-contract/`: shared IPC contract + schemas
-- `src/backend-main/`: Electron main-process IPC handlers/services
-- `src/backend-preload/`: preload bridge (`window.backend`)
-- `src/backend-renderer/`: renderer IPC client wrapper
-- `src/components/hierarchyPanel/`: Hierarchy tree UI
-- `src/components/inspector/`: Inspector UI and sections
-- `src/state/`: Valtio state + schemas
-- `src/history/`: Undo/Redo hub and history domains
+- `src/main/`: Electron main process entrypoint and services
+- `src/preload/`: preload entrypoint
+- `src/renderer/components/assetsPanel/`: Assets Panel UI
+- `src/renderer/components/canvas/`: React wrapper for Phaser + canvas controls
+  - `src/renderer/components/canvas/phaser/`: Phaser app/scene/editor logic
+- `src/renderer/backend-contract/`: shared IPC contract + schemas
+- `src/renderer/backend-main/`: Electron main-process IPC handlers/services
+- `src/renderer/backend-preload/`: preload bridge (`window.backend`)
+- `src/renderer/backend-renderer/`: renderer IPC client wrapper
+- `src/renderer/components/hierarchyPanel/`: Hierarchy tree UI
+- `src/renderer/components/inspector/`: Inspector UI and sections
+- `src/renderer/state/`: Valtio state + schemas
+- `src/renderer/history/`: Undo/Redo hub and history domains
 - `docs/`: internal documentation
 - `scripts/`: build, release, and development scripts
 - `tests/`: E2E and unit tests

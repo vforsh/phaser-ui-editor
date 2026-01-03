@@ -18,11 +18,13 @@
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true
 	},
-	"include": [
-		"electron.vite.config.ts",
-		"src/backend-main/**/*.ts",
-		"src/backend-preload/**/*.ts",
-		"src/backend-main/control-rpc/ControlRpcServer.ts",
-		"src/backend-preload/control-rpc/preload.ts"
-	]
+        "include": [
+                "electron.vite.config.ts",
+                "src/main/**/*.ts",
+                "src/preload/**/*.ts",
+                "src/renderer/backend-main/**/*.ts",
+                "src/renderer/backend-preload/**/*.ts",
+                "src/renderer/backend-main/control-rpc/ControlRpcServer.ts",
+                "src/renderer/backend-preload/control-rpc/preload.ts"
+        ]
 }

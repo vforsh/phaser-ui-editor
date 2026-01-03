@@ -5,10 +5,11 @@ import { fileURLToPath } from 'node:url'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
 const configDir = path.dirname(fileURLToPath(import.meta.url))
+const rendererRoot = path.resolve(configDir, 'src/renderer')
 const rendererTsconfig = path.resolve(configDir, 'tsconfig.app.json')
 
 export default defineConfig({
-	main: {
+        main: {
 		resolve: {
 			conditions: ['node', 'require'],
 			alias: {
@@ -20,9 +21,9 @@ export default defineConfig({
 			commonjsOptions: {
 				requireReturnsDefault: 'namespace',
 			},
-			lib: {
-				entry: 'electron/main.ts',
-			},
+                        lib: {
+                                entry: path.join(rendererRoot, '../main/index.ts'),
+                        },
 			rollupOptions: {
 				external: [
 					'ws',
@@ -44,10 +45,10 @@ export default defineConfig({
 	preload: {
 		build: {
 			externalizeDeps: false,
-			lib: {
-				entry: 'electron/preload.ts',
-				formats: ['cjs'],
-			},
+                        lib: {
+                                entry: path.join(rendererRoot, '../preload/index.ts'),
+                                formats: ['cjs'],
+                        },
 			rollupOptions: {
 				output: {
 					entryFileNames: 'preload.cjs',
@@ -56,8 +57,8 @@ export default defineConfig({
 			},
 		},
 	},
-	renderer: {
-		root: process.cwd(),
+        renderer: {
+                root: rendererRoot,
 		plugins: [react(), tsconfigPaths({ projects: [rendererTsconfig] })],
 		optimizeDeps: {
 			exclude: ['lucide-react'],

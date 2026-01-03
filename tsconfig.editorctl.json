@@ -11,5 +11,5 @@
 		"noEmitOnError": true,
 		"types": ["node"]
 	},
-	"include": ["scripts/editorctl/**/*.ts", "src/control-rpc/api/**/*.ts"]
+        "include": ["scripts/editorctl/**/*.ts", "src/renderer/control-rpc/api/**/*.ts"]
 }
