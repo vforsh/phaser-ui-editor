@@ -174,8 +174,9 @@ const showControlRpcAddressPopup = () => {
 async function setupControlRpcServer() {
 	const preferredPort = Number(process.env.EDITOR_CONTROL_WS_PORT) || 17870
 	const port = await getPort({ port: preferredPort })
-	controlRpcAddress = `ws://127.0.0.1:${port}`
-	controlRpcServer = new ControlRpcServer({ port })
+	const protocol: 'ws' | 'wss' = 'ws'
+	controlRpcAddress = `${protocol}://127.0.0.1:${port}`
+	controlRpcServer = new ControlRpcServer({ port, protocol })
 	controlRpcServer.start()
 	console.log(`[control-rpc] ${controlRpcAddress}`)
 }

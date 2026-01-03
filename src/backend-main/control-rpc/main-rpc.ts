@@ -27,6 +27,7 @@ type PendingRequest = {
 type RpcRouterOptions = {
 	port: number
 	timeoutMs?: number
+	protocol?: 'ws' | 'wss'
 }
 
 /**
@@ -130,7 +131,17 @@ export class ControlRpcServer {
 		this.logger.info({ traceId, method: request.method, phase: 'recv' })
 
 		if (request.method === 'listEditors') {
-			const editors = editorRegistry.getEditors()
+			const wsPort = this.options.port
+			const wsProtocol = this.options.protocol ?? 'ws'
+			const wsUrl = `${wsProtocol}://127.0.0.1:${wsPort}`
+			const appLaunchDir = process.cwd()
+
+			const editors = editorRegistry.getEditors().map((editor) => ({
+				wsUrl,
+				wsPort,
+				appLaunchDir,
+				projectPath: editor.projectPath,
+			}))
 			this.sendJson(ws, createJsonRpcResult(request.id, { editors }))
 			this.logger.info({ traceId, method: request.method, phase: 'reply', ok: true })
 			return
