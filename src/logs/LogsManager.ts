@@ -20,20 +20,22 @@ export type LogObj = ILogObj
 
 export interface LogsManagerOptions {
 	rootLoggerName: string
+	minLogLevel?: LogLevel
 }
 
 export class LogsManager {
 	private settings: LogsManagerOptions
 	private loggers: Map<string, Logger<LogObj>>
 	private logger: Logger<LogObj>
-	
+
 	constructor(settings: LogsManagerOptions) {
 		this.settings = settings
-		
+
 		this.loggers = new Map<string, Logger<LogObj>>()
-		
+
 		this.logger = new Logger<LogObj>({
 			name: this.settings.rootLoggerName,
+			minLevel: this.settings.minLogLevel ?? LogLevel.INFO,
 			hideLogPositionForProduction: true,
 			prettyLogTemplate: '{{logLevelName}}#[{{hh}}:{{MM}}:{{ss}}.{{ms}}] [{{name}}]',
 			prettyErrorParentNamesSeparator: '',
@@ -70,7 +72,7 @@ export class LogsManager {
 			/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g,
 			''
 		)
-		
+
 		// @ts-expect-error
 		return LogLevel[withoutColors]
 	}
