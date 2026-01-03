@@ -3,10 +3,12 @@ import getPort from 'get-port'
 import path from 'node:path'
 import { ControlRpcServer } from '../src/backend-main/control-rpc/main-rpc'
 import { registerBackendHandlers } from '../src/backend-main/ipc/register-backend-handlers'
+import { createRendererConsoleFileLogger } from './renderer-logger'
 
 let mainWindow: BrowserWindow | null = null
 let controlRpcServer: ControlRpcServer | null = null
 let controlRpcAddress = ''
+let rendererLogger: ReturnType<typeof createRendererConsoleFileLogger> | null = null
 
 const isPlaywrightE2E = process.env.PW_E2E === '1'
 
@@ -45,6 +47,15 @@ const createWindow = () => {
 			preload: preloadPath,
 		},
 	})
+
+	if (!app.isPackaged && !isPlaywrightE2E) {
+		const runId = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+		rendererLogger = createRendererConsoleFileLogger({
+			logsDir: path.join(process.cwd(), 'logs'),
+			runId,
+		})
+		rendererLogger.attachToWebContents(mainWindow.webContents)
+	}
 
 	mainWindow.once('ready-to-show', () => {
 		if (!mainWindow) {
@@ -233,4 +244,8 @@ async function setupControlRpcServer() {
 app.on('window-all-closed', () => {
 	controlRpcServer?.stop()
 	app.quit()
+})
+
+app.on('before-quit', () => {
+	rendererLogger?.dispose()
 })

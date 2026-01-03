@@ -33,6 +33,16 @@ wt switch -c <branch>     # create branch + worktree, then switch
 wt remove                 # remove current worktree (and typically its branch)
 ```
 
+## Typechecking
+
+Agents MUST use:
+
+```bash
+npm run typecheck
+```
+
+Do NOT use `typecheck-dev` for one-shot typechecking (it’s watch mode).
+
 ## Running & testing the editor (agent workflow)
 
 When implementing features that need runtime verification (Canvas/Hierarchy/Inspector behaviors, control RPC, etc.), use the running desktop editor instance and drive it via `editorctl`.
@@ -87,3 +97,14 @@ npm run editorctl -- --port <wsPort> call <method> '<json-params>'
 ```
 
 Tip: use `projectPath` from `listEditors` to confirm the project is actually open.
+
+## Renderer console logs → `logs/` (dev-only)
+
+In development, the **main editor window** renderer `console.*` output is captured from the main process and written to per-run log files under `./logs`.
+
+- **What’s captured**: renderer `console-message` events (log/info/warn/error/debug). This does **not** include uncaught errors / unhandled rejections.
+- **Where**: `./logs/renderer-<runId>.log`
+- **Line format**: `ISO_TIMESTAMP LEVEL: message` (no URL/line/window id)
+- **Rotation**: 1MB max per file; keep 10 rotated files: `.log.1` … `.log.10`
+- **When enabled**: dev only (`app.isPackaged === false`). Currently also disabled for Playwright E2E runs (`PW_E2E=1`).
+- **Quirk**: because this uses Electron’s `console-message` (string payload), `console.log('label', someObject)` may show up as `label [object Object]` rather than a pretty/structured object dump. Capturing rich objects would require a preload + IPC bridge (or CDP).
