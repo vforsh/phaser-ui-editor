@@ -16,7 +16,8 @@ phaser-ui-editor-worktrees/
   - Keep `master` (or the mainline branch) in `phaser-ui-editor/`; use worktrees for parallel feature/bugfix work.
   - Use `git worktree list` to see all linked worktrees.
   - Prefer short, unique directory names (branch/ticket), because the folder name becomes the “human” identity of that worktree.
-  - After creating a new worktree, run `npm ci` inside that worktree (each worktree has its own `node_modules`).
+- After creating a new worktree, run `npm ci` inside that worktree (each worktree has its own `node_modules`).
+- Use `fnm` to switch to the Node version specified in `package.json` before installing deps or running scripts.
 
 ## Worktrunk (`wt`) CLI
 
