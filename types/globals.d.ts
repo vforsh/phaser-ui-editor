@@ -1,4 +1,5 @@
 import { Main } from '../Main'
+import type { WindowEditorApi } from '../src/control-rpc/expose-window-editor'
 
 declare global {
 	interface Window {
@@ -7,6 +8,7 @@ declare global {
 		appMenu?: {
 			onTakeCanvasScreenshot: (callback: (payload: { clean?: boolean }) => void) => () => void
 		}
+		editor?: WindowEditorApi
 		/**
 		 * Displays a directory picker which allows the user to select a directory.
 		 * @returns A promise that resolves with a FileSystemDirectoryHandle object representing the selected directory.

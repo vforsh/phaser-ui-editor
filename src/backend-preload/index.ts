@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { backendContract } from '../backend-contract/contract'
 import type { BackendApi, BackendMethod } from '../backend-contract/types'
+import { createControlIpc } from './control-rpc/preload'
 
 const CHANNEL_PREFIX = 'backend:'
 const MENU_TAKE_CANVAS_SCREENSHOT = 'menu:take-canvas-screenshot'
@@ -25,3 +26,7 @@ contextBridge.exposeInMainWorld('appMenu', {
 		}
 	},
 })
+
+if (process.env.NODE_ENV !== 'production') {
+	contextBridge.exposeInMainWorld('controlIpc', createControlIpc())
+}

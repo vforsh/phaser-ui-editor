@@ -25,6 +25,9 @@ export default defineConfig({
 			},
 			rollupOptions: {
 				external: [
+					'ws',
+					'bufferutil',
+					'utf-8-validate',
 					'sharp',
 					'@img/sharp-darwin-arm64',
 					'@img/sharp-darwin-x64',
