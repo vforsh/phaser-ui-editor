@@ -23,6 +23,7 @@ import { BaseScene } from './robowhale/phaser3/scenes/BaseScene'
 import { TypedEventEmitter } from './robowhale/phaser3/TypedEventEmitter'
 import { CommandEmitter } from './robowhale/utils/events/CommandEmitter'
 import { MainScene, MainSceneInitData } from './scenes/main/MainScene'
+import { EditableObjectJson } from './scenes/main/objects/EditableObject'
 import { TestScene, TestSceneInitData } from './scenes/test/TestScene'
 
 export type Vector2Like = Phaser.Types.Math.Vector2Like
@@ -186,7 +187,7 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 		// TODO add zod validation and check if the loaded json is a valid prefab file
 		const prefabFile = data as PrefabFile
 
-		this.logger.info(`loaded prefab from '${prefabAsset.path}'`, prefabFile)
+		this.logger.info(`loaded prefab '${prefabAsset.name}' (${prefabAsset.id})`)
 
 		this.scene.start('MainScene', {
 			project: new Project({ config: this.projectConfig }),
