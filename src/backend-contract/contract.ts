@@ -50,6 +50,23 @@ const writeJsonOptionsSchema = z
 	})
 	.optional()
 
+const fileDialogFiltersSchema = z
+	.array(
+		z.object({
+			name: z.string(),
+			extensions: z.array(z.string()),
+		})
+	)
+	.optional()
+
+const fileDialogOptionsSchema = z
+	.object({
+		title: z.string().optional(),
+		defaultPath: z.string().optional(),
+		filters: fileDialogFiltersSchema,
+	})
+	.optional()
+
 export const webFontParsedSchema = z.object({
 	base64: z.string(),
 	type: z.string(),
@@ -163,6 +180,14 @@ export const backendContract = {
 				defaultPath: z.string().optional(),
 			})
 			.optional(),
+		output: z.object({ canceled: z.boolean(), path: z.string().nullable() }),
+	},
+	selectFile: {
+		input: fileDialogOptionsSchema,
+		output: z.object({ canceled: z.boolean(), path: z.string().nullable() }),
+	},
+	saveFileDialog: {
+		input: fileDialogOptionsSchema,
 		output: z.object({ canceled: z.boolean(), path: z.string().nullable() }),
 	},
 	saveScreenshot: {

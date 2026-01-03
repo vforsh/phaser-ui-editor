@@ -1,0 +1,17 @@
+.button {
+	width: 100%;
+	text-align: left;
+	padding: 8px 10px;
+	border-radius: 6px;
+	color: var(--mantine-color-gray-2);
+	transition: background-color 120ms ease, color 120ms ease;
+}
+
+.button:hover {
+	background-color: var(--mantine-color-dark-6);
+}
+
+.buttonActive {
+	background-color: var(--mantine-color-blue-8);
+	color: var(--mantine-color-white);
+}

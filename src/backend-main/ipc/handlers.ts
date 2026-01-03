@@ -176,6 +176,31 @@ export const backendHandlers: BackendApi = {
 			path: result.canceled ? null : (result.filePaths[0] ?? null),
 		}
 	},
+	async selectFile(options) {
+		const result = await dialog.showOpenDialog({
+			title: options?.title,
+			defaultPath: options?.defaultPath,
+			filters: options?.filters,
+			properties: ['openFile'],
+		})
+
+		return {
+			canceled: result.canceled,
+			path: result.canceled ? null : (result.filePaths[0] ?? null),
+		}
+	},
+	async saveFileDialog(options) {
+		const result = await dialog.showSaveDialog({
+			title: options?.title,
+			defaultPath: options?.defaultPath,
+			filters: options?.filters,
+		})
+
+		return {
+			canceled: result.canceled,
+			path: result.canceled ? null : (result.filePath ?? null),
+		}
+	},
 	async saveScreenshot({ targetDir, fileName, bytes }) {
 		const normalizedDir = normalizeAbsolutePath(targetDir)
 		await fse.ensureDir(normalizedDir)

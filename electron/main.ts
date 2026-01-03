@@ -71,6 +71,15 @@ const createWindow = () => {
 
 const createAppMenu = () => {
 	const isMac = process.platform === 'darwin'
+	const openSettings = () => {
+		const win = BrowserWindow.getFocusedWindow() ?? mainWindow
+		if (!win) {
+			return
+		}
+
+		win.webContents.send('menu:open-settings', { section: 'general' })
+	}
+
 	const macAppMenu: Electron.MenuItemConstructorOptions[] = isMac
 		? [
 				{
@@ -83,6 +92,11 @@ const createAppMenu = () => {
 						{ role: 'hide' },
 						{ role: 'hideOthers' },
 						{ role: 'unhide' },
+						{
+							label: 'Settings...',
+							accelerator: 'CmdOrCtrl+,',
+							click: openSettings,
+						},
 						{ type: 'separator' },
 						{ role: 'quit' },
 					],
@@ -109,6 +123,16 @@ const createAppMenu = () => {
 				{ type: 'separator' },
 				{ role: 'togglefullscreen' },
 				{ type: 'separator' },
+				...(!isMac
+					? [
+							{
+								label: 'Settings...',
+								accelerator: 'CmdOrCtrl+,',
+								click: openSettings,
+							},
+							{ type: 'separator' },
+						]
+					: []),
 				{
 					label: 'Take Canvas Screenshot',
 					click: () => {

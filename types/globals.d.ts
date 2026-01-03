@@ -7,6 +7,18 @@ declare global {
 		__Phaser3ExtensionsApplied: boolean
 		appMenu?: {
 			onTakeCanvasScreenshot: (callback: (payload: { clean?: boolean }) => void) => () => void
+			onOpenSettings: (
+				callback: (payload: {
+					section?:
+						| 'general'
+						| 'hierarchy'
+						| 'canvas'
+						| 'assets'
+						| 'inspector'
+						| 'dev'
+						| 'misc'
+				}) => void
+			) => () => void
 		}
 		editor?: WindowEditorApi
 		/**
