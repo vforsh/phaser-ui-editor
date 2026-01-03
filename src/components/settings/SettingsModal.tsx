@@ -1,4 +1,13 @@
-import { Box, Group, Modal, ScrollArea, Stack, Title } from '@mantine/core'
+import { Box, Group, Modal, ScrollArea, Stack } from '@mantine/core'
+import {
+	Boxes,
+	Code,
+	Cog,
+	FolderOpen,
+	Layers,
+	Palette,
+	Settings as SettingsIcon,
+} from 'lucide-react'
 import { match } from 'ts-pattern'
 import type { SettingsSectionId } from '../../settings/EditorSettings'
 import { SettingsNav, type SettingsNavSection } from './SettingsNav'
@@ -11,17 +20,17 @@ import { InspectorSection } from './sections/InspectorSection'
 import { MiscSection } from './sections/MiscSection'
 
 const sections: SettingsNavSection[] = [
-	{ id: 'general', label: 'General' },
-	{ id: 'hierarchy', label: 'Hierarchy' },
-	{ id: 'canvas', label: 'Canvas' },
-	{ id: 'assets', label: 'Assets' },
-	{ id: 'inspector', label: 'Inspector' },
-	{ id: 'dev', label: 'Dev' },
-	{ id: 'misc', label: 'Misc' },
+	{ id: 'general', label: 'General', icon: Cog },
+	{ id: 'hierarchy', label: 'Hierarchy', icon: Layers },
+	{ id: 'canvas', label: 'Canvas', icon: Palette },
+	{ id: 'assets', label: 'Assets', icon: FolderOpen },
+	{ id: 'inspector', label: 'Inspector', icon: Boxes },
+	{ id: 'dev', label: 'Dev', icon: Code },
+	{ id: 'misc', label: 'Misc', icon: SettingsIcon },
 ]
 
-const modalSize = 900
-const contentHeight = 520
+const modalSize = 1080
+const contentHeight = 624
 
 interface SettingsModalProps {
 	opened: boolean
@@ -42,9 +51,28 @@ export function SettingsModal({ opened, onClose, activeSectionId, onSectionChang
 		.exhaustive()
 
 	return (
-		<Modal opened={opened} onClose={onClose} title="Settings" size={modalSize} centered>
-			<Group align="stretch" gap="lg" wrap="nowrap">
-				<Box w={180} h={contentHeight}>
+		<Modal
+			opened={opened}
+			onClose={onClose}
+			title={
+				<Group gap="xs">
+					<SettingsIcon size={20} />
+					Settings
+				</Group>
+			}
+			size={modalSize}
+			centered
+			transitionProps={{ duration: 100 }}
+		>
+			<Group align="stretch" gap={0} wrap="nowrap">
+				<Box
+					w={240}
+					h={contentHeight}
+					style={{
+						backgroundColor: 'var(--mantine-color-dark-8)',
+						borderRadius: 'var(--mantine-radius-md)',
+					}}
+				>
 					<SettingsNav
 						sections={sections}
 						activeSectionId={activeSectionId}
@@ -53,10 +81,7 @@ export function SettingsModal({ opened, onClose, activeSectionId, onSectionChang
 				</Box>
 				<Box style={{ flex: 1, minWidth: 0 }}>
 					<ScrollArea h={contentHeight} offsetScrollbars>
-						<Stack gap="md" p="md">
-							<Title order={3}>
-								{sections.find((section) => section.id === activeSectionId)?.label}
-							</Title>
+						<Stack gap="lg" p="xl">
 							{content}
 						</Stack>
 					</ScrollArea>

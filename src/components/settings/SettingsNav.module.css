@@ -1,17 +1,50 @@
 .button {
 	width: 100%;
 	text-align: left;
-	padding: 8px 10px;
-	border-radius: 6px;
+	padding: 10px 16px;
+	border-radius: 0;
 	color: var(--mantine-color-gray-2);
-	transition: background-color 120ms ease, color 120ms ease;
+	display: block;
+	box-sizing: border-box;
+}
+
+.button:first-child {
+	border-top-left-radius: var(--mantine-radius-md);
+	border-top-right-radius: var(--mantine-radius-md);
 }
 
 .button:hover {
 	background-color: var(--mantine-color-dark-6);
 }
 
+.button:first-child:hover {
+	border-top-left-radius: var(--mantine-radius-md);
+	border-top-right-radius: var(--mantine-radius-md);
+}
+
 .buttonActive {
-	background-color: var(--mantine-color-blue-8);
-	color: var(--mantine-color-white);
+	background-color: var(--mantine-color-dark-5);
+	color: var(--mantine-color-gray-0);
+}
+
+.buttonActive:first-child {
+	border-top-left-radius: var(--mantine-radius-md);
+	border-top-right-radius: var(--mantine-radius-md);
+}
+
+.buttonActive:hover {
+	background-color: var(--mantine-color-dark-4);
+}
+
+.buttonActive:first-child:hover {
+	border-top-left-radius: var(--mantine-radius-md);
+	border-top-right-radius: var(--mantine-radius-md);
+}
+
+.icon {
+	flex-shrink: 0;
+}
+
+.buttonActive .icon {
+	transform: scale(1.05);
 }
