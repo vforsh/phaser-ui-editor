@@ -58,7 +58,6 @@ export function NumberInputCustom(props: NumberInputCustomProps) {
 		<NumberInput
 			{...props}
 			onChange={(value) => onChange(typeof value === 'string' ? parseFloat(value) : value)}
-			// @ts-expect-error
 			ref={inputRef}
 			classNames={{
 				input: classes.input,

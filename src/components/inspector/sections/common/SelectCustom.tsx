@@ -43,7 +43,6 @@ export function SelectCustom<TOptions extends readonly string[]>(props: SelectCu
 				input: classes.input,
 				...rest.classNames,
 			}}
-			// @ts-expect-error
 			ref={inputRef}
 		/>
 	)

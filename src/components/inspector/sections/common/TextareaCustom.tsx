@@ -12,7 +12,7 @@ interface TextareaCustomProps extends TextareaProps {}
 export function usePreserveCursor() {
 	// Store the requestAnimationFrame ID in a ref so it persists between renders
 	// and can be accessed in the cleanup function
-	const rafIdRef = useRef<number>()
+	const rafIdRef = useRef<number | undefined>(undefined)
 
 	// Set up cleanup to prevent memory leaks
 	// This effect runs once when the component mounts and cleans up on unmount
