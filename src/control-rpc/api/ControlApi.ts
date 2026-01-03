@@ -37,6 +37,7 @@ import { openPrefabCommand } from './commands/openPrefab'
 import { openProjectCommand } from './commands/openProject'
 import { selectObjectCommand } from './commands/selectObject'
 import { switchToContextCommand } from './commands/switchToContext'
+import { takeCanvasScreenshotCommand } from './commands/takeCanvasScreenshot'
 
 export const controlContract = {
 	openProject: openProjectCommand,
@@ -49,6 +50,7 @@ export const controlContract = {
 	deleteObjects: deleteObjectsCommand,
 	getAssetInfo: getAssetInfoCommand,
 	listEditors: listEditorsCommand,
+	takeCanvasScreenshot: takeCanvasScreenshotCommand,
 } as const
 
 /**

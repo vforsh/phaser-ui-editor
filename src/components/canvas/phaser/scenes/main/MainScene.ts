@@ -768,16 +768,17 @@ export class MainScene extends BaseScene {
 		appCommands.on('take-canvas-screenshot', this.takeCanvasScreenshot, this, false, signal)
 	}
 
-	private async takeCanvasScreenshot(options?: { clean?: boolean }): Promise<string> {
+	private async takeCanvasScreenshot(options?: { clean?: boolean; format?: 'png' | 'jpg' | 'webp' }): Promise<string> {
 		const prefabName = this.getPrefabNameForScreenshot()
 		const timestamp = formatScreenshotTimestamp(new Date())
+		const format = options?.format ?? 'png'
 		const fileBase = sanitizeFileNamePart(`${timestamp}--${prefabName}`)
-		const fileName = `${fileBase}.png`
+		const fileName = `${fileBase}.${format}`
 
 		const targetDir = '/Users/vlad/dev/phaser-ui-editor/screenshots'
 
 		const capture = async () => {
-			const blob = await this.getRendererSnapshot()
+			const blob = await this.getRendererSnapshot(format)
 			const arrayBuffer = await blob.arrayBuffer()
 			const bytes = new Uint8Array(arrayBuffer)
 
@@ -803,21 +804,31 @@ export class MainScene extends BaseScene {
 		return await context.withEditorOverlaysHidden(capture)
 	}
 
-	private getRendererSnapshot(format = 'image/png', quality = 1): Promise<Blob> {
-		return new Promise<Blob>((resolve) => {
-			this.renderer.snapshot((snapshot) => {
-				if (snapshot instanceof HTMLImageElement) {
+	private getRendererSnapshot(format: 'png' | 'jpg' | 'webp' = 'png', quality = 1): Promise<Blob> {
+		const mime = format === 'jpg' ? 'image/jpeg' : format === 'webp' ? 'image/webp' : 'image/png'
+
+		return new Promise<Blob>((resolve, reject) => {
+			// Phaser typings may not include 'image/webp', but runtime browsers generally support it.
+			this.renderer.snapshot(
+				(snapshot) => {
+					if (!(snapshot instanceof HTMLImageElement)) {
+						reject(new Error('Failed to capture renderer snapshot: invalid snapshot type'))
+						return
+					}
+
 					void (async () => {
-						const res = await fetch(snapshot.src)
-						const blob = await res.blob()
-						resolve(blob)
+						try {
+							const res = await fetch(snapshot.src)
+							const blob = await res.blob()
+							resolve(blob)
+						} catch (error) {
+							reject(error instanceof Error ? error : new Error(String(error)))
+						}
 					})()
-				} else {
-					// Fallback for cases where it might not be an Image element (though rare in this context)
-					// or handle if it's a Color object (unlikely for full snapshot)
-					throw new Error('Failed to capture renderer snapshot: invalid snapshot type')
-				}
-			}, format, quality)
+				},
+				mime as unknown as 'image/png',
+				quality
+			)
 		})
 	}
 

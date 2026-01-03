@@ -57,7 +57,7 @@ export type AppCommands = {
 	redo: () => void
 
 	// screenshots
-	'take-canvas-screenshot': (options?: { clean?: boolean }) => Promise<string>
+	'take-canvas-screenshot': (options?: { clean?: boolean; format?: 'png' | 'jpg' | 'webp' }) => Promise<string>
 }
 
 export type AppCommandsEmitter = CommandEmitter<AppCommands>

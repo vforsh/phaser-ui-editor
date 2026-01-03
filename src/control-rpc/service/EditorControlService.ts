@@ -10,6 +10,7 @@ import { openPrefab } from './handlers/openPrefab'
 import { openProject } from './handlers/openProject'
 import { selectObject } from './handlers/selectObject'
 import { switchToContext } from './handlers/switchToContext'
+import { takeCanvasScreenshot } from './handlers/takeCanvasScreenshot'
 import type { EditorControlContext } from './types'
 
 /**
@@ -36,6 +37,7 @@ export class EditorControlService {
 			deleteObjects: deleteObjects(this.ctx),
 			getAssetInfo: getAssetInfo(this.ctx),
 			listEditors: listEditors(this.ctx),
+			takeCanvasScreenshot: takeCanvasScreenshot(this.ctx),
 		} satisfies ControlApi
 
 		this.handlers = handlers

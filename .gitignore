@@ -135,3 +135,6 @@ certs/
 
 # Screenshots
 screenshots/**/*.png
+screenshots/**/*.jpg
+screenshots/**/*.jpeg
+screenshots/**/*.webp

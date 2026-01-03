@@ -28,6 +28,7 @@ export function exposeWindowEditor(appCommands: AppCommandsEmitter): void {
 		deleteObjects: (params) => handlers.deleteObjects(params),
 		getAssetInfo: (params) => handlers.getAssetInfo(params),
 		listEditors: (params) => handlers.listEditors(params ?? {}),
+		takeCanvasScreenshot: (params) => handlers.takeCanvasScreenshot(params ?? {}),
 	}
 
 	window.editor = editor
