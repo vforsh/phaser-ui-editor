@@ -9,16 +9,17 @@ import {
 import type { CommandDefinition } from '../../src/control-rpc/api/ControlApi'
 import { createValidationError } from './lib/errors'
 import { parseJsonObject, parseJsonText } from './lib/json-input'
+import { createInputHelpText } from './lib/help/json-schema-input-help'
 import type { Ctx } from './lib/context'
 
 export function registerContractCommands(program: Command, ctx: Ctx): void {
 	const entries = Object.entries(controlContract) as Array<[ControlMethod, CommandDefinition]>
 
 	for (const [method, definition] of entries) {
-		program
+		const cmd = program
 			.command(method)
 			.description(definition.description)
-			.argument('[input]', 'JSON object params')
+			.argument('[input]', 'JSON object params (see below)')
 			.action(async (input?: string) => {
 				const params = readParamsFromPositionalArg(input)
 				const parsedParams = definition.input.parse(params)
@@ -26,6 +27,11 @@ export function registerContractCommands(program: Command, ctx: Ctx): void {
 				const parsedResult = definition.output.parse(result)
 				ctx.output.printJson(parsedResult)
 			})
+
+		const inputSchema = zodToJsonSchema(definition.input, {
+			name: `${method}Input`,
+		})
+		cmd.addHelpText('after', createInputHelpText({ method, inputSchema: inputSchema as unknown }))
 	}
 
 	program
