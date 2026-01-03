@@ -142,6 +142,15 @@ export class LogsManager {
 		this.loggers.delete(channel)
 	}
 
+	public setMinLogLevel(level: LogLevel): void {
+		this.settings.minLogLevel = level
+		this.logger.settings.minLevel = level
+
+		this.loggers.forEach((logger) => {
+			logger.settings.minLevel = level
+		})
+	}
+
 	public get enabled(): boolean {
 		return this.logger.settings.type !== 'hidden'
 	}

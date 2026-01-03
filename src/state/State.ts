@@ -6,6 +6,7 @@ import { PartialDeep } from 'type-fest'
 import { proxy, subscribe as subscribeValtio, useSnapshot } from 'valtio'
 import { z } from 'zod'
 import { projectConfigSchema } from '../project/ProjectConfig'
+import { defaultEditorSettings, editorSettingsSchema, type EditorSettings } from '../settings/EditorSettings'
 import { AssetTreeItemData } from '../types/assets'
 import { getObjectKeys } from '../utils/collection/get-object-keys'
 import { absolutePathSchema } from './Schemas'
@@ -82,6 +83,7 @@ export const stateSchema = z.object({
 	inspector: z.object({
 		componentsClipboard: z.array(z.string()),
 	}),
+	settings: editorSettingsSchema,
 })
 
 export type State = z.infer<typeof stateSchema>
@@ -125,6 +127,11 @@ const initialStateParsed = merge(
 		},
 		inspector: {
 			componentsClipboard: [],
+		},
+		settings: {
+			dev: {
+				minLogLevel: defaultEditorSettings.dev.minLogLevel,
+			},
 		},
 	} satisfies PartialDeep<State>,
 	// @ts-expect-error persisted state shape is unknown until parsed
@@ -190,3 +197,15 @@ const subscribe = (
 }
 
 export { derive, state, subscribe, unproxy, useSnapshot }
+
+export function clearSavedData(): void {
+	try {
+		localStorage.removeItem('state')
+	} finally {
+		window.location.reload()
+	}
+}
+
+export function replaceSettings(settings: EditorSettings): void {
+	state.settings = settings
+}
