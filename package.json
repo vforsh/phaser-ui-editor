@@ -83,7 +83,6 @@
 		"zod-to-json-schema": "^3.25.1"
 	},
 	"devDependencies": {
-		"@oxlint/migrate": "^1.36.0",
 		"@playwright/test": "^1.57.0",
 		"@total-typescript/ts-reset": "^0.6.1",
 		"@types/fontkit": "^2.0.7",
