@@ -3,12 +3,12 @@ import getPort from 'get-port'
 import path from 'node:path'
 import { ControlRpcServer } from '../src/backend-main/control-rpc/main-rpc'
 import { registerBackendHandlers } from '../src/backend-main/ipc/register-backend-handlers'
-import { createRendererConsoleFileLogger } from './renderer-logger'
+import { RendererFileLogger } from './RendererFileLogger'
 
 let mainWindow: BrowserWindow | null = null
 let controlRpcServer: ControlRpcServer | null = null
 let controlRpcAddress = ''
-let rendererLogger: ReturnType<typeof createRendererConsoleFileLogger> | null = null
+let rendererLogger: RendererFileLogger | null = null
 
 const isPlaywrightE2E = process.env.PW_E2E === '1'
 
@@ -49,12 +49,7 @@ const createWindow = () => {
 	})
 
 	if (!app.isPackaged && !isPlaywrightE2E) {
-		const runId = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
-		rendererLogger = createRendererConsoleFileLogger({
-			logsDir: path.join(process.cwd(), 'logs'),
-			runId,
-		})
-		rendererLogger.attachToWebContents(mainWindow.webContents)
+		setupRendererLogger(mainWindow.webContents)
 	}
 
 	mainWindow.once('ready-to-show', () => {
@@ -78,6 +73,15 @@ const createWindow = () => {
 		const indexPath = path.join(__dirname, '../renderer/index.html')
 		mainWindow.loadFile(indexPath)
 	}
+}
+
+function setupRendererLogger(webContents: Electron.WebContents) {
+	const runId = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+	rendererLogger = new RendererFileLogger({
+		logsDir: path.join(process.cwd(), 'logs'),
+		runId,
+	})
+	rendererLogger.attachToWebContents(webContents)
 }
 
 const createAppMenu = () => {
@@ -195,7 +199,11 @@ const createAppMenu = () => {
 		},
 		{
 			label: 'Window',
-			submenu: [{ role: 'minimize' }, { role: 'close' }, ...macWindowMenu] as Electron.MenuItemConstructorOptions[],
+			submenu: [
+				{ role: 'minimize' },
+				{ role: 'close' },
+				...macWindowMenu,
+			] as Electron.MenuItemConstructorOptions[],
 		},
 		{
 			label: 'Help',
@@ -221,7 +229,7 @@ const showControlRpcAddressPopup = () => {
 			title: 'Control RPC Address',
 			message: `The editor is listening for control commands at:\n\n${controlRpcAddress || 'Not started yet'}`,
 			type: 'info',
-			buttons: ['OK', 'Copy to Clipboard'],
+			buttons: ['Copy to Clipboard', 'OK'],
 			defaultId: 0,
 		})
 		.then(({ response }) => {
