@@ -405,7 +405,11 @@ export class Phaser3Extensions {
 		): AutoSizeText {
 			let text = new AutoSizeText(this.scene, 0, 0, content, style, options)
 
-			parent ? parent.add(text) : this.scene.add.existing(text)
+			if (parent) {
+				parent.add(text)
+			} else {
+				this.scene.add.existing(text)
+			}
 
 			return text
 		}

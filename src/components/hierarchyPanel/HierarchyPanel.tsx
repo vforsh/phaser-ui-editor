@@ -8,7 +8,7 @@ import { useWindowEvent } from '@mantine/hooks'
 import { state, useSnapshot } from '@state/State'
 import { useEffect, useRef, useState } from 'react'
 import { ILogObj, Logger } from 'tslog'
-import { useAppCommands } from '../../di/DiContext'
+import { useAppCommands } from '../../di/DiHooks'
 import HierarchyItem from './HierarchyItem'
 import styles from './HierarchyPanel.module.css'
 import { HierarchyPanelTitle } from './HierarchyPanelTitle'
@@ -403,7 +403,7 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 			boundingRects.clear()
 			elements.length = 0
 		}
-	}, [])
+	}, [appCommands])
 
 	return (
 		<Paper

@@ -1,11 +1,12 @@
 import { EditableImageJson } from '@components/canvas/phaser/scenes/main/objects/EditableImage'
 import { Button, Stack, Tooltip } from '@mantine/core'
 import { Info } from 'lucide-react'
+import { useMemo } from 'react'
 import { State, state, useSnapshot } from '@state/State'
 import { getAssetById, getAssetsOfType } from '../../../../types/assets'
 import { AssetPicker } from '../../../common/AssetPicker/AssetPicker'
 import { BaseSectionProps } from '../BaseSection'
-import { useAppCommands } from '../../../../di/DiContext'
+import { useAppCommands } from '../../../../di/DiHooks'
 
 interface ImageSectionProps extends BaseSectionProps<EditableImageJson> {}
 
@@ -79,11 +80,14 @@ export function ImageSection({ data }: ImageSectionProps) {
 				mt="xs"
 				disabled={!canResetOriginalSize}
 				onClick={() => appCommands.emit('reset-image-original-size', { objectId: data.id })}
-				rightSection={
-					<Tooltip label="Resets size to asset's original texture size.">
-						<Info size={14} />
-					</Tooltip>
-				}
+				rightSection={useMemo(
+					() => (
+						<Tooltip label="Resets size to asset's original texture size.">
+							<Info size={14} />
+						</Tooltip>
+					),
+					[]
+				)}
 			>
 				Reset Original Size
 			</Button>

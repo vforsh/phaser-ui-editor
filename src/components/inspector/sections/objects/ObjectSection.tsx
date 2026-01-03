@@ -2,6 +2,7 @@ import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/object
 import { ActionIcon, Stack, TextInput, useMantineTheme } from '@mantine/core'
 import { copyToClipboard } from '@utils/copy-to-clipboard'
 import { Copy } from 'lucide-react'
+import { useCallback, useMemo } from 'react'
 import { useSnapshot } from 'valtio'
 import { BaseSectionProps } from '../BaseSection'
 import { CheckboxCustom } from '../common/CheckboxCustom'
@@ -12,7 +13,7 @@ export function ObjectSection({ data }: ObjectSectionProps) {
 	const theme = useMantineTheme()
 	const snap = useSnapshot(data)
 
-	const handleCopy = (text: string) => {
+	const handleCopy = useCallback((text: string) => {
 		copyToClipboard(text)
 			.then(() => {
 				console.log('Copied to clipboard')
@@ -20,7 +21,7 @@ export function ObjectSection({ data }: ObjectSectionProps) {
 			.catch((error) => {
 				console.error('Failed to copy to clipboard', error)
 			})
-	}
+	}, [])
 
 	return (
 		<Stack gap="xs">
@@ -29,17 +30,20 @@ export function ObjectSection({ data }: ObjectSectionProps) {
 				value={snap.name}
 				onChange={(e) => (data.name = e.currentTarget.value)}
 				size="xs"
-				rightSection={
-					<ActionIcon
-						size="xs"
-						variant="subtle"
-						onClick={() => handleCopy(snap.type)}
-						title="Copy type"
-						color={theme.colors.gray[3]}
-					>
-						<Copy size={14} />
-					</ActionIcon>
-				}
+				rightSection={useMemo(
+					() => (
+						<ActionIcon
+							size="xs"
+							variant="subtle"
+							onClick={() => handleCopy(snap.type)}
+							title="Copy type"
+							color={theme.colors.gray[3]}
+						>
+							<Copy size={14} />
+						</ActionIcon>
+					),
+					[handleCopy, snap.type, theme.colors.gray]
+				)}
 			/>
 
 			<TextInput
@@ -47,17 +51,20 @@ export function ObjectSection({ data }: ObjectSectionProps) {
 				value={snap.id}
 				size="xs"
 				disabled
-				rightSection={
-					<ActionIcon
-						size="xs"
-						variant="subtle"
-						onClick={() => handleCopy(snap.id)}
-						title="Copy ID"
-						color={theme.colors.gray[3]}
-					>
-						<Copy size={14} />
-					</ActionIcon>
-				}
+				rightSection={useMemo(
+					() => (
+						<ActionIcon
+							size="xs"
+							variant="subtle"
+							onClick={() => handleCopy(snap.id)}
+							title="Copy ID"
+							color={theme.colors.gray[3]}
+						>
+							<Copy size={14} />
+						</ActionIcon>
+					),
+					[handleCopy, snap.id, theme.colors.gray]
+				)}
 			/>
 
 			<TextInput label="Type" value={snap.type} size="xs" disabled />

@@ -18,6 +18,13 @@ interface ComponentMenuProps {
 	onPaste: () => void
 }
 
+const RESET_ICON = <RotateCcw size={16} />
+const MOVE_UP_ICON = <ChevronRight size={16} className="rotate-[-90deg]" />
+const MOVE_DOWN_ICON = <ChevronRight size={16} className="rotate-90" />
+const REMOVE_ICON = <Trash size={16} />
+const COPY_ICON = <Copy size={16} />
+const PASTE_ICON = <ClipboardPaste size={16} />
+
 function ComponentMenu({ onReset, onMoveUp, onMoveDown, onRemove, onCopy, onPaste }: ComponentMenuProps) {
 	const theme = useMantineTheme()
 	const [opened, { open, close }] = useDisclosure(false)
@@ -30,24 +37,24 @@ function ComponentMenu({ onReset, onMoveUp, onMoveDown, onRemove, onCopy, onPast
 				</ActionIcon>
 			</Menu.Target>
 			<Menu.Dropdown>
-				<Menu.Item leftSection={<RotateCcw size={16} />} onClick={onReset}>
+				<Menu.Item leftSection={RESET_ICON} onClick={onReset}>
 					Reset
 				</Menu.Item>
 				<Menu.Divider />
-				<Menu.Item leftSection={<ChevronRight size={16} className="rotate-[-90deg]" />} onClick={onMoveUp}>
+				<Menu.Item leftSection={MOVE_UP_ICON} onClick={onMoveUp}>
 					Move up
 				</Menu.Item>
-				<Menu.Item leftSection={<ChevronRight size={16} className="rotate-90" />} onClick={onMoveDown}>
+				<Menu.Item leftSection={MOVE_DOWN_ICON} onClick={onMoveDown}>
 					Move down
 				</Menu.Item>
-				<Menu.Item leftSection={<Trash size={16} />} onClick={onRemove} color="red">
+				<Menu.Item leftSection={REMOVE_ICON} onClick={onRemove} color="red">
 					Remove
 				</Menu.Item>
 				<Menu.Divider />
-				<Menu.Item leftSection={<Copy size={16} />} onClick={onCopy}>
+				<Menu.Item leftSection={COPY_ICON} onClick={onCopy}>
 					Copy
 				</Menu.Item>
-				<Menu.Item leftSection={<ClipboardPaste size={16} />} onClick={onPaste}>
+				<Menu.Item leftSection={PASTE_ICON} onClick={onPaste}>
 					Paste
 				</Menu.Item>
 			</Menu.Dropdown>

@@ -34,7 +34,7 @@ import styles from './HierarchyItem.module.css'
 import HierarchyItemIcons from './HierarchyItemIcons'
 import { HIERARCHY_ITEMS_CONTAINER_ID } from './HierarchyPanel'
 import { getHierarchyItemIcon, getLinkedAssetId } from './hierarchyUtils'
-import { useAppCommands } from '../../di/DiContext'
+import { useAppCommands } from '../../di/DiHooks'
 import { AppCommands } from '../../AppCommands'
 import { CommandEmitter } from '../canvas/phaser/robowhale/utils/events/CommandEmitter'
 
@@ -245,6 +245,8 @@ export default function HierarchyItem({
 	const isSelectedInCanvas = selectedIds.includes(objId)
 	const isActiveEditContext = activeEditContextId === objId
 	const isOpen = openedItems.has(objId)
+	const isExternallyHovered = hoveredIds.includes(objId)
+	const isHoverActive = isHovered || isExternallyHovered
 
 	const [editValue, setEditValue] = useState('')
 
@@ -448,6 +450,7 @@ export default function HierarchyItem({
 				data-obj-id={objId}
 				data-parent-id={parentId}
 				data-level={level}
+				data-panel-focused={isPanelFocused ? 'true' : 'false'}
 				onMouseEnter={() => setIsHovered(true)}
 				onMouseLeave={() => setIsHovered(false)}
 				onContextMenu={(e) => {
@@ -460,7 +463,7 @@ export default function HierarchyItem({
 				onClick={handleClick}
 				className={clsx(styles.itemContainer, {
 					[styles.itemSelected]: isSelectedInCanvas,
-					[styles.itemHovered]: isHovered,
+					[styles.itemHovered]: isHoverActive,
 				})}
 				style={{
 					paddingLeft: level * INDENT_SIZE + ICON_MARGIN,
@@ -534,8 +537,8 @@ export default function HierarchyItem({
 						<Text
 							size="sm"
 							className={clsx(styles.itemName, {
-								[styles.itemNameHovered]: isHovered,
-								[styles.itemNameNormal]: !isHovered,
+								[styles.itemNameHovered]: isHoverActive,
+								[styles.itemNameNormal]: !isHoverActive,
 								[styles.hiddenItem]: !objSnap.visible,
 							})}
 							style={{

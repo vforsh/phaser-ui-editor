@@ -32,7 +32,11 @@ export class VerticalLayoutComponent extends BaseEditableComponent<VerticalLayou
 			this._state,
 			{
 				active: (value) => {
-					value ? this.activate() : this.deactivate()
+					if (value) {
+						this.activate()
+					} else {
+						this.deactivate()
+					}
 				},
 				cellWidth: (value) => {
 					this.cellWidth = value

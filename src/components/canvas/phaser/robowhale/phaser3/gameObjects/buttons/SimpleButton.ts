@@ -1,4 +1,4 @@
-﻿// @ts-nocheck
+// @ts-nocheck
 
 import { ButtonEvent } from './ButtonEvent'
 

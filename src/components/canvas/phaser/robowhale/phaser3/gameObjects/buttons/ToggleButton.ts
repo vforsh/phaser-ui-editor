@@ -1,4 +1,4 @@
-﻿import { SimpleButton } from './SimpleButton'
+import { SimpleButton } from './SimpleButton'
 
 export enum ToggleButtonState {
 	STATE_1 = 1,
@@ -34,6 +34,10 @@ export class ToggleButton extends SimpleButton {
 
 	public set buttonState(value: ToggleButtonState) {
 		this._buttonState = value
-		this._buttonState === ToggleButtonState.STATE_1 ? this.setFrame(this.frame_1) : this.setFrame(this.frame_2)
+		if (this._buttonState === ToggleButtonState.STATE_1) {
+			this.setFrame(this.frame_1)
+		} else {
+			this.setFrame(this.frame_2)
+		}
 	}
 }

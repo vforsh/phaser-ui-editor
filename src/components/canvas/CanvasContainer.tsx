@@ -1,7 +1,7 @@
 import { Badge, Button, Center, Group, Loader, Overlay, Paper, Stack, Text, ThemeIcon } from '@mantine/core'
 import { Cuboid } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { useAppCommands, useAppEvents, useUndoHub } from '../../di/DiContext'
+import { useAppCommands, useAppEvents, useUndoHub } from '../../di/DiHooks'
 import { State, state, useSnapshot } from '../../state/State'
 import { getAssetsOfType, isDraggableAsset, type AssetTreeItemData } from '../../types/assets'
 import AlignmentControls from './AlignmentControls'

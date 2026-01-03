@@ -75,7 +75,11 @@ export class LayoutComponent extends BaseEditableComponent<LayoutComponentJson> 
 			this._state,
 			{
 				active: (value) => {
-					value ? this.activate() : this.deactivate()
+					if (value) {
+						this.activate()
+					} else {
+						this.deactivate()
+					}
 				},
 				horizontal: invalidate,
 				vertical: invalidate,

@@ -11,6 +11,7 @@ export type AssetSectionData = Snapshot<AssetTreeItemData>
 export interface AssetSectionProps extends BaseSectionProps<AssetSectionData> {}
 
 const isMac = window.navigator.userAgent.toLowerCase().includes('mac')
+const FOLDER_OPEN_ICON = <FolderOpen size={16} />
 
 export function AssetSection({ data }: AssetSectionProps) {
 	const physicalPath =
@@ -25,7 +26,7 @@ export function AssetSection({ data }: AssetSectionProps) {
 			<Button
 				fullWidth
 				variant="light"
-				leftSection={<FolderOpen size={16} />}
+				leftSection={FOLDER_OPEN_ICON}
 				onClick={() => {
 					void backend.showItemInFolder({ path: physicalPath })
 				}}

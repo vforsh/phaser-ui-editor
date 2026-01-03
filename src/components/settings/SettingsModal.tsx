@@ -39,6 +39,13 @@ interface SettingsModalProps {
 	onSectionChange: (sectionId: SettingsSectionId) => void
 }
 
+const MODAL_TITLE = (
+	<Group gap="xs">
+		<SettingsIcon size={20} />
+		Settings
+	</Group>
+)
+
 export function SettingsModal({ opened, onClose, activeSectionId, onSectionChange }: SettingsModalProps) {
 	const content = match(activeSectionId)
 		.with('general', () => <GeneralSection />)
@@ -54,12 +61,7 @@ export function SettingsModal({ opened, onClose, activeSectionId, onSectionChang
 		<Modal
 			opened={opened}
 			onClose={onClose}
-			title={
-				<Group gap="xs">
-					<SettingsIcon size={20} />
-					Settings
-				</Group>
-			}
+			title={MODAL_TITLE}
 			size={modalSize}
 			centered
 			transitionProps={{ duration: 100 }}

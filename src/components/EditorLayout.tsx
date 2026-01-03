@@ -1,7 +1,7 @@
 import { logger } from '@logs/logs'
 import { Box, Group, Paper, Stack } from '@mantine/core'
 import { useCallback, useEffect, useState } from 'react'
-import { useUndoHub } from '../di/DiContext'
+import { useUndoHub } from '../di/DiHooks'
 import { openProjectByPath } from '../project/open-project'
 import { state, useSnapshot } from '../state/State'
 import AssetsPanel from './assetsPanel/AssetsPanel'

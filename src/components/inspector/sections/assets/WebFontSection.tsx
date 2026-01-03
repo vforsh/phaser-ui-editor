@@ -88,7 +88,7 @@ export function WebFontSection({ data: asset }: WebFontSectionProps) {
 		return () => {
 			styleElement.remove()
 		}
-	}, [webFontParsed, asset.id])
+	}, [webFontParsed, asset.id, previewSize])
 
 	if (!webFontParsed) {
 		return null

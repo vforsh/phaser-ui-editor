@@ -9,7 +9,7 @@ import { match } from 'ts-pattern'
 import { ILogObj, Logger } from 'tslog'
 import { useSnapshot } from 'valtio'
 import { getAssetById, isGraphicAsset, type AssetTreeItemData } from '../../types/assets'
-import { useAppCommands } from '../../di/DiContext'
+import { useAppCommands } from '../../di/DiHooks'
 import { InspectorSection, InspectorSectionDef } from './InspectorSection'
 import { NoSelection } from './NoSelection'
 import { AssetSection } from './sections/assets/AssetSection'
@@ -41,6 +41,8 @@ export type ItemToInspect = AssetToInspect | ObjectToInspect
 interface InspectorPanelProps {
 	logger: Logger<ILogObj>
 }
+
+const CLIPBOARD_PASTE_ICON = <ClipboardPaste size={16} />
 
 export default function InspectorPanel({ logger }: InspectorPanelProps) {
 	const forceUpdate = useForceUpdate()
@@ -192,7 +194,7 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 						<Group grow gap="xs">
 							<Button
 								variant="light"
-								leftSection={<ClipboardPaste size={16} />}
+								leftSection={CLIPBOARD_PASTE_ICON}
 								disabled={state.inspector.componentsClipboard.length === 0}
 								onClick={() => {
 									const componentRaw = state.inspector.componentsClipboard.pop()

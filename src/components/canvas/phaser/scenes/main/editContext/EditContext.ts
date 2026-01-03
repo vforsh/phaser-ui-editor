@@ -546,7 +546,11 @@ export class EditContext extends TypedEventEmitter<Events> {
 			}
 
 			// add the clicked object to the selection (create a new selection if it doesn't exist)
-			this.selection ? this.selection.add(gameObject) : (this.selection = this.createSelection([gameObject]))
+			if (this.selection) {
+				this.selection.add(gameObject)
+			} else {
+				this.selection = this.createSelection([gameObject])
+			}
 		} else if (pointer.event.ctrlKey || pointer.event.metaKey) {
 			const toClone = this.selection?.includes(gameObject) ? this.selection.objects : [gameObject]
 			const clonedObjects = toClone.map((obj) => {

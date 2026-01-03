@@ -1,4 +1,4 @@
-﻿export type GameOrientation = 'portrait' | 'landscape'
+export type GameOrientation = 'portrait' | 'landscape'
 
 export function getOrientation(width: number, height: number): GameOrientation {
 	return width > height ? 'landscape' : 'portrait'

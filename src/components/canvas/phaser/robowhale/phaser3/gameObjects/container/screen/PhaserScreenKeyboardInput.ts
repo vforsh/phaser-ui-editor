@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import { pullFast } from '../../../../utils/collection/pull-fast'
 import { Key } from '../../../scenes/BaseScene'
 import { PhaserScreen } from './Screen'
@@ -18,7 +16,7 @@ export class PhaserScreenKeyboardInput {
 
 	constructor(screen: PhaserScreen) {
 		this.screen = screen
-		this.keyboard = screen.scene.input.keyboard
+		this.keyboard = screen.scene.input.keyboard!
 		this.callbacks = new Map<Key, CallbackData[]>()
 	}
 
@@ -28,7 +26,12 @@ export class PhaserScreenKeyboardInput {
 		let off = () => this.keyboard.off(event, callback, context)
 		let data = { on, off, callback, context }
 
-		this.callbacks.has(key) === false ? this.callbacks.set(key, [data]) : this.callbacks.get(key).push(data)
+		let list = this.callbacks.get(key)
+		if (!list) {
+			list = []
+			this.callbacks.set(key, list)
+		}
+		list.push(data)
 
 		return { on, off }
 	}
@@ -76,6 +79,5 @@ export class PhaserScreenKeyboardInput {
 
 	public destroy(): void {
 		this.removeCallbacks()
-		this.callbacks = null
 	}
 }

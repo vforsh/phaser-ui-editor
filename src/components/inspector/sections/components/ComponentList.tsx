@@ -1,7 +1,7 @@
 import { ActionIcon, Group, Stack, Text, TextInput, UnstyledButton } from '@mantine/core'
 import { Fzf } from 'fzf'
 import { Search, X } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { EditableComponentType } from '../../../canvas/phaser/scenes/main/objects/components/base/EditableComponent'
 import classes from './ComponentList.module.css'
 import { ComponentListItemData, ComponentsListData } from './ComponentsListData'
@@ -11,6 +11,8 @@ interface ComponentListProps {
 	onClose: () => void
 	onSelect: (type: EditableComponentType) => void
 }
+
+const SEARCH_ICON = <Search size={16} />
 
 export function ComponentList({ opened, onClose, onSelect }: ComponentListProps) {
 	const [searchQuery, setSearchQuery] = useState('')
@@ -110,14 +112,16 @@ export function ComponentList({ opened, onClose, onSelect }: ComponentListProps)
 					onChange={(e) => setSearchQuery(e.target.value)}
 					onKeyDown={handleKeyDown}
 					style={{ flex: 1 }}
-					leftSection={<Search size={16} />}
-					rightSection={
-						searchQuery && (
-							<ActionIcon size="sm" variant="subtle" onClick={() => setSearchQuery('')}>
-								<X size={16} />
-							</ActionIcon>
-						)
-					}
+					leftSection={SEARCH_ICON}
+					rightSection={useMemo(
+						() =>
+							searchQuery && (
+								<ActionIcon size="sm" variant="subtle" onClick={() => setSearchQuery('')}>
+									<X size={16} />
+								</ActionIcon>
+							),
+						[searchQuery]
+					)}
 				/>
 			</Group>
 

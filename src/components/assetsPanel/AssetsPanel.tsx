@@ -46,7 +46,7 @@ import { AssetsSearch } from './AssetsSearch'
 import AssetTreeItem from './AssetTreeItem'
 import { getAssetItemId } from './assetItemId'
 import { addAssetId } from './build-asset-tree'
-import { useAppCommands } from '../../di/DiContext'
+import { useAppCommands } from '../../di/DiHooks'
 
 interface AssetsPanelProps {
 	logger: Logger<ILogObj>

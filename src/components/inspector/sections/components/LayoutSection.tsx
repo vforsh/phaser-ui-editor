@@ -10,6 +10,7 @@ import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/object
 import { Group, SegmentedControl, Stack, Text, UnstyledButton } from '@mantine/core'
 import { state } from '@state/State'
 import { match } from 'ts-pattern'
+import { useMemo } from 'react'
 import { useSnapshot } from 'valtio'
 import { BaseSectionProps } from '../BaseSection'
 import { NumberInputCustom } from '../common/NumberInputCustom'
@@ -211,7 +212,12 @@ function ScalarInput({
 			step={1}
 			decimalScale={isPercent ? 2 : 0}
 			size="xs"
-			rightSection={<UnitToggleLabel unit={scalar.unit} onToggle={onToggleUnit} />}
+			rightSection={useMemo(
+				() => (
+					<UnitToggleLabel unit={scalar.unit} onToggle={onToggleUnit} />
+				),
+				[scalar.unit, onToggleUnit]
+			)}
 			rightSectionWidth={40}
 		/>
 	)

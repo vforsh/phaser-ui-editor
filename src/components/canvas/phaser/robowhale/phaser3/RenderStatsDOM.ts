@@ -1,4 +1,4 @@
-﻿import CanvasRenderer = Phaser.Renderer.Canvas.CanvasRenderer
+import CanvasRenderer = Phaser.Renderer.Canvas.CanvasRenderer
 
 type WebGLRenderer = Phaser.Renderer.WebGL.WebGLRenderer
 

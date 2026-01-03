@@ -1,13 +1,19 @@
 import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
 import { isSizeLockedForObjectJson } from '@components/canvas/phaser/scenes/main/objects/editing/editRestrictions'
 import { NumberInputCustom } from '@components/inspector/sections/common/NumberInputCustom'
-import { useAppCommands } from '../../../../di/DiContext'
+import { useAppCommands } from '../../../../di/DiHooks'
 import { Box, Button, Group, Stack, Tooltip } from '@mantine/core'
 import { Info } from 'lucide-react'
 import { useSnapshot } from 'valtio'
 import { BaseSectionProps } from '../BaseSection'
 
 interface ContainerSizeSectionProps extends BaseSectionProps<EditableContainerJson> {}
+
+const ADJUST_BOUNDS_TOOLTIP = (
+	<Tooltip label="Adjusts the container size to the union of its children's bounds.">
+		<Info size={14} />
+	</Tooltip>
+)
 
 export function ContainerSizeSection({ data }: ContainerSizeSectionProps) {
 	const snap = useSnapshot(data)
@@ -63,11 +69,7 @@ export function ContainerSizeSection({ data }: ContainerSizeSectionProps) {
 				mt='xs'
 				disabled={!hasChildren}
 				onClick={() => appCommands.emit('adjust-container-to-children-bounds', { objectId: data.id })}
-				rightSection={
-					<Tooltip label="Adjusts the container size to the union of its children's bounds.">
-						<Info size={14} />
-					</Tooltip>
-				}
+				rightSection={ADJUST_BOUNDS_TOOLTIP}
 			>
 				Adjust to Children Bounds
 			</Button>

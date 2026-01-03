@@ -60,7 +60,11 @@ export class CommandEmitter<TCommands extends TypedEventMap> {
 		}
 
 		if (abortSignal) {
-			abortSignal.aborted ? removeHandlerCallback() : abortSignal.addEventListener('abort', removeHandlerCallback)
+			if (abortSignal.aborted) {
+				removeHandlerCallback()
+			} else {
+				abortSignal.addEventListener('abort', removeHandlerCallback)
+			}
 		}
 
 		return removeHandlerCallback
