@@ -4,7 +4,7 @@
 		{
 			"label": "Start Dev",
 			"detail": "Starts the app and typechecking in watch mode.",
-			"dependsOn": ["start: app", "tsc: watch"],
+			"dependsOn": ["tsc: watch", "start: app"],
 			"group": {
 				"kind": "build",
 				"isDefault": true
