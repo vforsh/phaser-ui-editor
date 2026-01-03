@@ -32,6 +32,59 @@ Context / architecture reference:
 
 ---
 
+### Make `editorctl` runnable from anywhere (global CLI install, Option C)
+
+Right now `editorctl` is only exposed as a repo script (`npm run editorctl`) and executed via `tsx`. To make `editorctl` callable from **any directory** on the machine, we should ship a real executable via `package.json` `bin` and use `npm link` during development.
+
+#### Desired behavior
+
+- After linking once, `editorctl ...` works from any directory (as long as this repo’s dependencies are installed).
+- It runs via `node` (compiled JS), not via `tsx` at runtime.
+
+#### Packaging approach
+
+- Add a dedicated TypeScript build for the CLI to a stable output path:
+  - `dist/editorctl/index.js`
+  - Preserve the shebang from `scripts/editorctl/index.ts` so it’s directly executable.
+- Add a `bin` entry in `package.json`:
+  - `"bin": { "editorctl": "dist/editorctl/index.js" }`
+- Add a build script (and optionally a convenience link script):
+  - `npm run build:editorctl` (compile the CLI)
+  - `npm run link:editorctl` (build, then `npm link`)
+
+#### Suggested TS config for the CLI build
+
+Add `tsconfig.editorctl.json` (separate from the app’s tsconfigs) roughly:
+
+- `rootDir`: `scripts/editorctl`
+- `outDir`: `dist/editorctl`
+- `module`: `ESNext` (repo is `"type": "module"`)
+- `target`: modern node (>= 24)
+- `preserveShebang`: `true`
+- `sourceMap`: `true` (optional, helpful for debugging)
+
+#### Usage (dev)
+
+From the repo root:
+
+- `npm install`
+- `npm run build:editorctl`
+- `npm link`
+
+Then from anywhere:
+
+- `editorctl --help`
+- `editorctl listHierarchy`
+
+Notes:
+
+- This repo is `"private": true`, which is fine for `npm link` (we’re not publishing).
+- If we want to avoid remembering to rebuild, we can either:
+  - run `npm run build:editorctl -- --watch` while developing the CLI, or
+  - add a dedicated `link:editorctl` script that always builds first.
+
+---
+
 ### Current state (what we’re changing)
 
 `editorctl` currently:
@@ -279,6 +332,18 @@ I would avoid nested subcommands initially (more churn); group metadata can stil
 
 ### Step-by-step rollout (safe + reviewable)
 
+#### Phase -1: package `editorctl` as a real CLI (global via `npm link`)
+
+- Add `tsconfig.editorctl.json` to compile `scripts/editorctl/**` into `dist/editorctl/**`.
+- Add `package.json` `"bin": { "editorctl": "dist/editorctl/index.js" }`.
+- Add scripts:
+  - `build:editorctl`: compile the CLI
+  - (optional) `link:editorctl`: `build:editorctl && npm link`
+- Verify:
+  - `npm run build:editorctl`
+  - `npm link`
+  - `editorctl --help` works when run outside the repo directory.
+
 #### Phase 0: small supporting utilities
 
 - Add `lib/json-input.ts`
@@ -324,6 +389,7 @@ Update `docs/features/editorctl/editor-control.md`:
 - All successful outputs are JSON only.
 - All errors are JSON only, written to stderr, and exit codes remain stable.
 - Adding a new RPC method to `controlContract` makes it immediately available in `editorctl` without touching `scripts/editorctl/`.
+- After `npm link`, `editorctl` can be invoked from any directory on the machine.
 
 ---
 
