@@ -455,6 +455,7 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 								onToggleOpen={handleToggleOpen}
 								openedItems={openedItems}
 								itemToRename={itemToRename}
+								onRenameStart={startRename}
 								onRenameComplete={completeRename}
 							/>
 						)}

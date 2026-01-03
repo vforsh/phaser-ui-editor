@@ -754,6 +754,7 @@ export class MainScene extends BaseScene {
 		appCommands.on('reset-image-original-size', this.resetImageOriginalSize, this, false, signal)
 		appCommands.on('adjust-container-to-children-bounds', this.adjustContainerToChildrenBounds, this, false, signal)
 		appCommands.on('set-camera', this.setCamera, this, false, signal)
+		appCommands.on('focus-on-object', this.focusOnObject, this, false, signal)
 
 		appCommands.on('handle-asset-drop', this.handleAssetDrop, this, false, signal)
 
@@ -2358,6 +2359,40 @@ export class MainScene extends BaseScene {
 		}
 
 		this.onResizeOrCameraChange(this.scale.gameSize)
+	}
+
+	private focusOnObject(objId: string): void {
+		const obj = this.objectsFactory.getObjectById(objId)
+		if (!obj) {
+			return
+		}
+
+		const camera = this.cameras.main
+		const bounds = obj.getBounds()
+
+		const targetX = bounds.centerX
+		const targetY = bounds.centerY
+
+		let targetZoom = camera.zoom
+		if (bounds.width > 0 && bounds.height > 0) {
+			const padding = 0.2 // 20% padding
+			const availableWidth = camera.width * (1 - padding)
+			const availableHeight = camera.height * (1 - padding)
+			targetZoom = Math.min(availableWidth / bounds.width, availableHeight / bounds.height)
+			targetZoom = Math.min(targetZoom, 2) // Don't zoom in too much
+		}
+
+		this.tweens.add({
+			targets: camera,
+			zoom: targetZoom,
+			scrollX: targetX - camera.width / 2,
+			scrollY: targetY - camera.height / 2,
+			duration: 100,
+			ease: Phaser.Math.Easing.Cubic.Out,
+			onUpdate: () => {
+				this.onResizeOrCameraChange(this.scale.gameSize)
+			},
+		})
 	}
 
 	private onPointerGameOut(): void {}

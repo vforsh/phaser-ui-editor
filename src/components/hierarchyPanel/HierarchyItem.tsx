@@ -49,7 +49,8 @@ export interface HierarchyItemDragData {
 function createContextMenuItems(
 	obj: Snapshot<EditableObjectJson>,
 	appCommands: CommandEmitter<AppCommands>,
-	isRoot = false
+	isRoot = false,
+	onRenameStart: (objId: string) => void
 ): ContextMenuItemOptions[] {
 	let dividers = 1
 	const divider = () => {
@@ -126,7 +127,7 @@ function createContextMenuItems(
 			title: 'Rename',
 			icon: <TextCursorInput size={16} />,
 			onClick: () => {
-				console.log(`rename`, unproxy(obj))
+				onRenameStart(obj.id)
 			},
 		},
 		{
@@ -215,6 +216,7 @@ interface HierarchyItemProps {
 	onToggleOpen?: (objId: string) => void
 	openedItems: Set<string>
 	itemToRename: string | null
+	onRenameStart: (objId: string) => void
 	onRenameComplete: (objId: string, newName: string) => void
 }
 
@@ -231,6 +233,7 @@ export default function HierarchyItem({
 	onToggleOpen,
 	openedItems,
 	itemToRename,
+	onRenameStart,
 	onRenameComplete,
 }: HierarchyItemProps) {
 	const appCommands = useAppCommands()
@@ -400,7 +403,7 @@ export default function HierarchyItem({
 		e.preventDefault()
 		e.stopPropagation()
 
-		const isValidName = /^[a-zA-Z0-9_-]+$/.test(editValue)
+		const isValidName = /^[a-zA-Z0-9_/._-]+$/.test(editValue)
 		if (!isValidName || editValue.trim() === '') {
 			return
 		}
@@ -424,7 +427,7 @@ export default function HierarchyItem({
 		setEditValue(e.target.value)
 	}
 
-	const isValidInput = /^[a-zA-Z0-9_-]+$/.test(editValue)
+	const isValidInput = /^[a-zA-Z0-9_/._-]+$/.test(editValue)
 
 	useEffect(() => {
 		if (itemToRename === objId) {
@@ -455,12 +458,15 @@ export default function HierarchyItem({
 				onMouseLeave={() => setIsHovered(false)}
 				onContextMenu={(e) => {
 					e.preventDefault()
-					const menuItems = createContextMenuItems(objState, appCommands, isRoot)
+					const menuItems = createContextMenuItems(objState, appCommands, isRoot, onRenameStart)
 					const menuOptions: ContextMenuOptions = { style: { width: 200 } }
 					showContextMenu(menuItems, menuOptions)(e)
 					appCommands.emit('select-object', objId)
 				}}
 				onClick={handleClick}
+				onDoubleClick={() => {
+					appCommands.emit('focus-on-object', objId)
+				}}
 				className={clsx(styles.itemContainer, {
 					[styles.itemSelected]: isSelectedInCanvas,
 					[styles.itemHovered]: isHoverActive,
@@ -580,6 +586,7 @@ export default function HierarchyItem({
 								onToggleOpen={onToggleOpen}
 								openedItems={openedItems}
 								itemToRename={itemToRename}
+								onRenameStart={onRenameStart}
 								onRenameComplete={onRenameComplete}
 							/>
 						)
