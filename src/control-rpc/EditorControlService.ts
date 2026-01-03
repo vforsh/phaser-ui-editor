@@ -1,16 +1,35 @@
+import path from 'path-browserify-esm'
 import { P, match } from 'ts-pattern'
 import { AppCommandsEmitter } from '../AppCommands'
 import type { EditableContainerJson } from '../components/canvas/phaser/scenes/main/objects/EditableContainer'
 import type { EditableObjectJson } from '../components/canvas/phaser/scenes/main/objects/EditableObject'
 import { openProjectByPath } from '../project/open-project'
 import { state, unproxy } from '../state/State'
-import path from 'path-browserify-esm'
 import type { AssetTreeItemData } from '../types/assets'
 import { getAssetById, getAssetsOfType } from '../types/assets'
+import type { deleteObjectsCommand } from './api/commands/delete-objects'
+import type { getAssetInfoCommand } from './api/commands/get-asset-info'
+import type { getProjectInfoCommand } from './api/commands/get-project-info'
+import type { listAssetsCommand } from './api/commands/list-assets'
+import type { listEditorsCommand } from './api/commands/list-editors'
+import type { listHierarchyCommand } from './api/commands/list-hierarchy'
+import type { openPrefabCommand } from './api/commands/open-prefab'
+import type { openProjectCommand } from './api/commands/open-project'
+import type { selectObjectCommand } from './api/commands/select-object'
+import type { switchToContextCommand } from './api/commands/switch-to-context'
 import type { AssetNode, AssetType, ControlInput, ControlOutput, HierarchyNode } from './api/ControlApi'
 
+/**
+ * Represents a single segment in a hierarchy path (e.g., "Main/Container[1]").
+ */
 type PathSegment = {
+	/**
+	 * The name of the object.
+	 */
 	name: string
+	/**
+	 * The zero-based index of the object among siblings with the same name.
+	 */
 	index: number
 }
 
@@ -30,15 +49,9 @@ export class EditorControlService {
 		this.appCommands = appCommands
 	}
 
-	/**
-	 * Opens a prefab for editing.
-	 *
-	 * Accepts either:
-	 * - `params.assetId` (preferred), or
-	 * - `params.path` (resolved against currently known prefab assets).
-	 *
-	 * @throws If neither `assetId` nor a resolvable `path` is provided.
-	 */
+	// #region Commands
+
+	/** @see {@link openPrefabCommand} */
 	async openPrefab(params: ControlInput<'open-prefab'>): Promise<ControlOutput<'open-prefab'>> {
 		const assetId = match(params)
 			.with({ assetId: P.string }, ({ assetId }) => assetId)
@@ -53,12 +66,7 @@ export class EditorControlService {
 		return { success: true }
 	}
 
-	/**
-	 * Opens a project by filesystem path.
-	 *
-	 * @throws If `params.path` is missing.
-	 * @throws If the project could not be opened.
-	 */
+	/** @see {@link openProjectCommand} */
 	async openProject(params: ControlInput<'open-project'>): Promise<ControlOutput<'open-project'>> {
 		if (!params.path) {
 			throw new Error('open-project requires a path')
@@ -72,11 +80,7 @@ export class EditorControlService {
 		return { success: true }
 	}
 
-	/**
-	 * Returns detailed information about the currently open project.
-	 *
-	 * @throws If no project is currently open.
-	 */
+	/** @see {@link getProjectInfoCommand} */
 	async getProjectInfo(): Promise<ControlOutput<'get-project-info'>> {
 		if (!state.project || !state.projectDir) {
 			throw new Error('no project is open')
@@ -88,11 +92,7 @@ export class EditorControlService {
 		}
 	}
 
-	/**
-	 * Returns the current prefab hierarchy as a JSON tree.
-	 *
-	 * @throws If no prefab is currently open.
-	 */
+	/** @see {@link listHierarchyCommand} */
 	async listHierarchy(): Promise<ControlOutput<'list-hierarchy'>> {
 		const root = state.canvas.root
 		if (!root) {
@@ -102,14 +102,7 @@ export class EditorControlService {
 		return buildHierarchyNode(root)
 	}
 
-	/**
-	 * Returns the current project's asset tree.
-	 *
-	 * Supports optional filtering by asset `type`. When filtering is used, this returns a pruned tree:
-	 * nodes are kept if they match the filter or if they contain matching descendants.
-	 *
-	 * @throws If no project is currently open.
-	 */
+	/** @see {@link listAssetsCommand} */
 	async listAssets(params: ControlInput<'list-assets'>): Promise<ControlOutput<'list-assets'>> {
 		if (!state.projectDir) {
 			throw new Error('no project is open')
@@ -128,37 +121,21 @@ export class EditorControlService {
 		return { assets: filtered }
 	}
 
-	/**
-	 * Selects an object in the editor by `id` or by a hierarchy `path`.
-	 *
-	 * @throws If neither `id` nor `path` is provided.
-	 * @throws If no prefab is currently open when resolving by path.
-	 * @throws If the object cannot be found for the provided path.
-	 */
+	/** @see {@link selectObjectCommand} */
 	async selectObject(params: ControlInput<'select-object'>): Promise<ControlOutput<'select-object'>> {
 		const id = this.resolveObjectId(params)
 		this.appCommands.emit('select-object', id)
 		return { success: true }
 	}
 
-	/**
-	 * Switches the editor "context" to a container/object by `id` or hierarchy `path`.
-	 *
-	 * @throws If neither `id` nor `path` is provided.
-	 * @throws If no prefab is currently open when resolving by path.
-	 * @throws If the object cannot be found for the provided path.
-	 */
+	/** @see {@link switchToContextCommand} */
 	async switchToContext(params: ControlInput<'switch-to-context'>): Promise<ControlOutput<'switch-to-context'>> {
 		const id = this.resolveObjectId(params)
 		this.appCommands.emit('switch-to-context', id)
 		return { success: true }
 	}
 
-	/**
-	 * Deletes one or more objects by id.
-	 *
-	 * @throws If `params.ids` is missing or empty.
-	 */
+	/** @see {@link deleteObjectsCommand} */
 	async deleteObjects(params: ControlInput<'delete-objects'>): Promise<ControlOutput<'delete-objects'>> {
 		if (!Array.isArray(params.ids) || params.ids.length === 0) {
 			throw new Error('delete-objects requires a non-empty ids array')
@@ -168,13 +145,7 @@ export class EditorControlService {
 		return { success: true }
 	}
 
-	/**
-	 * Returns detailed information about an asset by `id` or project-relative `path`.
-	 *
-	 * @throws If neither `id` nor `path` is provided.
-	 * @throws If no project is currently open.
-	 * @throws If the asset cannot be found.
-	 */
+	/** @see {@link getAssetInfoCommand} */
 	async getAssetInfo(params: ControlInput<'get-asset-info'>): Promise<ControlOutput<'get-asset-info'>> {
 		if (!state.projectDir) {
 			throw new Error('no project is open')
@@ -199,24 +170,13 @@ export class EditorControlService {
 		return normalizeAssetPaths(unproxy(assetData) as AssetTreeItemData, state.projectDir)
 	}
 
-	/**
-	 * Returns a list of active editors.
-	 *
-	 * Note: this method is normally intercepted by the main process for external RPC.
-	 * In the renderer, it is not implemented as discovery is a main-process responsibility.
-	 */
+	/** @see {@link listEditorsCommand} */
 	async listEditors(): Promise<ControlOutput<'list-editors'>> {
 		throw new Error('list-editors is only available via the external control RPC')
 	}
 
-	/**
-	 * Resolves an object id either directly (`params.id`) or by searching the currently open
-	 * prefab tree using a hierarchy `path`.
-	 *
-	 * @throws If neither `id` nor `path` is provided.
-	 * @throws If no prefab is currently open.
-	 * @throws If the object cannot be found for the provided path.
-	 */
+	// #endregion Commands
+
 	private resolveObjectId(params: ControlInput<'select-object'> | ControlInput<'switch-to-context'>): string {
 		const id = match(params)
 			.with({ id: P.string }, ({ id }) => id)
@@ -236,11 +196,6 @@ export class EditorControlService {
 		return id
 	}
 
-	/**
-	 * Converts a prefab asset path into an asset id by searching known prefab assets.
-	 *
-	 * Note: returns `undefined` when no asset matches the provided path.
-	 */
 	private resolvePrefabIdByPath(prefabPath: string): string | undefined {
 		const prefabAssets = getAssetsOfType(state.assets.items, 'prefab')
 		const asset = prefabAssets.find((item) => item.path === prefabPath)
@@ -291,7 +246,9 @@ function normalizeAssetPaths(asset: AssetTreeItemData, projectDir: string): Asse
 			path: toProjectRelativePath(spritesheetFolder.path, projectDir),
 			imagePath: toProjectRelativePath(spritesheetFolder.imagePath, projectDir),
 			jsonPath: toProjectRelativePath(spritesheetFolder.jsonPath, projectDir),
-			project: spritesheetFolder.project ? toProjectRelativePath(spritesheetFolder.project, projectDir) : undefined,
+			project: spritesheetFolder.project
+				? toProjectRelativePath(spritesheetFolder.project, projectDir)
+				: undefined,
 			children: spritesheetFolder.children.map((child) => normalizeAssetPaths(child, projectDir)) as AssetNode[],
 		}))
 		.with({ type: 'spritesheet-frame' }, (spritesheetFrame) => ({
