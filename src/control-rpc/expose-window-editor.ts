@@ -1,5 +1,5 @@
 import type { AppCommandsEmitter } from '../AppCommands'
-import { EditorControlService } from './EditorControlService'
+import { EditorControlService } from './service/EditorControlService'
 import type { ControlInput, ControlMethod, ControlOutput } from './api/ControlApi'
 
 /**
@@ -15,18 +15,19 @@ export type WindowEditorApi = {
 
 export function exposeWindowEditor(appCommands: AppCommandsEmitter): void {
 	const service = new EditorControlService(appCommands)
+	const handlers = service.handlers
 
 	const editor: WindowEditorApi = {
-		openProject: (params) => service.openProject(params),
-		getProjectInfo: () => service.getProjectInfo(),
-		openPrefab: (params) => service.openPrefab(params),
-		listHierarchy: () => service.listHierarchy(),
-		listAssets: (params) => service.listAssets(params ?? {}),
-		selectObject: (params) => service.selectObject(params),
-		switchToContext: (params) => service.switchToContext(params),
-		deleteObjects: (params) => service.deleteObjects(params),
-		getAssetInfo: (params) => service.getAssetInfo(params),
-		listEditors: () => service.listEditors(),
+		openProject: (params) => handlers.openProject(params),
+		getProjectInfo: (params) => handlers.getProjectInfo(params ?? {}),
+		openPrefab: (params) => handlers.openPrefab(params),
+		listHierarchy: (params) => handlers.listHierarchy(params ?? {}),
+		listAssets: (params) => handlers.listAssets(params ?? {}),
+		selectObject: (params) => handlers.selectObject(params),
+		switchToContext: (params) => handlers.switchToContext(params),
+		deleteObjects: (params) => handlers.deleteObjects(params),
+		getAssetInfo: (params) => handlers.getAssetInfo(params),
+		listEditors: (params) => handlers.listEditors(params ?? {}),
 	}
 
 	window.editor = editor

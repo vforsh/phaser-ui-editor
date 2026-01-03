@@ -64,7 +64,7 @@ Path: `src/control-rpc/renderer-rpc.ts`
 Responsibilities:
 
 - In dev (`import.meta.env.DEV`), listens for `window.controlIpc` requests.
-- Dispatches them to `EditorControlService`.
+- Dispatches them to `EditorControlService.handlers` using a generic method lookup.
 - Sends JSON-RPC responses back to main via `window.controlIpc.sendRpcResponse`.
 
 Error handling (current behavior):
@@ -79,17 +79,18 @@ Path: `src/control-rpc/expose-window-editor.ts` (wired in `src/App.tsx`)
 
 Responsibilities:
 
-- In dev (`import.meta.env.DEV`), exposes `window.editor.*` methods that call `EditorControlService` directly (no WS/IPC).
+- In dev (`import.meta.env.DEV`), exposes `window.editor.*` methods that call `EditorControlService.handlers` directly (no WS/IPC).
 
 ### Command translation layer: `EditorControlService`
 
-Path: `src/control-rpc/EditorControlService.ts`
+Path: `src/control-rpc/service/EditorControlService.ts`
 
 This is the **“thin waist”**:
 
-- Validates parameters / resolves ids (e.g. “id or path must be provided”).
-- Translates external requests into **internal command bus events** via `appCommands.emit(...)`.
-- In a few cases, calls internal application functions directly (e.g. `openProjectByPath`).
+- Provides a `handlers` map that is required to satisfy the full `ControlApi` contract.
+- Each handler validates parameters / resolves ids (e.g. “id or path must be provided”).
+- Handlers translate external requests into **internal command bus events** via `appCommands.emit(...)`.
+- In a few cases, handlers call internal application functions directly (e.g. `openProjectByPath`).
 
 ## How the parts interact
 
@@ -169,29 +170,31 @@ File: `src/control-rpc/api/ControlApi.ts`
 
 Why: both main and renderer validate incoming requests using this contract, and all types are derived from it.
 
-### 3) Implement the behavior in `EditorControlService`
+### 3) Implement the behavior in a handler module
 
-File: `src/control-rpc/EditorControlService.ts`
+Files:
 
-- Add a method like `duplicateObject(params: ...)`.
-- Use **guard clauses** (return early / throw early) for validation.
-- Translate the request into internal actions:
-  - Prefer `this.appCommands.emit('<internal-command>', payload)` when the app already has a command.
-  - Otherwise call a well-scoped internal function directly (as `openProjectByPath` does).
+- Add a new handler module in `src/control-rpc/service/handlers/` (flat files).
+- Export a `createHandlers(ctx)` function that returns `{ yourMethod: async (params) => ... }`.
 
-### 4) Wire the WS bridge handler in `src/control-rpc/renderer-rpc.ts`
+Use **guard clauses** (return early / throw early) for validation.
+Translate the request into internal actions:
 
-File: `src/control-rpc/renderer-rpc.ts`
+- Prefer `ctx.appCommands.emit('<internal-command>', payload)` when the app already has a command.
+- Otherwise call a well-scoped internal function directly (as `openProjectByPath` does).
 
-- Add a `case '<your-method>'` to `handleRpcRequest`.
-- Call your new `EditorControlService` method.
-- Return the contract-shaped result (usually `{ success: true }` for commands, data for queries).
+### 4) Add your handler to the service assembly
+
+File: `src/control-rpc/service/EditorControlService.ts`
+
+- Import your handler module and spread it into the handler map.
+- The `satisfies ControlApi` check ensures new contract methods cannot be missed.
 
 ### 5) Expose it on `window.editor` (optional but recommended for dev)
 
 File: `src/control-rpc/expose-window-editor.ts`
 
-- Add `window.editor.<yourMethodCamelCase> = (params) => service.<yourMethodCamelCase>(params)`
+- Add `window.editor.<yourMethodCamelCase> = (params) => handlers.<yourMethodCamelCase>(params)`
 
 Also update typings:
 
@@ -201,7 +204,7 @@ Also update typings:
 
 No extra work needed beyond the control contract:
 
-- `scripts/editorctl/lib/rpc/types.ts` imports from `src/control-rpc/contract.ts`.
+- `scripts/editorctl/lib/rpc/types.ts` imports from `src/control-rpc/api/ControlApi.ts`.
 - `editorctl` will pick up new types automatically.
 
 ### 7) Add the CLI command in `scripts/editorctl/`

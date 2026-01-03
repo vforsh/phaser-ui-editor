@@ -1,10 +1,9 @@
 import { useEffect, useMemo } from 'react'
-import { match } from 'ts-pattern'
 import type { AppCommandsEmitter } from '../AppCommands'
 import { logger } from '../logs/logs'
 import { state, subscribe } from '../state/State'
-import { EditorControlService } from './EditorControlService'
-import { controlContract, type ControlInput } from './api/ControlApi'
+import { EditorControlService } from './service/EditorControlService'
+import { controlContract, type ControlInput, type ControlMethod, type ControlOutput } from './api/ControlApi'
 import { ERR_INVALID_RPC_RESPONSE, JSONRPC_INTERNAL_ERROR } from './jsonrpc-errors'
 import { validateControlRequest } from './jsonrpc-validate'
 import { createJsonRpcError, createJsonRpcResult, JsonRpcRequest, JsonRpcResponse } from './rpc'
@@ -78,20 +77,7 @@ function handleRpcRequest(
 
 		rpcLogger.info({ traceId, method, phase: 'exec-start' })
 
-		const result = await scheduler.schedule(method, async () =>
-			match(method)
-				.with('openProject', (_m) => service.openProject(input as ControlInput<typeof _m>))
-				.with('getProjectInfo', () => service.getProjectInfo())
-				.with('openPrefab', (_m) => service.openPrefab(input as ControlInput<typeof _m>))
-				.with('listHierarchy', () => service.listHierarchy())
-				.with('listAssets', (_m) => service.listAssets(input as ControlInput<typeof _m>))
-				.with('selectObject', (_m) => service.selectObject(input as ControlInput<typeof _m>))
-				.with('switchToContext', (_m) => service.switchToContext(input as ControlInput<typeof _m>))
-				.with('deleteObjects', (_m) => service.deleteObjects(input as ControlInput<typeof _m>))
-				.with('getAssetInfo', (_m) => service.getAssetInfo(input as ControlInput<typeof _m>))
-				.with('listEditors', () => service.listEditors())
-				.exhaustive()
-		)
+		const result = await scheduler.schedule(method, async () => callHandler(service, method, input))
 
 		const durationMs = Date.now() - start
 		rpcLogger.info({ traceId, method, phase: 'exec-end', durationMs, ok: true })
@@ -120,4 +106,12 @@ function handleRpcRequest(
 		rpcLogger.error({ traceId, method, phase: 'error', code: JSONRPC_INTERNAL_ERROR, message })
 		return errorResponse
 	})
+}
+
+function callHandler<M extends ControlMethod>(
+	service: EditorControlService,
+	method: M,
+	input: ControlInput<M>
+): Promise<ControlOutput<M>> {
+	return service.handlers[method](input)
 }
