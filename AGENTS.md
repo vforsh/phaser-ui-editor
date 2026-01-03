@@ -17,8 +17,6 @@ phaser-ui-editor-worktrees/
   - Use `git worktree list` to see all linked worktrees.
   - Prefer short, unique directory names (branch/ticket), because the folder name becomes the “human” identity of that worktree.
   - When asked to create a new branch/worktree, use names like `feature/some-concise-desc` where the suffix is **kebab-case** and **~3–5 words max**. Common prefixes: `feature/`, `bugfix/`, `docs/` (e.g. `feature/dom-based-rulers`, `bugfix/inspector-zod-parse`, `docs/editorctl-overview`).
-  - Use `/Users/vlad/dev/papa-cherry-2` (has `project.json5`) as the default **testbed project** for testing editor functionality. To open it via `editorctl`, use:
-    - `npm run editorctl -- call openProject '{"path":"/Users/vlad/dev/papa-cherry-2"}'`
 - After creating a new worktree, run `npm ci` inside that worktree (each worktree has its own `node_modules`).
 - Use `fnm` to switch to the Node version specified in `package.json` before installing deps or running scripts.
 
@@ -34,3 +32,58 @@ wt switch <branch>        # jump to existing worktree for branch
 wt switch -c <branch>     # create branch + worktree, then switch
 wt remove                 # remove current worktree (and typically its branch)
 ```
+
+## Running & testing the editor (agent workflow)
+
+When implementing features that need runtime verification (Canvas/Hierarchy/Inspector behaviors, control RPC, etc.), use the running desktop editor instance and drive it via `editorctl`.
+
+Docs: [`docs/features/editorctl/editorctl.md`](./docs/features/editorctl/editorctl.md)
+
+### 1) Discover running editor instances (required first step)
+
+Run:
+
+```bash
+npm run editorctl -- listEditors
+```
+
+### 2) If no editor is running, start one
+
+If `listEditors` returns an empty list (no `editors`), start the editor:
+
+```bash
+npm start
+```
+
+Wait until the terminal prints a line like:
+
+```text
+[control-rpc] ws://127.0.0.1:<port>
+```
+
+Then run `npm run editorctl -- listEditors` again.
+
+### 3) Choose the correct instance
+
+If multiple entries are returned, select the correct one by:
+
+- **`projectPath`**: ensure it matches the project you intend to test (default testbed: `/Users/vlad/dev/papa-cherry-2`)
+- **`appLaunchDir`**: ensure it matches the worktree/checkout you are working in
+
+### 4) Send commands to the discovered port
+
+Almost no commands will work unless a project is open in that editor instance.
+
+Use `/Users/vlad/dev/papa-cherry-2` (has `project.json5`) as the default **testbed project** for testing editor functionality:
+
+```bash
+npm run editorctl -- --port <wsPort> call openProject '{"path":"/Users/vlad/dev/papa-cherry-2"}'
+```
+
+Use the discovered **`wsPort`** for subsequent calls:
+
+```bash
+npm run editorctl -- --port <wsPort> call <method> '<json-params>'
+```
+
+Tip: use `projectPath` from `listEditors` to confirm the project is actually open.
