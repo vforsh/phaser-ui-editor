@@ -379,6 +379,14 @@ export class MainScene extends BaseScene {
 			id: this.initData.prefabAsset.id,
 			name: this.initData.prefabAsset.name,
 		}
+		state.canvas.recentPrefabs = [
+			{
+				assetId: this.initData.prefabAsset.id,
+				name: this.initData.prefabAsset.name,
+				lastOpenedAt: Date.now(),
+			},
+			...state.canvas.recentPrefabs.filter((prefab) => prefab.assetId !== this.initData.prefabAsset.id),
+		].slice(0, 5)
 
 		this.initAligner()
 

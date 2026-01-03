@@ -47,6 +47,15 @@ export const stateSchema = z.object({
 	canvas: z.object({
 		hasUnsavedChanges: z.boolean().default(false),
 		lastOpenedPrefabAssetId: z.string().optional(),
+		recentPrefabs: z
+			.array(
+				z.object({
+					assetId: z.string(),
+					name: z.string(),
+					lastOpenedAt: z.number().int().positive(),
+				})
+			)
+			.default([]),
 		currentPrefab: z
 			.object({
 				id: z.string(),
@@ -102,6 +111,7 @@ const initialStateParsed = merge(
 		},
 		canvas: {
 			hasUnsavedChanges: false,
+			recentPrefabs: [],
 			camera: {
 				zoom: 1,
 				scrollX: 0,

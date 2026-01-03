@@ -1,8 +1,9 @@
-import { Center, Text } from '@mantine/core'
-import { useMemo, useRef, useState } from 'react'
+import { Badge, Button, Center, Group, Loader, Overlay, Paper, Stack, Text, ThemeIcon } from '@mantine/core'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Cuboid } from 'lucide-react'
 import { useAppCommands, useAppEvents, useUndoHub } from '../../di/DiContext'
-import { state, useSnapshot } from '../../state/State'
-import { isDraggableAsset, type AssetTreeItemData } from '../../types/assets'
+import { State, state, useSnapshot } from '../../state/State'
+import { getAssetsOfType, isDraggableAsset, type AssetTreeItemData } from '../../types/assets'
 import AlignmentControls from './AlignmentControls'
 import { Canvas } from './Canvas'
 
@@ -21,6 +22,36 @@ export default function CanvasContainer() {
 	const appEvents = useAppEvents()
 	const appCommands = useAppCommands()
 	const undoHub = useUndoHub()
+	const [overlayReady, setOverlayReady] = useState(false)
+	const [showOpeningLastPrefab, setShowOpeningLastPrefab] = useState(false)
+
+	const projectOpen = Boolean(snap.project)
+	const prefabOpen = Boolean(snap.canvas.currentPrefab)
+	const lastOpenedPrefabAssetId = snap.canvas.lastOpenedPrefabAssetId
+	const prefabAssets = getAssetsOfType(snap.assets.items as State['assets']['items'], 'prefab')
+	const hasAnyPrefabs = prefabAssets.length > 0
+	const prefabAssetIds = new Set(prefabAssets.map((prefab) => prefab.id))
+	const recentPrefabs = snap.canvas.recentPrefabs.filter((prefab) => prefabAssetIds.has(prefab.assetId))
+
+	useEffect(() => {
+		if (projectOpen && !prefabOpen) {
+			setOverlayReady(false)
+			const timer = window.setTimeout(() => setOverlayReady(true), 200)
+			return () => window.clearTimeout(timer)
+		}
+		setOverlayReady(false)
+		return undefined
+	}, [projectOpen, prefabOpen])
+
+	useEffect(() => {
+		if (projectOpen && !prefabOpen && lastOpenedPrefabAssetId) {
+			setShowOpeningLastPrefab(true)
+			const timer = window.setTimeout(() => setShowOpeningLastPrefab(false), 1500)
+			return () => window.clearTimeout(timer)
+		}
+		setShowOpeningLastPrefab(false)
+		return undefined
+	}, [projectOpen, prefabOpen, lastOpenedPrefabAssetId, snap.projectDir])
 
 	const handleDragOver = (e: React.DragEvent) => {
 		e.preventDefault()
@@ -158,6 +189,94 @@ export default function CanvasContainer() {
 						Drop image here
 					</Text>
 				</Center>
+			)}
+
+			{projectOpen && !prefabOpen && (showOpeningLastPrefab || overlayReady) && (
+				<Overlay
+					opacity={0.6}
+					color="#0b0b0b"
+					zIndex={10}
+					style={{ pointerEvents: 'auto' }}
+					onClick={() => snap.assets.focusPanel?.()}
+				>
+					<Center h="100%">
+						<Paper radius="md" p="lg" shadow="md" withBorder>
+							<Stack gap="md" align="center">
+								<ThemeIcon size={44} radius="xl" variant="light">
+									<Cuboid size={24} />
+								</ThemeIcon>
+
+								{showOpeningLastPrefab ? (
+									<Stack gap={6} align="center">
+										<Text fw={600} size="lg">
+											Opening last prefab...
+										</Text>
+										<Text c="dimmed" ta="center">
+											Loading the last opened prefab for this project.
+										</Text>
+										<Loader size="sm" />
+									</Stack>
+								) : !hasAnyPrefabs ? (
+									<Stack gap={6} align="center">
+										<Text fw={600} size="lg">
+											No prefabs found
+										</Text>
+										<Text c="dimmed" ta="center">
+											Create one in Assets / Create / Prefab.
+										</Text>
+										<Group gap="xs">
+											<Badge variant="light">Tip</Badge>
+											<Text size="sm" c="dimmed">
+												Right-click in Assets / Create / Prefab
+											</Text>
+										</Group>
+									</Stack>
+								) : (
+									<Stack gap="md" align="center">
+										<Stack gap={6} align="center">
+											<Text fw={600} size="lg">
+												No prefab opened
+											</Text>
+											<Text c="dimmed" ta="center">
+												Open a prefab from the Assets panel by double-clicking a{' '}
+												<Text span fw={600}>
+													Prefab
+												</Text>
+												.
+											</Text>
+											<Group gap="xs">
+												<Badge variant="light">Tip</Badge>
+												<Text size="sm" c="dimmed">
+													Double-click a Prefab asset in Assets
+												</Text>
+											</Group>
+										</Stack>
+
+										{recentPrefabs.length > 0 && (
+											<Stack gap="xs" align="center">
+												<Text size="sm" c="dimmed">
+													Recent prefabs
+												</Text>
+												<Group gap="xs">
+													{recentPrefabs.slice(0, 5).map((prefab) => (
+														<Button
+															key={prefab.assetId}
+															variant="light"
+															size="xs"
+															onClick={() => appCommands.emit('open-prefab', prefab.assetId)}
+														>
+															{prefab.name}
+														</Button>
+													))}
+												</Group>
+											</Stack>
+										)}
+									</Stack>
+								)}
+							</Stack>
+						</Paper>
+					</Center>
+				</Overlay>
 			)}
 		</div>
 	)
