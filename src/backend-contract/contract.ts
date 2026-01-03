@@ -73,6 +73,8 @@ export const webFontParsedSchema = z.object({
 	characterSet: z.array(z.number()),
 })
 
+export type WebFontParsed = z.infer<typeof webFontParsedSchema>
+
 export const backendContract = {
 	globby: {
 		input: z.object({ patterns: z.array(z.string()), options: globbyOptionsSchema }),

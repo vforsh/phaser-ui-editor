@@ -79,6 +79,8 @@ export type AssetTreeWebFontData = {
 	fontFamily: string
 	name: string
 	path: string
+	fullName?: string
+	subfamilyName?: string
 }
 
 export type AssetTreeBitmapFontData = {

@@ -105,7 +105,7 @@ export function AssetPicker({
 function getAssetLabel(asset: AssetTreeItemData) {
 	return match(asset)
 		.with({ type: 'bitmap-font' }, (asset) => asset.name)
-		.with({ type: 'web-font' }, (asset) => asset.fontFamily)
+		.with({ type: 'web-font' }, (asset) => asset.fullName || asset.fontFamily)
 		.with({ type: 'spritesheet-frame' }, (asset) => asset.pathInHierarchy)
 		.otherwise(() => asset.name)
 }

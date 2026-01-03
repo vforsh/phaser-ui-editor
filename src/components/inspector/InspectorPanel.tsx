@@ -14,6 +14,7 @@ import { InspectorSection, InspectorSectionDef } from './InspectorSection'
 import { NoSelection } from './NoSelection'
 import { AssetSection } from './sections/assets/AssetSection'
 import { BitmapFontSection } from './sections/assets/BitmapFontSection'
+import { WebFontSection } from './sections/assets/WebFontSection'
 import { GraphicAssetPreviewSection } from './sections/assets/GraphicAssetPreviewSection'
 import { AddComponentButton } from './sections/components/AddComponentButton'
 import { ComponentSection } from './sections/components/ComponentSection'
@@ -301,6 +302,18 @@ function getAssetSections(item: AssetTreeItemData): InspectorSectionDef[] {
 					content: <BitmapFontSection data={bitmapFont} />,
 					defaultExpanded: true,
 				},
+			]
+		})
+		.with({ type: 'web-font' }, (webFont) => {
+			return [
+				{
+					type: 'asset-web-font',
+					title: 'Web Font',
+					icon: Type,
+					data: webFont,
+					content: <WebFontSection data={webFont} />,
+					defaultExpanded: true,
+				} satisfies InspectorSectionDef,
 			]
 		})
 		.otherwise(() => [])

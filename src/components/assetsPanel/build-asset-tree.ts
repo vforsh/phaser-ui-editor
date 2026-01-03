@@ -466,6 +466,8 @@ const doBuildAssetTree = async (
 					const webFont: AssetTreeWebFontData = addAssetId({
 						type: 'web-font',
 						fontFamily: webFontData.familyName,
+						fullName: webFontData.fullName,
+						subfamilyName: webFontData.subfamilyName,
 						name: fileTreeItem.name,
 						path: fileTreeItem.path,
 					})
