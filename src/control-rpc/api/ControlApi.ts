@@ -22,33 +22,33 @@ export type CommandDefinition<I extends z.ZodTypeAny = z.ZodTypeAny, O extends z
 	output: O
 }
 
-export { projectConfigSchema, type ProjectConfig } from './commands/get-project-info'
-export { assetNodeSchema, assetTypeSchema, type AssetNode, type AssetType } from './commands/list-assets'
-export { hierarchyNodeSchema, type HierarchyNode } from './commands/list-hierarchy'
+export { projectConfigSchema, type ProjectConfig } from './commands/getProjectInfo'
+export { assetNodeSchema, assetTypeSchema, type AssetNode, type AssetType } from './commands/listAssets'
+export { hierarchyNodeSchema, type HierarchyNode } from './commands/listHierarchy'
 export { successSchema } from './shared-schemas'
 
-import { deleteObjectsCommand } from './commands/delete-objects'
-import { getAssetInfoCommand } from './commands/get-asset-info'
-import { getProjectInfoCommand } from './commands/get-project-info'
-import { listAssetsCommand } from './commands/list-assets'
-import { listEditorsCommand } from './commands/list-editors'
-import { listHierarchyCommand } from './commands/list-hierarchy'
-import { openPrefabCommand } from './commands/open-prefab'
-import { openProjectCommand } from './commands/open-project'
-import { selectObjectCommand } from './commands/select-object'
-import { switchToContextCommand } from './commands/switch-to-context'
+import { deleteObjectsCommand } from './commands/deleteObjects'
+import { getAssetInfoCommand } from './commands/getAssetInfo'
+import { getProjectInfoCommand } from './commands/getProjectInfo'
+import { listAssetsCommand } from './commands/listAssets'
+import { listEditorsCommand } from './commands/listEditors'
+import { listHierarchyCommand } from './commands/listHierarchy'
+import { openPrefabCommand } from './commands/openPrefab'
+import { openProjectCommand } from './commands/openProject'
+import { selectObjectCommand } from './commands/selectObject'
+import { switchToContextCommand } from './commands/switchToContext'
 
 export const controlContract = {
-	'open-project': openProjectCommand,
-	'get-project-info': getProjectInfoCommand,
-	'open-prefab': openPrefabCommand,
-	'list-hierarchy': listHierarchyCommand,
-	'list-assets': listAssetsCommand,
-	'select-object': selectObjectCommand,
-	'switch-to-context': switchToContextCommand,
-	'delete-objects': deleteObjectsCommand,
-	'get-asset-info': getAssetInfoCommand,
-	'list-editors': listEditorsCommand,
+	openProject: openProjectCommand,
+	getProjectInfo: getProjectInfoCommand,
+	openPrefab: openPrefabCommand,
+	listHierarchy: listHierarchyCommand,
+	listAssets: listAssetsCommand,
+	selectObject: selectObjectCommand,
+	switchToContext: switchToContextCommand,
+	deleteObjects: deleteObjectsCommand,
+	getAssetInfo: getAssetInfoCommand,
+	listEditors: listEditorsCommand,
 } as const
 
 /**

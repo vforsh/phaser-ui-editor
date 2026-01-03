@@ -1,11 +1,11 @@
 import { Command } from 'commander'
 import { match } from 'ts-pattern'
-import type { AssetNode } from '../../../src/control-rpc/contract'
+import type { AssetNode } from '../../../src/control-rpc/api/ControlApi'
 import { Ctx } from '../lib/context'
 
 export function register(program: Command, ctx: Ctx) {
 	program
-		.command('list-assets')
+		.command('listAssets')
 		.description('List the current project asset tree')
 		.option(
 			'--type <type>',
@@ -15,7 +15,7 @@ export function register(program: Command, ctx: Ctx) {
 		)
 		.action(async (options: { type: string[] }) => {
 			const params = options.type.length > 0 ? { types: options.type } : {}
-			const result = await ctx.rpc.request('list-assets', params as any)
+			const result = await ctx.rpc.request('listAssets', params as any)
 
 			if (ctx.config.outputMode === 'json') {
 				ctx.output.printJson(result)
@@ -73,4 +73,3 @@ function flattenAssets(roots: AssetNode[]): FlatAssetNode[] {
 
 	return output
 }
-

@@ -4,10 +4,10 @@ import { Ctx } from '../lib/context'
 
 export function register(program: Command, ctx: Ctx) {
 	program
-		.command('hierarchy')
+		.command('listHierarchy')
 		.description('List the current hierarchy')
 		.action(async () => {
-			const result = await ctx.rpc.request('list-hierarchy', {})
+			const result = await ctx.rpc.request('listHierarchy', {})
 
 			if (ctx.config.outputMode === 'json') {
 				ctx.output.printJson(result)

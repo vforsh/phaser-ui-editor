@@ -129,7 +129,7 @@ export class ControlRpcServer {
 		const { request, traceId } = validation
 		this.logger.info({ traceId, method: request.method, phase: 'recv' })
 
-		if (request.method === 'list-editors') {
+		if (request.method === 'listEditors') {
 			const editors = editorRegistry.getEditors()
 			this.sendJson(ws, createJsonRpcResult(request.id, { editors }))
 			this.logger.info({ traceId, method: request.method, phase: 'reply', ok: true })

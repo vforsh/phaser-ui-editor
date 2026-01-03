@@ -122,36 +122,36 @@ In dev, Electron main starts a local WS server:
 - `ws://127.0.0.1:17870` (default)
 - Override with `EDITOR_CONTROL_WS_PORT=<port>`
 
-Methods (JSON-RPC 2.0, kebab-case):
+Methods (JSON-RPC 2.0, camelCase):
 
-- `open-project`
-- `open-prefab`
-- `list-hierarchy`
-- `select-object`
-- `switch-to-context`
-- `delete-objects`
+- `openProject`
+- `openPrefab`
+- `listHierarchy`
+- `selectObject`
+- `switchToContext`
+- `deleteObjects`
 
 ### CLI (`editorctl`)
 
 ```bash
 # List hierarchy (prints JSON)
-npm run editorctl -- hierarchy
+npm run editorctl -- listHierarchy
 
 # Open prefab
-npm run editorctl -- open-prefab --asset-id <id>
-npm run editorctl -- open-prefab --path /abs/path/to/prefab.prefab
+npm run editorctl -- openPrefab --asset-id <id>
+npm run editorctl -- openPrefab --path /abs/path/to/prefab.prefab
 
 # Open project
-npm run editorctl -- open-project --path /abs/path/to/project
+npm run editorctl -- openProject --path /abs/path/to/project
 
 # Select / switch context
-npm run editorctl -- select --id <id>
-npm run editorctl -- select --path root/menu/playButton
-npm run editorctl -- switch-context --id <id>
-npm run editorctl -- switch-context --path root/menu
+npm run editorctl -- selectObject --id <id>
+npm run editorctl -- selectObject --path root/menu/playButton
+npm run editorctl -- switchToContext --id <id>
+npm run editorctl -- switchToContext --path root/menu
 
 # Delete
-npm run editorctl -- delete --ids id1,id2,id3
+npm run editorctl -- deleteObjects --ids id1,id2,id3
 ```
 
 ## Documentation

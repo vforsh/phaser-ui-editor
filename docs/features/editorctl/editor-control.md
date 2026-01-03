@@ -4,7 +4,7 @@ This feature provides **external control of the running editor** by translating 
 
 There are **two entry points**:
 
-- **`editorctl` (CLI)**: Path: `scripts/editorctl/`. Uses `commander` to define CLI commands (e.g. `open-project`, `get-project-info`, `get-asset-info`, `hierarchy`, `select-object`).
+- **`editorctl` (CLI)**: Path: `scripts/editorctl/`. Uses `commander` to define CLI commands (e.g. `openProject`, `getProjectInfo`, `getAssetInfo`, `listHierarchy`, `selectObject`).
 - **WebSocket JSON-RPC (main process)**: external tools connect to Electron via `ws://127.0.0.1:<port>`, send JSON-RPC requests, and receive JSON-RPC responses.
 - **Window API (renderer)**: dev-only `window.editor.*` methods that call the same internal service directly (no IPC/WS).
 
@@ -23,7 +23,7 @@ Speaks **JSON-RPC 2.0** over WebSocket:
 
 Path: `scripts/editorctl/`
 
-- Uses `commander` to define CLI commands (e.g. `open-project`, `get-asset-info`, `hierarchy`, `select-object`).
+- Uses `commander` to define CLI commands (e.g. `openProject`, `getAssetInfo`, `listHierarchy`, `selectObject`).
 - Sends JSON-RPC over WebSocket using `WsTransport` (`scripts/editorctl/lib/transport/ws.ts`) and `RpcClient` (`scripts/editorctl/lib/rpc/client.ts`).
 - **Type source**: `scripts/editorctl/lib/rpc/types.ts` imports types from `src/control-rpc/contract.ts`.
 
@@ -130,42 +130,42 @@ sequenceDiagram
 
 ### External naming convention
 
-- **External methods are kebab-case** (e.g. `open-project`, `switch-to-context`).
-- Internally, `EditorControlService` typically emits the same string on the app command bus.
+- **External methods are camelCase** (e.g. `openProject`, `switchToContext`).
+- Internally, `EditorControlService` typically emits the same string (but kebab-case) on the app command bus.
 
 ### Where “truth” lives (single authority)
 
 There is now a **single control contract**:
 
-- `src/control-rpc/contract.ts`
+- `src/control-rpc/api/ControlApi.ts`
   - Defines Zod schemas for inputs/outputs (runtime validation).
   - Provides derived `ControlMethod` / `ControlInput` / `ControlOutput` types.
 
 All callers (main WS router, renderer bridge, `EditorControlService`, and `editorctl`) derive types from this contract.
 
-**Note:** `list-hierarchy` returns a **tree** (`HierarchyNode` with `children?`). `editorctl` flattens the tree only for human-readable table output; `--json` prints the raw tree.
+**Note:** `listHierarchy` returns a **tree** (`HierarchyNode` with `children?`). `editorctl` flattens the tree only for human-readable table output; `--json` prints the raw tree.
 
-**Note:** `list-assets` returns the **asset tree** (`AssetNode[]`). It supports optional filtering by type:
+**Note:** `listAssets` returns the **asset tree** (`AssetNode[]`). It supports optional filtering by type:
 
-- Request: `{"method":"list-assets","params":{"types":["prefab","folder"]}}`
+- Request: `{"method":"listAssets","params":{"types":["prefab","folder"]}}`
 - Response: `{ assets: [...] }` (a pruned tree: nodes are kept if they match the filter or contain matching descendants)
 
-Paths returned by `list-assets` are **project-relative** (relative to `projectDir`). For spritesheet frames/folders, `path` is a **virtual hierarchy path** used for display.
+Paths returned by `listAssets` are **project-relative** (relative to `projectDir`). For spritesheet frames/folders, `path` is a **virtual hierarchy path** used for display.
 
 ## How to add new command
 
 This checklist covers the end-to-end path: **external JSON-RPC → main WS router → renderer bridge → `EditorControlService` → internal editor action → `editorctl`**.
 
-### 1) Choose the external method name (kebab-case)
+### 1) Choose the external method name (camelCase)
 
-Pick a **kebab-case** method string, e.g. `duplicate-object`.
+Pick a **camelCase** method string, e.g. `duplicateObject`.
 
-### 2) Add the method to `src/control-rpc/contract.ts`
+### 2) Add the method to `src/control-rpc/api/ControlApi.ts`
 
-File: `src/control-rpc/contract.ts`
+File: `src/control-rpc/api/ControlApi.ts`
 
 - Add a new entry with `input` and `output` Zod schemas.
-- Keep names **kebab-case**.
+- Keep names **camelCase**.
 
 Why: both main and renderer validate incoming requests using this contract, and all types are derived from it.
 
@@ -208,9 +208,9 @@ No extra work needed beyond the control contract:
 
 Files:
 
-- Add a command file in `scripts/editorctl/commands/` (pattern: `open-project.ts`, `select-object.ts`, etc.)
+- Add a command file in `scripts/editorctl/commands/` (pattern: `openProject.ts`, `selectObject.ts`, etc.)
   - Parse flags/options with `commander`.
-  - Call `ctx.rpc.request('<your-method>', params)`.
+  - Call `ctx.rpc.request('<yourMethod>', params)`.
   - Print via `ctx.output`.
 - Register it in `scripts/editorctl/commands/index.ts` in `registerAllCommands`.
 

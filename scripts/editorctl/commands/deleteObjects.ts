@@ -3,7 +3,7 @@ import { Ctx } from '../lib/context'
 
 export function register(program: Command, ctx: Ctx) {
 	program
-		.command('delete-object')
+		.command('deleteObjects')
 		.description('Delete objects by ids')
 		.requiredOption('--ids <ids>', 'Comma-separated list of ids')
 		.action(async (options: { ids: string }) => {
@@ -12,7 +12,7 @@ export function register(program: Command, ctx: Ctx) {
 				.map((id) => id.trim())
 				.filter(Boolean)
 
-			const result = await ctx.rpc.request('delete-objects', { ids })
+			const result = await ctx.rpc.request('deleteObjects', { ids })
 			ctx.output.printKV(result)
 		})
 }

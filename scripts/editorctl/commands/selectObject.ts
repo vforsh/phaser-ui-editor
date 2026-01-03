@@ -3,7 +3,7 @@ import { Ctx } from '../lib/context'
 
 export function register(program: Command, ctx: Ctx) {
 	program
-		.command('select-object')
+		.command('selectObject')
 		.description('Select an object by id or path')
 		.option('--id <id>', 'Object id')
 		.option('--path <path>', 'Object path')
@@ -11,10 +11,10 @@ export function register(program: Command, ctx: Ctx) {
 			const params = options.id ? { id: options.id } : { path: options.path }
 
 			if (!params.id && !params.path) {
-				throw new Error('select-object requires --id or --path')
+				throw new Error('selectObject requires --id or --path')
 			}
 
-			const result = await ctx.rpc.request('select-object', params as any)
+			const result = await ctx.rpc.request('selectObject', params as any)
 			ctx.output.printKV(result)
 		})
 }

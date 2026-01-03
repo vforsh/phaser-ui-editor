@@ -7,16 +7,16 @@ import { openProjectByPath } from '../project/open-project'
 import { state, unproxy } from '../state/State'
 import type { AssetTreeItemData } from '../types/assets'
 import { getAssetById, getAssetsOfType } from '../types/assets'
-import type { deleteObjectsCommand } from './api/commands/delete-objects'
-import type { getAssetInfoCommand } from './api/commands/get-asset-info'
-import type { getProjectInfoCommand } from './api/commands/get-project-info'
-import type { listAssetsCommand } from './api/commands/list-assets'
-import type { listEditorsCommand } from './api/commands/list-editors'
-import type { listHierarchyCommand } from './api/commands/list-hierarchy'
-import type { openPrefabCommand } from './api/commands/open-prefab'
-import type { openProjectCommand } from './api/commands/open-project'
-import type { selectObjectCommand } from './api/commands/select-object'
-import type { switchToContextCommand } from './api/commands/switch-to-context'
+import type { deleteObjectsCommand } from './api/commands/deleteObjects'
+import type { getAssetInfoCommand } from './api/commands/getAssetInfo'
+import type { getProjectInfoCommand } from './api/commands/getProjectInfo'
+import type { listAssetsCommand } from './api/commands/listAssets'
+import type { listEditorsCommand } from './api/commands/listEditors'
+import type { listHierarchyCommand } from './api/commands/listHierarchy'
+import type { openPrefabCommand } from './api/commands/openPrefab'
+import type { openProjectCommand } from './api/commands/openProject'
+import type { selectObjectCommand } from './api/commands/selectObject'
+import type { switchToContextCommand } from './api/commands/switchToContext'
 import type { AssetNode, AssetType, ControlInput, ControlOutput, HierarchyNode } from './api/ControlApi'
 
 /**
@@ -52,14 +52,14 @@ export class EditorControlService {
 	// #region Commands
 
 	/** @see {@link openPrefabCommand} */
-	async openPrefab(params: ControlInput<'open-prefab'>): Promise<ControlOutput<'open-prefab'>> {
+	async openPrefab(params: ControlInput<'openPrefab'>): Promise<ControlOutput<'openPrefab'>> {
 		const assetId = match(params)
 			.with({ assetId: P.string }, ({ assetId }) => assetId)
 			.with({ path: P.string }, ({ path }) => this.resolvePrefabIdByPath(path))
 			.exhaustive()
 
 		if (!assetId) {
-			throw new Error('open-prefab requires assetId or a valid prefab path')
+			throw new Error('openPrefab requires assetId or a valid prefab path')
 		}
 
 		this.appCommands.emit('open-prefab', assetId)
@@ -67,9 +67,9 @@ export class EditorControlService {
 	}
 
 	/** @see {@link openProjectCommand} */
-	async openProject(params: ControlInput<'open-project'>): Promise<ControlOutput<'open-project'>> {
+	async openProject(params: ControlInput<'openProject'>): Promise<ControlOutput<'openProject'>> {
 		if (!params.path) {
-			throw new Error('open-project requires a path')
+			throw new Error('openProject requires a path')
 		}
 
 		const opened = await openProjectByPath(params.path)
@@ -81,7 +81,7 @@ export class EditorControlService {
 	}
 
 	/** @see {@link getProjectInfoCommand} */
-	async getProjectInfo(): Promise<ControlOutput<'get-project-info'>> {
+	async getProjectInfo(): Promise<ControlOutput<'getProjectInfo'>> {
 		if (!state.project || !state.projectDir) {
 			throw new Error('no project is open')
 		}
@@ -93,7 +93,7 @@ export class EditorControlService {
 	}
 
 	/** @see {@link listHierarchyCommand} */
-	async listHierarchy(): Promise<ControlOutput<'list-hierarchy'>> {
+	async listHierarchy(): Promise<ControlOutput<'listHierarchy'>> {
 		const root = state.canvas.root
 		if (!root) {
 			throw new Error('no prefab is open')
@@ -103,7 +103,7 @@ export class EditorControlService {
 	}
 
 	/** @see {@link listAssetsCommand} */
-	async listAssets(params: ControlInput<'list-assets'>): Promise<ControlOutput<'list-assets'>> {
+	async listAssets(params: ControlInput<'listAssets'>): Promise<ControlOutput<'listAssets'>> {
 		if (!state.projectDir) {
 			throw new Error('no project is open')
 		}
@@ -122,23 +122,23 @@ export class EditorControlService {
 	}
 
 	/** @see {@link selectObjectCommand} */
-	async selectObject(params: ControlInput<'select-object'>): Promise<ControlOutput<'select-object'>> {
+	async selectObject(params: ControlInput<'selectObject'>): Promise<ControlOutput<'selectObject'>> {
 		const id = this.resolveObjectId(params)
 		this.appCommands.emit('select-object', id)
 		return { success: true }
 	}
 
 	/** @see {@link switchToContextCommand} */
-	async switchToContext(params: ControlInput<'switch-to-context'>): Promise<ControlOutput<'switch-to-context'>> {
+	async switchToContext(params: ControlInput<'switchToContext'>): Promise<ControlOutput<'switchToContext'>> {
 		const id = this.resolveObjectId(params)
 		this.appCommands.emit('switch-to-context', id)
 		return { success: true }
 	}
 
 	/** @see {@link deleteObjectsCommand} */
-	async deleteObjects(params: ControlInput<'delete-objects'>): Promise<ControlOutput<'delete-objects'>> {
+	async deleteObjects(params: ControlInput<'deleteObjects'>): Promise<ControlOutput<'deleteObjects'>> {
 		if (!Array.isArray(params.ids) || params.ids.length === 0) {
-			throw new Error('delete-objects requires a non-empty ids array')
+			throw new Error('deleteObjects requires a non-empty ids array')
 		}
 
 		this.appCommands.emit('delete-objects', params.ids)
@@ -146,7 +146,7 @@ export class EditorControlService {
 	}
 
 	/** @see {@link getAssetInfoCommand} */
-	async getAssetInfo(params: ControlInput<'get-asset-info'>): Promise<ControlOutput<'get-asset-info'>> {
+	async getAssetInfo(params: ControlInput<'getAssetInfo'>): Promise<ControlOutput<'getAssetInfo'>> {
 		if (!state.projectDir) {
 			throw new Error('no project is open')
 		}
@@ -171,13 +171,13 @@ export class EditorControlService {
 	}
 
 	/** @see {@link listEditorsCommand} */
-	async listEditors(): Promise<ControlOutput<'list-editors'>> {
-		throw new Error('list-editors is only available via the external control RPC')
+	async listEditors(): Promise<ControlOutput<'listEditors'>> {
+		throw new Error('listEditors is only available via the external control RPC')
 	}
 
 	// #endregion Commands
 
-	private resolveObjectId(params: ControlInput<'select-object'> | ControlInput<'switch-to-context'>): string {
+	private resolveObjectId(params: ControlInput<'selectObject'> | ControlInput<'switchToContext'>): string {
 		const id = match(params)
 			.with({ id: P.string }, ({ id }) => id)
 			.with({ path: P.string }, ({ path }) => {

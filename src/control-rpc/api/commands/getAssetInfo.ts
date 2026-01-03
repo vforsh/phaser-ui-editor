@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { CommandDefinition } from '../ControlApi'
-import { assetNodeSchema } from './list-assets'
+import { assetNodeSchema } from './listAssets'
 
 export const getAssetInfoCommand = {
 	group: 'assets',

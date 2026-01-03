@@ -11,7 +11,13 @@ export class RpcScheduler {
 	 * Determines if a method is a "write" (mutating) command.
 	 */
 	isWriteMethod(method: ControlMethod): boolean {
-		return method !== 'list-hierarchy'
+		return (
+			method !== 'listHierarchy' &&
+			method !== 'listAssets' &&
+			method !== 'getProjectInfo' &&
+			method !== 'getAssetInfo' &&
+			method !== 'listEditors'
+		)
 	}
 
 	/**

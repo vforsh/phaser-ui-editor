@@ -1,14 +1,14 @@
 import { useEffect, useMemo } from 'react'
 import { match } from 'ts-pattern'
 import type { AppCommandsEmitter } from '../AppCommands'
-import { EditorControlService } from './EditorControlService'
-import { controlContract, type ControlInput } from './api/ControlApi'
-import { createJsonRpcError, createJsonRpcResult, JsonRpcRequest, JsonRpcResponse } from './rpc'
-import { validateControlRequest } from './jsonrpc-validate'
-import { ERR_INVALID_RPC_RESPONSE, JSONRPC_INTERNAL_ERROR } from './jsonrpc-errors'
-import { RpcScheduler } from './rpc-scheduler'
 import { logger } from '../logs/logs'
 import { state, subscribe } from '../state/State'
+import { EditorControlService } from './EditorControlService'
+import { controlContract, type ControlInput } from './api/ControlApi'
+import { ERR_INVALID_RPC_RESPONSE, JSONRPC_INTERNAL_ERROR } from './jsonrpc-errors'
+import { validateControlRequest } from './jsonrpc-validate'
+import { createJsonRpcError, createJsonRpcResult, JsonRpcRequest, JsonRpcResponse } from './rpc'
+import { RpcScheduler } from './rpc-scheduler'
 
 /**
  * Installs a renderer-side bridge for the external control RPC.
@@ -75,20 +75,21 @@ function handleRpcRequest(
 
 	const run = async (): Promise<JsonRpcResponse> => {
 		const start = Date.now()
+
 		rpcLogger.info({ traceId, method, phase: 'exec-start' })
 
 		const result = await scheduler.schedule(method, async () =>
 			match(method)
-				.with('open-project', (_m) => service.openProject(input as ControlInput<typeof _m>))
-				.with('get-project-info', () => service.getProjectInfo())
-				.with('open-prefab', (_m) => service.openPrefab(input as ControlInput<typeof _m>))
-				.with('list-hierarchy', () => service.listHierarchy())
-				.with('list-assets', (_m) => service.listAssets(input as ControlInput<typeof _m>))
-				.with('select-object', (_m) => service.selectObject(input as ControlInput<typeof _m>))
-				.with('switch-to-context', (_m) => service.switchToContext(input as ControlInput<typeof _m>))
-				.with('delete-objects', (_m) => service.deleteObjects(input as ControlInput<typeof _m>))
-				.with('get-asset-info', (_m) => service.getAssetInfo(input as ControlInput<typeof _m>))
-				.with('list-editors', () => service.listEditors())
+				.with('openProject', (_m) => service.openProject(input as ControlInput<typeof _m>))
+				.with('getProjectInfo', () => service.getProjectInfo())
+				.with('openPrefab', (_m) => service.openPrefab(input as ControlInput<typeof _m>))
+				.with('listHierarchy', () => service.listHierarchy())
+				.with('listAssets', (_m) => service.listAssets(input as ControlInput<typeof _m>))
+				.with('selectObject', (_m) => service.selectObject(input as ControlInput<typeof _m>))
+				.with('switchToContext', (_m) => service.switchToContext(input as ControlInput<typeof _m>))
+				.with('deleteObjects', (_m) => service.deleteObjects(input as ControlInput<typeof _m>))
+				.with('getAssetInfo', (_m) => service.getAssetInfo(input as ControlInput<typeof _m>))
+				.with('listEditors', () => service.listEditors())
 				.exhaustive()
 		)
 

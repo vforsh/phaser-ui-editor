@@ -3,29 +3,17 @@ import { EditorControlService } from './EditorControlService'
 import type { ControlInput, ControlMethod, ControlOutput } from './api/ControlApi'
 
 /**
- * Utility to convert kebab-case strings to camelCase.
- */
-type KebabToCamelCase<S extends string> = S extends `${infer T}-${infer U}`
-	? `${T}${Capitalize<KebabToCamelCase<U>>}`
-	: S
-
-/**
  * Inferred API type for the `window.editor` object.
  *
- * This type maps kebab-case methods from the contract (e.g., 'open-project')
- * to camelCase methods (e.g., 'openProject') used in the renderer.
+ * This type maps the methods from the contract to methods exposed on `window.editor`.
  */
 export type WindowEditorApi = {
-	[M in ControlMethod as KebabToCamelCase<M>]: {} extends ControlInput<M>
+	[M in ControlMethod]: {} extends ControlInput<M>
 		? (params?: ControlInput<M>) => Promise<ControlOutput<M>>
 		: (params: ControlInput<M>) => Promise<ControlOutput<M>>
 }
 
 export function exposeWindowEditor(appCommands: AppCommandsEmitter): void {
-	if (!import.meta.env.DEV) {
-		return
-	}
-
 	const service = new EditorControlService(appCommands)
 
 	const editor: WindowEditorApi = {
