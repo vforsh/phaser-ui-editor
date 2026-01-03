@@ -10,10 +10,10 @@ import { debounce } from 'es-toolkit'
 import { ILogObj, Logger } from 'tslog'
 import { AppCommands, AppCommandsEmitter } from '../../../AppCommands'
 import { AppEvents, AppEventsEmitter } from '../../../AppEvents'
+import { backend } from '../../../backend-renderer/backend'
 import { UndoHub } from '../../../history/UndoHub'
 import { Project } from '../../../project/Project'
 import { ProjectConfig } from '../../../project/ProjectConfig'
-import { backend } from '../../../backend-renderer/backend'
 import { getAssetById, isAssetOfType } from '../../../types/assets'
 import { PrefabFile } from '../../../types/prefabs/PrefabFile'
 import { PhaserAppCommands, PhaserAppCommandsEmitter } from './PhaserAppCommands'
@@ -23,8 +23,7 @@ import { BaseScene } from './robowhale/phaser3/scenes/BaseScene'
 import { TypedEventEmitter } from './robowhale/phaser3/TypedEventEmitter'
 import { CommandEmitter } from './robowhale/utils/events/CommandEmitter'
 import { MainScene, MainSceneInitData } from './scenes/main/MainScene'
-import { EditableObjectJson } from './scenes/main/objects/EditableObject'
-import { TestScene, TestSceneInitData } from './scenes/test/TestScene'
+import { TestSceneInitData } from './scenes/test/TestScene'
 
 export type Vector2Like = Phaser.Types.Math.Vector2Like
 
@@ -188,7 +187,6 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 		const prefabFile = data as PrefabFile
 
 		this.logger.info(`loaded prefab '${prefabAsset.name}' (${prefabAsset.id})`)
-
 		this.scene.start('MainScene', {
 			project: new Project({ config: this.projectConfig }),
 			prefabAsset,

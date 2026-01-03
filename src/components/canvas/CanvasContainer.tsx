@@ -1,6 +1,6 @@
 import { Badge, Button, Center, Group, Loader, Overlay, Paper, Stack, Text, ThemeIcon } from '@mantine/core'
-import { useEffect, useMemo, useRef, useState } from 'react'
 import { Cuboid } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { useAppCommands, useAppEvents, useUndoHub } from '../../di/DiContext'
 import { State, state, useSnapshot } from '../../state/State'
 import { getAssetsOfType, isDraggableAsset, type AssetTreeItemData } from '../../types/assets'
@@ -109,22 +109,18 @@ export default function CanvasContainer() {
 		}
 	}
 
-	// use memo to prevent re-rendering of the canvas element
-	const canvas = useMemo(() => {
-		// Only create canvas if we have all required props
-		if (!snap.project || !snap.assets) {
-			return null
-		}
-
-		return (
+	// Important: don't memoize the <Canvas /> element. Fast Refresh / HMR can swap the component implementation,
+	// and keeping a stale React element object here can leave refs pointing at detached DOM nodes.
+	const canvas =
+		snap.project && snap.projectDir && snap.assets ? (
 			<Canvas
+				projectDir={snap.projectDir}
 				projectConfig={snap.project}
 				appEvents={appEvents}
 				appCommands={appCommands}
 				undoHub={undoHub}
 			/>
-		)
-	}, [snap.project, snap.assets, appEvents, appCommands, undoHub])
+		) : null
 
 	return (
 		<div
@@ -263,7 +259,9 @@ export default function CanvasContainer() {
 															key={prefab.assetId}
 															variant="light"
 															size="xs"
-															onClick={() => appCommands.emit('open-prefab', prefab.assetId)}
+															onClick={() =>
+																appCommands.emit('open-prefab', prefab.assetId)
+															}
 														>
 															{prefab.name}
 														</Button>
