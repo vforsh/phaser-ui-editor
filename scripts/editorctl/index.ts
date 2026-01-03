@@ -12,7 +12,7 @@ const program = new Command()
 
 program
 	.name('editorctl')
-	.description('Control Phaser UI Editor via JSON-RPC')
+	.description('Control Tekton Editor via JSON-RPC')
 	.option('--port <number>', 'WebSocket port', (val) => Number.parseInt(val, 10), DEFAULT_PORT)
 
 // Create a lazy context that will use the parsed options

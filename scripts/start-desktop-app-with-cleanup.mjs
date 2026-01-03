@@ -1,5 +1,5 @@
 /**
- * Launcher for the Phaser UI Editor (Electron + Vite) in development mode.
+ * Launcher for the Tekton Editor in development mode.
  *
  * Why this exists:
  * - When you stop a VS Code task, the spawned Electron app can remain running as an orphan.
@@ -35,7 +35,7 @@ let child = null
 
 function getPidFilePath() {
 	const hash = crypto.createHash('sha1').update(process.cwd()).digest('hex').slice(0, 10)
-	return path.join(os.tmpdir(), `phaser-ui-editor-dev-${hash}.pid.json`)
+	return path.join(os.tmpdir(), `tekton-editor-dev-${hash}.pid.json`)
 }
 
 function safeUnlink(filePath) {

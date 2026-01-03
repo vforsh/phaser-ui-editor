@@ -1,5 +1,6 @@
 {
 	"name": "tekton-editor",
+	"productName": "Tekton Editor",
 	"main": "out/main/main.js",
 	"author": {
 		"name": "Vladislav Forsh",
