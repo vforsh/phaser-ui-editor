@@ -171,6 +171,10 @@ export const backendContract = {
 		}),
 		output: z.object({ path: absPathSchema }),
 	},
+	showItemInFolder: {
+		input: z.object({ path: absPathSchema }),
+		output: z.object({ success: z.literal(true) }),
+	},
 } as const
 
 export type BackendContract = typeof backendContract

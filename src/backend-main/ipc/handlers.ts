@@ -1,4 +1,4 @@
-import { dialog } from 'electron'
+import { dialog, shell } from 'electron'
 import { Font, FontCollection, create } from 'fontkit'
 import fse from 'fs-extra'
 import { globby } from 'globby'
@@ -184,6 +184,11 @@ export const backendHandlers: BackendApi = {
 		await fse.writeFile(outPath, Buffer.from(bytes))
 
 		return { path: outPath }
+	},
+	async showItemInFolder({ path: targetPath }) {
+		const normalized = normalizeAbsolutePath(targetPath)
+		shell.showItemInFolder(normalized)
+		return { success: true }
 	},
 }
 
