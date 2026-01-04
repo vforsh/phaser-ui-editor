@@ -40,6 +40,7 @@ export class MainSceneHistory {
 	private transformControlsSnapshot?: TransformControlsSnapshot
 	private rootUnsub?: () => void
 	private subscribedRoot?: object
+	private suppressRootRevisionDepth = 0
 
 	constructor(private deps: MainSceneDeps) {
 		this.syncRootSubscription()
@@ -86,6 +87,10 @@ export class MainSceneHistory {
 
 	private onRootStateChange() {
 		if (this.isRestoringFromHistory) {
+			return
+		}
+
+		if (this.suppressRootRevisionDepth > 0) {
 			return
 		}
 
@@ -175,6 +180,29 @@ export class MainSceneHistory {
 
 	public updateUnsavedChanges() {
 		state.canvas.hasUnsavedChanges = state.canvas.documentRevision !== state.canvas.baselineDocumentRevision
+	}
+
+	/**
+	 * Runs `fn` while suppressing root subscription revision bumps, then increments `documentRevision` once.
+	 *
+	 * Used to batch multi-object edits (e.g. drag end) into a single "document changed" tick, avoiding
+	 * expensive UI churn.
+	 */
+	public withBatchedDocumentRevision<T>(fn: () => T): T {
+		if (this.isRestoringFromHistory) {
+			return fn()
+		}
+
+		this.suppressRootRevisionDepth++
+		try {
+			return fn()
+		} finally {
+			this.suppressRootRevisionDepth--
+			if (this.suppressRootRevisionDepth === 0) {
+				state.canvas.documentRevision++
+				this.updateUnsavedChanges()
+			}
+		}
 	}
 
 	public async push(label: string, before: CanvasDocumentSnapshot, after: CanvasDocumentSnapshot) {

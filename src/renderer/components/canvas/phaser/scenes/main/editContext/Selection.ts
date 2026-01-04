@@ -115,6 +115,31 @@ export class Selection extends TypedEventEmitter<Events> {
 		return this
 	}
 
+	/**
+	 * Moves the underlying Phaser objects without touching their Valtio state.
+	 *
+	 * This is intended for high-frequency interactions (dragging), to avoid flooding
+	 * the reactive state tree and causing expensive UI re-renders.
+	 *
+	 * Callers should "commit" the final position to state (e.g. via `obj.setPosition(obj.x, obj.y)`)
+	 * once the interaction ends.
+	 */
+	public moveVisualOnly(dx: number, dy = 0): Selection {
+		if (this.objects.some((obj) => isPositionLockedForRuntimeObject(obj))) {
+			return this
+		}
+
+		this.objects.forEach((obj) => {
+			// Bypass EditableObject overrides (which sync into Valtio state).
+			obj.x += dx
+			obj.y += dy
+		})
+
+		this._bounds = this.updateBounds()
+
+		return this
+	}
+
 	public toLocal(worldX: number, worldY: number): Phaser.Types.Math.Vector2Like {
 		return this._parent.localTransform.transformPoint(worldX, worldY)
 	}

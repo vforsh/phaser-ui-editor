@@ -307,9 +307,17 @@ export class MainSceneInput {
 			return
 		}
 
-		editContext.onDragEnd(this.selectionDrag.target)
+		const selection = this.selectionDrag.target
+		editContext.onDragEnd(selection)
 
 		this.selectionDrag = undefined
+
+		// Commit final visual position to reactive state once, to avoid flooding state updates while dragging.
+		this.deps.history.withBatchedDocumentRevision(() => {
+			selection.objects.forEach((obj) => {
+				obj.setPosition(obj.x, obj.y)
+			})
+		})
 
 		if (this.selectionDragSnapshot) {
 			const after = this.deps.history.captureSnapshot()
@@ -335,11 +343,11 @@ export class MainSceneInput {
 			const { x, y } = pointer.positionToCamera(camera) as Phaser.Math.Vector2
 
 			if (this.selectionDrag.lockAxis === 'x') {
-				this.selectionDrag.target.move(x + this.selectionDrag.offsetX - this.selectionDrag.currentX, 0)
+				this.selectionDrag.target.moveVisualOnly(x + this.selectionDrag.offsetX - this.selectionDrag.currentX, 0)
 			} else if (this.selectionDrag.lockAxis === 'y') {
-				this.selectionDrag.target.move(0, y + this.selectionDrag.offsetY - this.selectionDrag.currentY)
+				this.selectionDrag.target.moveVisualOnly(0, y + this.selectionDrag.offsetY - this.selectionDrag.currentY)
 			} else {
-				this.selectionDrag.target.move(
+				this.selectionDrag.target.moveVisualOnly(
 					x + this.selectionDrag.offsetX - this.selectionDrag.currentX,
 					y + this.selectionDrag.offsetY - this.selectionDrag.currentY,
 				)
