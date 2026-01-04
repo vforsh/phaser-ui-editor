@@ -5,20 +5,21 @@ import { successSchema } from '../shared-schemas'
 
 export const switchToContextCommand = {
 	group: 'misc',
-	description: 'Switches the editor to a different context (e.g., another scene or prefab), identified by ID or path.',
+	description:
+		'Switches the canvas edit context to the specified Container. Provide the container object id directly, or an object hierarchy path (e.g. "/Root/Group[0]").',
 	input: z
 		.union([
 			z
 				.object({
-					id: z.string().min(1).describe('Unique identifier of the context'),
+					id: z.string().min(1).describe('Object id of the Container to switch to'),
 				})
 				.strict(),
 			z
 				.object({
-					path: z.string().min(1).describe('Project-relative path to the context file'),
+					path: z.string().min(1).describe('Object hierarchy path to a Container within the currently open prefab'),
 				})
 				.strict(),
 		])
-		.describe('Input parameters for switching context (ID or path)'),
+		.describe('Input parameters for switching canvas edit context (container id or object path)'),
 	output: successSchema.describe('Success response indicating the context was switched'),
 } satisfies CommandDefinition
