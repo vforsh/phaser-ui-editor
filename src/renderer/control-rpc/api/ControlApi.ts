@@ -27,24 +27,36 @@ export { assetNodeSchema, assetTypeSchema, type AssetNode, type AssetType } from
 export { hierarchyNodeSchema, type HierarchyNode } from './commands/listHierarchy'
 export { successSchema } from './shared-schemas'
 
+import { createObjectCommand } from './commands/createObject'
+import { createPrefabInstanceCommand } from './commands/createPrefabInstance'
 import { deleteObjectsCommand } from './commands/deleteObjects'
+import { duplicateObjectCommand } from './commands/duplicateObject'
 import { getAssetInfoCommand } from './commands/getAssetInfo'
 import { getCanvasMetricsCommand } from './commands/getCanvasMetrics'
 import { getCanvasStateCommand } from './commands/getCanvasState'
 import { getObjectCommand } from './commands/getObject'
 import { getPrefabContentCommand } from './commands/getPrefabContent'
+import { getPrefabDocumentCommand } from './commands/getPrefabDocument'
 import { getProjectInfoCommand } from './commands/getProjectInfo'
 import { getSelectedAssetsCommand } from './commands/getSelectedAssets'
 import { listAssetsCommand } from './commands/listAssets'
 import { listEditorsCommand } from './commands/listEditors'
 import { listHierarchyCommand } from './commands/listHierarchy'
+import { moveObjectInHierarchyCommand } from './commands/moveObjectInHierarchy'
 import { openPrefabCommand } from './commands/openPrefab'
 import { openProjectCommand } from './commands/openProject'
+import { renameObjectCommand } from './commands/renameObject'
+import { resolveNodeCommand } from './commands/resolveNode'
+import { savePrefabCommand } from './commands/savePrefab'
 import { selectAssetsCommand } from './commands/selectAssets'
+import { selectNodeCommand } from './commands/selectNode'
 import { selectObjectCommand } from './commands/selectObject'
 import { setCameraCommand } from './commands/setCamera'
+import { setComponentPatchCommand } from './commands/setComponentPatch'
+import { setObjectPatchCommand } from './commands/setObjectPatch'
 import { switchToContextCommand } from './commands/switchToContext'
 import { takeCanvasScreenshotCommand } from './commands/takeCanvasScreenshot'
+import { waitForCanvasIdleCommand } from './commands/waitForCanvasIdle'
 
 export const controlContract = {
 	openProject: openProjectCommand,
@@ -54,17 +66,29 @@ export const controlContract = {
 	listHierarchy: listHierarchyCommand,
 	listAssets: listAssetsCommand,
 	selectObject: selectObjectCommand,
+	selectNode: selectNodeCommand,
 	switchToContext: switchToContextCommand,
 	deleteObjects: deleteObjectsCommand,
+	createObject: createObjectCommand,
+	duplicateObject: duplicateObjectCommand,
+	moveObjectInHierarchy: moveObjectInHierarchyCommand,
+	renameObject: renameObjectCommand,
+	setObjectPatch: setObjectPatchCommand,
+	setComponentPatch: setComponentPatchCommand,
+	resolveNode: resolveNodeCommand,
 	getAssetInfo: getAssetInfoCommand,
 	getSelectedAssets: getSelectedAssetsCommand,
 	getObject: getObjectCommand,
 	getPrefabContent: getPrefabContentCommand,
+	getPrefabDocument: getPrefabDocumentCommand,
 	getCanvasState: getCanvasStateCommand,
 	getCanvasMetrics: getCanvasMetricsCommand,
 	listEditors: listEditorsCommand,
 	setCamera: setCameraCommand,
+	waitForCanvasIdle: waitForCanvasIdleCommand,
 	takeCanvasScreenshot: takeCanvasScreenshotCommand,
+	savePrefab: savePrefabCommand,
+	createPrefabInstance: createPrefabInstanceCommand,
 } as const
 
 /**

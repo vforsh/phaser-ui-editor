@@ -124,6 +124,8 @@ export const assetNodeSchema: z.ZodType<AssetNode> = z.lazy(() => {
 		.extend({
 			type: z.literal('web-font').describe('Web font asset type'),
 			fontFamily: z.string().min(1).describe('The font family name'),
+			fullName: z.string().min(1).optional().describe('Full font name when available'),
+			subfamilyName: z.string().min(1).optional().describe('Font subfamily name when available'),
 		})
 		.strict()
 

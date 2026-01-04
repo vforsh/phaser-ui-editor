@@ -2,10 +2,10 @@ import { Command } from 'commander'
 import process from 'node:process'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 
-import type { CommandDefinition } from '../../src/control-rpc/api/ControlApi'
+import type { CommandDefinition } from '../../src/renderer/control-rpc/api/ControlApi'
 import type { Ctx } from './lib/context'
 
-import { controlContract, isControlMethod, type ControlMethod } from '../../src/control-rpc/api/ControlApi'
+import { controlContract, isControlMethod, type ControlMethod } from '../../src/renderer/control-rpc/api/ControlApi'
 import { createValidationError } from './lib/errors'
 import { createInputHelpText } from './lib/help/json-schema-input-help'
 import { parseJsonObject, parseJsonText } from './lib/json-input'
