@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from '@electron-toolkit/preload'
+import { contextBridge, ipcRenderer } from 'electron'
 import { backendContract } from '../backend-contract/contract'
 import type { BackendApi, BackendMethod } from '../backend-contract/types'
 import { createControlIpc } from './control-rpc/preload'
@@ -19,14 +19,28 @@ type SettingsSectionId =
 
 type PanelId = 'hierarchy' | 'assets' | 'inspector'
 
+function exposeInRendererGlobal(key: string, value: unknown) {
+	if (process.contextIsolated) {
+		try {
+			contextBridge.exposeInMainWorld(key, value)
+		} catch (error) {
+			console.error(`[preload] Failed to expose \`${key}\` API`, error)
+		}
+
+		return
+	}
+
+	;(globalThis as Record<string, unknown>)[key] = value
+}
+
 const backend = (Object.keys(backendContract) as BackendMethod[]).reduce((api, method) => {
 	api[method] = ((input) => ipcRenderer.invoke(`${CHANNEL_PREFIX}${method}`, input)) as BackendApi[BackendMethod]
 	return api
 }, {} as BackendApi)
 
-contextBridge.exposeInMainWorld('backend', backend)
+exposeInRendererGlobal('backend', backend)
 
-contextBridge.exposeInMainWorld('appMenu', {
+exposeInRendererGlobal('appMenu', {
 	onTakeCanvasScreenshot: (callback: (payload: { clean?: boolean }) => void) => {
 		const listener = (_event: unknown, payload: { clean?: boolean }) => {
 			callback(payload ?? {})
@@ -63,5 +77,5 @@ contextBridge.exposeInMainWorld('appMenu', {
 })
 
 if (process.env.NODE_ENV !== 'production') {
-	contextBridge.exposeInMainWorld('controlIpc', createControlIpc())
+	exposeInRendererGlobal('controlIpc', createControlIpc())
 }

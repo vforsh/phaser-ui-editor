@@ -66,7 +66,6 @@ npm run lint
 - `npm run typecheck-dev`: typecheck in watch mode
 - `npm run build`: production build (electron-vite)
 - `npm run preview`: preview build output (electron-vite)
-- `npm run test:paths`: run path normalization matrix
 - `npm run build-types`: build published type exports (`exports.d.ts`)
 - `npm run update-types`: build + push updated types
 

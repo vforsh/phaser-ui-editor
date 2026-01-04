@@ -3,7 +3,7 @@
  *
  * Why this exists:
  * - When you stop a VS Code task, the spawned Electron app can remain running as an orphan.
- * - Relying on `pkill -f out/main/main.js` is not reliable in dev because Electron's command
+ * - Relying on `pkill -f out/main/index.js` is not reliable in dev because Electron's command
  *   line often doesn't include that file.
  *
  * How it works:
@@ -28,7 +28,7 @@ import path from 'node:path'
 import process from 'node:process'
 
 const isWin = process.platform === 'win32'
-const appMainPath = `${process.cwd()}/out/main/main.js`
+const appMainPath = `${process.cwd()}/out/main/index.js`
 
 let cleanedUp = false
 let child = null
