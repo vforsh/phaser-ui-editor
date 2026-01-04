@@ -38,25 +38,6 @@ export class MainSceneInput {
 		this.addPointerCallbacks()
 	}
 
-	private registerKeyDown(
-		key: Parameters<BaseScene['onKeyDown']>[0],
-		handler: (this: MainSceneInput, event: KeyboardEvent) => void,
-		signal: AbortSignal,
-	) {
-		this.scene.onKeyDown(
-			key,
-			(event: KeyboardEvent) => {
-				this.logger.info(
-					`keyDown '${key}' (ctrl: ${event.ctrlKey}, meta: ${event.metaKey}, shift: ${event.shiftKey}, alt: ${event.altKey}, repeat: ${event.repeat})`,
-				)
-
-				handler.call(this, event)
-			},
-			this,
-			signal,
-		)
-	}
-
 	private addKeyboadCallbacks() {
 		const signal = this.deps.shutdownSignal
 
@@ -88,6 +69,27 @@ export class MainSceneInput {
 		this.registerKeyDown('ONE', () => this.deps.cameraService.setZoom(1), signal)
 		this.registerKeyDown('TWO', ({ shiftKey }) => this.deps.cameraService.setZoom(shiftKey ? 0.5 : 2), signal)
 		this.registerKeyDown('THREE', ({ shiftKey }) => this.deps.cameraService.setZoom(shiftKey ? 0.25 : 4), signal)
+	}
+
+	private registerKeyDown(
+		key: Parameters<BaseScene['onKeyDown']>[0],
+		handler: (this: MainSceneInput, event: KeyboardEvent) => void,
+		signal: AbortSignal,
+	) {
+		this.scene.onKeyDown(
+			key,
+			(event: KeyboardEvent) => {
+				const b = (value: boolean) => (value ? 'TRUE' : 'false')
+
+				this.logger.info(
+					`keyDown '${key}' (ctrl: ${b(event.ctrlKey)}, meta: ${b(event.metaKey)}, shift: ${b(event.shiftKey)}, alt: ${b(event.altKey)}, repeat: ${b(event.repeat)})`,
+				)
+
+				handler.call(this, event)
+			},
+			this,
+			signal,
+		)
 	}
 
 	private onKeyDownSave(event: KeyboardEvent) {
