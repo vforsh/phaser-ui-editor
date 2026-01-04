@@ -2,8 +2,8 @@ import { electronAPI } from '@electron-toolkit/preload'
 import { contextBridge } from 'electron'
 
 import { createAppMenu } from './create-app-menu'
-import { createBackend } from './create-backend'
 import { createControlIpc } from './create-control-ipc'
+import { createMainApi } from './create-main-api'
 
 if (process.contextIsolated) {
 	try {
@@ -38,7 +38,7 @@ function exposeInRendererGlobal(key: string, value: unknown) {
 	;(globalThis as Record<string, unknown>)[key] = value
 }
 
-exposeInRendererGlobal('backend', createBackend())
+exposeInRendererGlobal('mainApi', createMainApi())
 exposeInRendererGlobal('appMenu', createAppMenu())
 
 if (process.env.NODE_ENV !== 'production') {

@@ -1,4 +1,4 @@
-import { backend } from '@backend/backend'
+import { mainApi } from '@main-api/main-api'
 import { state } from '@state/State'
 import path from 'path-browserify-esm'
 import { match } from 'ts-pattern'
@@ -245,19 +245,19 @@ export async function fetchImageUrl(asset: GraphicAssetData, signal?: AbortSigna
 async function fetchImageData(asset: GraphicAssetData, signal?: AbortSignal): Promise<Uint8Array> {
 	const res = await match(asset)
 		.with({ type: 'image' }, async (image) => {
-			return backend.readFile({ path: image.path })
+			return mainApi.readFile({ path: image.path })
 		})
 		.with({ type: 'spritesheet' }, async (spritesheet) => {
-			return backend.readFile({ path: spritesheet.image.path })
+			return mainApi.readFile({ path: spritesheet.image.path })
 		})
 		.with({ type: 'spritesheet-frame' }, async (spritesheetFrame) => {
-			return backend.readSpritesheetFrame({
+			return mainApi.readSpritesheetFrame({
 				spritesheetPath: spritesheetFrame.imagePath,
 				frameName: spritesheetFrame.pathInHierarchy,
 			})
 		})
 		.with({ type: 'bitmap-font' }, async (bitmapFont) => {
-			return backend.readFile({ path: bitmapFont.image.path })
+			return mainApi.readFile({ path: bitmapFont.image.path })
 		})
 		.exhaustive()
 

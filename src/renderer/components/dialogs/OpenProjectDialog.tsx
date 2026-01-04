@@ -1,4 +1,4 @@
-import { backend } from '@backend/backend'
+import { mainApi } from '@main-api/main-api'
 import { Modal, Stack, Text } from '@mantine/core'
 import { useState } from 'react'
 
@@ -25,7 +25,7 @@ export default function OpenProjectDialog({ opened, onClose, onOpenProject }: Op
 	}
 
 	const handleBrowse = async () => {
-		const result = await backend.selectDirectory({
+		const result = await mainApi.selectDirectory({
 			title: 'Select project folder',
 			defaultPath: projectPath || undefined,
 		})

@@ -92,7 +92,7 @@ export const webFontParsedSchema = z.object({
 
 export type WebFontParsed = z.output<typeof webFontParsedSchema>
 
-export const backendContract = {
+export const mainApiContract = {
 	globby: {
 		input: z.object({ patterns: z.array(z.string()), options: globbyOptionsSchema }),
 		output: z.array(z.string()),
@@ -204,18 +204,18 @@ export const backendContract = {
 	},
 } as const
 
-export type BackendContract = typeof backendContract
-export type BackendMethod = keyof BackendContract
+export type MainApiContract = typeof mainApiContract
+export type MainApiMethod = keyof MainApiContract
 
-export type BackendInput<M extends BackendMethod> = z.input<BackendContract[M]['input']>
-export type BackendOutput<M extends BackendMethod> = z.output<BackendContract[M]['output']>
+export type MainApiInput<M extends MainApiMethod> = z.input<MainApiContract[M]['input']>
+export type MainApiOutput<M extends MainApiMethod> = z.output<MainApiContract[M]['output']>
 
 /**
- * Fully-typed async API surface derived from {@link backendContract}.
+ * Fully-typed async API surface derived from {@link mainApiContract}.
  *
- * Each {@link BackendMethod} key becomes a function that accepts the method's
+ * Each {@link MainApiMethod} key becomes a function that accepts the method's
  * validated input type and resolves to the validated output type.
  */
-export type BackendApi = {
-	[M in BackendMethod]: (input: BackendInput<M>) => Promise<BackendOutput<M>>
+export type MainApi = {
+	[M in MainApiMethod]: (input: MainApiInput<M>) => Promise<MainApiOutput<M>>
 }

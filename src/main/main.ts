@@ -4,7 +4,7 @@ import getPort from 'get-port'
 import path from 'node:path'
 
 import { ControlRpcServer } from './ControlRpcServer'
-import { registerBackendHandlers } from './ipc/register-backend-handlers'
+import { registerMainApiHandlers } from './ipc/register-main-api-handlers'
 import { RendererFileLogger } from './RendererFileLogger'
 
 let mainWindow: BrowserWindow | null = null
@@ -39,7 +39,7 @@ app.whenReady().then(() => {
 	createWindow()
 
 	// Kick off the renderer ASAP; do the rest right after.
-	setImmediate(() => registerBackendHandlers())
+	setImmediate(() => registerMainApiHandlers())
 	setImmediate(() => createAppMenu())
 	setImmediate(() => setupControlRpcServer())
 

@@ -1,6 +1,6 @@
-import { backend } from '@backend/backend'
 import { logger as rootLogger } from '@logs/logs'
 import { LogsManager } from '@logs/LogsManager'
+import { mainApi } from '@main-api/main-api'
 import JSON5 from 'json5'
 import path from 'path-browserify-esm'
 import { ILogObj, Logger } from 'tslog'
@@ -33,7 +33,7 @@ export async function openProjectByPath(projectDirPath: string, log?: AppLogger)
 
 	const assetsGlob = path.join(openedProject.assetsDir, '**/*')
 	const assetsToIgnore = openedProject.projectConfig.assetsIgnore.map((item) => path.join(openedProject.assetsDir, item))
-	const assets = await backend.globby({
+	const assets = await mainApi.globby({
 		patterns: [assetsGlob],
 		options: { ignore: assetsToIgnore, markDirectories: true },
 	})
@@ -67,7 +67,7 @@ export async function openProjectByPath(projectDirPath: string, log?: AppLogger)
 
 async function loadProject(projectDirPath: string, logger: AppLogger): Promise<OpenedProject | null> {
 	const files = (
-		await backend.globby({
+		await mainApi.globby({
 			patterns: ['**/*'],
 			options: {
 				cwd: projectDirPath,
@@ -83,12 +83,12 @@ async function loadProject(projectDirPath: string, logger: AppLogger): Promise<O
 		return null
 	}
 
-	const projectConfigRaw = await backend.readText({ path: projectConfigPath })
+	const projectConfigRaw = await mainApi.readText({ path: projectConfigPath })
 	const projectConfigParsed = JSON5.parse(projectConfigRaw.content)
 	const projectConfig = projectConfigSchema.parse(projectConfigParsed)
 
 	const assetsDirPath = path.join(projectDirPath, projectConfig.assetsDir)
-	const assetsDirStats = await backend.stat({ path: assetsDirPath })
+	const assetsDirStats = await mainApi.stat({ path: assetsDirPath })
 	if (assetsDirStats.isDirectory === false) {
 		logger.warn(`assets dir is not found at '${assetsDirPath}'`)
 		return null

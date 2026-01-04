@@ -1,6 +1,6 @@
 import './robowhale/phaser3/Phaser3Extensions'
-import { backend } from '@backend/backend'
 import { logger } from '@logs/logs'
+import { mainApi } from '@main-api/main-api'
 import { until } from '@open-draft/until'
 import { state } from '@state/State'
 import { urlParams } from '@url-params'
@@ -177,7 +177,7 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 			} */
 		}
 
-		const { error, data } = await until(() => backend.readJson({ path: prefabAsset.path }))
+		const { error, data } = await until(() => mainApi.readJson({ path: prefabAsset.path }))
 		if (error) {
 			this.logger.error(`failed to load prefab from '${prefabAsset.path}' (${getErrorLog(error)})`)
 			return
