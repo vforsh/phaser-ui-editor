@@ -28,7 +28,21 @@ import path from 'node:path'
 import process from 'node:process'
 
 const isWin = process.platform === 'win32'
-const appMainPath = `${process.cwd()}/out/main/index.js`
+const appMainPath = resolveAppMainPath()
+
+function resolveAppMainPath() {
+	const cwd = process.cwd()
+	const candidates = [`${cwd}/out/main/index.js`, `${cwd}/out/main/main.js`]
+
+	for (const candidate of candidates) {
+		if (fs.existsSync(candidate)) {
+			return candidate
+		}
+	}
+
+	// Default to historical path; it may not exist yet in dev.
+	return candidates[0]
+}
 
 let cleanedUp = false
 let child = null

@@ -1,3 +1,4 @@
+import { backend } from '@backend/backend'
 import { IPatchesConfig } from '@koreez/phaser3-ninepatch'
 import { logger } from '@logs/logs'
 import { until } from '@open-draft/until'
@@ -13,7 +14,6 @@ import WebFont from 'webfontloader'
 import type { WebFontParsed } from '../../../../../../backend/contract/contract'
 import type { BmFontData } from '../../robowhale/phaser3/gameObjects/bitmap-text/create-bmfont-data'
 
-import { backend } from '../../../../../../backend/renderer/backend'
 import { AppCommandsEmitter } from '../../../../../AppCommands'
 import { Project } from '../../../../../project/Project'
 import {

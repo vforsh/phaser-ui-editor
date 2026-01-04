@@ -1,10 +1,10 @@
+import { backend } from '@backend/backend'
 import { logger as rootLogger } from '@logs/logs'
 import { LogsManager } from '@logs/LogsManager'
 import JSON5 from 'json5'
 import path from 'path-browserify-esm'
 import { ILogObj, Logger } from 'tslog'
 
-import { backend } from '../../backend/renderer/backend'
 import { buildAssetTree } from '../components/assetsPanel/build-asset-tree'
 import { state, stateSchema } from '../state/State'
 import { projectConfigSchema } from './ProjectConfig'

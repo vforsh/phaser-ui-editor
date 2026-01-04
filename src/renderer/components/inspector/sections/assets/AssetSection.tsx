@@ -1,8 +1,8 @@
+import { backend } from '@backend/backend'
 import { Button, Stack } from '@mantine/core'
 import { FolderOpen } from 'lucide-react'
 import { Snapshot } from 'valtio'
 
-import { backend } from '../../../../../backend/renderer/backend'
 import { getAssetRelativePath, type AssetTreeItemData } from '../../../../types/assets'
 import { BaseSectionProps } from '../BaseSection'
 import { ReadonlyPropertyRow } from '../PropertyRow'

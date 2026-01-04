@@ -1,6 +1,6 @@
-import type { BackendApi, BackendMethod } from '../contract/contract'
+import type { BackendApi, BackendMethod } from '../../backend/contract/contract'
 
-import { backendContract } from '../contract/contract'
+import { backendContract } from '../../backend/contract/contract'
 
 function requireBackend(): BackendApi {
 	if (!window.backend) {
@@ -26,4 +26,16 @@ for (const method of Object.keys(backendContract) as BackendMethod[]) {
 	backendImpl[method] = createBackendMethod(method)
 }
 
+/**
+ * Renderer-side client for the app "backend" API (main-process services).
+ *
+ * What "backend" means here:
+ * - The actual implementations live in the Electron **main** process (`backendHandlers`).
+ * - The API is exposed to the renderer by the **preload** script as `window.backend`.
+ * - Calls are forwarded over Electron IPC (`ipcRenderer.invoke('backend:<method>')`).
+ *
+ * This wrapper adds runtime validation (Zod) using {@link backendContract} for both
+ * inputs and outputs, so renderer code can call `backend.<method>(...)` safely with
+ * fully-typed results.
+ */
 export const backend = backendImpl as BackendApi

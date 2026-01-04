@@ -1,3 +1,4 @@
+import { backend } from '@backend/backend'
 import { Divider, Group, Paper, ScrollArea, Stack } from '@mantine/core'
 import { useWindowEvent } from '@mantine/hooks'
 import { until } from '@open-draft/until'
@@ -29,7 +30,6 @@ import { match } from 'ts-pattern'
 import { ILogObj, Logger } from 'tslog'
 import { Snapshot } from 'valtio'
 
-import { backend } from '../../../backend/renderer/backend'
 import { useAppCommands } from '../../di/DiHooks'
 import {
 	AssetTreeFolderData,

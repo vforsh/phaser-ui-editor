@@ -1,8 +1,8 @@
 import { ipcRenderer } from 'electron'
 
-import type { BackendApi, BackendMethod } from '../contract/contract'
+import type { BackendApi, BackendMethod } from '../backend/contract/contract'
 
-import { backendContract } from '../contract/contract'
+import { backendContract } from '../backend/contract/contract'
 
 const CHANNEL_PREFIX = 'backend:'
 

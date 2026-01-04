@@ -1,10 +1,10 @@
+import { backend } from '@backend/backend'
 import { Badge, Box, Group, NumberInput, Stack, Text, TextInput } from '@mantine/core'
 import { until } from '@open-draft/until'
 import prettyBytes from 'pretty-bytes'
 import { useEffect, useState } from 'react'
 
 import { WebFontParsed } from '../../../../../backend/contract/contract'
-import { backend } from '../../../../../backend/renderer/backend'
 import { AssetTreeWebFontData } from '../../../../types/assets'
 import { BaseSectionProps } from '../BaseSection'
 import { ReadonlyPropertyRow } from '../PropertyRow'

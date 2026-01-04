@@ -1,8 +1,8 @@
+import { backend } from '@backend/backend'
 import { state } from '@state/State'
 import path from 'path-browserify-esm'
 import { match } from 'ts-pattern'
 
-import { backend } from '../../backend/renderer/backend'
 import { imageDataToUrl } from '../utils/image-data-to-url'
 
 export type AssetTreeData = AssetTreeItemData[]

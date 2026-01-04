@@ -1,7 +1,7 @@
+import { backend } from '@backend/backend'
 import { useCallback, useEffect, useState } from 'react'
 import { useSnapshot } from 'valtio'
 
-import { backend } from '../../backend/renderer/backend'
 import { state } from '../state/State'
 
 export function useRecentProjects() {

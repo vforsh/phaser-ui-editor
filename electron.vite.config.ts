@@ -9,7 +9,7 @@ const rendererRoot = path.resolve(configDir, 'src/renderer')
 const rendererTsconfig = path.resolve(configDir, 'tsconfig.app.json')
 
 export default defineConfig({
-        main: {
+	main: {
 		resolve: {
 			conditions: ['node', 'require'],
 			alias: {
@@ -21,10 +21,14 @@ export default defineConfig({
 			commonjsOptions: {
 				requireReturnsDefault: 'namespace',
 			},
-                        lib: {
-                                entry: path.join(rendererRoot, '../main/index.ts'),
-                        },
+			lib: {
+				// Note: output stays as out/main/index.js (package.json "main") regardless of entry filename.
+				entry: path.join(rendererRoot, '../main/main.ts'),
+			},
 			rollupOptions: {
+				output: {
+					entryFileNames: 'index.js',
+				},
 				external: [
 					'ws',
 					'bufferutil',
@@ -45,10 +49,10 @@ export default defineConfig({
 	preload: {
 		build: {
 			externalizeDeps: false,
-                        lib: {
-                                entry: path.join(rendererRoot, '../preload/index.ts'),
-                                formats: ['cjs'],
-                        },
+			lib: {
+				entry: path.join(rendererRoot, '../preload/preload.ts'),
+				formats: ['cjs'],
+			},
 			rollupOptions: {
 				output: {
 					entryFileNames: 'preload.cjs',
@@ -57,8 +61,8 @@ export default defineConfig({
 			},
 		},
 	},
-        renderer: {
-                root: rendererRoot,
+	renderer: {
+		root: rendererRoot,
 		plugins: [react(), tsconfigPaths({ projects: [rendererTsconfig] })],
 		optimizeDeps: {
 			exclude: ['lucide-react'],

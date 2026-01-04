@@ -1,8 +1,8 @@
+import { backend } from '@backend/backend'
 import { Button, Group, Stack, Text } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { Check, X } from 'lucide-react'
 
-import { backend } from '../../../../backend/renderer/backend'
 import { logger } from '../../../logs/logs'
 import { exportedSettingsV1Schema, type ExportedSettingsV1 } from '../../../settings/EditorSettings'
 import { replaceSettings, state, unproxy } from '../../../state/State'

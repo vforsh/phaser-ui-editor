@@ -1,3 +1,4 @@
+import { backend } from '@backend/backend'
 import { state } from '@state/State'
 import md5 from 'blueimp-md5'
 import path from 'path-browserify-esm'
@@ -5,7 +6,6 @@ import { match } from 'ts-pattern'
 
 import type { TexturePacker } from '../../../../types/texture-packer'
 
-import { backend } from '../../../backend/renderer/backend'
 import {
 	AssetTreeBitmapFontData,
 	AssetTreeData,

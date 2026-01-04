@@ -1,8 +1,19 @@
+import { electronAPI } from '@electron-toolkit/preload'
 import { contextBridge } from 'electron'
 
 import { createAppMenu } from './create-app-menu'
 import { createBackend } from './create-backend'
 import { createControlIpc } from './create-control-ipc'
+
+if (process.contextIsolated) {
+	try {
+		contextBridge.exposeInMainWorld('electron', electronAPI)
+	} catch (error) {
+		console.error('[preload] Failed to expose `electron` API', error)
+	}
+} else {
+	;(globalThis as unknown as { electron: typeof electronAPI }).electron = electronAPI
+}
 
 /**
  * Safely exposes a value to the renderer's global context.
@@ -28,7 +39,6 @@ function exposeInRendererGlobal(key: string, value: unknown) {
 }
 
 exposeInRendererGlobal('backend', createBackend())
-
 exposeInRendererGlobal('appMenu', createAppMenu())
 
 if (process.env.NODE_ENV !== 'production') {

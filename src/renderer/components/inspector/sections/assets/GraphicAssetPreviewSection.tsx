@@ -1,3 +1,4 @@
+import { backend } from '@backend/backend'
 import { Box, Image, Stack, Text } from '@mantine/core'
 import { until } from '@open-draft/until'
 import path from 'path-browserify-esm'
@@ -5,7 +6,6 @@ import prettyBytes from 'pretty-bytes'
 import { useEffect, useState } from 'react'
 import { match } from 'ts-pattern'
 
-import { backend } from '../../../../../backend/renderer/backend'
 import { GraphicAssetData } from '../../../../types/assets'
 import { imageDataToUrl } from '../../../../utils/image-data-to-url'
 import { BaseSectionProps } from '../BaseSection'

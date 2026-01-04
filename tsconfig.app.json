@@ -24,6 +24,7 @@
 		"types": ["phaser"],
 
 		"paths": {
+			"@backend/*": ["./src/renderer/backend/*"],
 			"@state/*": ["./src/renderer/state/*"],
 			"@logs/*": ["./src/renderer/logs/*"],
 			"@url-params": ["./src/renderer/UrlParams.ts"],
@@ -32,6 +33,6 @@
 			"@hooks/*": ["./src/renderer/hooks/*"]
 		}
 	},
-	"include": ["src/renderer", "src/backend/contract", "src/backend/renderer", "types"],
+	"include": ["src/renderer", "src/backend/contract", "types"],
 	"exclude": ["exports.d.ts", "src/main", "src/preload"]
 }

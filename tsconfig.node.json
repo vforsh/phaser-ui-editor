@@ -34,7 +34,6 @@
 		"src/main/**/*.ts",
 		"src/preload/**/*.ts",
 		"src/backend/main/**/*.ts",
-		"src/backend/preload/**/*.ts",
 		"src/backend/contract/**/*.ts",
 		"types/**/*.d.ts"
 	]

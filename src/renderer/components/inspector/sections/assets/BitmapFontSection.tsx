@@ -1,10 +1,10 @@
+import { backend } from '@backend/backend'
 import { BmFontChar, BmFontData } from '@components/canvas/phaser/robowhale/phaser3/gameObjects/bitmap-text/create-bmfont-data'
 import { Group, NumberInput, Stack, Textarea, TextInput } from '@mantine/core'
 import { until } from '@open-draft/until'
 import { useEffect, useState } from 'react'
 import { match } from 'ts-pattern'
 
-import { backend } from '../../../../../backend/renderer/backend'
 import { AssetTreeBitmapFontData } from '../../../../types/assets'
 import { BaseSectionProps } from '../BaseSection'
 
