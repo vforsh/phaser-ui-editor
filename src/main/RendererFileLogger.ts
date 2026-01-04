@@ -358,10 +358,47 @@ export class RendererFileLogger {
 		const levelRaw = String(event.level ?? 'log').toLowerCase()
 		const levelName = LEVEL_MAP[levelRaw] || 'LOG '
 		const message = String(event.message ?? '')
+		const sourceId = String(event.sourceId ?? '')
+		const lineNumber = Number(event.lineNumber ?? 0)
 
 		const timestamp = new Date().toISOString()
-		const line = `${timestamp} ${levelName}: ${message}\n`
+		const sourceSuffix = this.formatConsoleSourceSuffix(sourceId, lineNumber)
+		const line = `${timestamp} ${levelName}: ${message}${sourceSuffix}\n`
 		this.logLine(line)
+	}
+
+	private formatConsoleSourceSuffix(sourceId: string, lineNumber: number): string {
+		// Many messages don't have a meaningful source location; avoid adding noise like ":0".
+		if (!sourceId && !lineNumber) {
+			return ''
+		}
+
+		const formattedSourceId = this.formatConsoleSourceId(sourceId)
+		const safeSourceId = formattedSourceId || '<unknown>'
+		const safeLine = Number.isFinite(lineNumber) && lineNumber > 0 ? lineNumber : 0
+		return ` [[${safeSourceId}:${safeLine}]]`
+	}
+
+	private formatConsoleSourceId(sourceId: string): string {
+		const trimmed = sourceId.trim()
+		if (!trimmed) {
+			return ''
+		}
+
+		// Common case in dev: Vite logs include an absolute `http://localhost:<port>/...` URL.
+		// For readability, drop the origin (and query/hash noise) while keeping the path.
+		try {
+			const url = new URL(trimmed)
+			if (url.protocol === 'http:' || url.protocol === 'https:') {
+				return url.pathname
+			}
+			if (url.protocol === 'file:') {
+				return decodeURIComponent(url.pathname)
+			}
+			return trimmed
+		} catch {
+			return trimmed
+		}
 	}
 
 	private handleDidNavigate = (_event: Electron.Event, url: string) => {
