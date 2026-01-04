@@ -24,6 +24,31 @@ Visually and logically the editor is split into **4 main parts**:
 - **Preload** exposes a narrow `window.mainApi` API via `contextBridge`.
 - **Renderer** (React + Phaser) calls `mainApi.*` for all filesystem work using typed IPC.
 
+### Main + Preload + Renderer working in tandem (Electron process model)
+
+Electron runs the app in **multiple isolated contexts** that collaborate through a small, typed IPC surface:
+
+- **Main (Node, privileged)**: creates the `BrowserWindow` and registers IPC handlers.
+    - Window security is locked down (`contextIsolation: true`, `nodeIntegration: false`) in `src/main/main.ts`.
+    - The main-process “service layer” is exposed as a set of `ipcMain.handle(...)` handlers in `src/main/ipc/register-main-api-handlers.ts`.
+- **Preload (bridge, minimal surface area)**: runs in an isolated context and safely exposes APIs to the renderer.
+    - `src/preload/preload.ts` uses `contextBridge.exposeInMainWorld(...)` to attach `window.mainApi`.
+    - `src/preload/create-main-api.ts` implements `window.mainApi.<method>` by forwarding to main via `ipcRenderer.invoke('main-api:<method>', input)`.
+- **Renderer (UI, unprivileged)**: the React + Phaser app. It never touches the filesystem directly.
+    - Renderer code calls `mainApi.<method>(...)` via `src/renderer/main-api/main-api.ts`, which validates **inputs and outputs** against the shared Zod contract.
+
+The contract lives in one place:
+
+- **`src/shared/main-api/MainApi.ts`** defines `mainApiContract` (Zod schemas) and derives the `MainApi` TypeScript type from it.
+
+#### End-to-end call path (example)
+
+Renderer → Preload → Main:
+
+1. Renderer calls `mainApi.readFile({ path })` (validated) (`src/renderer/main-api/main-api.ts`)
+2. Preload forwards via `ipcRenderer.invoke('main-api:readFile', input)` (`src/preload/create-main-api.ts`)
+3. Main receives it in `ipcMain.handle('main-api:readFile', ...)`, validates again, runs the handler, validates output, returns (`src/main/ipc/register-main-api-handlers.ts`)
+
 ## Getting started
 
 Install dependencies:
