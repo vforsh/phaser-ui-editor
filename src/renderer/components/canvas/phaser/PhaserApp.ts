@@ -88,8 +88,6 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 
 		super(phaserConfig)
 
-		// console.log('PhaserApp constructor - start')
-
 		if (urlParams.get('clearConsole') === 'phaser') {
 			console.clear()
 		}
@@ -232,6 +230,9 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 	override destroy(removeCanvas: boolean, noReturn?: boolean): void {
 		this.logger.info('PhaserApp destroy - start')
 
+		// Must run before `super.destroy()` because Phaser tears down InputManager / MouseManager objects during destroy.
+		this.cleanupPhaserMouseWheelListener()
+
 		super.destroy(removeCanvas, noReturn)
 
 		this.scene.scenes.forEach((scene) => {
@@ -247,6 +248,31 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 		}
 
 		this.logger.info('PhaserApp destroy - complete')
+	}
+
+	/**
+	 * Workaround for a Phaser bug: MouseManager.stopListeners() removes mouse listeners but (in our Phaser version)
+	 * does **not** remove the `wheel` listener. When we recreate PhaserApp (Vite HMR / Fast Refresh), wheel listeners
+	 * stack up on the same React-owned canvas and older listeners can `preventDefault()` (default Phaser config),
+	 * causing the new instance to stop receiving POINTER_WHEEL.
+	 */
+	private cleanupPhaserMouseWheelListener(): void {
+		const input: any = (this as any).input
+		const mouseManager: any = input?.mouse
+		if (!mouseManager) {
+			return
+		}
+
+		const target: any = mouseManager.target
+		if (!target || typeof target.removeEventListener !== 'function') {
+			return
+		}
+
+		// Phaser's MouseManager registers `wheel` as `target.addEventListener('wheel', this.onMouseWheel, ...)`.
+		// In our Phaser version, `stopListeners()` forgets to remove it.
+		if (mouseManager.onMouseWheel) {
+			target.removeEventListener('wheel', mouseManager.onMouseWheel)
+		}
 	}
 
 	public get destroySignal(): AbortSignal {
