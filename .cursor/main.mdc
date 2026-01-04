@@ -12,6 +12,8 @@ alwaysApply: true
 
 - When asked to add a rule to main.mdc, provide the rule description in 1 bullet point, concise, and 3 sentences max.
 
+- If the user asks to check logs, find the newest .log file  in `/logs` directory and read it in full. Then briefly list the key `ERR`/`WARN` entries and include relevant surrounding context.
+
 - When asked to create a refactoring plan or implementation plan, always include at the end: run Oxfmt on files added/changed during the work (e.g. `npx oxfmt --write $(git diff --name-only --diff-filter=AM)`), then run `npm run typecheck`, then run `npm run lint:fix`, and fix any errors those steps report.
 
 - Always use the "Return Early" pattern (Guard Clause) to reduce code nesting. Handle error conditions and edge cases first with early returns. This prevents deep nesting and improves code readability.

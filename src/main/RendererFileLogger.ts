@@ -49,6 +49,7 @@ export type RendererErrorStackLogEntry = {
 export class RendererFileLogger {
 	private readonly logsDir: string
 	private readonly runId: string
+	private readonly startedAtIso: string
 	private readonly maxBytes: number
 	private readonly maxFiles: number
 	private readonly maxRuns: number
@@ -57,10 +58,12 @@ export class RendererFileLogger {
 	private writeStream: fs.WriteStream | null = null
 	private writePromise = Promise.resolve()
 	private didPruneOldRuns = false
+	private didWriteSessionHeader = false
 
 	constructor(options: LoggerOptions) {
 		this.logsDir = options.logsDir
 		this.runId = options.runId
+		this.startedAtIso = new Date().toISOString()
 		this.maxBytes = options.maxBytes ?? 1 * 1024 * 1024
 		this.maxFiles = options.maxFiles ?? 10
 		this.maxRuns = options.maxRuns ?? 10
@@ -149,8 +152,56 @@ export class RendererFileLogger {
 			} else {
 				this.currentBytes = 0
 			}
+
+			this.writeSessionHeaderIfNeeded(this.writeStream)
 		}
 		return this.writeStream
+	}
+
+	private writeSessionHeaderIfNeeded(stream: fs.WriteStream): void {
+		if (this.didWriteSessionHeader) {
+			return
+		}
+
+		// "Once per file": if we're appending to an existing file, don't duplicate the header.
+		if (this.currentBytes > 0) {
+			this.didWriteSessionHeader = true
+			return
+		}
+
+		const timestamp = new Date().toISOString()
+		const separator = '='.repeat(50)
+
+		const versions = Object.entries(process.versions ?? {})
+			.sort(([a], [b]) => a.localeCompare(b))
+			.map(([k, v]) => `${timestamp} SYS : versions.${k}: ${String(v)}\n`)
+			.join('')
+
+		const headerLines =
+			`${timestamp} SYS : ${separator}\n` +
+			`${timestamp} SYS : SESSION HEADER\n` +
+			`${timestamp} SYS : runId: ${this.runId}\n` +
+			`${timestamp} SYS : startedAt: ${this.startedAtIso}\n` +
+			`${timestamp} SYS : appVersion: ${app.getVersion()}\n` +
+			`${timestamp} SYS : isPackaged: ${String(app.isPackaged)}\n` +
+			`${timestamp} SYS : platform: ${process.platform}\n` +
+			`${timestamp} SYS : arch: ${process.arch}\n` +
+			`${timestamp} SYS : pid: ${String(process.pid)}\n` +
+			`${timestamp} SYS : cwd: ${process.cwd()}\n` +
+			`${timestamp} SYS : env.NODE_ENV: ${process.env.NODE_ENV ?? '(unset)'}\n` +
+			`${timestamp} SYS : env.PW_E2E: ${process.env.PW_E2E ?? '(unset)'}\n` +
+			versions +
+			`${timestamp} SYS : ${separator}\n`
+
+		try {
+			const buf = Buffer.from(headerLines)
+			stream.write(buf)
+			this.currentBytes += buf.length
+		} catch {
+			// ignore
+		} finally {
+			this.didWriteSessionHeader = true
+		}
 	}
 
 	private pruneOldRunLogsOnce(): void {
@@ -236,6 +287,9 @@ export class RendererFileLogger {
 			await new Promise<void>((resolve) => this.writeStream!.end(resolve))
 			this.writeStream = null
 		}
+
+		// Next `getStream()` call will create a fresh file; allow writing the session header again.
+		this.didWriteSessionHeader = false
 
 		// Ensure the oldest rotated file is removed so we never exceed maxFiles.
 		const oldestPath = `${this.logFilePath}.${this.maxFiles}`
