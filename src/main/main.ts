@@ -84,10 +84,18 @@ const createWindow = () => {
 
 	const rendererUrl = process.env.ELECTRON_RENDERER_URL
 	if (rendererUrl) {
-		mainWindow.loadURL(rendererUrl)
+		const url = new URL(rendererUrl)
+		if (isE2E) {
+			url.searchParams.set('e2e', '1')
+		}
+		mainWindow.loadURL(url.toString())
 	} else {
 		const indexPath = path.join(__dirname, '../renderer/index.html')
-		mainWindow.loadFile(indexPath)
+		const url = new URL(`file://${indexPath}`)
+		if (isE2E) {
+			url.searchParams.set('e2e', '1')
+		}
+		mainWindow.loadURL(url.toString())
 	}
 }
 

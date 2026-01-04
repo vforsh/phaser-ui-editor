@@ -14,6 +14,7 @@ export type GenericUrlParam =
 	| 'test'
 	// to enable react-scan
 	| 'scan'
+	| 'e2e'
 
 export type UrlParamsOptions = {
 	logger: Logger<ILogObj>

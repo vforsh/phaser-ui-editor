@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useUndoHub } from '../di/DiHooks'
 import { openProjectByPath } from '../project/open-project'
 import { state, useSnapshot } from '../state/State'
+import { urlParams } from '../UrlParams'
 import AssetsPanel from './assetsPanel/AssetsPanel'
 import CanvasContainer from './canvas/CanvasContainer'
 import OpenProjectDialog from './dialogs/OpenProjectDialog'
@@ -119,7 +120,7 @@ export default function EditorLayout() {
 
 	// display OpenProjectDialog if state.project is null
 	useEffect(() => {
-		if (snap.project) {
+		if (snap.project || urlParams.getBool('e2e')) {
 			return
 		}
 
@@ -231,7 +232,11 @@ export default function EditorLayout() {
 				</Paper>
 			</Group>
 
-			<OpenProjectDialog opened={openProjectDialogOpen} onClose={() => setOpenProjectDialogOpen(false)} onOpenProject={openProject} />
+			<OpenProjectDialog //
+				opened={openProjectDialogOpen}
+				onClose={() => setOpenProjectDialogOpen(false)}
+				onOpenProject={openProject}
+			/>
 		</>
 	)
 }
