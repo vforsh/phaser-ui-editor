@@ -1,0 +1,26 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+- call `git diff` WITHOUT pager e.g. `git --no-pager diff` or `git diff | cat`
+
+- Use `ts-pattern` exhaustive matches `match().with(...).with(...).exhaustive()` instead of `if` or `switch` statements for discriminated unions whenever appropriate.
+
+- When an .mdc file is mentioned, it is a file located in the .cursor/rules directory. Use `find ./.cursor/rules/ -name "RULE.mdc"` command to find a precise file path.
+
+- When asked to add a rule to main.mdc, provide the rule description in 1 bullet point, concise, and 3 sentences max.
+
+- When asked to create a refactoring plan or implementation plan, always include at the end: run Prettier on files added/changed during the work (e.g. `npx prettier --write $(git diff --name-only --diff-filter=AM)`), then run `npm run typecheck`, then run `npm run lint` (per `package.json`), and fix any errors those steps report.
+
+- Always use the "Return Early" pattern (Guard Clause) to reduce code nesting. Handle error conditions and edge cases first with early returns. This prevents deep nesting and improves code readability.
+
+- Declare functions and methods close to their callsites and order them in their call sequence (caller before callee). This improves locality, readability, and maintainability. Move helpers next to the primary method that uses them, unless widely reused.
+
+- Use `@mantine/hooks` for React hooks
+
+- Use icons from `lucide-react` instead of `@tabler/icons-react`
+
+- Use css modules when you need to add a hover effect to a component
+
