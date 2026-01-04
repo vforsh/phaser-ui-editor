@@ -227,11 +227,11 @@ process.on('SIGHUP', () => cleanupAndExit(0))
 function getDevCommand() {
 	if (isWin) {
 		const cmd = path.resolve(process.cwd(), 'node_modules', '.bin', 'electron-vite.cmd')
-		return { cmd, args: ['dev'] }
+		return { cmd, args: ['dev', '--watch'] }
 	}
 
 	const cmd = path.resolve(process.cwd(), 'node_modules', '.bin', 'electron-vite')
-	return { cmd, args: ['dev'] }
+	return { cmd, args: ['dev', '--watch'] }
 }
 
 // Start from a clean state: if a previous run left a pidfile, kill that exact tree first.
