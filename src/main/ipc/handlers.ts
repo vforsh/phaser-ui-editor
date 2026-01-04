@@ -9,7 +9,7 @@ import parseBmfontXml from 'parse-bmfont-xml'
 import sharp from 'sharp'
 import trash from 'trash'
 
-import type { TexturePacker } from '../../../../types/texture-packer'
+import type { TexturePacker } from '../../../types/texture-packer'
 import type { MainApi } from '../../shared/main-api/MainApi'
 
 import { normalizeAbsolutePath } from './utils/path'
