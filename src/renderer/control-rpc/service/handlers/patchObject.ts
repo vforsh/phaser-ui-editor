@@ -1,4 +1,4 @@
-import type { setObjectPatchCommand } from '../../api/commands/setObjectPatch'
+import type { patchObjectCommand } from '../../api/commands/patchObject'
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'
@@ -6,9 +6,9 @@ import { applyWhitelistedPatch } from '../utils/apply-whitelisted-patch'
 import { resolveNodeSelectorV0 } from '../utils/resolve-node-selector'
 
 /**
- * @see {@link setObjectPatchCommand} for command definition
+ * @see {@link patchObjectCommand} for command definition
  */
-export const setObjectPatch: CommandHandler<'setObjectPatch'> = (_ctx) => async (params) => {
+export const patchObject: CommandHandler<'setObjectPatch'> = (_ctx) => async (params) => {
 	const resolved = resolveNodeSelectorV0(params.target)
 	if (!resolved.ok) {
 		return resolved

@@ -1,15 +1,15 @@
 import { P, match } from 'ts-pattern'
 
-import type { setComponentPatchCommand } from '../../api/commands/setComponentPatch'
+import type { patchObjectComponentCommand } from '../../api/commands/patchObjectComponent'
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'
 import { resolveNodeSelectorV0 } from '../utils/resolve-node-selector'
 
 /**
- * @see {@link setComponentPatchCommand} for command definition
+ * @see {@link patchObjectComponentCommand} for command definition
  */
-export const setComponentPatch: CommandHandler<'setComponentPatch'> = (_ctx) => async (params) => {
+export const patchObjectComponent: CommandHandler<'setComponentPatch'> = (_ctx) => async (params) => {
 	const resolved = resolveNodeSelectorV0(params.target)
 	if (!resolved.ok) {
 		return resolved

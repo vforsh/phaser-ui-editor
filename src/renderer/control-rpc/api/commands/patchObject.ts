@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { CommandDefinition } from '../ControlApi'
 import { nodeSelectorV0Schema, okResultSchema } from '../shared-schemas'
 
-export const setObjectPatchCommand = {
+export const patchObjectCommand = {
 	group: 'objects',
 	description: 'Applies a whitelisted patch to an object state.',
 	input: z

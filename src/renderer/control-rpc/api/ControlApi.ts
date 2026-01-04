@@ -27,7 +27,7 @@ export { assetNodeSchema, assetTypeSchema, type AssetNode, type AssetType } from
 export { hierarchyNodeSchema, type HierarchyNode } from './commands/listHierarchy'
 export { successSchema } from './shared-schemas'
 
-import { createObjectCommand } from './commands/createObject'
+import { createObjectCommand, createObjectFromAssetCommand } from './commands/createObject'
 import { createPrefabInstanceCommand } from './commands/createPrefabInstance'
 import { deleteObjectsCommand } from './commands/deleteObjects'
 import { duplicateObjectCommand } from './commands/duplicateObject'
@@ -45,6 +45,8 @@ import { listHierarchyCommand } from './commands/listHierarchy'
 import { moveObjectInHierarchyCommand } from './commands/moveObjectInHierarchy'
 import { openPrefabCommand } from './commands/openPrefab'
 import { openProjectCommand } from './commands/openProject'
+import { patchObjectCommand } from './commands/patchObject'
+import { patchObjectComponentCommand } from './commands/patchObjectComponent'
 import { renameObjectCommand } from './commands/renameObject'
 import { resolveNodeCommand } from './commands/resolveNode'
 import { savePrefabCommand } from './commands/savePrefab'
@@ -52,8 +54,6 @@ import { selectAssetsCommand } from './commands/selectAssets'
 import { selectNodeCommand } from './commands/selectNode'
 import { selectObjectCommand } from './commands/selectObject'
 import { setCameraCommand } from './commands/setCamera'
-import { setComponentPatchCommand } from './commands/setComponentPatch'
-import { setObjectPatchCommand } from './commands/setObjectPatch'
 import { switchToContextCommand } from './commands/switchToContext'
 import { takeCanvasScreenshotCommand } from './commands/takeCanvasScreenshot'
 import { waitForCanvasIdleCommand } from './commands/waitForCanvasIdle'
@@ -70,11 +70,12 @@ export const controlContract = {
 	switchToContext: switchToContextCommand,
 	deleteObjects: deleteObjectsCommand,
 	createObject: createObjectCommand,
+	createObjectFromAsset: createObjectFromAssetCommand,
 	duplicateObject: duplicateObjectCommand,
 	moveObjectInHierarchy: moveObjectInHierarchyCommand,
 	renameObject: renameObjectCommand,
-	setObjectPatch: setObjectPatchCommand,
-	setComponentPatch: setComponentPatchCommand,
+	setObjectPatch: patchObjectCommand,
+	setComponentPatch: patchObjectComponentCommand,
 	resolveNode: resolveNodeCommand,
 	getAssetInfo: getAssetInfoCommand,
 	getSelectedAssets: getSelectedAssetsCommand,

@@ -3,6 +3,7 @@ import type { ControlApi } from '../api/ControlApi'
 import type { EditorControlContext } from './types'
 
 import { createObject } from './handlers/createObject'
+import { createObjectFromAsset } from './handlers/createObjectFromAsset'
 import { createPrefabInstance } from './handlers/createPrefabInstance'
 import { deleteObjects } from './handlers/deleteObjects'
 import { duplicateObject } from './handlers/duplicateObject'
@@ -20,6 +21,8 @@ import { listHierarchy } from './handlers/listHierarchy'
 import { moveObjectInHierarchy } from './handlers/moveObjectInHierarchy'
 import { openPrefab } from './handlers/openPrefab'
 import { openProject } from './handlers/openProject'
+import { patchObject } from './handlers/patchObject'
+import { patchObjectComponent } from './handlers/patchObjectComponent'
 import { renameObject } from './handlers/renameObject'
 import { resolveNode } from './handlers/resolveNode'
 import { savePrefab } from './handlers/savePrefab'
@@ -27,8 +30,6 @@ import { selectAssets } from './handlers/selectAssets'
 import { selectNode } from './handlers/selectNode'
 import { selectObject } from './handlers/selectObject'
 import { setCamera } from './handlers/setCamera'
-import { setComponentPatch } from './handlers/setComponentPatch'
-import { setObjectPatch } from './handlers/setObjectPatch'
 import { switchToContext } from './handlers/switchToContext'
 import { takeCanvasScreenshot } from './handlers/takeCanvasScreenshot'
 import { waitForCanvasIdle } from './handlers/waitForCanvasIdle'
@@ -58,11 +59,12 @@ export class EditorControlService {
 			switchToContext: switchToContext(this.ctx),
 			deleteObjects: deleteObjects(this.ctx),
 			createObject: createObject(this.ctx),
+			createObjectFromAsset: createObjectFromAsset(this.ctx),
 			duplicateObject: duplicateObject(this.ctx),
 			moveObjectInHierarchy: moveObjectInHierarchy(this.ctx),
 			renameObject: renameObject(this.ctx),
-			setObjectPatch: setObjectPatch(this.ctx),
-			setComponentPatch: setComponentPatch(this.ctx),
+			setObjectPatch: patchObject(this.ctx),
+			setComponentPatch: patchObjectComponent(this.ctx),
 			resolveNode: resolveNode(this.ctx),
 			getAssetInfo: getAssetInfo(this.ctx),
 			getSelectedAssets: getSelectedAssets(this.ctx),

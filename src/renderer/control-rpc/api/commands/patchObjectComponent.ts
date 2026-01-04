@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { CommandDefinition } from '../ControlApi'
 import { nodeSelectorV0Schema, okResultSchema } from '../shared-schemas'
 
-export const setComponentPatchCommand = {
+export const patchObjectComponentCommand = {
 	group: 'objects',
 	description: 'Applies a patch to a component state on the target object.',
 	input: z

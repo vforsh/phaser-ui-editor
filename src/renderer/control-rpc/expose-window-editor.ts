@@ -33,6 +33,7 @@ export function exposeWindowEditor(appCommands: AppCommandsEmitter): void {
 		switchToContext: (params) => handlers.switchToContext(params),
 		deleteObjects: (params) => handlers.deleteObjects(params),
 		createObject: (params) => handlers.createObject(params),
+		createObjectFromAsset: (params) => handlers.createObjectFromAsset(params),
 		duplicateObject: (params) => handlers.duplicateObject(params),
 		moveObjectInHierarchy: (params) => handlers.moveObjectInHierarchy(params),
 		renameObject: (params) => handlers.renameObject(params),

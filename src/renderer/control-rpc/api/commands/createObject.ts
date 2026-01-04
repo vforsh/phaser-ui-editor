@@ -17,3 +17,24 @@ export const createObjectCommand = {
 		.describe('Input parameters for creating an object'),
 	output: okResultSchema.describe('Result indicating whether the object was created'),
 } satisfies CommandDefinition
+
+export const createObjectFromAssetCommand = {
+	group: 'objects',
+	description: 'Creates a new object from an asset (using the same pipeline as asset drop).',
+	input: z
+		.object({
+			parent: nodeSelectorV0Schema.describe('Parent node selector'),
+			assetId: z.string().min(1).describe('Asset id'),
+			position: z
+				.object({
+					x: z.number().finite().describe('Canvas X coordinate'),
+					y: z.number().finite().describe('Canvas Y coordinate'),
+				})
+				.strict()
+				.optional()
+				.describe('Optional drop position'),
+		})
+		.strict()
+		.describe('Input parameters for creating an object from an asset'),
+	output: okResultSchema.describe('Result indicating whether the object was created'),
+} satisfies CommandDefinition
