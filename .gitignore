@@ -138,3 +138,6 @@ screenshots/**/*.png
 screenshots/**/*.jpg
 screenshots/**/*.jpeg
 screenshots/**/*.webp
+
+# Playwright test results
+test-results/
