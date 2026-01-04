@@ -2,25 +2,24 @@
 
 Implement drag and drop for the hierarchy panel. The user should be able to drag and drop <HierarchyItem> components to reorder them.
 
-
 ## Requirements:
 
--   should be implemented using [@atlaskit/pragmatic-drag-and-drop](https://atlassian.design/components/pragmatic-drag-and-drop/core-package/) library.
--   should be implemented in the <HierarchyPanel> component
--   user should be able to drag and drop multiple selected items at once
--   onDragEnd emit the `move-object-in-hierarchy` command (refer to `src/AppCommands.ts` for the command details)
-    -   HierarchyPanel should only emit the command, the actual reordering and state updates will be done in the PhaserApp and outside the scope of this feature. It will be implemented in the future.
--   user should be able to cancel the drag and drop by pressing Escape key
--   root item should not be draggable
-
+- should be implemented using [@atlaskit/pragmatic-drag-and-drop](https://atlassian.design/components/pragmatic-drag-and-drop/core-package/) library.
+- should be implemented in the <HierarchyPanel> component
+- user should be able to drag and drop multiple selected items at once
+- onDragEnd emit the `move-object-in-hierarchy` command (refer to `src/AppCommands.ts` for the command details)
+    - HierarchyPanel should only emit the command, the actual reordering and state updates will be done in the PhaserApp and outside the scope of this feature. It will be implemented in the future.
+- user should be able to cancel the drag and drop by pressing Escape key
+- root item should not be draggable
 
 ## References
+
 - Pragmatic drag and drop library - https://atlassian.design/components/pragmatic-drag-and-drop/about
 - Pragmatic drag and drop - React - https://atlassian.design/components/pragmatic-drag-and-drop/core-package/UI-frameworks/react
 - Pragmatic drag and drop - Tree example - https://atlassian.design/components/pragmatic-drag-and-drop/examples#tree
 
-
 ### Tree example
+
 ```typescript
 /**
  * @jsxRuntime classic

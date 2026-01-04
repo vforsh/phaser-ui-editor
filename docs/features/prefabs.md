@@ -2,7 +2,6 @@
 
 Prefabs are a way to create reusable components. Every prefab is a Container that can be added to other Prefabs.
 
-
 ## Serialization
 
 Prefabs are serialized as a YAML files.
@@ -12,7 +11,6 @@ We use YAML over JSON because it's easier to deal with when using VCS (e.g. Git)
 Unity also uses YAML for their prefabs. So it's a time-proven format. [link](https://unity.com/blog/engine-platform/understanding-unitys-serialization-language-yaml)
 
 Consider using merge tools that are aware of YAML. e.g. [UnityYAMLMerge](https://docs.unity3d.com/Manual/SmartMerge.html)
-
 
 ## Prefab Content
 

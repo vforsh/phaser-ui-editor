@@ -1,11 +1,11 @@
+import { Container } from '@needle-di/core'
 import { useContext } from 'react'
-import { DependencyContainer } from 'tsyringe'
 
 import { UndoHub } from '../history/UndoHub'
 import { DiContext } from './DiContextValue'
 import { TOKENS, type PhaserScope } from './tokens'
 
-export function useDi(): DependencyContainer {
+export function useDi(): Container {
 	const container = useContext(DiContext)
 
 	if (!container) {
@@ -17,17 +17,17 @@ export function useDi(): DependencyContainer {
 
 export function useAppEvents() {
 	const container = useDi()
-	return container.resolve(TOKENS.AppEvents)
+	return container.get(TOKENS.AppEvents)
 }
 
 export function useAppCommands() {
 	const container = useDi()
-	return container.resolve(TOKENS.AppCommands)
+	return container.get(TOKENS.AppCommands)
 }
 
 export function usePhaserScope(): PhaserScope {
 	const container = useDi()
-	return container.resolve(TOKENS.PhaserScope)
+	return container.get(TOKENS.PhaserScope)
 }
 
 export function usePhaserEvents() {
@@ -52,5 +52,5 @@ export function usePhaserCommands() {
 
 export function useUndoHub(): UndoHub {
 	const container = useDi()
-	return container.resolve(TOKENS.UndoHub)
+	return container.get(TOKENS.UndoHub)
 }

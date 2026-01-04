@@ -61,4 +61,3 @@ npm run editorctl -- call getProjectInfo '{}'
 ```bash
 npm run editorctl -- call openProject '{"path":"/abs/path/to/project"}'
 ```
-

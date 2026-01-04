@@ -1,4 +1,4 @@
-import { InjectionToken } from 'tsyringe'
+import { InjectionToken } from '@needle-di/core'
 
 import { AppCommands } from '../AppCommands'
 import { AppEvents } from '../AppEvents'
@@ -14,8 +14,8 @@ export type PhaserScope = {
 }
 
 export const TOKENS = {
-	AppEvents: Symbol('AppEvents') as InjectionToken<TypedEventEmitter<AppEvents>>,
-	AppCommands: Symbol('AppCommands') as InjectionToken<CommandEmitter<AppCommands>>,
-	PhaserScope: Symbol('PhaserScope') as InjectionToken<PhaserScope>,
-	UndoHub: Symbol('UndoHub') as InjectionToken<UndoHub>,
+	AppEvents: new InjectionToken<TypedEventEmitter<AppEvents>>('AppEvents'),
+	AppCommands: new InjectionToken<CommandEmitter<AppCommands>>('AppCommands'),
+	PhaserScope: new InjectionToken<PhaserScope>('PhaserScope'),
+	UndoHub: new InjectionToken<UndoHub>('UndoHub'),
 }

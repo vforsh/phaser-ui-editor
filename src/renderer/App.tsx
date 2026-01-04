@@ -42,21 +42,21 @@ function App() {
 	const diContainer = useMemo(() => {
 		const container = createContainer()
 
-		container.registerInstance(TOKENS.AppEvents, new TypedEventEmitter<AppEvents>())
+		container.bind({ provide: TOKENS.AppEvents, useValue: new TypedEventEmitter<AppEvents>() })
 		const appCommands = new CommandEmitter<AppCommands>('app')
-		container.registerInstance(TOKENS.AppCommands, appCommands)
+		container.bind({ provide: TOKENS.AppCommands, useValue: appCommands })
 		exposeWindowEditor(appCommands)
 		const undoHub = new UndoHub({
 			onChange: (historyState) => {
 				state.app.history = historyState
 			},
 		})
-		container.registerInstance(TOKENS.UndoHub, undoHub)
+		container.bind({ provide: TOKENS.UndoHub, useValue: undoHub })
 
 		return container
 	}, [])
 
-	const appCommands = diContainer.resolve(TOKENS.AppCommands)
+	const appCommands = diContainer.get(TOKENS.AppCommands)
 	useControlRpcBridge(appCommands)
 	const [settingsOpened, setSettingsOpened] = useState(false)
 	const [activeSettingsSectionId, setActiveSettingsSectionId] = useState<SettingsSectionId>('general')

@@ -13,25 +13,25 @@ This is conceptually similar to “Unity components”, but implemented as plain
 ### Core building blocks
 
 - **`BaseEditableComponent`** (`src/components/canvas/phaser/scenes/main/objects/components/base/BaseEditableComponent.ts`)
-  - Defines the component lifecycle (`onAdded`, `activate`, `deactivate`, `destroy`).
-  - Owns a **valtio proxy state** (`this._state`) created from `toJson()` via `createState()`.
-  - Provides abort signals:
-    - `destroySignal`: aborted when the component is destroyed (final cleanup).
-    - `deactivateSignal`: passed into `onActivate(...)`, aborted when the component is deactivated (pause/temporary cleanup).
-  - Runs **pre-add checks** (`PreAddChecksFactory`) to validate that the target object supports the component.
+    - Defines the component lifecycle (`onAdded`, `activate`, `deactivate`, `destroy`).
+    - Owns a **valtio proxy state** (`this._state`) created from `toJson()` via `createState()`.
+    - Provides abort signals:
+        - `destroySignal`: aborted when the component is destroyed (final cleanup).
+        - `deactivateSignal`: passed into `onActivate(...)`, aborted when the component is deactivated (pause/temporary cleanup).
+    - Runs **pre-add checks** (`PreAddChecksFactory`) to validate that the target object supports the component.
 
 - **`ComponentsManager`** (`src/components/canvas/phaser/scenes/main/objects/components/base/ComponentsManager.ts`)
-  - Lives on every `EditableObject` (`obj.components`).
-  - Stores a list of component instances and enforces **“one component per type per object”**.
-  - Emits events when the list changes: `component-added`, `component-removed`, `component-moved`.
+    - Lives on every `EditableObject` (`obj.components`).
+    - Stores a list of component instances and enforces **“one component per type per object”**.
+    - Emits events when the list changes: `component-added`, `component-removed`, `component-moved`.
 
 - **Factories**
-  - `EditableComponentsFactory` (`.../components/base/EditableComponentsFactory.ts`):
-    - Creates new component instances by type (`create(type)`).
-    - Rehydrates components from JSON (`fromJson(json)`).
-    - Generates stable component `id`s (used for serialization/copy-paste).
-  - `EditableObjectsFactory` (`.../objects/EditableObjectsFactory.ts`):
-    - Rehydrates objects from JSON and calls `initComponents(obj, json.components)` to attach components.
+    - `EditableComponentsFactory` (`.../components/base/EditableComponentsFactory.ts`):
+        - Creates new component instances by type (`create(type)`).
+        - Rehydrates components from JSON (`fromJson(json)`).
+        - Generates stable component `id`s (used for serialization/copy-paste).
+    - `EditableObjectsFactory` (`.../objects/EditableObjectsFactory.ts`):
+        - Rehydrates objects from JSON and calls `initComponents(obj, json.components)` to attach components.
 
 ---
 
@@ -46,9 +46,9 @@ Each `EditableObject` owns a reactive `stateObj` (valtio proxy) representing its
 Runtime reacts to Inspector edits via `StateChangesEmitter`:
 
 - Component constructors typically:
-  - Apply `initialState` into internal fields (`this.x = ...`, etc.)
-  - Create `this._state = this.createState()`
-  - Create a `StateChangesEmitter(this._state, { ...callbacks... }, this.destroySignal)`
+    - Apply `initialState` into internal fields (`this.x = ...`, etc.)
+    - Create `this._state = this.createState()`
+    - Create a `StateChangesEmitter(this._state, { ...callbacks... }, this.destroySignal)`
 - When Inspector updates `data.someField = ...`, the emitter callback updates internal fields and applies changes to Phaser objects.
 
 This creates a **single source of truth**:
@@ -64,16 +64,16 @@ This creates a **single source of truth**:
 1. UI emits `appCommands.emit('add-component', { componentType, objectId })`.
 2. `MainScene` creates the component via `componentsFactory.create(type)`.
 3. `ComponentsManager.add()`:
-   - Guard: no duplicate `type`
-   - `comp.canBeAddedTo(obj)` (runs pre-add checks)
-   - `comp.onAdded(obj)` (attaches the component)
-   - Adds to list and emits `component-added`
+    - Guard: no duplicate `type`
+    - `comp.canBeAddedTo(obj)` (runs pre-add checks)
+    - `comp.onAdded(obj)` (attaches the component)
+    - Adds to list and emits `component-added`
 
 #### Activate / Deactivate
 
 - Components have an `active` boolean in their JSON.
 - When `active` changes in the Inspector, the component’s `StateChangesEmitter` typically calls:
-  - `value ? this.activate() : this.deactivate()`
+    - `value ? this.activate() : this.deactivate()`
 - `activate()` calls `onActivate(deactivateSignal, firstTime=false)`.
 - `deactivate()` aborts `deactivateSignal` and calls `onDeactivate()`.
 
@@ -93,8 +93,8 @@ Components are part of the editable object JSON:
 
 - `EditableObject.toJson()` includes `components: this._components.items.map((c) => c.toJson())`.
 - On load/restore/clone, `EditableObjectsFactory.initComponents(obj, json.components)`:
-  - `componentsFactory.fromJson(componentJson)`
-  - `obj.components.add(component)`
+    - `componentsFactory.fromJson(componentJson)`
+    - `obj.components.add(component)`
 
 Because `stateObj` is a proxy of `toJson()`, “saved state” is always aligned with what the Inspector is editing.
 
@@ -103,53 +103,53 @@ Because `stateObj` is a proxy of `toJson()`, “saved state” is always aligned
 ### Existing components (in `src/components/canvas/phaser/scenes/main/objects/components/`)
 
 - **Horizontal Layout** (`HorizontalLayoutComponent`)
-  - Applies a “row layout” to children of a container.
-  - Listens to `hierarchy-changed` on the container to recompute layout.
-  - Uses pre-add checks to prevent conflicting layouts on the same object.
+    - Applies a “row layout” to children of a container.
+    - Listens to `hierarchy-changed` on the container to recompute layout.
+    - Uses pre-add checks to prevent conflicting layouts on the same object.
 
 - **Vertical Layout** (`VerticalLayoutComponent`)
-  - Applies a “column layout” to children of a container.
-  - Listens to `hierarchy-changed` and prevents conflicting layouts.
+    - Applies a “column layout” to children of a container.
+    - Listens to `hierarchy-changed` and prevents conflicting layouts.
 
 - **Grid Layout** (`GridLayoutComponent`)
-  - Applies a grid layout to children of a container (with optional centering of the last row).
-  - Listens to `hierarchy-changed` and prevents conflicting layouts.
+    - Applies a grid layout to children of a container (with optional centering of the last row).
+    - Listens to `hierarchy-changed` and prevents conflicting layouts.
 
 ---
 
 ### Adding a new component (checklist)
 
 1. **Create the component class**
-   - Location: `src/components/canvas/phaser/scenes/main/objects/components/`
-   - Extend `BaseEditableComponent<MyComponentJson>`
-   - Define `public readonly type = 'my-component-type' as const`
-   - Implement:
-     - `toJson(): MyComponentJson`
-     - `onActivate(deactivateSignal, firstTime)` (use guard clauses)
-     - `onDeactivate()`
-   - Add any `this._preAddChecks.push(...)` rules (object type, conflicts, requirements).
+    - Location: `src/components/canvas/phaser/scenes/main/objects/components/`
+    - Extend `BaseEditableComponent<MyComponentJson>`
+    - Define `public readonly type = 'my-component-type' as const`
+    - Implement:
+        - `toJson(): MyComponentJson`
+        - `onActivate(deactivateSignal, firstTime)` (use guard clauses)
+        - `onDeactivate()`
+    - Add any `this._preAddChecks.push(...)` rules (object type, conflicts, requirements).
 
 2. **Create a JSON type**
-   - Must include at least: `type`, `id`, `active`, plus your fields.
+    - Must include at least: `type`, `id`, `active`, plus your fields.
 
 3. **Wire reactive state**
-   - `this._state = this.createState()`
-   - `new StateChangesEmitter(this._state, { 'field': (value) => ... }, this.destroySignal)`
-   - Prefer updating internal fields + applying to Phaser objects from those callbacks.
+    - `this._state = this.createState()`
+    - `new StateChangesEmitter(this._state, { 'field': (value) => ... }, this.destroySignal)`
+    - Prefer updating internal fields + applying to Phaser objects from those callbacks.
 
 4. **Register it in component unions**
-   - Update `.../components/base/EditableComponent.ts`:
-     - `EditableComponent` union
-     - `EditableComponentJson` union
-     - (and `EditableComponentType` if it’s a new type)
+    - Update `.../components/base/EditableComponent.ts`:
+        - `EditableComponent` union
+        - `EditableComponentJson` union
+        - (and `EditableComponentType` if it’s a new type)
 
 5. **Register it in factories**
-   - Update `EditableComponentsFactory.create(type)` and `.fromJson(json)`
+    - Update `EditableComponentsFactory.create(type)` and `.fromJson(json)`
 
 6. **Expose it in the Inspector**
-   - Add metadata in `src/components/inspector/sections/components/ComponentsListData.ts` (title, icon, group).
-   - Add a section renderer in `InspectorPanel.getComponentSections(...)`.
-   - Implement the UI section component that edits the component JSON proxy fields.
+    - Add metadata in `src/components/inspector/sections/components/ComponentsListData.ts` (title, icon, group).
+    - Add a section renderer in `InspectorPanel.getComponentSections(...)`.
+    - Implement the UI section component that edits the component JSON proxy fields.
 
 ---
 

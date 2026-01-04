@@ -10,7 +10,6 @@ It should look like <InspectorSection> component but with the following differen
 - It will have a help/info icon button in the header to tooltip with the component info
 - It will have a button on the right side the will open a context menu (more about it below)
 
-
 ## Context menu
 
 The context menu will have the following options:

@@ -4,7 +4,6 @@ When the object is selected in the InspectorPanel, add the big wide "Add Compone
 
 When a user clicks on this button, the component list should appear. Data for all available components is located at `src/components/inspector/sections/components/ComponentsListData.ts`.
 
-
 ## Component List
 
 The component list is a vertical list of components with a search bar on top.
@@ -17,7 +16,6 @@ When displaying ComponentListItem, display its icon on the left side and the tit
 
 When clicking on a ComponentListItem, the component should be added to the object and the component list should be closed.
 
-
 ## Keyboard Navigation
 
 When the user presses the ESC key, the list should be closed.
@@ -27,4 +25,3 @@ When the user presses the Tab key, the focus should move from search input to th
 Users should be able to navigate between list items with the up and down arrow keys.
 
 When the user presses the Enter key, the selected component should be added to the object and the list should be closed.
-

@@ -1,4 +1,4 @@
+import { Container } from '@needle-di/core'
 import { createContext } from 'react'
-import { DependencyContainer } from 'tsyringe'
 
-export const DiContext = createContext<DependencyContainer | null>(null)
+export const DiContext = createContext<Container | null>(null)

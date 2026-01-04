@@ -1,10 +1,10 @@
+import { Container } from '@needle-di/core'
 import { ReactNode } from 'react'
-import { DependencyContainer } from 'tsyringe'
 
 import { DiContext } from './DiContextValue'
 
 type DiProviderProps = {
-	container: DependencyContainer
+	container: Container
 	children: ReactNode
 }
 

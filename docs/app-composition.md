@@ -20,11 +20,11 @@ At runtime, the app is “glued” together by:
 
 - **Mantine** setup (`MantineProvider`, `Notifications`, `ContextMenuProvider`).
 - Creates a DI container (`createContainer()`), then registers:
-  - `TOKENS.AppEvents`: `TypedEventEmitter<AppEvents>()`
-  - `TOKENS.AppCommands`: `CommandEmitter<AppCommands>('app')`
-  - `TOKENS.UndoHub`: `UndoHub` instance
+    - `TOKENS.AppEvents`: `TypedEventEmitter<AppEvents>()`
+    - `TOKENS.AppCommands`: `CommandEmitter<AppCommands>('app')`
+    - `TOKENS.UndoHub`: `UndoHub` instance
 - Wires `UndoHub` state changes into valtio:
-  - `onChange(historyState) => state.app.history = historyState`
+    - `onChange(historyState) => state.app.history = historyState`
 - Renders the main editor layout (`EditorLayout`), which hosts the four panels.
 
 The important idea: **React owns the “application services”**, and Phaser is a “client” of those services (it receives app commands, emits events back, and mutates shared state).
@@ -36,8 +36,8 @@ The important idea: **React owns the “application services”**, and Phaser is
 - Creates a `<canvas id="canvas" tabIndex={0} />` so it can receive focus/keyboard.
 - On mount (and when dependencies change), it creates a `PhaserApp` instance via `createPhaserApp(...)`.
 - Injects the Phaser app’s own emitters into a shared “phaser scope”:
-  - `phaserScope.events = phaserApp.ev3nts`
-  - `phaserScope.commands = phaserApp.commands`
+    - `phaserScope.events = phaserApp.ev3nts`
+    - `phaserScope.commands = phaserApp.commands`
 - Ensures proper cleanup on unmount: destroys emitters and the Phaser game instance.
 
 Conceptually:
@@ -52,26 +52,26 @@ Conceptually:
 Key responsibilities:
 
 - **Holds references** to:
-  - `appEvents` (from React) — events Phaser can listen to
-  - `appCommands` (from React) — commands Phaser can react to
-  - `ev3nts` (to React) — Phaser → React events
-  - `commands` (to scenes/tools) — internal Phaser command bus
-  - `undoHub` — undo/redo service owned by React
+    - `appEvents` (from React) — events Phaser can listen to
+    - `appCommands` (from React) — commands Phaser can react to
+    - `ev3nts` (to React) — Phaser → React events
+    - `commands` (to scenes/tools) — internal Phaser command bus
+    - `undoHub` — undo/redo service owned by React
 - **Binds app commands**:
-  - `'open-prefab'` → `openPrefab(prefabAssetId)`
-  - `'discard-unsaved-prefab'` → `discardUnsavedPrefab()`
-  - `'undo'/'redo'` → delegates to `undoHub.undo()` / `undoHub.redo()`
+    - `'open-prefab'` → `openPrefab(prefabAssetId)`
+    - `'discard-unsaved-prefab'` → `discardUnsavedPrefab()`
+    - `'undo'/'redo'` → delegates to `undoHub.undo()` / `undoHub.redo()`
 - **Scene setup**:
-  - Registers `MainScene` (the editor scene) and optionally `TestScene`.
+    - Registers `MainScene` (the editor scene) and optionally `TestScene`.
 - Starts `MainScene` by loading a prefab file via `backend.readJson` (IPC) when requested.
 - **Scaling**:
-  - Uses `ResizeSensor` + debounced handler to keep Phaser’s scale in sync with the canvas container.
+    - Uses `ResizeSensor` + debounced handler to keep Phaser’s scale in sync with the canvas container.
 - **Prefab lifecycle**:
-  - Avoids reopening the same prefab if it’s already active.
-  - If there are unsaved changes, prompts to save before switching prefabs.
-  - Updates `state.canvas.lastOpenedPrefabAssetId` so the app can auto-open it next time.
+    - Avoids reopening the same prefab if it’s already active.
+    - If there are unsaved changes, prompts to save before switching prefabs.
+    - Updates `state.canvas.lastOpenedPrefabAssetId` so the app can auto-open it next time.
 
-In practice, `MainScene` is where most “editor behavior” lives (selection, transforms, creation, serialization), but `PhaserApp` is the **entry point** that decides *which prefab is open* and *when scenes transition*.
+In practice, `MainScene` is where most “editor behavior” lives (selection, transforms, creation, serialization), but `PhaserApp` is the **entry point** that decides _which prefab is open_ and _when scenes transition_.
 
 ### Hierarchy Panel (`src/components/hierarchyPanel/HierarchyPanel.tsx`)
 
@@ -88,16 +88,16 @@ Two-way binding mechanics:
 Notable interaction patterns:
 
 - **Keyboard navigation** (when the panel is focused):
-  - Arrow keys move selection through visible items
-  - Shift + arrows extends selection among siblings
-  - Left/Right expands/collapses containers, or selects parent
-  - `Cmd/Ctrl+S` saves current prefab if there are unsaved changes
-  - `Delete/Backspace` deletes selected objects (`'delete-objects'`)
-  - `F2` starts rename for the last selected item
+    - Arrow keys move selection through visible items
+    - Shift + arrows extends selection among siblings
+    - Left/Right expands/collapses containers, or selects parent
+    - `Cmd/Ctrl+S` saves current prefab if there are unsaved changes
+    - `Delete/Backspace` deletes selected objects (`'delete-objects'`)
+    - `F2` starts rename for the last selected item
 - **Drag-and-drop re-parenting / reordering**:
-  - Uses Atlaskit pragmatic DnD monitoring.
-  - On drop, it computes the target parent/index and emits:
-    - `appCommands.emit('move-object-in-hierarchy', sourceId, targetParentId, targetIndex)`
+    - Uses Atlaskit pragmatic DnD monitoring.
+    - On drop, it computes the target parent/index and emits:
+        - `appCommands.emit('move-object-in-hierarchy', sourceId, targetParentId, targetIndex)`
 
 ### Assets Panel (`src/components/assetsPanel/AssetsPanel.tsx`)
 
@@ -110,14 +110,14 @@ Notable interaction patterns:
 Key behaviors:
 
 - **Open prefab**:
-  - Double-click or Enter on a prefab triggers `appCommands.emit('open-prefab', prefabAssetId)`.
-  - PhaserApp receives this command and loads/starts `MainScene` with that prefab.
+    - Double-click or Enter on a prefab triggers `appCommands.emit('open-prefab', prefabAssetId)`.
+    - PhaserApp receives this command and loads/starts `MainScene` with that prefab.
 - **Rename**:
-  - Context menu “Rename” or `F2` (when panel is focused) enters rename mode.
+    - Context menu “Rename” or `F2` (when panel is focused) enters rename mode.
 - Renaming calls `backend.rename` and then updates `state.assets.items`.
 - **Search mode**:
-  - Maintains `isSearchMode`, `searchResults`, and keyboard navigation for results.
-  - `Cmd/Ctrl+F` expands the search UI (currently handled here; TODO suggests moving to `EditorLayout`).
+    - Maintains `isSearchMode`, `searchResults`, and keyboard navigation for results.
+    - `Cmd/Ctrl+F` expands the search UI (currently handled here; TODO suggests moving to `EditorLayout`).
 - **Create asset items**:
 - “Create Folder” / “Create Prefab” perform filesystem writes via `backend.*` and then update the in-memory asset tree.
 
@@ -136,12 +136,11 @@ Two-way binding follows the same pattern:
 ### Data & control flow (mental model)
 
 - **React UI → Phaser**:
-  - Panels emit `AppCommands` (`CommandEmitter<AppCommands>`) via DI.
-  - PhaserApp subscribes to relevant commands and forwards to scenes / services.
+    - Panels emit `AppCommands` (`CommandEmitter<AppCommands>`) via DI.
+    - PhaserApp subscribes to relevant commands and forwards to scenes / services.
 - **Phaser → React UI**:
-  - Phaser emits `PhaserAppEvents` (`ev3nts`) and mutates shared valtio `state` for reactive UI updates.
+    - Phaser emits `PhaserAppEvents` (`ev3nts`) and mutates shared valtio `state` for reactive UI updates.
 - **Shared truth**:
-  - `state` (valtio) is the “live snapshot” used by panels and (in parts) by Phaser logic.
+    - `state` (valtio) is the “live snapshot” used by panels and (in parts) by Phaser logic.
 - **History**:
-  - `UndoHub` is created at the app root, passed into Phaser, and its state is reflected in `state.app.history`.
-
+    - `UndoHub` is created at the app root, passed into Phaser, and its state is reflected in `state.app.history`.

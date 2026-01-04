@@ -51,8 +51,8 @@ Path: `src/renderer/backend-preload/control-rpc/preload.ts` + `src/renderer/back
 Responsibilities:
 
 - Exposes a small IPC facade into the renderer:
-  - `onRpcRequest(handler)` → subscribe to `CONTROL_RPC_REQUEST_CHANNEL`
-  - `sendRpcResponse(response)` → send to `CONTROL_RPC_RESPONSE_CHANNEL`
+    - `onRpcRequest(handler)` → subscribe to `CONTROL_RPC_REQUEST_CHANNEL`
+    - `sendRpcResponse(response)` → send to `CONTROL_RPC_RESPONSE_CHANNEL`
 
 Enablement (current behavior):
 
@@ -140,8 +140,8 @@ sequenceDiagram
 There is now a **single control contract**:
 
 - `src/control-rpc/api/ControlApi.ts`
-  - Defines Zod schemas for inputs/outputs (runtime validation).
-  - Provides derived `ControlMethod` / `ControlInput` / `ControlOutput` types.
+    - Defines Zod schemas for inputs/outputs (runtime validation).
+    - Provides derived `ControlMethod` / `ControlInput` / `ControlOutput` types.
 
 All callers (main WS router, renderer bridge, `EditorControlService`, and `editorctl`) derive types from this contract.
 
@@ -215,6 +215,6 @@ No extra work needed beyond the control contract:
 ### 8) Sanity-check method validation and routing assumptions
 
 - Main always targets `BrowserWindow.getAllWindows()[0]`.
-  - If you ever support multiple windows, you’ll need routing logic (window selection) in `ControlRpcServer`.
+    - If you ever support multiple windows, you’ll need routing logic (window selection) in `ControlRpcServer`.
 - Make sure your request `params` are JSON-serializable.
 - Make sure your response shape matches the control contract output schema.

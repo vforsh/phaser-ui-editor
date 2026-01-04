@@ -7,7 +7,6 @@ It has 2 states:
 1. Collapsed - when the search input is hidden and only the button to expand the search is visible
 2. Expanded - when the search input is visible and the search results are displayed
 
-
 ## Collapsed State
 
 In collapsed state, the only search button is visible. The button is located at the top right corner of the Assets Panel, near to `<PanelTitle>`.
@@ -15,7 +14,6 @@ In collapsed state, the only search button is visible. The button is located at 
 The button has a magnifying glass icon and a hover state with a tooltip "Search assets".
 
 When user clicks the button the whole Assets Panel goes into "Search" mode.
-
 
 ## Expanded State or Search Mode
 
@@ -32,7 +30,6 @@ Below the search input, instead of assets tree we display the search results as 
 The search should use a fuzzy search algorithm, the `fzf` library is already installed and should be used.
 
 ![Search Mode](./search-mode-1.png)
-
 
 ## Search Settings Dropdown
 

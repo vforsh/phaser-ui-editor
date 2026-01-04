@@ -1,16 +1,16 @@
-import { DependencyContainer, container as rootContainer } from 'tsyringe'
+import { Container } from '@needle-di/core'
 
 import { TOKENS, type PhaserScope } from './tokens'
 
-export function createContainer(): DependencyContainer {
-	const diContainer = rootContainer.createChildContainer()
+export function createContainer(): Container {
+	const diContainer = new Container()
 
 	const phaserScope: PhaserScope = {
 		events: null,
 		commands: null,
 	}
 
-	diContainer.registerInstance(TOKENS.PhaserScope, phaserScope)
+	diContainer.bind({ provide: TOKENS.PhaserScope, useValue: phaserScope })
 
 	return diContainer
 }
