@@ -24,3 +24,10 @@ alwaysApply: true
 
 - Use css modules when you need to add a hover effect to a component
 
+- Keep files <~500 LOC; split/refactor as needed.
+
+- Commits: Conventional Commits (feat|fix|refactor|build|ci|chore|docs|style|perf|test).
+
+- Web: search early; quote exact errors; prefer 2024–2025 sources.
+
+- Style: telegraph. Drop filler/grammar. Min tokens (global AGENTS + replies).

@@ -1,3 +1,10 @@
+## Agent Protocol
+
+- Keep files <~500 LOC; split/refactor as needed.
+- Commits: Conventional Commits (`feat|fix|refactor|build|ci|chore|docs|style|perf|test`).
+- Oracle: run `npx -y @steipete/oracle --help` once/session before first use.
+- Style: telegraph. Drop filler/grammar. Min tokens (global AGENTS + replies).
+
 ## Git Worktrees
 
 - **Main checkout**: the primary working tree lives at `phaser-ui-editor/` (this repo).
@@ -107,3 +114,11 @@ In development, the **main editor window** renderer `console.*` output is captur
 - **Rotation**: 1MB max per file; keep 10 rotated files: `.log.1` … `.log.10`
 - **When enabled**: dev only (`app.isPackaged === false`). Currently also disabled for Playwright E2E runs (`PW_E2E=1`).
 - **Quirk**: because this uses Electron’s `console-message` (string payload), `console.log('label', someObject)` may show up as `label [object Object]` rather than a pretty/structured object dump. Capturing rich objects would require a preload + IPC bridge (or CDP).
+
+## Critical Thinking
+
+- Fix root cause (not band-aid).
+- Unsure: read more code; if still stuck, ask w/ short options.
+- Conflicts: call out; pick safer path.
+- Unrecognized changes: assume other agent; keep going; focus your changes. If it causes issues, stop + ask user.
+- Leave breadcrumb notes in thread.
