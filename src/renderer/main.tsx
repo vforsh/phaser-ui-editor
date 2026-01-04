@@ -1,5 +1,5 @@
-import 'reflect-metadata'
 import { createRoot } from 'react-dom/client'
+import 'reflect-metadata'
 import App from './App.tsx'
 import './index.css'
 import './polyfills'

@@ -107,7 +107,7 @@ export class HorizontalLayoutComponent extends BaseEditableComponent<HorizontalL
 		super.onAdded(obj)
 
 		this._obj.events.on('hierarchy-changed', this.updateLayout, this, this.destroySignal)
-		
+
 		this.updateLayout()
 	}
 

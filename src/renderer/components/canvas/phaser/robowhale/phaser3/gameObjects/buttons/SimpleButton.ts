@@ -10,16 +10,16 @@ export class SimpleButton extends Phaser.GameObjects.Image {
 	public checkIfOver: boolean = true
 	public soundKey: string = 'tap'
 	public soundVolume: number = 1
-	
+
 	constructor(scene: Phaser.Scene, texture: string, frame?: string, parent?: Phaser.GameObjects.Container) {
 		super(scene, 0, 0, texture, frame)
-		
+
 		if (parent) {
 			parent.add(this)
 		} else {
 			this.scene.add.existing(this)
 		}
-		
+
 		this.setInteractive()
 		this.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, this.onPointerDown, this)
 		this.scene.input.on(Phaser.Input.Events.POINTER_UP, this.onScenePointerUp, this)

@@ -1,6 +1,10 @@
 import Vector2Like = Phaser.Types.Math.Vector2Like
 
-export function createEllipseCurve(start: Required<Vector2Like>, end: Required<Vector2Like>, width: number): Phaser.Curves.Ellipse {
+export function createEllipseCurve(
+	start: Required<Vector2Like>,
+	end: Required<Vector2Like>,
+	width: number
+): Phaser.Curves.Ellipse {
 	let distance = Phaser.Math.Distance.BetweenPoints(start, end)
 	let angle = Phaser.Math.Angle.BetweenPoints(end, start)
 

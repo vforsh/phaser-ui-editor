@@ -4,7 +4,8 @@ import { successSchema } from '../shared-schemas'
 
 export const switchToContextCommand = {
 	group: 'misc',
-	description: 'Switches the editor to a different context (e.g., another scene or prefab), identified by ID or path.',
+	description:
+		'Switches the editor to a different context (e.g., another scene or prefab), identified by ID or path.',
 	input: z
 		.union([
 			z

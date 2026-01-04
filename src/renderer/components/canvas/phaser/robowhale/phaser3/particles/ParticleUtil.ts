@@ -31,7 +31,11 @@ export class ParticleUtil {
 		}
 	}
 
-	public static getCircleEdgeEmitZone(radius: number, quantity: number = 360, randomize: boolean = true): ParticleEmitterConfig {
+	public static getCircleEdgeEmitZone(
+		radius: number,
+		quantity: number = 360,
+		randomize: boolean = true
+	): ParticleEmitterConfig {
 		let circle = new Phaser.Geom.Circle(0, 0, radius)
 		let emitZone: ParticleEmitterEdgeZoneConfig = { source: circle, type: 'edge', quantity }
 

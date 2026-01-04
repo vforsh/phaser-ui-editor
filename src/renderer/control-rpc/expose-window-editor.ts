@@ -1,6 +1,6 @@
 import type { AppCommandsEmitter } from '../AppCommands'
-import { EditorControlService } from './service/EditorControlService'
 import type { ControlInput, ControlMethod, ControlOutput } from './api/ControlApi'
+import { EditorControlService } from './service/EditorControlService'
 
 /**
  * Inferred API type for the `window.editor` object.

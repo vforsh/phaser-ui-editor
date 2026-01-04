@@ -174,7 +174,7 @@ export class Selection extends TypedEventEmitter<Events> {
 	public get rotation(): number {
 		return this.objects.length === 1 ? this.objects[0].rotation : 0
 	}
-	
+
 	public get bounds(): ReadonlyDeep<Phaser.Geom.Rectangle> {
 		return this._bounds
 	}

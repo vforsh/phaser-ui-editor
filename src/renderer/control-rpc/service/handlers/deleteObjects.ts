@@ -1,5 +1,5 @@
-import type { CommandHandler } from '../types'
 import type { deleteObjectsCommand } from '../../api/commands/deleteObjects'
+import type { CommandHandler } from '../types'
 
 /**
  * @see {@link deleteObjectsCommand} for command definition

@@ -1,9 +1,9 @@
 import { P, match } from 'ts-pattern'
 import { state } from '../../../state/State'
 import { getAssetById } from '../../../types/assets'
-import { findAssetByPath } from '../utils/assets'
-import type { CommandHandler } from '../types'
 import type { selectAssetsCommand } from '../../api/commands/selectAssets'
+import type { CommandHandler } from '../types'
+import { findAssetByPath } from '../utils/assets'
 
 /**
  * @see {@link selectAssetsCommand} for command definition

@@ -8,14 +8,7 @@ const MENU_TAKE_CANVAS_SCREENSHOT = 'menu:take-canvas-screenshot'
 const MENU_OPEN_SETTINGS = 'menu:open-settings'
 const MENU_TOGGLE_PANEL = 'menu:toggle-panel'
 
-type SettingsSectionId =
-	| 'general'
-	| 'hierarchy'
-	| 'canvas'
-	| 'assets'
-	| 'inspector'
-	| 'dev'
-	| 'misc'
+type SettingsSectionId = 'general' | 'hierarchy' | 'canvas' | 'assets' | 'inspector' | 'dev' | 'misc'
 
 type PanelId = 'hierarchy' | 'assets' | 'inspector'
 

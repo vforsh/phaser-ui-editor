@@ -25,7 +25,7 @@
  * @return {number} The rounded value.
  */
 export function roundTo(value: number, place = 0, base = 10): number {
-	const p = Math.pow(base, -place);
+	const p = Math.pow(base, -place)
 
-	return Math.round(value * p) / p;
+	return Math.round(value * p) / p
 }

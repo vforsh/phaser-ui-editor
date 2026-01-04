@@ -1,9 +1,9 @@
+import { match } from 'ts-pattern'
 import type { ILogObj, Logger } from 'tslog'
 import type { ReadonlyDeep } from 'type-fest'
-import type { Selection } from '../Selection'
-import { match } from 'ts-pattern'
 import arrowsHorizontalCursor from '../cursors/arrows-horizontal.svg?raw'
 import arrowsLeftDownCursor from '../cursors/arrows-left-down.svg?raw'
+import type { Selection } from '../Selection'
 
 export type Events = {
 	'start-follow': (selection: Selection) => void

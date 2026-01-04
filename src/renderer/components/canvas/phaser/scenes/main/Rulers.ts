@@ -6,7 +6,12 @@ export class Rulers extends Phaser.GameObjects.Container {
 	}
 
 	// TODO it hangs on large zoom (probably because of the too many texts)
-	public redraw(gameSize: { width: number; height: number }, cameraZoom: number, cameraScrollX: number, cameraScrollY: number): void {
+	public redraw(
+		gameSize: { width: number; height: number },
+		cameraZoom: number,
+		cameraScrollX: number,
+		cameraScrollY: number
+	): void {
 		this.texts.forEach((text) => text.kill())
 
 		const width = gameSize.width / cameraZoom

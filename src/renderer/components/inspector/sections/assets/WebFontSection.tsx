@@ -2,9 +2,8 @@ import { Badge, Box, Group, NumberInput, Stack, Text, TextInput } from '@mantine
 import { until } from '@open-draft/until'
 import prettyBytes from 'pretty-bytes'
 import { useEffect, useState } from 'react'
-import { match } from 'ts-pattern'
-import { backend } from '../../../../backend-renderer/backend'
 import { WebFontParsed } from '../../../../backend-contract/contract'
+import { backend } from '../../../../backend-renderer/backend'
 import { AssetTreeWebFontData } from '../../../../types/assets'
 import { BaseSectionProps } from '../BaseSection'
 import { ReadonlyPropertyRow } from '../PropertyRow'
@@ -95,7 +94,10 @@ export function WebFontSection({ data: asset }: WebFontSectionProps) {
 	}
 
 	const coverageBadges = getCoverageBadges(webFontParsed.characterSet)
-	const lineHeightMultiplier = ((webFontParsed.ascent - webFontParsed.descent + webFontParsed.lineGap) / webFontParsed.unitsPerEm).toFixed(2)
+	const lineHeightMultiplier = (
+		(webFontParsed.ascent - webFontParsed.descent + webFontParsed.lineGap) /
+		webFontParsed.unitsPerEm
+	).toFixed(2)
 
 	return (
 		<Stack gap="md">
@@ -145,7 +147,9 @@ export function WebFontSection({ data: asset }: WebFontSectionProps) {
 
 			{/* Metadata */}
 			<Stack gap="xs">
-				<Text fw={500} size="sm">Names</Text>
+				<Text fw={500} size="sm">
+					Names
+				</Text>
 				<Stack gap={2}>
 					<ReadonlyPropertyRow label="Family" value={webFontParsed.familyName} />
 					<ReadonlyPropertyRow label="Full Name" value={webFontParsed.fullName} />
@@ -156,7 +160,9 @@ export function WebFontSection({ data: asset }: WebFontSectionProps) {
 			</Stack>
 
 			<Stack gap="xs">
-				<Text fw={500} size="sm">File & Status</Text>
+				<Text fw={500} size="sm">
+					File & Status
+				</Text>
 				<Stack gap={2}>
 					<ReadonlyPropertyRow label="Format" value={webFontParsed.type.toUpperCase()} />
 					<ReadonlyPropertyRow label="Size" value={fileSize ? prettyBytes(fileSize) : '???'} />
@@ -165,7 +171,9 @@ export function WebFontSection({ data: asset }: WebFontSectionProps) {
 			</Stack>
 
 			<Stack gap="xs">
-				<Text fw={500} size="sm">Coverage</Text>
+				<Text fw={500} size="sm">
+					Coverage
+				</Text>
 				<Group gap={4}>
 					{coverageBadges.map((badge) => (
 						<Badge key={badge} size="xs" variant="flat" color="blue">
@@ -180,7 +188,9 @@ export function WebFontSection({ data: asset }: WebFontSectionProps) {
 			</Stack>
 
 			<Stack gap="xs">
-				<Text fw={500} size="sm">Metrics</Text>
+				<Text fw={500} size="sm">
+					Metrics
+				</Text>
 				<Stack gap={2}>
 					<ReadonlyPropertyRow label="Units per Em" value={webFontParsed.unitsPerEm} />
 					<ReadonlyPropertyRow label="Ascent" value={webFontParsed.ascent} />
@@ -213,12 +223,12 @@ function getCoverageBadges(characterSet: number[]): string[] {
 		return false
 	}
 
-	if (hasRange(0x0020, 0x007E)) badges.push('Latin')
+	if (hasRange(0x0020, 0x007e)) badges.push('Latin')
 	if (hasRange(0x0030, 0x0039)) badges.push('Digits')
-	if (hasRange(0x00A0, 0x00FF)) badges.push('Latin-1')
-	if (hasRange(0x0400, 0x04FF)) badges.push('Cyrillic')
-	if (hasRange(0x0370, 0x03FF)) badges.push('Greek')
-	if (hasRange(0x20A0, 0x20CF)) badges.push('Currency')
+	if (hasRange(0x00a0, 0x00ff)) badges.push('Latin-1')
+	if (hasRange(0x0400, 0x04ff)) badges.push('Cyrillic')
+	if (hasRange(0x0370, 0x03ff)) badges.push('Greek')
+	if (hasRange(0x20a0, 0x20cf)) badges.push('Currency')
 
 	return badges
 }
@@ -238,7 +248,9 @@ function renderFeatures(features: unknown) {
 
 	return (
 		<Stack gap="xs">
-			<Text fw={500} size="sm">OpenType Features</Text>
+			<Text fw={500} size="sm">
+				OpenType Features
+			</Text>
 			<Group gap={4}>
 				{featureList.map((tag) => (
 					<Badge key={tag} size="xs" variant="outline" color="gray" title={tag}>

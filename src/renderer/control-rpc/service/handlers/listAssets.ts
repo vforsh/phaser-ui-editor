@@ -1,9 +1,9 @@
 import { state, unproxy } from '../../../state/State'
 import type { AssetTreeItemData } from '../../../types/assets'
+import type { listAssetsCommand } from '../../api/commands/listAssets'
 import type { AssetNode, AssetType } from '../../api/ControlApi'
 import type { CommandHandler } from '../types'
 import { normalizeAssetPaths, pruneAssetByType } from '../utils/assets'
-import type { listAssetsCommand } from '../../api/commands/listAssets'
 
 /**
  * @see {@link listAssetsCommand} for command definition

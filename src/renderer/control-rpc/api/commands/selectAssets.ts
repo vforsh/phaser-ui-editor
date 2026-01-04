@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import { CommandDefinition } from '../ControlApi'
-import { successSchema } from '../shared-schemas'
 
 export const selectAssetsCommand = {
 	group: 'assets',

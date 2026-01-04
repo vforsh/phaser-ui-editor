@@ -7,7 +7,7 @@ export type PhaserAppEvents = {
 	'selection-changed': (selectedObjectsIds: string[]) => void
 	// to notify hierarchy panel about hover changes
 	'hover-changed': (hoveredObjectsIds: string[]) => void
-	
+
 	// to notify inspector panel about selection changes
 	'selected-object-changed': (selectedObject: EditableObjectJson | null) => void
 }

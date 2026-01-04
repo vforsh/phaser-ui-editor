@@ -48,12 +48,7 @@ export function createJsonRpcResult<M extends ControlMethod>(
 	}
 }
 
-export function createJsonRpcError(
-	id: JsonRpcId | null,
-	code: number,
-	message: string,
-	data?: unknown
-): JsonRpcError {
+export function createJsonRpcError(id: JsonRpcId | null, code: number, message: string, data?: unknown): JsonRpcError {
 	return {
 		jsonrpc: '2.0',
 		id,

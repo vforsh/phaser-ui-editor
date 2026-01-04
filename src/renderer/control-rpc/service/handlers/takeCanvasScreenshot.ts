@@ -14,4 +14,3 @@ export const takeCanvasScreenshot: CommandHandler<'takeCanvasScreenshot'> = (ctx
 
 	return { path: savedPath }
 }
-

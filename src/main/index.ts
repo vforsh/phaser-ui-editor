@@ -1,5 +1,5 @@
-import { app, BrowserWindow, clipboard, dialog, Menu } from 'electron'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
+import { app, BrowserWindow, clipboard, dialog, Menu } from 'electron'
 import getPort from 'get-port'
 import path from 'node:path'
 import { ControlRpcServer } from '../renderer/backend-main/control-rpc/main-rpc'
@@ -16,17 +16,17 @@ const isPlaywrightE2E = process.env.PW_E2E === '1'
 // Dev-only CDP port for Playwright "attach" mode.
 // Keep this disabled for normal dev to avoid exposing a debugging port by accident.
 if (!app.isPackaged && isPlaywrightE2E) {
-        app.commandLine.appendSwitch('remote-debugging-port', process.env.PW_E2E_CDP_PORT ?? '9222')
+	app.commandLine.appendSwitch('remote-debugging-port', process.env.PW_E2E_CDP_PORT ?? '9222')
 }
 
 app.whenReady().then(() => {
-        electronApp.setAppUserModelId('com.robowhale.phaser-ui-editor')
+	electronApp.setAppUserModelId('com.robowhale.tekton-editor')
 
-        app.on('browser-window-created', (_, window) => {
-                optimizer.watchWindowShortcuts(window)
-        })
+	app.on('browser-window-created', (_, window) => {
+		optimizer.watchWindowShortcuts(window)
+	})
 
-        createWindow()
+	createWindow()
 
 	// Kick off the renderer ASAP; do the rest right after.
 	setImmediate(() => registerBackendHandlers())
@@ -55,9 +55,9 @@ const createWindow = () => {
 		},
 	})
 
-        if (is.dev && !isPlaywrightE2E) {
-                setupRendererLogger(mainWindow.webContents)
-        }
+	if (is.dev && !isPlaywrightE2E) {
+		setupRendererLogger(mainWindow.webContents)
+	}
 
 	mainWindow.once('ready-to-show', () => {
 		if (!mainWindow) {
@@ -67,17 +67,17 @@ const createWindow = () => {
 		mainWindow.maximize()
 		mainWindow.show()
 
-                if (is.dev && !isPlaywrightE2E) {
-                        // DevTools can noticeably slow down initial paint; open it right after the first render.
-                        setTimeout(() => mainWindow?.webContents.openDevTools({ mode: 'right' }), 250)
-                }
-        })
+		if (is.dev && !isPlaywrightE2E) {
+			// DevTools can noticeably slow down initial paint; open it right after the first render.
+			setTimeout(() => mainWindow?.webContents.openDevTools({ mode: 'right' }), 250)
+		}
+	})
 
 	const rendererUrl = process.env.ELECTRON_RENDERER_URL
-        if (rendererUrl) {
-                mainWindow.loadURL(rendererUrl)
-        } else {
-                const indexPath = path.join(__dirname, '../renderer/index.html')
+	if (rendererUrl) {
+		mainWindow.loadURL(rendererUrl)
+	} else {
+		const indexPath = path.join(__dirname, '../renderer/index.html')
 		mainWindow.loadFile(indexPath)
 	}
 }

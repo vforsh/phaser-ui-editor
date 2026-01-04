@@ -9,4 +9,3 @@ export const successSchema = z
 	})
 	.strict()
 	.describe('Standard success response')
-

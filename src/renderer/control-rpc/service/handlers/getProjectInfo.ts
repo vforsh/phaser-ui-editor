@@ -1,6 +1,6 @@
 import { state, unproxy } from '../../../state/State'
-import type { CommandHandler } from '../types'
 import type { getProjectInfoCommand } from '../../api/commands/getProjectInfo'
+import type { CommandHandler } from '../types'
 
 /**
  * @see {@link getProjectInfoCommand} for command definition

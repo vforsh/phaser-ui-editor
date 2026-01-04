@@ -1,10 +1,10 @@
 import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
 import { isSizeLockedForObjectJson } from '@components/canvas/phaser/scenes/main/objects/editing/editRestrictions'
 import { NumberInputCustom } from '@components/inspector/sections/common/NumberInputCustom'
-import { useAppCommands } from '../../../../di/DiHooks'
 import { Box, Button, Group, Stack, Tooltip } from '@mantine/core'
 import { Info } from 'lucide-react'
 import { useSnapshot } from 'valtio'
+import { useAppCommands } from '../../../../di/DiHooks'
 import { BaseSectionProps } from '../BaseSection'
 
 interface ContainerSizeSectionProps extends BaseSectionProps<EditableContainerJson> {}
@@ -25,13 +25,7 @@ export function ContainerSizeSection({ data }: ContainerSizeSectionProps) {
 	return (
 		<Stack gap="xs">
 			<Group grow>
-				<Tooltip
-					label={sizeLock?.reason}
-					disabled={!sizeLock}
-					withArrow
-					position="top"
-					openDelay={200}
-				>
+				<Tooltip label={sizeLock?.reason} disabled={!sizeLock} withArrow position="top" openDelay={200}>
 					<Box>
 						<NumberInputCustom
 							label="Width"
@@ -43,13 +37,7 @@ export function ContainerSizeSection({ data }: ContainerSizeSectionProps) {
 						/>
 					</Box>
 				</Tooltip>
-				<Tooltip
-					label={sizeLock?.reason}
-					disabled={!sizeLock}
-					withArrow
-					position="top"
-					openDelay={200}
-				>
+				<Tooltip label={sizeLock?.reason} disabled={!sizeLock} withArrow position="top" openDelay={200}>
 					<Box>
 						<NumberInputCustom
 							label="Height"
@@ -64,9 +52,9 @@ export function ContainerSizeSection({ data }: ContainerSizeSectionProps) {
 			</Group>
 
 			<Button
-				variant='light'
-				size='xs'
-				mt='xs'
+				variant="light"
+				size="xs"
+				mt="xs"
 				disabled={!hasChildren}
 				onClick={() => appCommands.emit('adjust-container-to-children-bounds', { objectId: data.id })}
 				rightSection={ADJUST_BOUNDS_TOOLTIP}

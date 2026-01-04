@@ -1,12 +1,12 @@
 import { ipcMain } from 'electron'
 import { backendContract } from '../../backend-contract/contract'
-import type { BackendMethod, BackendInput, BackendOutput } from '../../backend-contract/types'
+import type { BackendInput, BackendMethod, BackendOutput } from '../../backend-contract/types'
 import { backendHandlers } from './handlers'
 
 const CHANNEL_PREFIX = 'backend:'
 
 export function registerBackendHandlers() {
-	(Object.keys(backendContract) as BackendMethod[]).forEach((method) => {
+	;(Object.keys(backendContract) as BackendMethod[]).forEach((method) => {
 		ipcMain.handle(`${CHANNEL_PREFIX}${method}`, async (_event, input: BackendInput<typeof method>) => {
 			const parsedInput = backendContract[method].input.parse(input)
 			const result = await backendHandlers[method](parsedInput as never)

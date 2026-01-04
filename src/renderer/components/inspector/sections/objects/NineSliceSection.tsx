@@ -56,13 +56,7 @@ export function NineSliceSection({ data }: NineSliceSectionProps) {
 			/>
 
 			<Group grow>
-				<Tooltip
-					label={sizeLock?.reason}
-					disabled={!sizeLock}
-					withArrow
-					position="top"
-					openDelay={200}
-				>
+				<Tooltip label={sizeLock?.reason} disabled={!sizeLock} withArrow position="top" openDelay={200}>
 					<Box>
 						<NumberInputCustom
 							label="Width"
@@ -75,13 +69,7 @@ export function NineSliceSection({ data }: NineSliceSectionProps) {
 					</Box>
 				</Tooltip>
 
-				<Tooltip
-					label={sizeLock?.reason}
-					disabled={!sizeLock}
-					withArrow
-					position="top"
-					openDelay={200}
-				>
+				<Tooltip label={sizeLock?.reason} disabled={!sizeLock} withArrow position="top" openDelay={200}>
 					<Box>
 						<NumberInputCustom
 							label="Height"

@@ -7,4 +7,3 @@
 export function getAssetItemId(assetId: string) {
 	return `asset-item-${assetId}`
 }
-

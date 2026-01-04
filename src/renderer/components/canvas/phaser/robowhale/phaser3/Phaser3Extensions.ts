@@ -230,7 +230,7 @@ export class Phaser3Extensions {
 
 			return this
 		}
-		
+
 		Phaser.GameObjects.Container.prototype.listAsString = function (
 			predicate: (item: Phaser.GameObjects.GameObject) => boolean = () => true
 		) {

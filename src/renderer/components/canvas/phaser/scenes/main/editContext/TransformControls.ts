@@ -2,10 +2,14 @@ import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/T
 import { ILogObj, Logger } from 'tslog'
 import { signalFromEvent } from '../../../robowhale/utils/events/create-abort-signal-from-event'
 import { Selection } from './Selection'
-import type { Events, TransformControlOptions, ReadonlyTransformControlOptions } from './transformControls/types-math-cursor'
-import { CursorManager } from './transformControls/types-math-cursor'
 import { HandleFactory, TextureFactory, inflateBorderHitArea } from './transformControls/factories'
-import { RotateInteraction, ResizeInteraction, SelectionFollower } from './transformControls/interactions'
+import { ResizeInteraction, RotateInteraction, SelectionFollower } from './transformControls/interactions'
+import type {
+	Events,
+	ReadonlyTransformControlOptions,
+	TransformControlOptions,
+} from './transformControls/types-math-cursor'
+import { CursorManager } from './transformControls/types-math-cursor'
 
 /**
  * Controls that allows to adjust scale, angle and origin of a transformable object.
@@ -136,8 +140,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 	private onBorderPointerOver(border: Phaser.GameObjects.Image) {
 		border.setTint(0xcee9fd)
 
-		const isHorizontal =
-			border === this.handles.borders.top || border === this.handles.borders.bottom
+		const isHorizontal = border === this.handles.borders.top || border === this.handles.borders.bottom
 		const cursorAngle = this.angle + (isHorizontal ? 90 : 0)
 		this.cursorManager.setResizeCursor(cursorAngle)
 	}

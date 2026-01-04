@@ -1,6 +1,6 @@
 import { state } from '../../../state/State'
-import type { CommandHandler } from '../types'
 import type { getCanvasStateCommand } from '../../api/commands/getCanvasState'
+import type { CommandHandler } from '../types'
 
 /**
  * @see {@link getCanvasStateCommand} for command definition

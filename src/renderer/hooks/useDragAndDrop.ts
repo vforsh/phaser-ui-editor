@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ILogObj, Logger } from 'tslog'
-import { isDraggableAsset, type AssetTreeItemData } from '../types/assets'
 import { Snapshot } from 'valtio'
+import { isDraggableAsset, type AssetTreeItemData } from '../types/assets'
 
 interface DragState {
 	isDragging: boolean

@@ -202,7 +202,7 @@ const extractSpritesheetFrames = async (
 	const atlasJson = JSON.parse(jsonFileRaw) as TexturePacker.Atlas
 
 	// TODO handle multiple textures
-        const frames = atlasJson.textures[0].frames.map((data: TexturePacker.Frame) => {
+	const frames = atlasJson.textures[0].frames.map((data: TexturePacker.Frame) => {
 		const frameAsset: AssetTreeSpritesheetFrameData = addAssetId({
 			type: 'spritesheet-frame',
 			name: data.filename,

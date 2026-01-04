@@ -1,9 +1,9 @@
 .unitToggle {
-  color: var(--mantine-color-dimmed);
-  transition: color 100ms ease;
-  user-select: none;
+	color: var(--mantine-color-dimmed);
+	transition: color 100ms ease;
+	user-select: none;
 }
 
 .unitToggle:hover {
-  color: var(--mantine-color-white);
+	color: var(--mantine-color-white);
 }

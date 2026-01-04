@@ -1,7 +1,9 @@
 import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 
-export type ReadonlyContainerJson = Omit<EditableContainerJson, 'children'> & { children: readonly EditableObjectJson[] }
+export type ReadonlyContainerJson = Omit<EditableContainerJson, 'children'> & {
+	children: readonly EditableObjectJson[]
+}
 
 export function findParentContainerId(root: ReadonlyContainerJson | null, objId: string): string | null {
 	if (!root) {

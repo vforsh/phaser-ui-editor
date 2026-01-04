@@ -29,6 +29,7 @@ import { match } from 'ts-pattern'
 import { ILogObj, Logger } from 'tslog'
 import { Snapshot } from 'valtio'
 import { backend } from '../../backend-renderer/backend'
+import { useAppCommands } from '../../di/DiHooks'
 import {
 	AssetTreeFolderData,
 	AssetTreePrefabData,
@@ -41,12 +42,11 @@ import {
 } from '../../types/assets'
 import { createEmptyPrefabFile } from '../../types/prefabs/PrefabFile'
 import { PanelTitle } from './../PanelTitle'
+import { getAssetItemId } from './assetItemId'
 import styles from './AssetsPanel.module.css'
 import { AssetsSearch } from './AssetsSearch'
 import AssetTreeItem from './AssetTreeItem'
-import { getAssetItemId } from './assetItemId'
 import { addAssetId } from './build-asset-tree'
-import { useAppCommands } from '../../di/DiHooks'
 
 interface AssetsPanelProps {
 	logger: Logger<ILogObj>

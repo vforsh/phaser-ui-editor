@@ -54,10 +54,7 @@ export function getEditableWorldBounds(obj: EditableObject, rect?: Phaser.Geom.R
  * Computes a container's box bounds in world space using its own width/height.
  * Children are ignored.
  */
-export function getContainerBoxWorldBounds(
-	obj: EditableObject,
-	rect?: Phaser.Geom.Rectangle
-): Phaser.Geom.Rectangle {
+export function getContainerBoxWorldBounds(obj: EditableObject, rect?: Phaser.Geom.Rectangle): Phaser.Geom.Rectangle {
 	if (obj.kind !== 'Container') {
 		return obj.getBounds(rect)
 	}
@@ -114,4 +111,3 @@ function hasEditables(obj: EditableObject): obj is ContainerWithEditables {
 
 	return Array.isArray((obj as ContainerWithEditables).editables)
 }
-

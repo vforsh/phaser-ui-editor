@@ -34,7 +34,7 @@ export const ComponentsListData = {
 		group: 'Layout',
 		icon: LayoutGrid,
 	},
-	layout: {
+	'layout': {
 		type: 'layout',
 		title: 'Layout',
 		description: 'Align object to parent bounds',

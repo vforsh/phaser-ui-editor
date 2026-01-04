@@ -34,7 +34,13 @@ export class CommandEmitter<TCommands extends TypedEventMap> {
 	/**
 	 * @return - возвращает функцию, вызвав которую произойдет отписка от заданной команды.
 	 */
-	public on<C extends TypedEvent<TCommands>>(command: C, callback: TCommands[C], callbackCtx?: unknown, once = false, abortSignal?: AbortSignal) {
+	public on<C extends TypedEvent<TCommands>>(
+		command: C,
+		callback: TCommands[C],
+		callbackCtx?: unknown,
+		once = false,
+		abortSignal?: AbortSignal
+	) {
 		this.throwIfDestroyed()
 
 		const existingHandlerIndex = this.handlers.findIndex((item) => item.command === command)
@@ -73,7 +79,12 @@ export class CommandEmitter<TCommands extends TypedEventMap> {
 	/**
 	 * @return - возвращает функцию, вызвав которую произойдет отписка от заданной команды.
 	 */
-	public once<C extends TypedEvent<TCommands>>(command: C, callback: TCommands[C], callbackCtx?: unknown, abortSignal?: AbortSignal) {
+	public once<C extends TypedEvent<TCommands>>(
+		command: C,
+		callback: TCommands[C],
+		callbackCtx?: unknown,
+		abortSignal?: AbortSignal
+	) {
 		return this.on(command, callback, callbackCtx, true, abortSignal)
 	}
 
@@ -102,7 +113,10 @@ export class CommandEmitter<TCommands extends TypedEventMap> {
 		}
 	}
 
-	public emit<C extends TypedEvent<TCommands>>(command: C, ...params: Parameters<TCommands[C]>): ReturnType<TCommands[C]> | undefined {
+	public emit<C extends TypedEvent<TCommands>>(
+		command: C,
+		...params: Parameters<TCommands[C]>
+	): ReturnType<TCommands[C]> | undefined {
 		this.throwIfDestroyed()
 
 		const index = this.handlers.findIndex((item) => item.command === command)

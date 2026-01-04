@@ -1,5 +1,5 @@
-import type { CommandHandler } from '../types'
 import type { listEditorsCommand } from '../../api/commands/listEditors'
+import type { CommandHandler } from '../types'
 
 /**
  * @see {@link listEditorsCommand} for command definition

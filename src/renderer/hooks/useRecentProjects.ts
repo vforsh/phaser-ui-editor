@@ -1,65 +1,58 @@
-import { useCallback, useEffect, useState } from 'react';
-import { state } from '../state/State';
-import { useSnapshot } from 'valtio';
-import { backend } from '../backend-renderer/backend';
+import { useCallback, useEffect, useState } from 'react'
+import { useSnapshot } from 'valtio'
+import { backend } from '../backend-renderer/backend'
+import { state } from '../state/State'
 
 export function useRecentProjects() {
-  const snap = useSnapshot(state);
-  const [existsMap, setExistsMap] = useState<Record<string, boolean>>({});
+	const snap = useSnapshot(state)
+	const [existsMap, setExistsMap] = useState<Record<string, boolean>>({})
 
-  const removeProject = useCallback((projectDir: string) => {
-    state.recentProjects = state.recentProjects.filter(
-      (project) => project.dir !== projectDir
-    );
-  }, []);
+	const removeProject = useCallback((projectDir: string) => {
+		state.recentProjects = state.recentProjects.filter((project) => project.dir !== projectDir)
+	}, [])
 
-  useEffect(() => {
-    let canceled = false;
+	useEffect(() => {
+		let canceled = false
 
-    const checkProjects = async () => {
-      const entries = await Promise.all(
-        (snap.recentProjects ?? []).map(async (project) => {
-          try {
-            const exists = await backend.exists({ path: project.dir });
-            return [project.dir, exists] as const;
-          } catch {
-            return [project.dir, false] as const;
-          }
-        })
-      );
+		const checkProjects = async () => {
+			const entries = await Promise.all(
+				(snap.recentProjects ?? []).map(async (project) => {
+					try {
+						const exists = await backend.exists({ path: project.dir })
+						return [project.dir, exists] as const
+					} catch {
+						return [project.dir, false] as const
+					}
+				})
+			)
 
-      if (canceled) {
-        return;
-      }
+			if (canceled) {
+				return
+			}
 
-      const next: Record<string, boolean> = {};
-      entries.forEach(([dir, exists]) => {
-        next[dir] = exists;
-      });
+			const next: Record<string, boolean> = {}
+			entries.forEach(([dir, exists]) => {
+				next[dir] = exists
+			})
 
-      setExistsMap(next);
-    };
+			setExistsMap(next)
+		}
 
-    checkProjects();
+		checkProjects()
 
-    return () => {
-      canceled = true;
-    };
-  }, [snap.recentProjects]);
+		return () => {
+			canceled = true
+		}
+	}, [snap.recentProjects])
 
-  const checkProjectExists = useCallback(
-    (projectDir: string) => existsMap[projectDir] ?? true,
-    [existsMap]
-  );
+	const checkProjectExists = useCallback((projectDir: string) => existsMap[projectDir] ?? true, [existsMap])
 
-  // Sort projects by last opened date (most recent first)
-  const recentProjects = [...snap.recentProjects].sort(
-    (a, b) => b.lastOpenedAt - a.lastOpenedAt
-  ).slice(0, 5);
+	// Sort projects by last opened date (most recent first)
+	const recentProjects = [...snap.recentProjects].sort((a, b) => b.lastOpenedAt - a.lastOpenedAt).slice(0, 5)
 
-  return {
-    recentProjects,
-    removeProject,
-    checkProjectExists,
-  };
+	return {
+		recentProjects,
+		removeProject,
+		checkProjectExists,
+	}
 }

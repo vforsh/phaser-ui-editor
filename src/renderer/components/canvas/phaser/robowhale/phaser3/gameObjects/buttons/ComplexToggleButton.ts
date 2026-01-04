@@ -18,7 +18,8 @@ export class ComplexToggleButton extends ComplexButton {
 	}
 
 	private toggleState(): void {
-		this.buttonState = this._buttonState === ToggleButtonState.STATE_1 ? ToggleButtonState.STATE_2 : ToggleButtonState.STATE_1
+		this.buttonState =
+			this._buttonState === ToggleButtonState.STATE_1 ? ToggleButtonState.STATE_2 : ToggleButtonState.STATE_1
 	}
 
 	public get buttonState(): ToggleButtonState {

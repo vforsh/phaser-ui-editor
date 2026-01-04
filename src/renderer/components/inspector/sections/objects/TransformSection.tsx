@@ -1,13 +1,13 @@
+import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
 import {
 	canChangeOrigin,
 	canChangeScale,
 	EditableObjectJson,
 } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
-import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
 import { isPositionLockedForObjectJson } from '@components/canvas/phaser/scenes/main/objects/editing/editRestrictions'
 import { NumberInputCustom } from '@components/inspector/sections/common/NumberInputCustom'
 import { findParentContainerId } from '@components/inspector/utils/findParentContainerId'
-import { Group, Stack, Tooltip, Box } from '@mantine/core'
+import { Box, Group, Stack, Tooltip } from '@mantine/core'
 import { state } from '@state/State'
 import { useSnapshot } from 'valtio'
 import { BaseSectionProps } from '../BaseSection'
@@ -47,22 +47,10 @@ export function TransformSection({ data }: TransformSectionProps) {
 	return (
 		<Stack gap="xs">
 			<Group grow>
-				<Tooltip
-					label={positionLock?.reason}
-					disabled={!positionLock}
-					withArrow
-					position="top"
-					openDelay={200}
-				>
+				<Tooltip label={positionLock?.reason} disabled={!positionLock} withArrow position="top" openDelay={200}>
 					<Box>{renderXInput()}</Box>
 				</Tooltip>
-				<Tooltip
-					label={positionLock?.reason}
-					disabled={!positionLock}
-					withArrow
-					position="top"
-					openDelay={200}
-				>
+				<Tooltip label={positionLock?.reason} disabled={!positionLock} withArrow position="top" openDelay={200}>
 					<Box>{renderYInput()}</Box>
 				</Tooltip>
 			</Group>

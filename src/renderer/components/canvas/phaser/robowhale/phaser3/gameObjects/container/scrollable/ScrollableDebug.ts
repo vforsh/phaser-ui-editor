@@ -41,7 +41,12 @@ export class ScrollableDebug<T extends Phaser.GameObjects.GameObject> {
 		return this.hitArea
 	}
 
-	public displayScrollLimits(options?: { thickness?: number; color?: number; alpha?: number; index?: number }): Phaser.GameObjects.Container {
+	public displayScrollLimits(options?: {
+		thickness?: number
+		color?: number
+		alpha?: number
+		index?: number
+	}): Phaser.GameObjects.Container {
 		let color = options?.color ?? 0xff0000
 		let textColor = '#' + color.toString(16)
 		let thickness = options?.thickness ?? 2
@@ -94,7 +99,12 @@ export class ScrollableDebug<T extends Phaser.GameObjects.GameObject> {
 		this.scrollLimitMax = this.scene.add.image(0, 0, '__WHITE')
 		this.scrollLimitMaxText = this.createScrollLimitText('max')
 
-		let container = this.scene.add.container(0, 0, [this.scrollLimitMin, this.scrollLimitMax, this.scrollLimitMinText, this.scrollLimitMaxText])
+		let container = this.scene.add.container(0, 0, [
+			this.scrollLimitMin,
+			this.scrollLimitMax,
+			this.scrollLimitMinText,
+			this.scrollLimitMaxText,
+		])
 		this.parent.add(container)
 
 		return container

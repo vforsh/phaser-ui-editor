@@ -415,9 +415,12 @@ export function getExtension(item: { name: string; type: AssetTreeItemDataType }
 		.with({ type: 'spritesheet-folder' }, () => '')
 		.with({ type: 'spritesheet-frame' }, () => '')
 		.with({ type: 'file' }, () => path.extname(item.name))
-		.with({
-			type: 'prefab',
-		}, (matched) => (matched.name.endsWith('.prefab.json') ? '.prefab.json' : path.extname(matched.name)))
+		.with(
+			{
+				type: 'prefab',
+			},
+			(matched) => (matched.name.endsWith('.prefab.json') ? '.prefab.json' : path.extname(matched.name))
+		)
 		.exhaustive()
 }
 

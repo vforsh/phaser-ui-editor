@@ -14,17 +14,11 @@ import {
 	Images,
 	LayoutGrid,
 } from 'lucide-react'
-import path from 'path-browserify-esm'
 import { useEffect, useRef, useState } from 'react'
 import { match } from 'ts-pattern'
 import { Snapshot, useSnapshot } from 'valtio'
 import { useDragAndDrop } from '../../hooks/useDragAndDrop'
-import {
-	AssetTreeItemData,
-	getExtension,
-	getNameWithoutExtension,
-	isDraggableAsset,
-} from '../../types/assets'
+import { AssetTreeItemData, getExtension, getNameWithoutExtension, isDraggableAsset } from '../../types/assets'
 import { getAssetItemId } from './assetItemId'
 
 const INDENT_SIZE = 20

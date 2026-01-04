@@ -1,6 +1,6 @@
 import { state, unproxy } from '../../../state/State'
-import type { CommandHandler } from '../types'
 import type { getPrefabContentCommand } from '../../api/commands/getPrefabContent'
+import type { CommandHandler } from '../types'
 
 /**
  * @see {@link getPrefabContentCommand} for command definition

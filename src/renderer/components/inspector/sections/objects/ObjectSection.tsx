@@ -69,11 +69,7 @@ export function ObjectSection({ data }: ObjectSectionProps) {
 
 			<TextInput label="Type" value={snap.type} size="xs" disabled />
 
-			<CheckboxCustom
-				label="Locked"
-				checked={snap.locked}
-				onChange={(checked) => (data.locked = checked)}
-			/>
+			<CheckboxCustom label="Locked" checked={snap.locked} onChange={(checked) => (data.locked = checked)} />
 		</Stack>
 	)
 }

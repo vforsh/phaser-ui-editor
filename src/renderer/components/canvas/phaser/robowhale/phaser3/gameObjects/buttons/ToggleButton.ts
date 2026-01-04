@@ -10,7 +10,13 @@ export class ToggleButton extends SimpleButton {
 	private frame_2: string
 	protected _buttonState: ToggleButtonState
 
-	constructor(scene: Phaser.Scene, texture: string, frame_1: string, frame_2: string, parent?: Phaser.GameObjects.Container) {
+	constructor(
+		scene: Phaser.Scene,
+		texture: string,
+		frame_1: string,
+		frame_2: string,
+		parent?: Phaser.GameObjects.Container
+	) {
 		super(scene, texture, frame_1, parent)
 
 		this.frame_1 = frame_1
@@ -25,7 +31,8 @@ export class ToggleButton extends SimpleButton {
 	}
 
 	private toggleFrames(): void {
-		this.buttonState = this._buttonState === ToggleButtonState.STATE_1 ? ToggleButtonState.STATE_2 : ToggleButtonState.STATE_1
+		this.buttonState =
+			this._buttonState === ToggleButtonState.STATE_1 ? ToggleButtonState.STATE_2 : ToggleButtonState.STATE_1
 	}
 
 	public get buttonState(): ToggleButtonState {

@@ -1,13 +1,5 @@
 import { Box, Group, Modal, ScrollArea, Stack } from '@mantine/core'
-import {
-	Boxes,
-	Code,
-	Cog,
-	FolderOpen,
-	Layers,
-	Palette,
-	Settings as SettingsIcon,
-} from 'lucide-react'
+import { Boxes, Code, Cog, FolderOpen, Layers, Palette, Settings as SettingsIcon } from 'lucide-react'
 import { match } from 'ts-pattern'
 import type { SettingsSectionId } from '../../settings/EditorSettings'
 import { SettingsNav, type SettingsNavSection } from './SettingsNav'
@@ -75,11 +67,7 @@ export function SettingsModal({ opened, onClose, activeSectionId, onSectionChang
 						borderRadius: 'var(--mantine-radius-md)',
 					}}
 				>
-					<SettingsNav
-						sections={sections}
-						activeSectionId={activeSectionId}
-						onSelect={onSectionChange}
-					/>
+					<SettingsNav sections={sections} activeSectionId={activeSectionId} onSelect={onSectionChange} />
 				</Box>
 				<Box style={{ flex: 1, minWidth: 0 }}>
 					<ScrollArea h={contentHeight} offsetScrollbars>

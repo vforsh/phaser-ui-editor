@@ -9,12 +9,12 @@ import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/obj
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { Group, SegmentedControl, Stack, Text, UnstyledButton } from '@mantine/core'
 import { state } from '@state/State'
-import { match } from 'ts-pattern'
 import { useMemo } from 'react'
+import { match } from 'ts-pattern'
 import { useSnapshot } from 'valtio'
+import { findParentContainerId, ReadonlyContainerJson } from '../../utils/findParentContainerId'
 import { BaseSectionProps } from '../BaseSection'
 import { NumberInputCustom } from '../common/NumberInputCustom'
-import { findParentContainerId, ReadonlyContainerJson } from '../../utils/findParentContainerId'
 import classes from './LayoutSection.module.css'
 
 interface LayoutSectionProps extends BaseSectionProps<LayoutComponentJson> {

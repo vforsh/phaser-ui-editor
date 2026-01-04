@@ -29,7 +29,7 @@ export abstract class BaseScene extends Phaser.Scene {
 		this.shutdownController = new AbortController()
 
 		this.events.once('shutdown', this.onShutdown, this)
-		
+
 		this.pinner = new Pinner()
 
 		this.sizer = new Scaler(this)

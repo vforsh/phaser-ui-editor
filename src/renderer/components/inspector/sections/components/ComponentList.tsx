@@ -1,7 +1,7 @@
 import { ActionIcon, Group, Stack, Text, TextInput, UnstyledButton } from '@mantine/core'
 import { Fzf } from 'fzf'
 import { Search, X } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { EditableComponentType } from '../../../canvas/phaser/scenes/main/objects/components/base/EditableComponent'
 import classes from './ComponentList.module.css'
 import { ComponentListItemData, ComponentsListData } from './ComponentsListData'

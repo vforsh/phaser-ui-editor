@@ -1,5 +1,5 @@
 export interface RecentProject {
-  name: string;
-  dir: string;
-  lastOpenedAt: number;
+	name: string
+	dir: string
+	lastOpenedAt: number
 }

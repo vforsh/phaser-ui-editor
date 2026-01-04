@@ -57,8 +57,8 @@ export type AppCommands = {
 	'focus-on-object': (id: string) => void
 
 	// history
-	undo: () => void
-	redo: () => void
+	'undo': () => void
+	'redo': () => void
 
 	// screenshots
 	'take-canvas-screenshot': (options?: { clean?: boolean; format?: 'png' | 'jpg' | 'webp' }) => Promise<string>

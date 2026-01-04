@@ -1,21 +1,17 @@
 import { BrowserWindow, ipcMain } from 'electron'
 import { WebSocketServer, type RawData, type WebSocket } from 'ws'
+import { ERR_NO_RENDERER_WINDOW, ERR_RENDERER_TIMEOUT, JSONRPC_PARSE_ERROR } from '../../control-rpc/jsonrpc-errors'
+import { validateControlRequest } from '../../control-rpc/jsonrpc-validate'
 import {
+	CONTROL_EDITOR_STATUS_CHANNEL,
 	CONTROL_RPC_REQUEST_CHANNEL,
 	CONTROL_RPC_RESPONSE_CHANNEL,
-	CONTROL_EDITOR_STATUS_CHANNEL,
 	JsonRpcResponse,
 	createJsonRpcError,
 	createJsonRpcResult,
 } from '../../control-rpc/rpc'
-import { validateControlRequest } from '../../control-rpc/jsonrpc-validate'
-import { editorRegistry } from './editor-registry'
-import {
-	ERR_NO_RENDERER_WINDOW,
-	ERR_RENDERER_TIMEOUT,
-	JSONRPC_PARSE_ERROR,
-} from '../../control-rpc/jsonrpc-errors'
 import { logger } from '../../logs/logs'
+import { editorRegistry } from './editor-registry'
 
 type PendingRequest = {
 	ws: WebSocket
@@ -149,11 +145,16 @@ export class ControlRpcServer {
 
 		const targetWindow = BrowserWindow.getAllWindows()[0]
 		if (!targetWindow || targetWindow.isDestroyed()) {
-			const errorResponse = createJsonRpcError(request.id, ERR_NO_RENDERER_WINDOW, 'no renderer window available', {
-				kind: 'operational',
-				reason: 'no_window',
-				traceId,
-			})
+			const errorResponse = createJsonRpcError(
+				request.id,
+				ERR_NO_RENDERER_WINDOW,
+				'no renderer window available',
+				{
+					kind: 'operational',
+					reason: 'no_window',
+					traceId,
+				}
+			)
 			this.sendJson(ws, errorResponse)
 			this.logger.error(this.formatLog(traceId, request.method, 'error', { code: ERR_NO_RENDERER_WINDOW }))
 			return

@@ -6,7 +6,7 @@ type OnceCallback<T extends (...args: any[]) => void> = {
 
 export function createOnce<T extends (...args: any[]) => void>(fn: T, signal?: AbortSignal): OnceCallback<T> {
 	let result: ReturnType<T> | undefined
-    let wasCalled = false
+	let wasCalled = false
 	const callback: OnceCallback<T> = {
 		get wasCalled(): boolean {
 			return wasCalled
@@ -16,11 +16,11 @@ export function createOnce<T extends (...args: any[]) => void>(fn: T, signal?: A
 			if (signal?.aborted) {
 				return result
 			}
-			
+
 			if (wasCalled) {
 				return result
 			}
-			
+
 			wasCalled = true
 			result = fn(...args) as ReturnType<T>
 			return result

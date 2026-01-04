@@ -11,7 +11,7 @@ import {
 import { Group, Text } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { until } from '@open-draft/until'
-import { state, unproxy } from '@state/State'
+import { state } from '@state/State'
 import { getErrorLog } from '@utils/error/utils'
 import clsx from 'clsx'
 import {
@@ -29,14 +29,14 @@ import {
 import { ContextMenuItemOptions, ContextMenuOptions, useContextMenu } from 'mantine-contextmenu'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Snapshot, useSnapshot } from 'valtio'
+import { AppCommands } from '../../AppCommands'
+import { useAppCommands } from '../../di/DiHooks'
+import { CommandEmitter } from '../canvas/phaser/robowhale/utils/events/CommandEmitter'
 import { ICON_MARGIN, INDENT_SIZE } from './constants'
 import styles from './HierarchyItem.module.css'
 import HierarchyItemIcons from './HierarchyItemIcons'
 import { HIERARCHY_ITEMS_CONTAINER_ID } from './HierarchyPanel'
 import { getHierarchyItemIcon, getLinkedAssetId } from './hierarchyUtils'
-import { useAppCommands } from '../../di/DiHooks'
-import { AppCommands } from '../../AppCommands'
-import { CommandEmitter } from '../canvas/phaser/robowhale/utils/events/CommandEmitter'
 
 export interface HierarchyItemDragData {
 	id: string
@@ -281,9 +281,7 @@ export default function HierarchyItem({
 					type: objState.type,
 					parentId: parentId,
 					metaType: 'hierarchy-item',
-					index: Array.from(document.querySelectorAll(`[data-parent-id="${parentId}"]`)).indexOf(
-						element!
-					),
+					index: Array.from(document.querySelectorAll(`[data-parent-id="${parentId}"]`)).indexOf(element!),
 				}),
 				canDrop: (args: ElementDropTargetGetFeedbackArgs) => {
 					const isSourceRoot = args.source.data.isRoot as boolean

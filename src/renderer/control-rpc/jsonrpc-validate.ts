@@ -1,7 +1,7 @@
+import { nanoid } from 'nanoid'
 import { controlContract, isControlMethod, type ControlInput, type ControlMethod } from './api/ControlApi'
 import { JSONRPC_INVALID_PARAMS, JSONRPC_INVALID_REQUEST, JSONRPC_METHOD_NOT_FOUND } from './jsonrpc-errors'
 import { createJsonRpcError, type JsonRpcError, type JsonRpcId, type JsonRpcRequest } from './rpc'
-import { nanoid } from 'nanoid'
 
 export type ValidationResult<M extends ControlMethod = ControlMethod> =
 	| {
@@ -39,7 +39,11 @@ export function validateControlRequest(payload: unknown): ValidationResult {
 		return {
 			ok: false,
 			traceId,
-			response: createJsonRpcError(isValidId(id) ? id : null, JSONRPC_INVALID_REQUEST, 'invalid json-rpc request'),
+			response: createJsonRpcError(
+				isValidId(id) ? id : null,
+				JSONRPC_INVALID_REQUEST,
+				'invalid json-rpc request'
+			),
 		}
 	}
 

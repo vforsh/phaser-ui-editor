@@ -27,7 +27,7 @@ export function parseJsonBitmapFontFromAtlas(
 	if (!frame || !json) {
 		return false
 	}
-	
+
 	let data = parseJsonBitmapFont(json, frame, texture)
 
 	scene.sys.cache.bitmapFont.add(fontName, { data: data, texture: textureKey, frame: frameKey, fromAtlas: true })

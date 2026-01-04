@@ -99,7 +99,12 @@ export class ComplexButton extends Phaser.GameObjects.Container {
 		}
 	}
 
-	public addIcon(atlasKey: string, frame?: string, offsetX: number = 0, offsetY: number = 0): Phaser.GameObjects.Image {
+	public addIcon(
+		atlasKey: string,
+		frame?: string,
+		offsetX: number = 0,
+		offsetY: number = 0
+	): Phaser.GameObjects.Image {
 		this.icon = this.scene.make.image({ key: atlasKey, frame }, false)
 		this.icon.x = offsetX
 		this.icon.y = offsetY
@@ -108,7 +113,13 @@ export class ComplexButton extends Phaser.GameObjects.Container {
 		return this.icon
 	}
 
-	public addBitmapText(content: string, font: string, fontSize: number, offsetX: number = 0, offsetY: number = 0): Phaser.GameObjects.BitmapText {
+	public addBitmapText(
+		content: string,
+		font: string,
+		fontSize: number,
+		offsetX: number = 0,
+		offsetY: number = 0
+	): Phaser.GameObjects.BitmapText {
 		this.bitmapText = this.scene.make.bitmapText({
 			font,
 			size: fontSize,

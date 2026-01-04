@@ -1,5 +1,5 @@
-import { ILogObj, Logger } from 'tslog'
 import { logger } from '@logs/logs'
+import { ILogObj, Logger } from 'tslog'
 
 export type UrlParam = GenericUrlParam
 

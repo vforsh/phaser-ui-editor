@@ -19,4 +19,3 @@ export const TOKENS = {
 	PhaserScope: Symbol('PhaserScope') as InjectionToken<PhaserScope>,
 	UndoHub: Symbol('UndoHub') as InjectionToken<UndoHub>,
 }
-

@@ -1,9 +1,9 @@
 import { P, match } from 'ts-pattern'
 import { state } from '../../../state/State'
+import type { selectObjectCommand } from '../../api/commands/selectObject'
 import type { ControlInput } from '../../api/ControlApi'
 import type { CommandHandler } from '../types'
 import { resolveObjectIdByPath } from '../utils/object-path'
-import type { selectObjectCommand } from '../../api/commands/selectObject'
 
 /**
  * @see {@link selectObjectCommand} for command definition

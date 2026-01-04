@@ -96,7 +96,10 @@ export class UndoHub {
 		this.pendingTransaction = null
 	}
 
-	public async transaction<T>(build: () => HistoryEntry | Promise<HistoryEntry>, fn: () => T | Promise<T>): Promise<T> {
+	public async transaction<T>(
+		build: () => HistoryEntry | Promise<HistoryEntry>,
+		fn: () => T | Promise<T>
+	): Promise<T> {
 		this.begin(build)
 		const result = await fn()
 		await this.commit()
@@ -183,4 +186,3 @@ export class UndoHub {
 		return undefined
 	}
 }
-

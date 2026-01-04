@@ -160,7 +160,7 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 
 		if (event.key === 'F2') {
 			event.preventDefault()
-			
+
 			// Get the last selected object
 			const lastSelectedId = canvasSnap.selection.at(-1)
 			if (lastSelectedId) {

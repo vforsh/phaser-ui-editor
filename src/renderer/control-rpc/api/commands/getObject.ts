@@ -1,5 +1,5 @@
-import { z } from 'zod'
 import type { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { z } from 'zod'
 import { CommandDefinition } from '../ControlApi'
 
 export const getObjectCommand = {

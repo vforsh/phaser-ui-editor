@@ -14,7 +14,7 @@ export class CameraScrollbar extends Phaser.GameObjects.Image {
 
 		this.setInteractive()
 		this.scene.input.setDraggable(this)
-		
+
 		if (this.input) {
 			this.input.cursor = 'pointer'
 		}

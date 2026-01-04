@@ -1,13 +1,4 @@
 import { Group, Stack, Text, UnstyledButton } from '@mantine/core'
-import {
-	Boxes,
-	Code,
-	Cog,
-	FolderOpen,
-	Layers,
-	Palette,
-	Settings as SettingsIcon,
-} from 'lucide-react'
 import type { SettingsSectionId } from '../../settings/EditorSettings'
 import classes from './SettingsNav.module.css'
 

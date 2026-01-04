@@ -1,4 +1,4 @@
-import { container as rootContainer, DependencyContainer } from 'tsyringe'
+import { DependencyContainer, container as rootContainer } from 'tsyringe'
 
 import { TOKENS, type PhaserScope } from './tokens'
 
@@ -14,4 +14,3 @@ export function createContainer(): DependencyContainer {
 
 	return diContainer
 }
-

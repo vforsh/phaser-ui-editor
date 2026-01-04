@@ -13,9 +13,13 @@ export const listEditorsCommand = {
 						.object({
 							wsUrl: z
 								.string()
-								.describe('WebSocket JSON-RPC address for this editor instance (e.g. ws://127.0.0.1:17870)'),
+								.describe(
+									'WebSocket JSON-RPC address for this editor instance (e.g. ws://127.0.0.1:17870)'
+								),
 							wsPort: z.number().describe('WebSocket port for this editor instance'),
-							appLaunchDir: z.string().describe('Directory the editor app instance was launched from (process.cwd())'),
+							appLaunchDir: z
+								.string()
+								.describe('Directory the editor app instance was launched from (process.cwd())'),
 							projectPath: z.string().nullable().describe('Path to the project open in this window'),
 						})
 						.strict()

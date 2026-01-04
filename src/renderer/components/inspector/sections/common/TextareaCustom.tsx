@@ -1,6 +1,6 @@
 import { Textarea, TextareaProps } from '@mantine/core'
-import { usePreserveCursor } from './usePreserveCursor'
 import classes from './TextareaCustom.module.css'
+import { usePreserveCursor } from './usePreserveCursor'
 
 interface TextareaCustomProps extends TextareaProps {}
 

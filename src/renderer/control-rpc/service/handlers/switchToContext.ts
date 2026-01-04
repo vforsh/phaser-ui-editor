@@ -1,9 +1,9 @@
 import { P, match } from 'ts-pattern'
 import { state } from '../../../state/State'
+import type { switchToContextCommand } from '../../api/commands/switchToContext'
 import type { ControlInput } from '../../api/ControlApi'
 import type { CommandHandler } from '../types'
 import { resolveObjectIdByPath } from '../utils/object-path'
-import type { switchToContextCommand } from '../../api/commands/switchToContext'
 
 /**
  * @see {@link switchToContextCommand} for command definition
