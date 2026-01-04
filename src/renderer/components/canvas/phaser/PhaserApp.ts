@@ -186,7 +186,7 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 		// TODO add zod validation and check if the loaded json is a valid prefab file
 		const prefabFile = data as PrefabFile
 
-		this.logger.info(`loaded prefab '${prefabAsset.name}' (${prefabAsset.id})`)
+		this.logger.info(`loaded prefab '${prefabAsset.name}' (assetId: ${prefabAsset.id}, path: ${prefabAsset.path})`)
 		this.scene.start('MainScene', {
 			project: new Project({ config: this.projectConfig }),
 			prefabAsset,
