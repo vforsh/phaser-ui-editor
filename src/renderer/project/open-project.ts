@@ -29,7 +29,7 @@ export async function openProjectByPath(projectDirPath: string, log?: AppLogger)
 		return false
 	}
 
-	logger.info('project opened', openedProject)
+	logger.info(`project '${openedProject.projectConfig.name}' opened (${projectDirPath})`, openedProject)
 
 	const assetsGlob = path.join(openedProject.assetsDir, '**/*')
 	const assetsToIgnore = openedProject.projectConfig.assetsIgnore.map((item) => path.join(openedProject.assetsDir, item))
