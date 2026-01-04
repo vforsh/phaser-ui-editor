@@ -1,7 +1,7 @@
 import '@mantine/core/styles.css'
 import '@mantine/notifications/styles.css'
 import 'mantine-contextmenu/styles.css'
-import './layout.css'
+import './styles/layout.css'
 import { mainApi } from '@main-api/main-api'
 import { AppShell, createTheme, MantineProvider } from '@mantine/core'
 import { Notifications, notifications } from '@mantine/notifications'
