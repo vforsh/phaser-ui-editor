@@ -88,6 +88,8 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 
 		super(phaserConfig)
 
+		// console.log('PhaserApp constructor - start')
+
 		if (urlParams.get('clearConsole') === 'phaser') {
 			console.clear()
 		}
@@ -238,7 +240,7 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 			}
 		})
 
-		this.destroyController.abort()
+		this.destroyController.abort('PhaserApp destroyed')
 
 		if (this.resizeSensor) {
 			this.resizeSensor.detach()

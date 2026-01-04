@@ -97,7 +97,7 @@ export abstract class BaseScene extends Phaser.Scene {
 	}
 
 	public onShutdown(): void {
-		this.shutdownController.abort()
+		this.shutdownController.abort(`${this.scene.key} shutdown`)
 
 		this.pinner.destroy()
 
