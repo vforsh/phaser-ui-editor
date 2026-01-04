@@ -11,6 +11,8 @@ import {
 import { EditableObjectType } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 
 import { CommandEmitter } from './components/canvas/phaser/robowhale/utils/events/CommandEmitter'
+import { CameraParams } from './components/canvas/phaser/scenes/main/mainScene/MainSceneCamera'
+import { ScreenshotOptions } from './components/canvas/phaser/scenes/main/mainScene/MainSceneScreenshot'
 import { AssetTreeItemData } from './types/assets'
 
 /**
@@ -54,7 +56,7 @@ export type AppCommands = {
 	'adjust-container-to-children-bounds': (data: { objectId: string }) => void
 
 	// camera
-	'set-camera': (payload: { zoom?: number; scrollX?: number; scrollY?: number }) => void
+	'set-camera': (payload: CameraParams) => void
 	'focus-on-object': (id: string) => void
 
 	// history
@@ -62,7 +64,7 @@ export type AppCommands = {
 	'redo': () => void
 
 	// screenshots
-	'take-canvas-screenshot': (options?: { clean?: boolean; format?: 'png' | 'jpg' | 'webp' }) => Promise<string>
+	'take-canvas-screenshot': (options?: ScreenshotOptions) => Promise<string>
 
 	// diagnostics
 	'get-canvas-metrics': () => {

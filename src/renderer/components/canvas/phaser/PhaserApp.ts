@@ -22,7 +22,8 @@ import { Phaser3Extensions } from './robowhale/phaser3/Phaser3Extensions'
 import { BaseScene } from './robowhale/phaser3/scenes/BaseScene'
 import { TypedEventEmitter } from './robowhale/phaser3/TypedEventEmitter'
 import { CommandEmitter } from './robowhale/utils/events/CommandEmitter'
-import { MainScene, MainSceneInitData } from './scenes/main/MainScene'
+import { MainScene } from './scenes/main/MainScene'
+import { MainSceneInitData } from './scenes/main/mainScene/mainSceneTypes'
 import { TestSceneInitData } from './scenes/test/TestScene'
 
 export type Vector2Like = Phaser.Types.Math.Vector2Like
