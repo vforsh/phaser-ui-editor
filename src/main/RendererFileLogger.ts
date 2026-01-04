@@ -172,7 +172,9 @@ export class RendererFileLogger {
 		const timestamp = new Date().toISOString()
 		const separator = '='.repeat(50)
 
+		const allowedVersions = new Set(['node', 'chrome', 'electron', 'v8'])
 		const versions = Object.entries(process.versions ?? {})
+			.filter(([k]) => allowedVersions.has(k))
 			.sort(([a], [b]) => a.localeCompare(b))
 			.map(([k, v]) => `${timestamp} SYS : versions.${k}: ${String(v)}\n`)
 			.join('')
