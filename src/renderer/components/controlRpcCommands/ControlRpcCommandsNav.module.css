@@ -1,0 +1,23 @@
+.button {
+	width: 100%;
+	padding: var(--mantine-spacing-xs) calc(var(--mantine-spacing-sm) + 10px);
+	border-radius: var(--mantine-radius-sm);
+	transition: background-color 0.1s ease;
+}
+
+.button:first-child {
+	border-top-left-radius: var(--mantine-radius-md);
+	border-top-right-radius: var(--mantine-radius-md);
+}
+
+.button:hover {
+	background-color: var(--mantine-color-dark-7);
+}
+
+.buttonActive {
+	background-color: var(--mantine-color-dark-6);
+}
+
+.buttonActive:hover {
+	background-color: var(--mantine-color-dark-6);
+}

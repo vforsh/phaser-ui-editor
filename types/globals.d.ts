@@ -14,6 +14,7 @@ declare global {
 				callback: (payload: { section?: 'general' | 'hierarchy' | 'canvas' | 'assets' | 'inspector' | 'dev' | 'misc' }) => void,
 			) => () => void
 			onTogglePanel: (callback: (payload: { panel: 'hierarchy' | 'assets' | 'inspector' }) => void) => () => void
+			onOpenControlRpcCommands: (callback: () => void) => () => void
 		}
 		editor?: WindowEditorApi
 		/**

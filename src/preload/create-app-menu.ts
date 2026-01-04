@@ -3,6 +3,7 @@ import { ipcRenderer } from 'electron'
 const MENU_TAKE_CANVAS_SCREENSHOT = 'menu:take-canvas-screenshot'
 const MENU_OPEN_SETTINGS = 'menu:open-settings'
 const MENU_TOGGLE_PANEL = 'menu:toggle-panel'
+const MENU_OPEN_CONTROL_RPC_COMMANDS = 'menu:open-control-rpc-commands'
 
 type SettingsSectionId = 'general' | 'hierarchy' | 'canvas' | 'assets' | 'inspector' | 'dev' | 'misc'
 type PanelId = 'hierarchy' | 'assets' | 'inspector'
@@ -44,6 +45,17 @@ export function createAppMenu() {
 
 			return () => {
 				ipcRenderer.off(MENU_TOGGLE_PANEL, listener)
+			}
+		},
+		onOpenControlRpcCommands: (callback: () => void) => {
+			const listener = (_event: unknown, payload: Record<string, never>) => {
+				callback()
+			}
+
+			ipcRenderer.on(MENU_OPEN_CONTROL_RPC_COMMANDS, listener)
+
+			return () => {
+				ipcRenderer.off(MENU_OPEN_CONTROL_RPC_COMMANDS, listener)
 			}
 		},
 	}

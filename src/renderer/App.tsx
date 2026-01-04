@@ -9,10 +9,13 @@ import { Check, X } from 'lucide-react'
 import { ContextMenuProvider } from 'mantine-contextmenu'
 import { useEffect, useMemo, useState } from 'react'
 
+import type { ControlRpcGroup } from './components/controlRpcCommands/controlRpcCommandsModel'
+
 import { AppCommands } from './AppCommands'
 import { AppEvents } from './AppEvents'
 import { TypedEventEmitter } from './components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { CommandEmitter } from './components/canvas/phaser/robowhale/utils/events/CommandEmitter'
+import { ControlRpcCommandsModal } from './components/controlRpcCommands/ControlRpcCommandsModal'
 import EditorLayout from './components/EditorLayout'
 import { SettingsModal } from './components/settings/SettingsModal'
 import { exposeWindowEditor } from './control-rpc/expose-window-editor'
@@ -57,6 +60,8 @@ function App() {
 	useControlRpcBridge(appCommands)
 	const [settingsOpened, setSettingsOpened] = useState(false)
 	const [activeSettingsSectionId, setActiveSettingsSectionId] = useState<SettingsSectionId>('general')
+	const [controlRpcCommandsOpened, setControlRpcCommandsOpened] = useState(false)
+	const [activeControlRpcGroup, setActiveControlRpcGroup] = useState<ControlRpcGroup>('assets')
 
 	useEffect(() => {
 		if (!window.appMenu) {
@@ -128,6 +133,16 @@ function App() {
 		})
 	}, [])
 
+	useEffect(() => {
+		if (!window.appMenu?.onOpenControlRpcCommands) {
+			return
+		}
+
+		return window.appMenu.onOpenControlRpcCommands(() => {
+			setControlRpcCommandsOpened(true)
+		})
+	}, [])
+
 	return (
 		<MantineProvider theme={theme} defaultColorScheme="dark">
 			<Notifications position="bottom-right" zIndex={5001} />
@@ -141,6 +156,12 @@ function App() {
 						onClose={() => setSettingsOpened(false)}
 						activeSectionId={activeSettingsSectionId}
 						onSectionChange={setActiveSettingsSectionId}
+					/>
+					<ControlRpcCommandsModal
+						opened={controlRpcCommandsOpened}
+						onClose={() => setControlRpcCommandsOpened(false)}
+						activeGroup={activeControlRpcGroup}
+						onGroupChange={setActiveControlRpcGroup}
 					/>
 				</DiProvider>
 			</ContextMenuProvider>
