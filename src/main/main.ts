@@ -13,12 +13,10 @@ let controlRpcServer: ControlRpcServer | null = null
 let controlRpcAddress = ''
 let rendererLogger: RendererFileLogger | null = null
 
-const isPlaywrightE2E = process.env.PW_E2E === '1'
+const isE2E = process.env.PW_E2E === '1'
 
-// Dev-only CDP port for Playwright "attach" mode.
-// Keep this disabled for normal dev to avoid exposing a debugging port by accident.
-if (!app.isPackaged && isPlaywrightE2E) {
-	app.commandLine.appendSwitch('remote-debugging-port', process.env.PW_E2E_CDP_PORT ?? '9222')
+if (!app.isPackaged && isE2E && process.env.PW_E2E_CDP_PORT) {
+	app.commandLine.appendSwitch('remote-debugging-port', process.env.PW_E2E_CDP_PORT)
 }
 
 /**
@@ -66,7 +64,7 @@ const createWindow = () => {
 		},
 	})
 
-	if (is.dev && !isPlaywrightE2E) {
+	if (is.dev && !isE2E) {
 		setupRendererLogger(mainWindow.webContents)
 	}
 
@@ -78,7 +76,7 @@ const createWindow = () => {
 		mainWindow.maximize()
 		mainWindow.show()
 
-		if (is.dev && !isPlaywrightE2E) {
+		if (is.dev && !isE2E) {
 			// DevTools can noticeably slow down initial paint; open it right after the first render.
 			setTimeout(() => mainWindow?.webContents.openDevTools({ mode: 'right' }), 250)
 		}
