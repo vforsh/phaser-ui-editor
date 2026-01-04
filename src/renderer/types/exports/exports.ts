@@ -1,5 +1,17 @@
-// it is important to use the relative paths in imports, not path aliases like '@components/*'
-// because the types are exported as a .d.ts file and need to be available for the consumers of the library
+/**
+ * Public type exports entrypoint.
+ *
+ * This file defines the **small, stable, public TypeScript surface area** that other projects can
+ * depend on (primarily the prefab JSON types like `PrefabFile`, `EditableObjectJson`, etc.).
+ *
+ * It is intentionally limited/curated to avoid exporting internal editor implementation details.
+ *
+ * ### Why relative imports (no path aliases)
+ * The declarations are bundled into a single repo-root `exports.d.ts` (see `npm run build-types`).
+ * Because the output is meant to be consumed as a standalone `.d.ts` by downstream projects,
+ * imports must remain **resolvable for consumers** — so we use **relative paths** and avoid TS
+ * path aliases like `@components/*`.
+ */
 
 import { EditableComponentJson } from '../../components/canvas/phaser/scenes/main/objects/components/base/EditableComponent'
 import { GridLayoutComponentJson } from '../../components/canvas/phaser/scenes/main/objects/components/GridLayoutComponent'
