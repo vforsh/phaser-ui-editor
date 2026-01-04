@@ -1,7 +1,8 @@
 import { Button, Stack } from '@mantine/core'
 import { FolderOpen } from 'lucide-react'
 import { Snapshot } from 'valtio'
-import { backend } from '../../../../backend-renderer/backend'
+
+import { backend } from '../../../../../backend/renderer/backend'
 import { getAssetRelativePath, type AssetTreeItemData } from '../../../../types/assets'
 import { BaseSectionProps } from '../BaseSection'
 import { ReadonlyPropertyRow } from '../PropertyRow'
@@ -14,8 +15,7 @@ const isMac = window.navigator.userAgent.toLowerCase().includes('mac')
 const FOLDER_OPEN_ICON = <FolderOpen size={16} />
 
 export function AssetSection({ data }: AssetSectionProps) {
-	const physicalPath =
-		data.type === 'spritesheet-frame' || data.type === 'spritesheet-folder' ? data.imagePath : data.path
+	const physicalPath = data.type === 'spritesheet-frame' || data.type === 'spritesheet-folder' ? data.imagePath : data.path
 
 	return (
 		<Stack gap="xs">

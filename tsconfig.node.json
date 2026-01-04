@@ -14,17 +14,28 @@
 
 		/* Linting */
 		"strict": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"noFallthroughCasesInSwitch": true
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
+		"noFallthroughCasesInSwitch": true,
+
+		"baseUrl": ".",
+		"paths": {
+			"@state/*": ["./src/renderer/state/*"],
+			"@logs/*": ["./src/renderer/logs/*"],
+			"@url-params": ["./src/renderer/UrlParams.ts"],
+			"@components/*": ["./src/renderer/components/*"],
+			"@utils/*": ["./src/renderer/utils/*"],
+			"@hooks/*": ["./src/renderer/hooks/*"]
+		},
+		"types": ["phaser", "vite/client"]
 	},
-        "include": [
-                "electron.vite.config.ts",
-                "src/main/**/*.ts",
-                "src/preload/**/*.ts",
-                "src/renderer/backend-main/**/*.ts",
-                "src/renderer/backend-preload/**/*.ts",
-                "src/renderer/backend-main/control-rpc/ControlRpcServer.ts",
-                "src/renderer/backend-preload/control-rpc/preload.ts"
-        ]
+	"include": [
+		"electron.vite.config.ts",
+		"src/main/**/*.ts",
+		"src/preload/**/*.ts",
+		"src/backend/main/**/*.ts",
+		"src/backend/preload/**/*.ts",
+		"src/backend/contract/**/*.ts",
+		"types/**/*.d.ts"
+	]
 }

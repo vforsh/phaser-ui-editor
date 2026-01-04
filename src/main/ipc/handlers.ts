@@ -8,9 +8,11 @@ import open from 'open'
 import parseBmfontXml from 'parse-bmfont-xml'
 import sharp from 'sharp'
 import trash from 'trash'
-import type { TexturePacker } from '../../../types/texture-packer'
-import type { BackendApi } from '../../backend-contract/types'
-import { normalizeAbsolutePath } from '../utils/path'
+
+import type { TexturePacker } from '../../../../types/texture-packer'
+import type { BackendApi } from '../../contract/contract'
+
+import { normalizeAbsolutePath } from './utils/path'
 
 export const backendHandlers: BackendApi = {
 	async globby({ patterns, options }) {

@@ -1,5 +1,6 @@
-import { backendContract } from '../backend-contract/contract'
-import type { BackendApi, BackendMethod } from '../backend-contract/types'
+import type { BackendApi, BackendMethod } from '../contract/contract'
+
+import { backendContract } from '../contract/contract'
 
 function requireBackend(): BackendApi {
 	if (!window.backend) {

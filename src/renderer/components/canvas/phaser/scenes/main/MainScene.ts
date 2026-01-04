@@ -9,9 +9,12 @@ import { err, ok, Result } from 'neverthrow'
 import { match } from 'ts-pattern'
 import { ILogObj, Logger } from 'tslog'
 import WebFont from 'webfontloader'
+
+import type { WebFontParsed } from '../../../../../../backend/contract/contract'
+import type { BmFontData } from '../../robowhale/phaser3/gameObjects/bitmap-text/create-bmfont-data'
+
+import { backend } from '../../../../../../backend/renderer/backend'
 import { AppCommandsEmitter } from '../../../../../AppCommands'
-import type { WebFontParsed } from '../../../../../backend-contract/types'
-import { backend } from '../../../../../backend-renderer/backend'
 import { Project } from '../../../../../project/Project'
 import {
 	AssetTreeBitmapFontData,
@@ -36,7 +39,6 @@ import {
 	PrefabWebFontAsset,
 } from '../../../../../types/prefabs/PrefabAsset'
 import { PrefabFile } from '../../../../../types/prefabs/PrefabFile'
-import type { BmFontData } from '../../robowhale/phaser3/gameObjects/bitmap-text/create-bmfont-data'
 import { parseJsonBitmapFont } from '../../robowhale/phaser3/gameObjects/bitmap-text/parse-json-bitmap-font'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { signalFromEvent } from '../../robowhale/utils/events/create-abort-signal-from-event'
@@ -50,11 +52,7 @@ import { TransformControls } from './editContext/TransformControls'
 import { EditContextFrame } from './EditContextFrame'
 import { Grid } from './Grid'
 import { LayoutSystem } from './layout/LayoutSystem'
-import {
-	AddComponentResult,
-	MoveComponentResult,
-	RemoveComponentResult,
-} from './objects/components/base/ComponentsManager'
+import { AddComponentResult, MoveComponentResult, RemoveComponentResult } from './objects/components/base/ComponentsManager'
 import { EditableComponentJson, EditableComponentType } from './objects/components/base/EditableComponent'
 import { EditableComponentsFactory } from './objects/components/base/EditableComponentsFactory'
 import { EditableContainer, EditableContainerJson } from './objects/EditableContainer'
@@ -131,16 +129,14 @@ type SelectionDragData = {
 }
 
 export class MainScene extends BaseScene {
-	public declare initData: MainSceneInitData
+	declare public initData: MainSceneInitData
 	private logger!: Logger<ILogObj>
 	private sceneClickedAt: number | undefined
 	private cameraDrag = false
 	private cameraDragStart: { x: number; y: number } | undefined
 	private selectionDrag: SelectionDragData | undefined
 	private selectionDragSnapshot: CanvasDocumentSnapshot | undefined
-	private transformControlsSnapshot:
-		| { before: CanvasDocumentSnapshot; type: 'rotate' | 'resize' | 'origin' }
-		| undefined
+	private transformControlsSnapshot: { before: CanvasDocumentSnapshot; type: 'rotate' | 'resize' | 'origin' } | undefined
 	private grid!: Grid
 	private rulers!: Rulers
 	private editContexts!: EditContextsManager
@@ -429,7 +425,7 @@ export class MainScene extends BaseScene {
 				}
 				this.updateUnsavedChanges()
 			},
-			{ signal: this.shutdownSignal }
+			{ signal: this.shutdownSignal },
 		)
 	}
 
@@ -459,7 +455,7 @@ export class MainScene extends BaseScene {
 				})
 			},
 			this,
-			this.shutdownSignal
+			this.shutdownSignal,
 		)
 	}
 
@@ -492,7 +488,7 @@ export class MainScene extends BaseScene {
 				state.canvas.selectionChangedAt = Date.now()
 			},
 			this,
-			this.shutdownSignal
+			this.shutdownSignal,
 		)
 
 		this.editContexts.on('context-switched', this.onContextSwitched, this, this.shutdownSignal)
@@ -625,9 +621,7 @@ export class MainScene extends BaseScene {
 			assetPack: this.calculatePrefabAssetPack(),
 		}
 
-		const { error } = await until(() =>
-			backend.writeJson({ path: prefabFilePath, content: prefabFile, options: { spaces: '\t' } })
-		)
+		const { error } = await until(() => backend.writeJson({ path: prefabFilePath, content: prefabFile, options: { spaces: '\t' } }))
 		if (error) {
 			const errorLog = getErrorLog(error)
 			this.logger.error(`failed to save '${this.initData.prefabAsset.name}' prefab (${errorLog})`)
@@ -689,7 +683,7 @@ export class MainScene extends BaseScene {
 				}),
 			this,
 			false,
-			this.shutdownSignal
+			this.shutdownSignal,
 		)
 	}
 
@@ -781,10 +775,7 @@ export class MainScene extends BaseScene {
 		appCommands.on('take-canvas-screenshot', this.takeCanvasScreenshot, this, false, signal)
 	}
 
-	private async takeCanvasScreenshot(options?: {
-		clean?: boolean
-		format?: 'png' | 'jpg' | 'webp'
-	}): Promise<string> {
+	private async takeCanvasScreenshot(options?: { clean?: boolean; format?: 'png' | 'jpg' | 'webp' }): Promise<string> {
 		const prefabName = this.getPrefabNameForScreenshot()
 		const timestamp = formatScreenshotTimestamp(new Date())
 		const format = options?.format ?? 'png'
@@ -843,7 +834,7 @@ export class MainScene extends BaseScene {
 					})()
 				},
 				mime as unknown as 'image/png',
-				quality
+				quality,
 			)
 		})
 	}
@@ -1245,16 +1236,12 @@ export class MainScene extends BaseScene {
 		if (isObjectOfType(obj, 'Container')) {
 			const parentsIds = this.calculateObjectParentsChain(newParent)
 			if (parentsIds.includes(objId)) {
-				this.logger.warn(
-					`can't move '${obj.name}' (${objId}) to its ancestor '${newParent.name}' (${newParentId})`
-				)
+				this.logger.warn(`can't move '${obj.name}' (${objId}) to its ancestor '${newParent.name}' (${newParentId})`)
 				return
 			}
 		}
 
-		this.logger.info(
-			`moving '${obj.name}' (${objId}) to index ${newParentIndex} in '${newParent.name}' (${newParentId})`
-		)
+		this.logger.info(`moving '${obj.name}' (${objId}) to index ${newParentIndex} in '${newParent.name}' (${newParentId})`)
 
 		if (obj.parentContainer === newParent) {
 			const currentIndex = obj.parentContainer.getIndex(obj)
@@ -1414,8 +1401,7 @@ export class MainScene extends BaseScene {
 		obj.setPosition(data.position.x, data.position.y)
 
 		if ('setOrigin' in obj && typeof obj.setOrigin === 'function') {
-			const origin =
-				data.asset.type === 'spritesheet-frame' && data.asset.anchor ? data.asset.anchor : { x: 0.5, y: 0.5 }
+			const origin = data.asset.type === 'spritesheet-frame' && data.asset.anchor ? data.asset.anchor : { x: 0.5, y: 0.5 }
 
 			obj.setOrigin(origin.x, origin.y)
 		}
@@ -1474,7 +1460,7 @@ export class MainScene extends BaseScene {
 						spritesheetFrame.size.h,
 						texture.key,
 						spritesheetFrame.pathInHierarchy,
-						nineScaleConfig
+						nineScaleConfig,
 					)
 				} else {
 					const frameAsset = createPrefabAsset<PrefabSpritesheetFrameAsset>(spritesheetFrame)
@@ -1668,9 +1654,7 @@ export class MainScene extends BaseScene {
 		return this.loadBitmapFont(asset)
 	}
 
-	private async loadBitmapFont(
-		asset: AssetTreeBitmapFontData
-	): Promise<Result<{ key: string; data: PhaserBmfontData }, string>> {
+	private async loadBitmapFont(asset: AssetTreeBitmapFontData): Promise<Result<{ key: string; data: PhaserBmfontData }, string>> {
 		const fontKey = asset.name
 
 		let bmFont = this.sys.cache.bitmapFont.get(fontKey) as { data: PhaserBmfontData } | undefined
@@ -1772,7 +1756,7 @@ export class MainScene extends BaseScene {
 				}
 			},
 			this,
-			this.shutdownSignal
+			this.shutdownSignal,
 		)
 
 		this.onKeyDown(
@@ -1784,7 +1768,7 @@ export class MainScene extends BaseScene {
 				}
 			},
 			this,
-			this.shutdownSignal
+			this.shutdownSignal,
 		)
 
 		this.onKeyDown('R', this.restart, this, this.shutdownSignal)
@@ -1843,8 +1827,7 @@ export class MainScene extends BaseScene {
 
 	private group(selection: Selection, editContext: EditContext): EditableContainer {
 		const name = this.getNewObjectName(editContext, selection.objects[0])
-		const bounds =
-			selection.objects.length === 1 ? this.aligner.getRotatedBounds(selection.objects[0]) : selection.bounds
+		const bounds = selection.objects.length === 1 ? this.aligner.getRotatedBounds(selection.objects[0]) : selection.bounds
 		const group = this.objectsFactory.container(name)
 		group.setPosition(bounds.centerX, bounds.centerY)
 		group.setSize(bounds.width, bounds.height)
@@ -1896,7 +1879,7 @@ export class MainScene extends BaseScene {
 			group.destroy()
 
 			this.logger.debug(
-				`ungrouped '${group.name}' -> [${ungrouped.map((obj) => obj.name || 'item').join(', ')}] (${ungrouped.length})`
+				`ungrouped '${group.name}' -> [${ungrouped.map((obj) => obj.name || 'item').join(', ')}] (${ungrouped.length})`,
 			)
 
 			return ungrouped
@@ -2130,7 +2113,7 @@ export class MainScene extends BaseScene {
 				selectionRect.draw(drawFrom, { x: pointer.worldX, y: pointer.worldY })
 			},
 			this,
-			AbortSignal.any([this.shutdownSignal, pointerUpSignal])
+			AbortSignal.any([this.shutdownSignal, pointerUpSignal]),
 		)
 
 		this.input.once(
@@ -2156,7 +2139,7 @@ export class MainScene extends BaseScene {
 				selection.setHoverMode('normal')
 			},
 			this,
-			this.shutdownSignal
+			this.shutdownSignal,
 		)
 	}
 
@@ -2259,7 +2242,7 @@ export class MainScene extends BaseScene {
 			} else {
 				this.selectionDrag.target.move(
 					x + this.selectionDrag.offsetX - this.selectionDrag.currentX,
-					y + this.selectionDrag.offsetY - this.selectionDrag.currentY
+					y + this.selectionDrag.offsetY - this.selectionDrag.currentY,
 				)
 			}
 
@@ -2272,12 +2255,7 @@ export class MainScene extends BaseScene {
 		return pointer.button === 0 ? 'left' : pointer.button === 1 ? 'middle' : 'right'
 	}
 
-	private onPointerWheel(
-		pointer: Phaser.Input.Pointer,
-		objects: Phaser.GameObjects.GameObject[],
-		dx: number,
-		dy: number
-	): void {
+	private onPointerWheel(pointer: Phaser.Input.Pointer, objects: Phaser.GameObjects.GameObject[], dx: number, dy: number): void {
 		const camera = this.cameras.main
 
 		const factor = pointer.event.ctrlKey || pointer.event.metaKey ? 1.3 : 1.1
@@ -2428,10 +2406,7 @@ export class MainScene extends BaseScene {
 		const zoomPaddingY = camera.height * 0.1
 
 		const currentZoom = camera.zoom
-		let newZoom = Math.min(
-			camera.width / (contextSize.width + zoomPaddingX),
-			camera.height / (contextSize.height + zoomPaddingY)
-		)
+		let newZoom = Math.min(camera.width / (contextSize.width + zoomPaddingX), camera.height / (contextSize.height + zoomPaddingY))
 
 		if (Phaser.Math.Fuzzy.Equal(newZoom, currentZoom)) {
 			newZoom /= 2

@@ -55,7 +55,7 @@ const fileDialogFiltersSchema = z
 		z.object({
 			name: z.string(),
 			extensions: z.array(z.string()),
-		})
+		}),
 	)
 	.optional()
 
@@ -90,7 +90,7 @@ export const webFontParsedSchema = z.object({
 	characterSet: z.array(z.number()),
 })
 
-export type WebFontParsed = z.infer<typeof webFontParsedSchema>
+export type WebFontParsed = z.output<typeof webFontParsedSchema>
 
 export const backendContract = {
 	globby: {
@@ -205,3 +205,17 @@ export const backendContract = {
 } as const
 
 export type BackendContract = typeof backendContract
+export type BackendMethod = keyof BackendContract
+
+export type BackendInput<M extends BackendMethod> = z.input<BackendContract[M]['input']>
+export type BackendOutput<M extends BackendMethod> = z.output<BackendContract[M]['output']>
+
+/**
+ * Fully-typed async API surface derived from {@link backendContract}.
+ *
+ * Each {@link BackendMethod} key becomes a function that accepts the method's
+ * validated input type and resolves to the validated output type.
+ */
+export type BackendApi = {
+	[M in BackendMethod]: (input: BackendInput<M>) => Promise<BackendOutput<M>>
+}

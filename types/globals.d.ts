@@ -1,23 +1,17 @@
-import { Main } from '../Main'
+import type { BackendApi } from '../src/backend/contract/contract'
 import type { WindowEditorApi } from '../src/control-rpc/expose-window-editor'
+
+import { Main } from '../Main'
 
 declare global {
 	interface Window {
+		backend?: BackendApi
 		gameInstance: Main
 		__Phaser3ExtensionsApplied: boolean
 		appMenu?: {
 			onTakeCanvasScreenshot: (callback: (payload: { clean?: boolean }) => void) => () => void
 			onOpenSettings: (
-				callback: (payload: {
-					section?:
-						| 'general'
-						| 'hierarchy'
-						| 'canvas'
-						| 'assets'
-						| 'inspector'
-						| 'dev'
-						| 'misc'
-				}) => void
+				callback: (payload: { section?: 'general' | 'hierarchy' | 'canvas' | 'assets' | 'inspector' | 'dev' | 'misc' }) => void,
 			) => () => void
 			onTogglePanel: (callback: (payload: { panel: 'hierarchy' | 'assets' | 'inspector' }) => void) => () => void
 		}

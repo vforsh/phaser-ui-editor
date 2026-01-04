@@ -1,6 +1,7 @@
 import { Modal, Stack, Text } from '@mantine/core'
 import { useState } from 'react'
-import { backend } from '../../backend-renderer/backend'
+
+import { backend } from '../../../backend/renderer/backend'
 import { useRecentProjects } from '../../hooks/useRecentProjects'
 import { ProjectPathInput } from './ProjectPathInput'
 import { RecentProjectsList } from './RecentProjectsList'

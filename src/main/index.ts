@@ -3,8 +3,8 @@ import { app, BrowserWindow, clipboard, dialog, Menu } from 'electron'
 import getPort from 'get-port'
 import path from 'node:path'
 
-import { ControlRpcServer } from '../renderer/backend-main/control-rpc/main-rpc'
-import { registerBackendHandlers } from '../renderer/backend-main/ipc/register-backend-handlers'
+import { ControlRpcServer } from './ControlRpcServer'
+import { registerBackendHandlers } from './ipc/register-backend-handlers'
 import { RendererFileLogger } from './RendererFileLogger'
 
 let mainWindow: BrowserWindow | null = null

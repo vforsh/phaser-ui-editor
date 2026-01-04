@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useSnapshot } from 'valtio'
-import { backend } from '../backend-renderer/backend'
+
+import { backend } from '../../backend/renderer/backend'
 import { state } from '../state/State'
 
 export function useRecentProjects() {
@@ -23,7 +24,7 @@ export function useRecentProjects() {
 					} catch {
 						return [project.dir, false] as const
 					}
-				})
+				}),
 			)
 
 			if (canceled) {

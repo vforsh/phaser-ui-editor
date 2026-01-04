@@ -4,7 +4,8 @@ import path from 'path-browserify-esm'
 import prettyBytes from 'pretty-bytes'
 import { useEffect, useState } from 'react'
 import { match } from 'ts-pattern'
-import { backend } from '../../../../backend-renderer/backend'
+
+import { backend } from '../../../../../backend/renderer/backend'
 import { GraphicAssetData } from '../../../../types/assets'
 import { imageDataToUrl } from '../../../../utils/image-data-to-url'
 import { BaseSectionProps } from '../BaseSection'
@@ -153,13 +154,7 @@ export function GraphicAssetPreviewSection({ data }: GraphicAssetPreviewSectionP
 					justifyContent: 'center',
 				}}
 			>
-				{imageUrl && (
-					<Image
-						src={imageUrl}
-						alt={data.name}
-						style={{ objectFit: 'contain', maxWidth: '100%', maxHeight: '100%' }}
-					/>
-				)}
+				{imageUrl && <Image src={imageUrl} alt={data.name} style={{ objectFit: 'contain', maxWidth: '100%', maxHeight: '100%' }} />}
 			</Box>
 
 			<Stack gap="xs">

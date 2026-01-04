@@ -1,6 +1,8 @@
 import { ipcMain } from 'electron'
-import { backendContract } from '../../backend-contract/contract'
-import type { BackendInput, BackendMethod, BackendOutput } from '../../backend-contract/types'
+
+import type { BackendInput, BackendMethod, BackendOutput } from '../../backend/contract/contract'
+
+import { backendContract } from '../../backend/contract/contract'
 import { backendHandlers } from './handlers'
 
 const CHANNEL_PREFIX = 'backend:'

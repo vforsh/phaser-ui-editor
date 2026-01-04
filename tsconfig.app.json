@@ -23,15 +23,15 @@
 
 		"types": ["phaser"],
 
-                "paths": {
-                        "@state/*": ["./src/renderer/state/*"],
-                        "@logs/*": ["./src/renderer/logs/*"],
-                        "@url-params": ["./src/renderer/UrlParams.ts"],
-                        "@components/*": ["./src/renderer/components/*"],
-                        "@utils/*": ["./src/renderer/utils/*"],
-                        "@hooks/*": ["./src/renderer/hooks/*"],
-                }
-        },
-        "include": ["src/renderer", "types"],
-        "exclude": ["exports.d.ts", "src/main", "src/preload", "src/renderer/backend-main", "src/renderer/backend-preload"]
+		"paths": {
+			"@state/*": ["./src/renderer/state/*"],
+			"@logs/*": ["./src/renderer/logs/*"],
+			"@url-params": ["./src/renderer/UrlParams.ts"],
+			"@components/*": ["./src/renderer/components/*"],
+			"@utils/*": ["./src/renderer/utils/*"],
+			"@hooks/*": ["./src/renderer/hooks/*"]
+		}
+	},
+	"include": ["src/renderer", "src/backend/contract", "src/backend/renderer", "types"],
+	"exclude": ["exports.d.ts", "src/main", "src/preload"]
 }

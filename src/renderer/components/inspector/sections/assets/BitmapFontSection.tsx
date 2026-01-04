@@ -1,12 +1,10 @@
-import {
-	BmFontChar,
-	BmFontData,
-} from '@components/canvas/phaser/robowhale/phaser3/gameObjects/bitmap-text/create-bmfont-data'
+import { BmFontChar, BmFontData } from '@components/canvas/phaser/robowhale/phaser3/gameObjects/bitmap-text/create-bmfont-data'
 import { Group, NumberInput, Stack, Textarea, TextInput } from '@mantine/core'
 import { until } from '@open-draft/until'
 import { useEffect, useState } from 'react'
 import { match } from 'ts-pattern'
-import { backend } from '../../../../backend-renderer/backend'
+
+import { backend } from '../../../../../backend/renderer/backend'
 import { AssetTreeBitmapFontData } from '../../../../types/assets'
 import { BaseSectionProps } from '../BaseSection'
 
@@ -48,13 +46,7 @@ export function BitmapFontSection({ data: asset }: BitmapFontSectionProps) {
 		<Stack gap="xs">
 			<TextInput label="Font Face" value={fontData.info.face} size="xs" readOnly />
 
-			<Textarea
-				rows={3}
-				label="Chars"
-				value={chars.map((char) => String.fromCharCode(char.id)).join('')}
-				size="xs"
-				readOnly
-			/>
+			<Textarea rows={3} label="Chars" value={chars.map((char) => String.fromCharCode(char.id)).join('')} size="xs" readOnly />
 
 			<Group>
 				<NumberInput label="Size" value={fontData.info.size} size="xs" readOnly />

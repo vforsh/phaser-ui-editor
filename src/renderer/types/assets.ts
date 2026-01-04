@@ -1,7 +1,8 @@
 import { state } from '@state/State'
 import path from 'path-browserify-esm'
 import { match } from 'ts-pattern'
-import { backend } from '../backend-renderer/backend'
+
+import { backend } from '../../backend/renderer/backend'
 import { imageDataToUrl } from '../utils/image-data-to-url'
 
 export type AssetTreeData = AssetTreeItemData[]
@@ -204,11 +205,7 @@ export type AssetTreeSpritesheetFrameData = {
 	parentId?: string
 }
 
-export type GraphicAssetData =
-	| AssetTreeSpritesheetData
-	| AssetTreeSpritesheetFrameData
-	| AssetTreeImageData
-	| AssetTreeBitmapFontData
+export type GraphicAssetData = AssetTreeSpritesheetData | AssetTreeSpritesheetFrameData | AssetTreeImageData | AssetTreeBitmapFontData
 
 export function isGraphicAsset(asset: AssetTreeItemData): asset is GraphicAssetData {
 	return match(asset.type)
@@ -270,10 +267,7 @@ async function fetchImageData(asset: GraphicAssetData, signal?: AbortSignal): Pr
 /**
  * Recursively collects all assets of a given type
  */
-export function getAssetsOfType<T extends AssetTreeItemDataType>(
-	assets: AssetTreeItemData[],
-	type: T
-): AssetTreeItemDataOfType<T>[] {
+export function getAssetsOfType<T extends AssetTreeItemDataType>(assets: AssetTreeItemData[], type: T): AssetTreeItemDataOfType<T>[] {
 	const result: AssetTreeItemDataOfType<T>[] = []
 
 	const collectAssets = (items: AssetTreeItemData[]) => {
@@ -294,10 +288,7 @@ export function getAssetsOfType<T extends AssetTreeItemDataType>(
 	return result
 }
 
-export function isAssetOfType<T extends AssetTreeItemDataType>(
-	asset: AssetTreeItemData,
-	type: T
-): asset is AssetTreeItemDataOfType<T> {
+export function isAssetOfType<T extends AssetTreeItemDataType>(asset: AssetTreeItemData, type: T): asset is AssetTreeItemDataOfType<T> {
 	return asset.type === type
 }
 
@@ -419,7 +410,7 @@ export function getExtension(item: { name: string; type: AssetTreeItemDataType }
 			{
 				type: 'prefab',
 			},
-			(matched) => (matched.name.endsWith('.prefab.json') ? '.prefab.json' : path.extname(matched.name))
+			(matched) => (matched.name.endsWith('.prefab.json') ? '.prefab.json' : path.extname(matched.name)),
 		)
 		.exhaustive()
 }

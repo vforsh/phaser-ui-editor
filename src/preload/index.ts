@@ -1,7 +1,7 @@
 import { electronAPI } from '@electron-toolkit/preload'
 import { contextBridge } from 'electron'
 
-import '../renderer/backend-preload/index'
+import '../backend/preload/index'
 
 if (process.contextIsolated) {
 	try {

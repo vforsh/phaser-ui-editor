@@ -1,5 +1,4 @@
 import './robowhale/phaser3/Phaser3Extensions'
-
 import { logger } from '@logs/logs'
 import { until } from '@open-draft/until'
 import { state } from '@state/State'
@@ -8,9 +7,10 @@ import { getErrorLog } from '@utils/error/utils'
 import ResizeSensor from 'css-element-queries/src/ResizeSensor'
 import { debounce } from 'es-toolkit'
 import { ILogObj, Logger } from 'tslog'
+
+import { backend } from '../../../../backend/renderer/backend'
 import { AppCommands, AppCommandsEmitter } from '../../../AppCommands'
 import { AppEvents, AppEventsEmitter } from '../../../AppEvents'
-import { backend } from '../../../backend-renderer/backend'
 import { UndoHub } from '../../../history/UndoHub'
 import { Project } from '../../../project/Project'
 import { ProjectConfig } from '../../../project/ProjectConfig'

@@ -2,8 +2,9 @@ import { Badge, Box, Group, NumberInput, Stack, Text, TextInput } from '@mantine
 import { until } from '@open-draft/until'
 import prettyBytes from 'pretty-bytes'
 import { useEffect, useState } from 'react'
-import { WebFontParsed } from '../../../../backend-contract/contract'
-import { backend } from '../../../../backend-renderer/backend'
+
+import { WebFontParsed } from '../../../../../backend/contract/contract'
+import { backend } from '../../../../../backend/renderer/backend'
 import { AssetTreeWebFontData } from '../../../../types/assets'
 import { BaseSectionProps } from '../BaseSection'
 import { ReadonlyPropertyRow } from '../PropertyRow'
@@ -128,12 +129,7 @@ export function WebFontSection({ data: asset }: WebFontSectionProps) {
 					</Text>
 				</Box>
 				<Group grow gap="xs">
-					<TextInput
-						label="Preview Text"
-						size="xs"
-						value={previewText}
-						onChange={(e) => setPreviewText(e.currentTarget.value)}
-					/>
+					<TextInput label="Preview Text" size="xs" value={previewText} onChange={(e) => setPreviewText(e.currentTarget.value)} />
 					<NumberInput
 						label="Size"
 						size="xs"
@@ -197,12 +193,8 @@ export function WebFontSection({ data: asset }: WebFontSectionProps) {
 					<ReadonlyPropertyRow label="Descent" value={webFontParsed.descent} />
 					<ReadonlyPropertyRow label="Line Gap" value={webFontParsed.lineGap} />
 					<ReadonlyPropertyRow label="Line Height" value={`${lineHeightMultiplier}x`} />
-					{webFontParsed.capHeight !== undefined && (
-						<ReadonlyPropertyRow label="Cap Height" value={webFontParsed.capHeight} />
-					)}
-					{webFontParsed.xHeight !== undefined && (
-						<ReadonlyPropertyRow label="x-Height" value={webFontParsed.xHeight} />
-					)}
+					{webFontParsed.capHeight !== undefined && <ReadonlyPropertyRow label="Cap Height" value={webFontParsed.capHeight} />}
+					{webFontParsed.xHeight !== undefined && <ReadonlyPropertyRow label="x-Height" value={webFontParsed.xHeight} />}
 					<ReadonlyPropertyRow label="Italic Angle" value={`${webFontParsed.italicAngle}°`} />
 				</Stack>
 			</Stack>

@@ -2,8 +2,10 @@ import { state } from '@state/State'
 import md5 from 'blueimp-md5'
 import path from 'path-browserify-esm'
 import { match } from 'ts-pattern'
+
 import type { TexturePacker } from '../../../../types/texture-packer'
-import { backend } from '../../backend-renderer/backend'
+
+import { backend } from '../../../backend/renderer/backend'
 import {
 	AssetTreeBitmapFontData,
 	AssetTreeData,
@@ -61,7 +63,7 @@ async function getTexturePackerProjects(): Promise<TexturePackerProject[]> {
 			xml,
 			null,
 			XPathResult.FIRST_ORDERED_NODE_TYPE,
-			null
+			null,
 		).singleNodeValue?.textContent
 
 		if (!dataFilePathRelative) {
@@ -71,13 +73,7 @@ async function getTexturePackerProjects(): Promise<TexturePackerProject[]> {
 		// Extract texture format
 		const textureFormat =
 			xml
-				.evaluate(
-					"//key[text()='textureFormat']/following-sibling::enum",
-					xml,
-					null,
-					XPathResult.FIRST_ORDERED_NODE_TYPE,
-					null
-				)
+				.evaluate("//key[text()='textureFormat']/following-sibling::enum", xml, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null)
 				.singleNodeValue?.textContent?.toLowerCase() || 'png'
 
 		const projectDir = path.dirname(projectPath)
@@ -171,10 +167,7 @@ const isPrefabFile = (filename: string): boolean => {
 	return filename.endsWith('prefab.json') || filename.endsWith('.prefab')
 }
 
-const isSpritesheetOrBitmapFont = async (
-	imagePath: string,
-	jsonPath: string
-): Promise<'spritesheet' | 'bitmap-font' | null> => {
+const isSpritesheetOrBitmapFont = async (imagePath: string, jsonPath: string): Promise<'spritesheet' | 'bitmap-font' | null> => {
 	const jsonFileRaw = (await backend.readText({ path: jsonPath })).content
 	const json = JSON.parse(jsonFileRaw)
 
@@ -194,7 +187,7 @@ const isSpritesheetOrBitmapFont = async (
 const extractSpritesheetFrames = async (
 	imagePath: string,
 	jsonPath: string,
-	tpsProject?: TexturePackerProject
+	tpsProject?: TexturePackerProject,
 ): Promise<AssetTreeSpritesheetFrameData[]> => {
 	const jsonFileRaw = (await backend.readText({ path: jsonPath })).content
 
@@ -227,7 +220,7 @@ const extractSpritesheetFrames = async (
 // notice that `goal_items` is missing
 function groupFramesByFolders(
 	frames: AssetTreeSpritesheetFrameData[],
-	tpsProject?: TexturePackerProject
+	tpsProject?: TexturePackerProject,
 ): (AssetTreeSpritesheetFolderData | AssetTreeSpritesheetFrameData)[] {
 	const result: (AssetTreeSpritesheetFolderData | AssetTreeSpritesheetFrameData)[] = []
 	const folderMap = new Map<string, AssetTreeSpritesheetFrameData[]>()
@@ -283,10 +276,7 @@ function groupFramesByFolders(
 	})
 }
 
-function setSpritesheetFramesParentId(
-	children: (AssetTreeSpritesheetFrameData | AssetTreeSpritesheetFolderData)[],
-	parentId: string
-) {
+function setSpritesheetFramesParentId(children: (AssetTreeSpritesheetFrameData | AssetTreeSpritesheetFolderData)[], parentId: string) {
 	children.forEach((frame) => {
 		if (frame.type === 'spritesheet-frame') {
 			frame.parentId = parentId
@@ -296,10 +286,7 @@ function setSpritesheetFramesParentId(
 	})
 }
 
-const doBuildAssetTree = async (
-	fileTree: FileTreeData,
-	texturePackerProjects: TexturePackerProject[]
-): Promise<AssetTreeData> => {
+const doBuildAssetTree = async (fileTree: FileTreeData, texturePackerProjects: TexturePackerProject[]): Promise<AssetTreeData> => {
 	const processedItems = new Set<FileTreeItemData>()
 
 	const convertToAsset = async (file: FileTreeItemData): Promise<AssetTreeItemData> => {
@@ -376,9 +363,9 @@ const doBuildAssetTree = async (
 								// TODO group frames in folders
 								const texturePackerProject = texturePackerProjects.find((p) => p.data === jsonFile.path)
 
-								const frames = (
-									await extractSpritesheetFrames(image.path, jsonFilePath, texturePackerProject)
-								).sort((a, b) => a.name.localeCompare(b.name))
+								const frames = (await extractSpritesheetFrames(image.path, jsonFilePath, texturePackerProject)).sort(
+									(a, b) => a.name.localeCompare(b.name),
+								)
 
 								const framesByFolders = groupFramesByFolders(frames, texturePackerProject)
 

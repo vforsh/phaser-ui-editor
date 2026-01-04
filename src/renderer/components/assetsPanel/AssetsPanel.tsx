@@ -28,7 +28,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { match } from 'ts-pattern'
 import { ILogObj, Logger } from 'tslog'
 import { Snapshot } from 'valtio'
-import { backend } from '../../backend-renderer/backend'
+
+import { backend } from '../../../backend/renderer/backend'
 import { useAppCommands } from '../../di/DiHooks'
 import {
 	AssetTreeFolderData,
@@ -148,10 +149,7 @@ const getParentFolder = (asset: Snapshot<AssetTreeItemData>, allAssetsFlattened:
  * Returns a list of items that are currently visible in the tree view
  * taking into account the open/closed state of folders
  */
-const getVisibleItems = (
-	items: Snapshot<AssetTreeItemData>[],
-	openFolders: Set<string>
-): Snapshot<AssetTreeItemData>[] => {
+const getVisibleItems = (items: Snapshot<AssetTreeItemData>[], openFolders: Set<string>): Snapshot<AssetTreeItemData>[] => {
 	const result: Snapshot<AssetTreeItemData>[] = []
 
 	const traverse = (items: Snapshot<AssetTreeItemData>[], parentIsVisible: boolean) => {
@@ -270,8 +268,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 						icon: <Folder size={16} />,
 						title: 'Folder',
 						onClick: async () => {
-							const parentFolderAssetSnap =
-								asset.type === 'folder' ? asset : getParentFolder(asset, allAssetsFlattened)
+							const parentFolderAssetSnap = asset.type === 'folder' ? asset : getParentFolder(asset, allAssetsFlattened)
 							if (!parentFolderAssetSnap) {
 								return
 							}
@@ -291,10 +288,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 
 							const { error } = await until(() => backend.createFolder({ path: folderAsset.path }))
 							if (error) {
-								logger.error(
-									`error creating folder at '${folderAsset.path}' (${getErrorLog(error)})`,
-									error
-								)
+								logger.error(`error creating folder at '${folderAsset.path}' (${getErrorLog(error)})`, error)
 								// TODO show error toast
 								return
 							}
@@ -313,8 +307,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 						title: 'Prefab',
 						icon: <Cuboid size={16} />,
 						onClick: async () => {
-							const folderAssetSnap =
-								asset.type === 'folder' ? asset : getParentFolder(asset, allAssetsFlattened)
+							const folderAssetSnap = asset.type === 'folder' ? asset : getParentFolder(asset, allAssetsFlattened)
 							if (!folderAssetSnap) {
 								return
 							}
@@ -338,13 +331,10 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 								backend.createTextFile({
 									path: prefabAsset.path,
 									content: JSON.stringify(createEmptyPrefabFile()),
-								})
+								}),
 							)
 							if (error) {
-								logger.error(
-									`error creating prefab at '${prefabAsset.path}' (${getErrorLog(error)})`,
-									error
-								)
+								logger.error(`error creating prefab at '${prefabAsset.path}' (${getErrorLog(error)})`, error)
 								// TODO show error toast
 								return
 							}
@@ -376,9 +366,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 					await backend.open({ path: pathToOpen })
 				},
 			},
-			...(asset.type === 'spritesheet' ||
-			asset.type === 'spritesheet-folder' ||
-			asset.type === 'spritesheet-frame'
+			...(asset.type === 'spritesheet' || asset.type === 'spritesheet-folder' || asset.type === 'spritesheet-frame'
 				? [
 						{
 							key: 'openInTexturePacker',
@@ -474,8 +462,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 				icon: <Trash2 size={16} />,
 				color: 'red',
 				onClick: async (event) => {
-					const shouldDelete =
-						event.ctrlKey || event.metaKey || confirm(`Are you sure you want to delete ${asset.name}?`)
+					const shouldDelete = event.ctrlKey || event.metaKey || confirm(`Are you sure you want to delete ${asset.name}?`)
 					if (shouldDelete) {
 						const absPath = path.join(state.projectDir!, asset.path)
 						const { error } = await until(() => backend.trash({ path: absPath }))
@@ -508,8 +495,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 
 	const completeRename = async (item: Snapshot<AssetTreeItemData>, newName: string) => {
 		const oldPath = item.path
-		const newPath =
-			item.type === 'folder' ? oldPath.replace(item.name, newName) : path.join(path.dirname(item.path), newName)
+		const newPath = item.type === 'folder' ? oldPath.replace(item.name, newName) : path.join(path.dirname(item.path), newName)
 
 		const { error } = await until(() => backend.rename({ oldPath, newPath }))
 		if (error) {
@@ -553,10 +539,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 						const absPath = path.join(state.projectDir!, folderAsset.path)
 						const { error } = await until(() => backend.createFolder({ path: absPath }))
 						if (error) {
-							logger.error(
-								`error creating folder at '${folderAsset.path}' (${getErrorLog(error)})`,
-								error
-							)
+							logger.error(`error creating folder at '${folderAsset.path}' (${getErrorLog(error)})`, error)
 							// TODO show error toast
 							return
 						}
