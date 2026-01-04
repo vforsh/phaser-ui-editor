@@ -1,0 +1,17 @@
+import { z } from 'zod'
+
+import { CommandDefinition } from '../ControlApi'
+import { nodeSelectorV0Schema, okResultSchema } from '../shared-schemas'
+
+export const renameObjectCommand = {
+	group: 'objects',
+	description: 'Renames the target object.',
+	input: z
+		.object({
+			target: nodeSelectorV0Schema.describe('Target node selector'),
+			name: z.string().min(1).describe('New name for the object'),
+		})
+		.strict()
+		.describe('Input parameters for renaming an object'),
+	output: okResultSchema.describe('Result indicating whether the object was renamed'),
+} satisfies CommandDefinition
