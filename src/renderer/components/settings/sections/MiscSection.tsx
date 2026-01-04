@@ -1,4 +1,4 @@
-import { backend } from '@backend/backend'
+import { mainApi } from '@main-api/main-api'
 import { Button, Group, Stack, Text } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { Check, X } from 'lucide-react'
@@ -18,7 +18,7 @@ export function MiscSection() {
 				settings: unproxy(state.settings),
 			}
 
-			const result = await backend.saveFileDialog({
+			const result = await mainApi.saveFileDialog({
 				title: 'Export Settings',
 				defaultPath: 'phaser-ui-editor.settings.json',
 				filters: settingsFileFilters,
@@ -30,7 +30,7 @@ export function MiscSection() {
 
 			const savedPath = result.path
 
-			await backend.writeJson({
+			await mainApi.writeJson({
 				path: savedPath,
 				content: payload,
 				options: { spaces: 2 },
@@ -43,7 +43,7 @@ export function MiscSection() {
 				autoClose: 10_000,
 				icon: <Check size={16} />,
 				onClick: () => {
-					void backend.showItemInFolder({ path: savedPath })
+					void mainApi.showItemInFolder({ path: savedPath })
 				},
 				style: { cursor: 'pointer' },
 			})
@@ -61,7 +61,7 @@ export function MiscSection() {
 
 	const handleImportSettings = async () => {
 		try {
-			const result = await backend.selectFile({
+			const result = await mainApi.selectFile({
 				title: 'Import Settings',
 				filters: settingsFileFilters,
 			})
@@ -71,7 +71,7 @@ export function MiscSection() {
 			}
 
 			const importPath = result.path
-			const fileContents = await backend.readJson({ path: importPath })
+			const fileContents = await mainApi.readJson({ path: importPath })
 			const parsed = exportedSettingsV1Schema.safeParse(fileContents)
 
 			if (!parsed.success) {

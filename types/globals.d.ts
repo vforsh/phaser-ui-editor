@@ -1,11 +1,11 @@
-import type { BackendApi } from '../src/backend/contract/contract'
+import type { MainApi } from '../src/backend/contract/contract'
 import type { WindowEditorApi } from '../src/control-rpc/expose-window-editor'
 
 import { Main } from '../Main'
 
 declare global {
 	interface Window {
-		backend?: BackendApi
+		mainApi?: MainApi
 		gameInstance: Main
 		__Phaser3ExtensionsApplied: boolean
 		appMenu?: {

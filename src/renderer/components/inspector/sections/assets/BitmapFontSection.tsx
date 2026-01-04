@@ -1,5 +1,5 @@
-import { backend } from '@backend/backend'
 import { BmFontChar, BmFontData } from '@components/canvas/phaser/robowhale/phaser3/gameObjects/bitmap-text/create-bmfont-data'
+import { mainApi } from '@main-api/main-api'
 import { Group, NumberInput, Stack, Textarea, TextInput } from '@mantine/core'
 import { until } from '@open-draft/until'
 import { useEffect, useState } from 'react'
@@ -70,7 +70,7 @@ export function BitmapFontSection({ data: asset }: BitmapFontSectionProps) {
 
 async function loadFontData(data: AssetTreeBitmapFontData['data'], ac: AbortSignal): Promise<BmFontData> {
 	return match(data)
-		.with({ type: 'json' }, (data) => backend.readJson({ path: data.path }) as Promise<BmFontData>)
-		.with({ type: 'xml' }, (data) => backend.readBmfontXml({ path: data.path }) as Promise<BmFontData>)
+		.with({ type: 'json' }, (data) => mainApi.readJson({ path: data.path }) as Promise<BmFontData>)
+		.with({ type: 'xml' }, (data) => mainApi.readBmfontXml({ path: data.path }) as Promise<BmFontData>)
 		.exhaustive()
 }

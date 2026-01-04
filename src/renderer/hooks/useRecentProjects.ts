@@ -1,4 +1,4 @@
-import { backend } from '@backend/backend'
+import { mainApi } from '@main-api/main-api'
 import { useCallback, useEffect, useState } from 'react'
 import { useSnapshot } from 'valtio'
 
@@ -19,7 +19,7 @@ export function useRecentProjects() {
 			const entries = await Promise.all(
 				(snap.recentProjects ?? []).map(async (project) => {
 					try {
-						const exists = await backend.exists({ path: project.dir })
+						const exists = await mainApi.exists({ path: project.dir })
 						return [project.dir, exists] as const
 					} catch {
 						return [project.dir, false] as const

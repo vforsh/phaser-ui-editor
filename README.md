@@ -21,8 +21,8 @@ Visually and logically the editor is split into **4 main parts**:
 ## How it works (high level)
 
 - **Main process** owns filesystem access and heavy operations (image/font parsing, shell open).
-- **Preload** exposes a narrow `window.backend` API via `contextBridge`.
-- **Renderer** (React + Phaser) calls `backend.*` for all filesystem work using typed IPC.
+- **Preload** exposes a narrow `window.mainApi` API via `contextBridge`.
+- **Renderer** (React + Phaser) calls `mainApi.*` for all filesystem work using typed IPC.
 
 ## Getting started
 
@@ -73,8 +73,8 @@ npm run lint
 
 This repo maintains a **small, stable, public TypeScript “surface area”** that other projects can depend on (most importantly: the **prefab JSON types** like `PrefabFile`, `EditableObjectJson`, etc.).
 
-- **`src/types/exports/exports.ts`**: the *source entrypoint* for what we consider “public types”. It intentionally re-exports a curated set of types and uses **relative imports** (no path aliases) so the declarations can be bundled cleanly for consumers.
-- **`exports.d.ts` (repo root)**: the *generated* and *bundled* declaration file. It is referenced from `package.json` via `"types": "exports.d.ts"` and included via `"files": ["exports.d.ts"]`, so TypeScript consumers get types by default.
+- **`src/types/exports/exports.ts`**: the _source entrypoint_ for what we consider “public types”. It intentionally re-exports a curated set of types and uses **relative imports** (no path aliases) so the declarations can be bundled cleanly for consumers.
+- **`exports.d.ts` (repo root)**: the _generated_ and _bundled_ declaration file. It is referenced from `package.json` via `"types": "exports.d.ts"` and included via `"files": ["exports.d.ts"]`, so TypeScript consumers get types by default.
 
 ### Why do we need this?
 
@@ -88,13 +88,13 @@ The app itself is an Electron + Vite project and isn’t set up to publish/consu
 ### `build-types` / `update-types`
 
 - **`npm run build-types`** (`node scripts/build-types.ts`):
-  - Runs `tsc -p tsconfig.dts.json` to emit declarations into `dist/types/`
-  - Bundles declarations starting from the compiled entrypoint `dist/types/src/types/exports/exports.d.ts` using `dtsroll`
-  - Formats the bundled output and writes it to the repo root as `exports.d.ts`
+    - Runs `tsc -p tsconfig.dts.json` to emit declarations into `dist/types/`
+    - Bundles declarations starting from the compiled entrypoint `dist/types/src/types/exports/exports.d.ts` using `dtsroll`
+    - Formats the bundled output and writes it to the repo root as `exports.d.ts`
 
 - **`npm run update-types`** (`node scripts/build-types.ts --push`):
-  - Does everything `build-types` does
-  - If `exports.d.ts` changed, it **stages, commits, and pushes** the update so GitHub consumers pick it up (skips if there are no changes)
+    - Does everything `build-types` does
+    - If `exports.d.ts` changed, it **stages, commits, and pushes** the update so GitHub consumers pick it up (skips if there are no changes)
 
 ## Project structure (high level)
 
@@ -102,11 +102,11 @@ The app itself is an Electron + Vite project and isn’t set up to publish/consu
 - `src/preload/`: preload entrypoint
 - `src/renderer/components/assetsPanel/`: Assets Panel UI
 - `src/renderer/components/canvas/`: React wrapper for Phaser + canvas controls
-  - `src/renderer/components/canvas/phaser/`: Phaser app/scene/editor logic
-- `src/renderer/backend-contract/`: shared IPC contract + schemas
-- `src/renderer/backend-main/`: Electron main-process IPC handlers/services
-- `src/renderer/backend-preload/`: preload bridge (`window.backend`)
-- `src/renderer/backend-renderer/`: renderer IPC client wrapper
+    - `src/renderer/components/canvas/phaser/`: Phaser app/scene/editor logic
+- `src/backend/contract/`: shared IPC contract + schemas
+- `src/main/ipc/`: Electron main-process IPC handlers/services
+- `src/preload/`: preload bridge (`window.mainApi`)
+- `src/renderer/main-api/`: renderer IPC client wrapper
 - `src/renderer/components/hierarchyPanel/`: Hierarchy tree UI
 - `src/renderer/components/inspector/`: Inspector UI and sections
 - `src/renderer/state/`: Valtio state + schemas

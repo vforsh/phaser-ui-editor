@@ -1,4 +1,4 @@
-import { backend } from '@backend/backend'
+import { mainApi } from '@main-api/main-api'
 import { Box, Image, Stack, Text } from '@mantine/core'
 import { until } from '@open-draft/until'
 import path from 'path-browserify-esm'
@@ -15,19 +15,19 @@ export type GraphicAssetPreviewSectionData = Readonly<GraphicAssetData>
 function readImageData(asset: GraphicAssetData, signal?: AbortSignal) {
 	return match(asset)
 		.with({ type: 'image' }, async (image) => {
-			return backend.readFile({ path: image.path })
+			return mainApi.readFile({ path: image.path })
 		})
 		.with({ type: 'spritesheet' }, async (spritesheet) => {
-			return backend.readFile({ path: spritesheet.image.path })
+			return mainApi.readFile({ path: spritesheet.image.path })
 		})
 		.with({ type: 'spritesheet-frame' }, async (spritesheetFrame) => {
-			return backend.readSpritesheetFrame({
+			return mainApi.readSpritesheetFrame({
 				spritesheetPath: spritesheetFrame.imagePath,
 				frameName: spritesheetFrame.pathInHierarchy,
 			})
 		})
 		.with({ type: 'bitmap-font' }, async (bitmapFont) => {
-			return backend.readFile({ path: bitmapFont.image.path })
+			return mainApi.readFile({ path: bitmapFont.image.path })
 		})
 		.exhaustive()
 }
@@ -63,16 +63,16 @@ function detectImageType(asset: GraphicAssetData) {
 async function getImageFileSize(asset: GraphicAssetData, signal?: AbortSignal) {
 	const stats = await match(asset)
 		.with({ type: 'image' }, async (image) => {
-			return backend.stat({ path: image.path })
+			return mainApi.stat({ path: image.path })
 		})
 		.with({ type: 'spritesheet' }, async (spritesheet) => {
-			return backend.stat({ path: spritesheet.image.path })
+			return mainApi.stat({ path: spritesheet.image.path })
 		})
 		.with({ type: 'spritesheet-frame' }, async (spritesheetFrame) => {
 			return { size: 0 }
 		})
 		.with({ type: 'bitmap-font' }, async (bitmapFont) => {
-			return backend.stat({ path: bitmapFont.image.path })
+			return mainApi.stat({ path: bitmapFont.image.path })
 		})
 		.exhaustive()
 

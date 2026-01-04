@@ -1,4 +1,4 @@
-import { backend } from '@backend/backend'
+import { mainApi } from '@main-api/main-api'
 import { Divider, Group, Paper, ScrollArea, Stack } from '@mantine/core'
 import { useWindowEvent } from '@mantine/hooks'
 import { until } from '@open-draft/until'
@@ -286,7 +286,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 								children: [],
 							})
 
-							const { error } = await until(() => backend.createFolder({ path: folderAsset.path }))
+							const { error } = await until(() => mainApi.createFolder({ path: folderAsset.path }))
 							if (error) {
 								logger.error(`error creating folder at '${folderAsset.path}' (${getErrorLog(error)})`, error)
 								// TODO show error toast
@@ -328,7 +328,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 							logger.info(`creating prefab at '${prefabAsset.path}'`)
 
 							const { error } = await until(() =>
-								backend.createTextFile({
+								mainApi.createTextFile({
 									path: prefabAsset.path,
 									content: JSON.stringify(createEmptyPrefabFile()),
 								}),
@@ -354,7 +354,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 				title: 'Open',
 				icon: asset.type === 'folder' ? <FolderOpen size={16} /> : <FileJson size={16} />,
 				onClick: async () => {
-					await backend.open({ path: asset.path })
+					await mainApi.open({ path: asset.path })
 				},
 			},
 			{
@@ -363,7 +363,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 				icon: <ExternalLink size={16} />,
 				onClick: async () => {
 					const pathToOpen = path.dirname(asset.path)
-					await backend.open({ path: pathToOpen })
+					await mainApi.open({ path: pathToOpen })
 				},
 			},
 			...(asset.type === 'spritesheet' || asset.type === 'spritesheet-folder' || asset.type === 'spritesheet-frame'
@@ -374,7 +374,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 							icon: <Image size={16} />,
 							onClick: async () => {
 								if (asset.project) {
-									await backend.open({ path: asset.project })
+									await mainApi.open({ path: asset.project })
 								}
 							},
 						},
@@ -401,7 +401,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 						return
 					}
 
-					const { error, data } = await until(() => backend.duplicate({ path: asset.path }))
+					const { error, data } = await until(() => mainApi.duplicate({ path: asset.path }))
 					if (error) {
 						logger.error(`error duplicating asset '${asset.name}' (${getErrorLog(error)})`, error)
 						// TODO show error toast
@@ -465,7 +465,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 					const shouldDelete = event.ctrlKey || event.metaKey || confirm(`Are you sure you want to delete ${asset.name}?`)
 					if (shouldDelete) {
 						const absPath = path.join(state.projectDir!, asset.path)
-						const { error } = await until(() => backend.trash({ path: absPath }))
+						const { error } = await until(() => mainApi.trash({ path: absPath }))
 						if (error) {
 							logger.error(`error deleting asset at '${asset.path}' (${getErrorLog(error)})`, error)
 							// TODO show error toast
@@ -497,7 +497,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 		const oldPath = item.path
 		const newPath = item.type === 'folder' ? oldPath.replace(item.name, newName) : path.join(path.dirname(item.path), newName)
 
-		const { error } = await until(() => backend.rename({ oldPath, newPath }))
+		const { error } = await until(() => mainApi.rename({ oldPath, newPath }))
 		if (error) {
 			logger.error(`error renaming '${item.name}' to '${newName}' (${getErrorLog(error)})`, error)
 			// TODO show error toast
@@ -537,7 +537,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 						})
 
 						const absPath = path.join(state.projectDir!, folderAsset.path)
-						const { error } = await until(() => backend.createFolder({ path: absPath }))
+						const { error } = await until(() => mainApi.createFolder({ path: absPath }))
 						if (error) {
 							logger.error(`error creating folder at '${folderAsset.path}' (${getErrorLog(error)})`, error)
 							// TODO show error toast
@@ -808,7 +808,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 							onClick={async () => {
 								if (state.projectDir && state.project?.assetsDir) {
 									const absAssetsPath = path.join(state.projectDir, state.project.assetsDir)
-									await backend.open({ path: absAssetsPath })
+									await mainApi.open({ path: absAssetsPath })
 								}
 							}}
 						/>

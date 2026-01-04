@@ -1,4 +1,4 @@
-import { backend } from '@backend/backend'
+import { mainApi } from '@main-api/main-api'
 import { Badge, Box, Group, NumberInput, Stack, Text, TextInput } from '@mantine/core'
 import { until } from '@open-draft/until'
 import prettyBytes from 'pretty-bytes'
@@ -25,8 +25,8 @@ export function WebFontSection({ data: asset }: WebFontSectionProps) {
 
 		const fetchData = async () => {
 			const [parsedRes, statRes] = await Promise.all([
-				until(() => backend.parseWebFont({ path: asset.path })),
-				until(() => backend.stat({ path: asset.path })),
+				until(() => mainApi.parseWebFont({ path: asset.path })),
+				until(() => mainApi.stat({ path: asset.path })),
 			])
 
 			if (ac.signal.aborted) {

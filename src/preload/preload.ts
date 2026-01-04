@@ -2,12 +2,12 @@ import { electronAPI } from '@electron-toolkit/preload'
 import { contextBridge } from 'electron'
 
 import { createAppMenu } from './create-app-menu'
-import { createBackend } from './create-backend'
 import { createControlIpc } from './create-control-ipc'
+import { createMainApi } from './create-main-api'
 
 exposeInRenderer('electron', electronAPI)
 
-exposeInRenderer('backend', createBackend())
+exposeInRenderer('mainApi', createMainApi())
 
 exposeInRenderer('appMenu', createAppMenu())
 

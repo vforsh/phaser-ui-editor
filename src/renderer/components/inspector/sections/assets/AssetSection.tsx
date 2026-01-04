@@ -1,4 +1,4 @@
-import { backend } from '@backend/backend'
+import { mainApi } from '@main-api/main-api'
 import { Button, Stack } from '@mantine/core'
 import { FolderOpen } from 'lucide-react'
 import { Snapshot } from 'valtio'
@@ -28,7 +28,7 @@ export function AssetSection({ data }: AssetSectionProps) {
 				variant="light"
 				leftSection={FOLDER_OPEN_ICON}
 				onClick={() => {
-					void backend.showItemInFolder({ path: physicalPath })
+					void mainApi.showItemInFolder({ path: physicalPath })
 				}}
 				mt="sm"
 			>

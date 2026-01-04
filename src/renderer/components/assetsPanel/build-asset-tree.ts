@@ -1,4 +1,4 @@
-import { backend } from '@backend/backend'
+import { mainApi } from '@main-api/main-api'
 import { state } from '@state/State'
 import md5 from 'blueimp-md5'
 import path from 'path-browserify-esm'
@@ -47,14 +47,14 @@ async function getTexturePackerProjects(): Promise<TexturePackerProject[]> {
 	}
 
 	const { path: baseDir, mapping } = state.project.texturePacker
-	const projects = await backend.globby({
+	const projects = await mainApi.globby({
 		patterns: [path.join(baseDir, '**/*.tps')],
 	})
 
 	const xmlParser = new DOMParser()
 
 	const parsedProjectsPromises = projects.map(async (projectPath) => {
-		const xmlContent = (await backend.readText({ path: projectPath })).content
+		const xmlContent = (await mainApi.readText({ path: projectPath })).content
 		const xml = xmlParser.parseFromString(xmlContent, 'application/xml')
 
 		// Extract the DataFile path
@@ -79,14 +79,14 @@ async function getTexturePackerProjects(): Promise<TexturePackerProject[]> {
 		const projectDir = path.dirname(projectPath)
 		const dataFilePath = path.join(projectDir, dataFilePathRelative)
 
-		const dataFileExists = await backend.exists({ path: dataFilePath })
+		const dataFileExists = await mainApi.exists({ path: dataFilePath })
 		if (!dataFileExists) {
 			return null
 		}
 
 		const textureFilePath = path.join(projectDir, dataFilePathRelative.replace(/\.json$/, `.${textureFormat}`))
 
-		const textureFileExists = await backend.exists({ path: textureFilePath })
+		const textureFileExists = await mainApi.exists({ path: textureFilePath })
 		if (!textureFileExists) {
 			return null
 		}
@@ -168,7 +168,7 @@ const isPrefabFile = (filename: string): boolean => {
 }
 
 const isSpritesheetOrBitmapFont = async (imagePath: string, jsonPath: string): Promise<'spritesheet' | 'bitmap-font' | null> => {
-	const jsonFileRaw = (await backend.readText({ path: jsonPath })).content
+	const jsonFileRaw = (await mainApi.readText({ path: jsonPath })).content
 	const json = JSON.parse(jsonFileRaw)
 
 	// @ts-expect-error
@@ -189,7 +189,7 @@ const extractSpritesheetFrames = async (
 	jsonPath: string,
 	tpsProject?: TexturePackerProject,
 ): Promise<AssetTreeSpritesheetFrameData[]> => {
-	const jsonFileRaw = (await backend.readText({ path: jsonPath })).content
+	const jsonFileRaw = (await mainApi.readText({ path: jsonPath })).content
 
 	// as of now it handles only TexturePacker JSON format
 	const atlasJson = JSON.parse(jsonFileRaw) as TexturePacker.Atlas
@@ -342,7 +342,7 @@ const doBuildAssetTree = async (fileTree: FileTreeData, texturePackerProjects: T
 			})
 			.with({ type: 'file' }, async (fileTreeItem) => {
 				if (isImageFile(fileTreeItem.name)) {
-					const imageSize = await backend.readImageSize({ path: fileTreeItem.path })
+					const imageSize = await mainApi.readImageSize({ path: fileTreeItem.path })
 					const image: AssetTreeImageData = addAssetId({
 						type: 'image',
 						name: fileTreeItem.name,
@@ -388,7 +388,7 @@ const doBuildAssetTree = async (fileTree: FileTreeData, texturePackerProjects: T
 								return spritesheet
 							})
 							.with('bitmap-font', async () => {
-								const bitmapFontData = (await backend.readJson({ path: jsonFile.path })) as {
+								const bitmapFontData = (await mainApi.readJson({ path: jsonFile.path })) as {
 									extra?: AssetTreeBitmapFontData['imageExtra']
 								}
 								const bitmapFont: AssetTreeBitmapFontData = addAssetId({
@@ -448,7 +448,7 @@ const doBuildAssetTree = async (fileTree: FileTreeData, texturePackerProjects: T
 						path: fileTreeItem.path,
 					})
 				} else if (isWebFontFile(fileTreeItem.name)) {
-					const webFontData = await backend.parseWebFont({ path: fileTreeItem.path })
+					const webFontData = await mainApi.parseWebFont({ path: fileTreeItem.path })
 
 					const webFont: AssetTreeWebFontData = addAssetId({
 						type: 'web-font',

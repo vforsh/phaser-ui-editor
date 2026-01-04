@@ -2,7 +2,7 @@ import '@mantine/core/styles.css'
 import '@mantine/notifications/styles.css'
 import 'mantine-contextmenu/styles.css'
 import './layout.css'
-import { backend } from '@backend/backend'
+import { mainApi } from '@main-api/main-api'
 import { AppShell, createTheme, MantineProvider } from '@mantine/core'
 import { Notifications, notifications } from '@mantine/notifications'
 import { Check, X } from 'lucide-react'
@@ -80,7 +80,7 @@ function App() {
 						autoClose: 10_000,
 						icon: <Check size={16} />,
 						onClick: () => {
-							void backend.open({ path: savedPath })
+							void mainApi.open({ path: savedPath })
 						},
 						style: { cursor: 'pointer' },
 					})

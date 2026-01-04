@@ -10,11 +10,11 @@ import sharp from 'sharp'
 import trash from 'trash'
 
 import type { TexturePacker } from '../../../../types/texture-packer'
-import type { BackendApi } from '../../contract/contract'
+import type { MainApi } from '../../backend/contract/contract'
 
 import { normalizeAbsolutePath } from './utils/path'
 
-export const backendHandlers: BackendApi = {
+export const mainApiHandlers: MainApi = {
 	async globby({ patterns, options }) {
 		return globby(patterns, options)
 	},

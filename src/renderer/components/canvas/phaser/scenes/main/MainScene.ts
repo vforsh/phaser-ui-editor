@@ -1,6 +1,6 @@
-import { backend } from '@backend/backend'
 import { IPatchesConfig } from '@koreez/phaser3-ninepatch'
 import { logger } from '@logs/logs'
+import { mainApi } from '@main-api/main-api'
 import { until } from '@open-draft/until'
 import { state, subscribe } from '@state/State'
 import { urlParams } from '@url-params'
@@ -621,7 +621,7 @@ export class MainScene extends BaseScene {
 			assetPack: this.calculatePrefabAssetPack(),
 		}
 
-		const { error } = await until(() => backend.writeJson({ path: prefabFilePath, content: prefabFile, options: { spaces: '\t' } }))
+		const { error } = await until(() => mainApi.writeJson({ path: prefabFilePath, content: prefabFile, options: { spaces: '\t' } }))
 		if (error) {
 			const errorLog = getErrorLog(error)
 			this.logger.error(`failed to save '${this.initData.prefabAsset.name}' prefab (${errorLog})`)
@@ -789,7 +789,7 @@ export class MainScene extends BaseScene {
 			const arrayBuffer = await blob.arrayBuffer()
 			const bytes = new Uint8Array(arrayBuffer)
 
-			const result = await backend.saveScreenshot({
+			const result = await mainApi.saveScreenshot({
 				targetDir,
 				fileName,
 				bytes,
@@ -1496,7 +1496,7 @@ export class MainScene extends BaseScene {
 				return bmText
 			})
 			.with({ type: 'prefab' }, async (prefabAsset) => {
-				const { error, data } = await until(() => backend.readJson({ path: prefabAsset.path }))
+				const { error, data } = await until(() => mainApi.readJson({ path: prefabAsset.path }))
 				if (error) {
 					this.logger.error(`failed to load prefab file '${prefabAsset.path}' (${getErrorLog(error)})`)
 					return null
@@ -1561,7 +1561,7 @@ export class MainScene extends BaseScene {
 			return null
 		}
 
-		const json = await backend.readJson({ path: spritesheetAsset.json.path })
+		const json = await mainApi.readJson({ path: spritesheetAsset.json.path })
 		if (!json) {
 			return null
 		}
@@ -1606,7 +1606,7 @@ export class MainScene extends BaseScene {
 
 	private async loadWebFont(asset: AssetTreeWebFontData): Promise<WebFontParsed> {
 		// it only supports WOFF, WOFF2 and TTF formats
-		const webFontParsed = await backend.parseWebFont({ path: asset.path })
+		const webFontParsed = await mainApi.parseWebFont({ path: asset.path })
 		const webFontCss = this.createWebFontCss(webFontParsed)
 		document.head.appendChild(webFontCss)
 
@@ -1716,14 +1716,14 @@ export class MainScene extends BaseScene {
 		let data: PhaserBmfontData
 
 		if (asset.data.type === 'json') {
-			const dataJson = (await backend.readJson({ path: asset.data.path })) as BmFontData
+			const dataJson = (await mainApi.readJson({ path: asset.data.path })) as BmFontData
 			if (!dataJson) {
 				return err('failed to load bitmap font json data')
 			}
 
 			data = parseJsonBitmapFont(dataJson, frame)
 		} else {
-			const dataXmlRaw = await backend.readText({ path: asset.data.path })
+			const dataXmlRaw = await mainApi.readText({ path: asset.data.path })
 			if (!dataXmlRaw) {
 				return err('failed to load bitmap font xml data')
 			}
