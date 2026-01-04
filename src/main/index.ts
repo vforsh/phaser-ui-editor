@@ -2,6 +2,7 @@ import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { app, BrowserWindow, clipboard, dialog, Menu } from 'electron'
 import getPort from 'get-port'
 import path from 'node:path'
+
 import { ControlRpcServer } from '../renderer/backend-main/control-rpc/main-rpc'
 import { registerBackendHandlers } from '../renderer/backend-main/ipc/register-backend-handlers'
 import { RendererFileLogger } from './RendererFileLogger'
@@ -17,6 +18,15 @@ const isPlaywrightE2E = process.env.PW_E2E === '1'
 // Keep this disabled for normal dev to avoid exposing a debugging port by accident.
 if (!app.isPackaged && isPlaywrightE2E) {
 	app.commandLine.appendSwitch('remote-debugging-port', process.env.PW_E2E_CDP_PORT ?? '9222')
+}
+
+/**
+ * Dev-only: suppress Electron's security warnings (like missing/unsafe CSP) in console output.
+ * Prefer fixing CSP for production; this is just to keep dev logs clean.
+ * Enable with: SUPPRESS_ELECTRON_SECURITY_WARNINGS=1
+ */
+if (!app.isPackaged && process.env.SUPPRESS_ELECTRON_SECURITY_WARNINGS === '1') {
+	process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
 }
 
 app.whenReady().then(() => {
@@ -206,11 +216,7 @@ const createAppMenu = () => {
 		},
 		{
 			label: 'Window',
-			submenu: [
-				{ role: 'minimize' },
-				{ role: 'close' },
-				...macWindowMenu,
-			] as Electron.MenuItemConstructorOptions[],
+			submenu: [{ role: 'minimize' }, { role: 'close' }, ...macWindowMenu] as Electron.MenuItemConstructorOptions[],
 		},
 		{
 			label: 'Help',

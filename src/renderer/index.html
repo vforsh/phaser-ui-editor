@@ -2,14 +2,30 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-                <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-                <link href="./fonts.css" rel="stylesheet" />
+		<meta
+			http-equiv="Content-Security-Policy"
+			content="
+				default-src 'self';
+				script-src 'self';
+				style-src 'self' 'unsafe-inline';
+				img-src 'self' data: blob:;
+				font-src 'self' data:;
+				connect-src 'self' ws: http: https:;
+				media-src 'self' blob:;
+				worker-src 'self' blob:;
+				object-src 'none';
+				base-uri 'self';
+				form-action 'self';
+			"
+		/>
+		<link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+		<link href="./fonts.css" rel="stylesheet" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Tekton Editor</title>
 	</head>
 	<body>
 		<div id="root"></div>
 		<!-- <script src="https://unpkg.com/react-scan/dist/auto.global.js"></script> -->
-                <script type="module" src="./main.tsx"></script>
-        </body>
+		<script type="module" src="./main.tsx"></script>
+	</body>
 </html>
