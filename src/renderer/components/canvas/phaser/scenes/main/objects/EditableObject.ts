@@ -45,6 +45,21 @@ export interface IEditableObject {
 	get components(): ComponentsManager
 
 	get events(): EditableObjectEmitter
+
+	/**
+	 * These methods update the underlying Phaser object's properties without syncing to the reactive state (Valtio).
+	 *
+	 * Use them for high-frequency visual updates (e.g., during dragging, rotating, or resizing) to avoid
+	 * expensive UI re-renders on every frame.
+	 *
+	 * Callers MUST "commit" the final values to the state (e.g., via `setPosition`, `setAngle`, etc.)
+	 * once the interaction ends.
+	 */
+	setAngleVisualOnly(angle: number): this
+	setPositionVisualOnly(x: number, y: number): this
+	setSizeVisualOnly(width: number, height: number): this
+	setDisplaySizeVisualOnly(width: number, height: number): this
+	setOriginVisualOnly(x: number, y: number): this
 }
 
 export type EditableObject = EditableContainer | EditableImage | EditableNineSlice | EditableText | EditableBitmapText
