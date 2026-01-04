@@ -229,7 +229,7 @@ const createAppMenu = () => {
 			label: 'Tools',
 			submenu: [
 				{
-					label: 'Editor Commands…',
+					label: 'Editor Commands',
 					click: openControlRpcCommands,
 				},
 			] as Electron.MenuItemConstructorOptions[],
