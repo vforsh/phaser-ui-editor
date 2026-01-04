@@ -1,0 +1,5 @@
+# Run this command to always ignore following commits in `git blame`
+# git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# style: run prettier on src dir
+cc5cee251a3941a4bce5f51b3b61b56ab8b6f2a7
