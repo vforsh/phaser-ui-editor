@@ -114,6 +114,15 @@ const createAppMenu = () => {
 		win.webContents.send('menu:open-settings', { section: 'general' })
 	}
 
+	const openControlRpcCommands = () => {
+		const win = BrowserWindow.getFocusedWindow() ?? mainWindow
+		if (!win) {
+			return
+		}
+
+		win.webContents.send('menu:open-control-rpc-commands', {})
+	}
+
 	const macAppMenu: Electron.MenuItemConstructorOptions[] = isMac
 		? [
 				{
@@ -213,6 +222,15 @@ const createAppMenu = () => {
 
 						win.webContents.send('menu:take-canvas-screenshot', { clean: true })
 					},
+				},
+			] as Electron.MenuItemConstructorOptions[],
+		},
+		{
+			label: 'Tools',
+			submenu: [
+				{
+					label: 'Editor Commands…',
+					click: openControlRpcCommands,
 				},
 			] as Electron.MenuItemConstructorOptions[],
 		},
