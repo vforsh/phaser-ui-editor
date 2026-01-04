@@ -16,7 +16,8 @@ import { LayoutSystem } from './layout/LayoutSystem'
 import { MainSceneAssetLoader } from './mainScene/MainSceneAssetLoader'
 import { MainSceneCamera } from './mainScene/MainSceneCamera'
 import { MainSceneHistory, TransformType } from './mainScene/MainSceneHistory'
-import { MainSceneInput } from './mainScene/MainSceneInput'
+import { MainSceneKeyboardInput } from './mainScene/MainSceneKeyboardInput'
+import { MainScenePointerInput } from './mainScene/MainScenePointerInput'
 import { MainScenePrefabPersistence } from './mainScene/MainScenePrefabPersistence'
 import { MainSceneScreenshot } from './mainScene/MainSceneScreenshot'
 import { MainSceneOps } from './mainScene/MainSceneSelectionOps'
@@ -35,7 +36,8 @@ export class MainScene extends BaseScene {
 	private assetLoader!: MainSceneAssetLoader
 	private persistence!: MainScenePrefabPersistence
 	private ops!: MainSceneOps
-	private inputService!: MainSceneInput
+	private keyboardInput!: MainSceneKeyboardInput
+	private pointerInput!: MainScenePointerInput
 	private logger!: Logger<ILogObj>
 	private grid!: Grid
 	private rulers!: Rulers
@@ -147,8 +149,10 @@ export class MainScene extends BaseScene {
 		this.cameraService = new MainSceneCamera(this.deps)
 		this.deps.cameraService = this.cameraService
 
-		this.inputService = new MainSceneInput(this.deps)
-		this.inputService.install()
+		this.keyboardInput = new MainSceneKeyboardInput(this.deps)
+		this.pointerInput = new MainScenePointerInput(this.deps)
+		this.keyboardInput.install()
+		this.pointerInput.install()
 
 		await this.persistence.initRoot(this.initData.prefabFile)
 
@@ -407,7 +411,7 @@ export class MainScene extends BaseScene {
 	}
 
 	public startSelectionDrag(selection: Selection, pointer: Phaser.Input.Pointer, context: EditContext) {
-		this.inputService.startSelectionDrag(selection, pointer, context)
+		this.pointerInput.startSelectionDrag(selection, pointer, context)
 	}
 
 	public resize(): void {
