@@ -132,14 +132,25 @@ export class ControlRpcServer {
 			const wsProtocol = this.options.protocol ?? 'ws'
 			const wsUrl = `${wsProtocol}://127.0.0.1:${wsPort}`
 			const appLaunchDir = process.cwd()
+			const e2eEnabled = process.env.PW_E2E === '1'
+			const e2eInstanceKey = process.env.PW_E2E_INSTANCE_KEY
+
+			const e2e = e2eEnabled
+				? {
+						enabled: true as const,
+						// Fallback keeps the control contract stable (instanceKey is required when enabled === true).
+						instanceKey: e2eInstanceKey && e2eInstanceKey.length > 0 ? e2eInstanceKey : 'default',
+					}
+				: { enabled: false as const }
 
 			const editors = editorRegistry.getEditors().map((editor) => ({
 				wsUrl,
 				wsPort,
 				appLaunchDir,
 				projectPath: editor.projectPath,
+				e2e,
 			}))
-			this.sendJson(ws, createJsonRpcResult(request.id, { editors }))
+			this.sendJson(ws, createJsonRpcResult(request.id, editors))
 			this.logger.info(this.formatLog(traceId, request.method, 'reply', { ok: true }))
 			return
 		}

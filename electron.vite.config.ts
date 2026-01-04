@@ -74,6 +74,9 @@ export default defineConfig({
 		build: {
 			rollupOptions: {
 				input: {
+					// Keep the default HTML entry; otherwise the build won't emit `out/renderer/index.html`,
+					// and the production Electron main process won't be able to load the renderer.
+					index: path.join(rendererRoot, 'index.html'),
 					polyfills: 'core-js/actual/iterator',
 				},
 			},
