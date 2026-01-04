@@ -277,6 +277,24 @@ export class MainSceneHistory {
 			return
 		}
 
+		this.withBatchedDocumentRevision(() => {
+			const selection = this.deps.editContexts.current?.selection
+			if (selection) {
+				selection.objects.forEach((obj) => {
+					obj.setPosition(obj.x, obj.y)
+					obj.setAngle(obj.angle)
+
+					if (obj.kind !== 'Container' && obj.kind !== 'NineSlice') {
+						obj.setOrigin(obj.originX, obj.originY)
+					}
+
+					if (obj.isResizable) {
+						obj.setDisplaySize(obj.displayWidth, obj.displayHeight)
+					}
+				})
+			}
+		})
+
 		const { before, type } = this.transformControlsSnapshot
 		this.transformControlsSnapshot = undefined
 

@@ -215,6 +215,32 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 		return this
 	}
 
+	public setAngleVisualOnly(angle: number): this {
+		super.setAngle(angle)
+		return this
+	}
+
+	public setPositionVisualOnly(x: number, y: number): this {
+		super.setPosition(x, y)
+		return this
+	}
+
+	public setSizeVisualOnly(width: number, height: number): this {
+		super.resize(width, height)
+		return this
+	}
+
+	public setDisplaySizeVisualOnly(width: number, height: number): this {
+		// NineSlice displaySize is the same as width/height
+		super.resize(width, height)
+		return this
+	}
+
+	public setOriginVisualOnly(x: number, y: number): this {
+		// NineSlice doesn't support setOrigin
+		return this
+	}
+
 	get stateObj() {
 		return this._stateObj
 	}

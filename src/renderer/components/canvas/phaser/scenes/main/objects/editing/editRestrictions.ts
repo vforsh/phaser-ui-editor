@@ -149,6 +149,14 @@ export function trySetPositionUser(obj: EditableObject, x: number, y: number): b
 	return true
 }
 
+export function trySetPositionUserVisualOnly(obj: EditableObject, x: number, y: number): boolean {
+	if (isPositionLockedForRuntimeObject(obj)) {
+		return false
+	}
+	obj.setPositionVisualOnly(x, y)
+	return true
+}
+
 export function trySetXUser(obj: EditableObject, x: number): boolean {
 	if (isPositionLockedForRuntimeObject(obj)) {
 		return false

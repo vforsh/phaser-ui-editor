@@ -279,6 +279,35 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		return this
 	}
 
+	public setAngleVisualOnly(angle: number): this {
+		super.setAngle(angle)
+		return this
+	}
+
+	public setPositionVisualOnly(x: number, y: number): this {
+		super.setPosition(x, y)
+		return this
+	}
+
+	public setSizeVisualOnly(width: number, height: number): this {
+		// BitmapText doesn't support setSize
+		return this
+	}
+
+	public setDisplaySizeVisualOnly(width: number, height: number): this {
+		this.setScale(1, 1)
+		this.getTextBounds(false)
+		const scaleX = width / this.width
+		const scaleY = height / this.height
+		this.setScale(scaleX, scaleY)
+		return this
+	}
+
+	public setOriginVisualOnly(x: number, y: number): this {
+		super.setOrigin(x, y)
+		return this
+	}
+
 	get stateObj() {
 		return this._stateObj
 	}

@@ -5,7 +5,7 @@ import type { Selection } from '../Selection'
 import type { BorderHandles, CornerHandles, TransformControlHandles } from './factories'
 
 import { signalFromEvent } from '../../../../robowhale/utils/events/create-abort-signal-from-event'
-import { trySetPositionUser } from '../../objects/editing/editRestrictions'
+import { trySetPositionUser, trySetPositionUserVisualOnly } from '../../objects/editing/editRestrictions'
 import { getSelectionFrame, type SelectionFrame } from '../selection-frame'
 import { canChangeOrigin } from '../Transformable'
 import { setCircleHitArea, setRectHitArea } from './factories'
@@ -108,7 +108,7 @@ export class RotateInteraction {
 						newAngle = Phaser.Math.Snap.To(newAngle, 15)
 					}
 
-					obj.setAngle(newAngle)
+					obj.setAngleVisualOnly(newAngle)
 				})
 
 				selection.updateBounds()
@@ -292,11 +292,11 @@ export class ResizeInteraction {
 				const offsetX = obj.displayWidth * (newOrigin[0] - currentOrigin[0])
 				const offsetY = obj.displayHeight * (newOrigin[1] - currentOrigin[1])
 				const angleRad = obj.angle * Phaser.Math.DEG_TO_RAD
-				obj.setOrigin(newOrigin[0], newOrigin[1])
+				obj.setOriginVisualOnly(newOrigin[0], newOrigin[1])
 
 				const nextX = obj.x + (offsetX * Math.cos(angleRad) - offsetY * Math.sin(angleRad))
 				const nextY = obj.y + (offsetX * Math.sin(angleRad) + offsetY * Math.cos(angleRad))
-				trySetPositionUser(obj, nextX, nextY)
+				trySetPositionUserVisualOnly(obj, nextX, nextY)
 			}
 
 			selectedTransforms.set(obj, {
@@ -363,12 +363,12 @@ export class ResizeInteraction {
 						const offsetWorldX = offsetLocalX * cosObj - offsetLocalY * sinObj
 						const offsetWorldY = offsetLocalX * sinObj + offsetLocalY * cosObj
 
-						obj.setSize(unscaledWidth, unscaledHeight)
-						trySetPositionUser(obj, transform.x + offsetWorldX, transform.y + offsetWorldY)
+						obj.setSizeVisualOnly(unscaledWidth, unscaledHeight)
+						obj.setPositionVisualOnly(transform.x + offsetWorldX, transform.y + offsetWorldY)
 						return
 					}
 
-					obj.setDisplaySize(newDisplayWidth, newDisplayHeight)
+					obj.setDisplaySizeVisualOnly(newDisplayWidth, newDisplayHeight)
 				})
 
 				selection.updateBounds()

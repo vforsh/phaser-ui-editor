@@ -349,6 +349,31 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		this.input.hitArea.setSize(width, height)
 	}
 
+	public setAngleVisualOnly(angle: number): this {
+		super.setAngle(angle)
+		return this
+	}
+
+	public setPositionVisualOnly(x: number, y: number): this {
+		super.setPosition(x, y)
+		return this
+	}
+
+	public setSizeVisualOnly(width: number, height: number): this {
+		super.setSize(width, height)
+		return this
+	}
+
+	public setDisplaySizeVisualOnly(width: number, height: number): this {
+		super.setDisplaySize(width, height)
+		return this
+	}
+
+	public setOriginVisualOnly(x: number, y: number): this {
+		// Container doesn't support setOrigin
+		return this
+	}
+
 	get stateObj() {
 		return this._stateObj
 	}
