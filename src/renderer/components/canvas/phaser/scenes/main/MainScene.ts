@@ -186,10 +186,14 @@ export class MainScene extends BaseScene {
 
 		this.setupAppCommands()
 
+		// New document: reset revision counters (state is persisted across sessions).
+		state.canvas.documentRevision = 0
+		state.canvas.baselineDocumentRevision = 0
+
 		state.canvas.root = this.root.stateObj
 		state.canvas.objectById = (id: string) => this.objectsFactory.getObjectById(id)?.stateObj
 		state.canvas.siblingIds = (id: string) => this.getObjectSiblingsIds(id)
-		this.history.setBaseline(this.rootToJson())
+		this.history.setBaseline()
 	}
 
 	private initComponentsFactory() {

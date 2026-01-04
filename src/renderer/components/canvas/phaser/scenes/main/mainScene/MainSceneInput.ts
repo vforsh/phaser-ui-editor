@@ -3,12 +3,14 @@ import { once } from 'es-toolkit'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 
+import type { CanvasDocumentSnapshot } from './MainSceneHistory'
+
 import { signalFromEvent } from '../../../robowhale/utils/events/create-abort-signal-from-event'
 import { EditContext } from '../editContext/EditContext'
 import { Selection } from '../editContext/Selection'
 import { TransformControls } from '../editContext/TransformControls'
 import { isPositionLockedForRuntimeObject } from '../objects/editing/editRestrictions'
-import { MainSceneDeps, CanvasDocumentSnapshot } from './mainSceneTypes'
+import { MainSceneDeps } from './mainSceneTypes'
 
 type SelectionDragData = {
 	target: Selection

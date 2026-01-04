@@ -2,9 +2,9 @@ import { state, subscribe } from '@state/State'
 import { match } from 'ts-pattern'
 
 import { EditableContainer } from '../objects/EditableContainer'
+import { EditableContainerJson } from '../objects/EditableContainer'
 import { isObjectOfType } from '../objects/EditableObject'
-import { CanvasDocumentSnapshot, MainSceneDeps } from './mainSceneTypes'
-import { deepEqual } from './mainSceneUtils'
+import { MainSceneDeps } from './mainSceneTypes'
 
 export type TransformType = 'rotate' | 'resize' | 'origin'
 
@@ -14,13 +14,28 @@ export type TransformControlsSnapshot = {
 }
 
 /**
+ * A full-fidelity snapshot of the canvas document, used by undo/redo and
+ * for grouping continuous interactions (e.g. drag/move/transform controls).
+ *
+ * Notes:
+ * - `documentRevision` is the authoritative "did content change?" marker.
+ * - `rootJson` is only used to restore the document for undo/redo.
+ */
+export type CanvasDocumentSnapshot = {
+	rootJson: EditableContainerJson
+	documentRevision: number
+	activeContextId?: string
+	selectionIds: string[]
+	camera?: { zoom: number; scrollX: number; scrollY: number }
+}
+
+/**
  * Manages undo/redo history, document snapshots, and unsaved changes tracking for the canvas.
  * It handles capturing and applying snapshots of the object hierarchy, selection, and camera state.
  * Operations are synchronized with the global UndoHub and the application's reactive state.
  * Includes specialized handling for continuous transformations via transform controls.
  */
 export class MainSceneHistory {
-	private baselineRootJson?: any
 	private isRestoringFromHistory = false
 	private transformControlsSnapshot?: TransformControlsSnapshot
 	private rootUnsub?: () => void
@@ -74,6 +89,7 @@ export class MainSceneHistory {
 			return
 		}
 
+		state.canvas.documentRevision++
 		this.updateUnsavedChanges()
 	}
 
@@ -82,13 +98,10 @@ export class MainSceneHistory {
 	}
 
 	/**
-	 * Sets the baseline JSON representation of the root object.
-	 * This is used as the reference point for determining if the document has unsaved changes.
-	 *
-	 * @param json - The JSON representation of the root object to use as baseline.
+	 * Sets the baseline revision used for unsaved-changes detection.
 	 */
-	public setBaseline(json: any) {
-		this.baselineRootJson = json
+	public setBaseline() {
+		state.canvas.baselineDocumentRevision = state.canvas.documentRevision
 		this.updateUnsavedChanges()
 	}
 
@@ -100,6 +113,8 @@ export class MainSceneHistory {
 		this.isRestoringFromHistory = true
 
 		try {
+			state.canvas.documentRevision = snapshot.documentRevision
+
 			const root = this.deps.getRoot()
 			if (root) {
 				root.destroy()
@@ -159,17 +174,11 @@ export class MainSceneHistory {
 	}
 
 	public updateUnsavedChanges() {
-		if (!this.baselineRootJson) {
-			state.canvas.hasUnsavedChanges = true
-			return
-		}
-
-		const currentJson = this.deps.rootToJson()
-		state.canvas.hasUnsavedChanges = !deepEqual(currentJson, this.baselineRootJson)
+		state.canvas.hasUnsavedChanges = state.canvas.documentRevision !== state.canvas.baselineDocumentRevision
 	}
 
 	public async push(label: string, before: CanvasDocumentSnapshot, after: CanvasDocumentSnapshot) {
-		if (deepEqual(before.rootJson, after.rootJson)) {
+		if (before.documentRevision === after.documentRevision) {
 			return
 		}
 
@@ -212,6 +221,7 @@ export class MainSceneHistory {
 
 		return {
 			rootJson: this.deps.rootToJson(),
+			documentRevision: state.canvas.documentRevision,
 			activeContextId: currentContext?.target.id,
 			selectionIds,
 			camera: {

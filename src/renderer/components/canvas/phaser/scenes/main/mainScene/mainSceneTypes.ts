@@ -27,13 +27,6 @@ export type MainSceneInitData = {
 	prefabFile: PrefabFile
 }
 
-export type CanvasDocumentSnapshot = {
-	rootJson: EditableContainerJson
-	activeContextId?: string
-	selectionIds: string[]
-	camera?: { zoom: number; scrollX: number; scrollY: number }
-}
-
 export interface MainSceneDeps {
 	/**
 	 * Phaser scene instance this feature-set is installed into.
@@ -56,7 +49,6 @@ export interface MainSceneDeps {
 	 */
 	shutdownSignal: AbortSignal
 
-	// Systems
 	/** Background grid rendering + grid-related helpers (snap/spacing). */
 	grid: Grid
 

@@ -51,8 +51,7 @@ export class MainScenePrefabPersistence {
 
 		this.deps.logger.info(`saved '${this.deps.sceneInitData.prefabAsset.name}' at ${prefabFilePath}`)
 
-		this.deps.history.setBaseline(prefabContent)
-		state.canvas.hasUnsavedChanges = false
+		this.deps.history.setBaseline() // sync baseline revision after successful save
 
 		return ok(undefined)
 	}

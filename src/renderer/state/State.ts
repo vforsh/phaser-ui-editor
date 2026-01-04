@@ -53,6 +53,8 @@ export const stateSchema = z.object({
 	}),
 	canvas: z.object({
 		hasUnsavedChanges: z.boolean().default(false),
+		documentRevision: z.number().int().nonnegative().default(0),
+		baselineDocumentRevision: z.number().int().nonnegative().default(0),
 		lastOpenedPrefabAssetId: z.string().optional(),
 		recentPrefabs: z
 			.array(
@@ -124,6 +126,8 @@ const initialStateParsed = merge(
 		},
 		canvas: {
 			hasUnsavedChanges: false,
+			documentRevision: 0,
+			baselineDocumentRevision: 0,
 			recentPrefabs: [],
 			camera: {
 				zoom: 1,

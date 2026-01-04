@@ -1,5 +1,3 @@
-export const deepEqual = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
-
 export function formatScreenshotTimestamp(date: Date): string {
 	// 2026-01-02T12-34-56 (filesystem-safe across platforms)
 	return date
