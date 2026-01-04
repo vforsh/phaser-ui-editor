@@ -1,8 +1,9 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
-import { app, BrowserWindow, clipboard, dialog, Menu } from 'electron'
+import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu } from 'electron'
 import getPort from 'get-port'
 import path from 'node:path'
 
+import { CHANNELS } from '../shared/ipc/channels'
 import { ControlRpcServer } from './ControlRpcServer'
 import { registerMainApiHandlers } from './ipc/register-main-api-handlers'
 import { RendererFileLogger } from './RendererFileLogger'
@@ -99,6 +100,7 @@ function setupRendererLogger(webContents: Electron.WebContents) {
 		runId,
 	})
 	rendererLogger.attachToWebContents(webContents)
+	rendererLogger.attachErrorStackIpc(ipcMain, CHANNELS.ERROR_STACK_REPORTER)
 }
 
 const createAppMenu = () => {

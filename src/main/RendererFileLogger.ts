@@ -1,4 +1,4 @@
-import { app, WebContents } from 'electron'
+import { app, type IpcMain, WebContents } from 'electron'
 import fs from 'node:fs'
 import path from 'node:path'
 
@@ -25,6 +25,21 @@ const LEVEL_MAP: Record<string, string> = {
 	warn: 'WARN',
 	error: 'ERR ',
 	debug: 'DEBG',
+}
+
+export type RendererErrorStackLogEntry = {
+	/**
+	 * Source/kind of the captured error (e.g. `window.error`, `window.unhandledrejection`, `console.error`).
+	 */
+	kind: string
+	/**
+	 * Human-readable error message (usually includes the exception name).
+	 */
+	message: string
+	/**
+	 * Raw stack trace, if available.
+	 */
+	stack?: string
 }
 
 /**
@@ -61,6 +76,61 @@ export class RendererFileLogger {
 	public attachToWebContents(webContents: WebContents): void {
 		webContents.on('console-message', this.handleConsoleMessage)
 		webContents.on('did-navigate', this.handleDidNavigate)
+	}
+
+	/**
+	 * Registers an IPC listener that accepts renderer-forwarded error stacks and writes them into
+	 * the same per-run renderer log file.
+	 */
+	public attachErrorStackIpc(ipcMain: IpcMain, channel: string): void {
+		ipcMain.removeAllListeners(channel)
+		ipcMain.on(channel, (_event, payload: unknown) => {
+			if (!payload || typeof payload !== 'object') {
+				return
+			}
+
+			const kind = (payload as { kind?: unknown }).kind
+			const message = (payload as { message?: unknown }).message
+			const stack = (payload as { stack?: unknown }).stack
+
+			if (typeof kind !== 'string' || typeof message !== 'string') {
+				return
+			}
+
+			this.logRendererErrorWithStack({
+				kind,
+				message,
+				stack: typeof stack === 'string' ? stack : undefined,
+			})
+		})
+	}
+
+	/**
+	 * Writes additional renderer-originated log lines (e.g. uncaught errors with stack traces)
+	 * into the same per-run renderer log file.
+	 *
+	 * NOTE: Electron's `console-message` event only provides a string and frequently drops stack traces,
+	 * so this is intended to supplement it via IPC from preload.
+	 *
+	 * @param input - Captured error payload forwarded from the renderer main world.
+	 */
+	public logRendererErrorWithStack(input: RendererErrorStackLogEntry): void {
+		const timestamp = new Date().toISOString()
+		const header = `[${input.kind}] ${input.message}`
+		this.logLine(`${timestamp} ERR : ${header}\n`)
+
+		const stack = input.stack?.trim()
+		if (!stack) {
+			return
+		}
+
+		for (const rawLine of stack.split('\n')) {
+			const line = rawLine.trimEnd()
+			if (!line) {
+				continue
+			}
+			this.logLine(`${timestamp} ERR : ${line}\n`)
+		}
 	}
 
 	private ensureDir(): void {

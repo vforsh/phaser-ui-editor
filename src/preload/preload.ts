@@ -3,6 +3,7 @@ import { contextBridge } from 'electron'
 
 import { createAppMenu } from './create-app-menu'
 import { createControlIpc } from './create-control-ipc'
+import { createErrorStackReporter } from './create-error-stack-reporter'
 import { createMainApi } from './create-main-api'
 
 exposeInRenderer('electron', electronAPI)
@@ -12,6 +13,8 @@ exposeInRenderer('mainApi', createMainApi())
 exposeInRenderer('appMenu', createAppMenu())
 
 if (process.env.NODE_ENV !== 'production') exposeInRenderer('controlIpc', createControlIpc())
+
+if (process.env.NODE_ENV !== 'production') exposeInRenderer('errorStackReporter', createErrorStackReporter())
 
 /**
  * Safely exposes a value to the renderer's global context.
