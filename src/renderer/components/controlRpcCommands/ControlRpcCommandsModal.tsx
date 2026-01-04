@@ -1,7 +1,7 @@
-import { Box, Code, Collapse, Group, Modal, ScrollArea, Stack, Text, TextInput, Tooltip } from '@mantine/core'
+import { Box, CloseButton, Code, Collapse, Group, Modal, ScrollArea, Stack, Text, TextInput, Tooltip } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { Info, Search } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 
 const SearchIcon = <Search size={16} />
 import { filterEntries, type ControlRpcGroup, useControlRpcCommandsModel } from './controlRpcCommandsModel'
@@ -33,9 +33,20 @@ const MODAL_TITLE = (
 
 export function ControlRpcCommandsModal({ opened, onClose, activeGroup, onGroupChange }: ControlRpcCommandsModalProps) {
 	const [searchQuery, setSearchQuery] = useState('')
+	const searchInputRef = useRef<HTMLInputElement>(null)
 	const { entries, groups } = useControlRpcCommandsModel()
 
 	const filteredEntries = useMemo(() => filterEntries(entries, activeGroup, searchQuery), [entries, activeGroup, searchQuery])
+
+	const handleClearSearch = useCallback(() => {
+		setSearchQuery('')
+		searchInputRef.current?.focus()
+	}, [])
+
+	const rightSection = useMemo(
+		() => (searchQuery ? <CloseButton size="sm" aria-label="Clear search" onClick={handleClearSearch} /> : null),
+		[searchQuery, handleClearSearch],
+	)
 
 	return (
 		<Modal
@@ -64,8 +75,11 @@ export function ControlRpcCommandsModal({ opened, onClose, activeGroup, onGroupC
 						<Stack gap={0} style={{ height: '100%' }}>
 							<Box px="xl" pb="md">
 								<TextInput
+									ref={searchInputRef}
 									placeholder="Search commands..."
 									leftSection={SearchIcon}
+									rightSection={rightSection}
+									rightSectionPointerEvents="all"
 									value={searchQuery}
 									onChange={(e) => setSearchQuery(e.currentTarget.value)}
 								/>
