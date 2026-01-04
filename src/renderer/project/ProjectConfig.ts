@@ -1,5 +1,6 @@
 import { ReadonlyDeep } from 'type-fest'
 import { z } from 'zod'
+
 import { absolutePathSchema, minimatchPatternSchema, relativePathSchema } from '../state/Schemas'
 
 export const projectConfigSchema = z.object({

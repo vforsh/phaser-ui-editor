@@ -1,14 +1,12 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { ILogObj, Logger } from 'tslog'
+
+import type { Events, ReadonlyTransformControlOptions, TransformControlOptions } from './transformControls/types-math-cursor'
+
 import { signalFromEvent } from '../../../robowhale/utils/events/create-abort-signal-from-event'
 import { Selection } from './Selection'
 import { HandleFactory, TextureFactory, inflateBorderHitArea } from './transformControls/factories'
 import { ResizeInteraction, RotateInteraction, SelectionFollower } from './transformControls/interactions'
-import type {
-	Events,
-	ReadonlyTransformControlOptions,
-	TransformControlOptions,
-} from './transformControls/types-math-cursor'
 import { CursorManager } from './transformControls/types-math-cursor'
 
 /**
@@ -87,7 +85,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			() => this.target,
 			() => this.angle,
 			this.events,
-			this.destroySignal
+			this.destroySignal,
 		)
 
 		new ResizeInteraction(
@@ -100,7 +98,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 			() => this.target,
 			() => this.angle,
 			this.events,
-			this.destroySignal
+			this.destroySignal,
 		)
 	}
 
@@ -118,7 +116,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 				})
 			},
 			this,
-			this.destroySignal
+			this.destroySignal,
 		)
 
 		this.events.on(
@@ -133,7 +131,7 @@ export class TransformControls extends Phaser.GameObjects.Container {
 				this.handlesState.clear()
 			},
 			this,
-			this.destroySignal
+			this.destroySignal,
 		)
 	}
 

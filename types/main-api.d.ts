@@ -1,5 +1,5 @@
-import type { MainApi } from '../src/backend/contract/contract'
 import type { ControlIpc } from '../src/renderer/control-rpc/rpc'
+import type { MainApi } from '../src/shared/main-api/MainApi'
 
 declare global {
 	interface Window {

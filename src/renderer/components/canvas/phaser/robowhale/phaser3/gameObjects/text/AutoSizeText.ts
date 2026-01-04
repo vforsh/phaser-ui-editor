@@ -20,7 +20,7 @@ export class AutoSizeText extends Phaser.GameObjects.Text {
 		y: number,
 		text: string | string[],
 		style: Phaser.Types.GameObjects.Text.TextStyle,
-		options?: AutoSizeTextOptions
+		options?: AutoSizeTextOptions,
 	) {
 		super(scene, x, y, text, style)
 

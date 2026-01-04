@@ -1,5 +1,6 @@
 import { Button, Group, TextInput } from '@mantine/core'
 import { useEffect, useRef } from 'react'
+
 import { useProjectPathValidation } from '../../hooks/useProjectPathValidation'
 
 interface ProjectPathInputProps {

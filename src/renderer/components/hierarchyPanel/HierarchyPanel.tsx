@@ -8,11 +8,12 @@ import { useWindowEvent } from '@mantine/hooks'
 import { state, useSnapshot } from '@state/State'
 import { useEffect, useRef, useState } from 'react'
 import { ILogObj, Logger } from 'tslog'
+
 import { useAppCommands } from '../../di/DiHooks'
+import { ICON_MARGIN, INDENT_SIZE } from './constants'
 import HierarchyItem from './HierarchyItem'
 import styles from './HierarchyPanel.module.css'
 import { HierarchyPanelTitle } from './HierarchyPanelTitle'
-import { ICON_MARGIN, INDENT_SIZE } from './constants'
 
 export const HIERARCHY_ITEMS_CONTAINER_ID = 'hierarchy-items-container'
 
@@ -30,9 +31,7 @@ interface DropPreview {
 // Helper functions for keyboard handling
 function getVisibleItems(): EditableObjectJson[] {
 	// find all dom elements with id starting with 'hierarchy-item-'
-	const items = document.querySelectorAll(
-		`#${HIERARCHY_ITEMS_CONTAINER_ID} [id^="hierarchy-item-"]`
-	) as NodeListOf<HTMLDivElement>
+	const items = document.querySelectorAll(`#${HIERARCHY_ITEMS_CONTAINER_ID} [id^="hierarchy-item-"]`) as NodeListOf<HTMLDivElement>
 
 	const objs: EditableObjectJson[] = []
 
@@ -304,9 +303,7 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 				onDragStart() {
 					boundingRects.clear()
 
-					elements = Array.from(
-						document.querySelectorAll(`#${HIERARCHY_ITEMS_CONTAINER_ID} [id^="hierarchy-item-"]`)
-					)
+					elements = Array.from(document.querySelectorAll(`#${HIERARCHY_ITEMS_CONTAINER_ID} [id^="hierarchy-item-"]`))
 
 					setDropPreview(null)
 				},
@@ -395,7 +392,7 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 
 					setDropPreview(null)
 				},
-			})
+			}),
 		)
 
 		return () => {

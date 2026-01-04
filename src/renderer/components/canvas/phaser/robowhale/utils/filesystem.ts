@@ -6,10 +6,7 @@ export function isDirectoryHandle(handle: FileSystemHandle): handle is FileSyste
 	return handle.kind === 'directory'
 }
 
-export async function findFileByName(
-	directoryHandle: FileSystemDirectoryHandle,
-	name: string
-): Promise<FileSystemFileHandle | null> {
+export async function findFileByName(directoryHandle: FileSystemDirectoryHandle, name: string): Promise<FileSystemFileHandle | null> {
 	for await (const handle of directoryHandle.values()) {
 		if (isFileHandle(handle) && handle.name === name) {
 			return handle
@@ -24,9 +21,6 @@ export async function findFileByName(
 	return null
 }
 
-export async function findFileByPath(
-	directoryHandle: FileSystemDirectoryHandle,
-	path: string
-): Promise<FileSystemFileHandle | null> {
+export async function findFileByPath(directoryHandle: FileSystemDirectoryHandle, path: string): Promise<FileSystemFileHandle | null> {
 	throw new Error('Not implemented')
 }

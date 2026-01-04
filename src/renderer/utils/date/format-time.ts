@@ -84,12 +84,7 @@ function shouldShowUnit(unit: TimeUnit, precision: TimeUnit): boolean {
  * @param [useLeadingZero=false] добавлять ли 0 в начале чисел из одной цифры
  * @param [locales] кастомный объект с локализованными строками
  */
-function formatTimeUnit(
-	value: number,
-	type: TimeUnit,
-	useLeadingZero = false,
-	locales?: Record<TimeUnit, string>
-): string {
+function formatTimeUnit(value: number, type: TimeUnit, useLeadingZero = false, locales?: Record<TimeUnit, string>): string {
 	return (useLeadingZero ? padWithZero(value) : value) + (locales ? locales[type] : translateTimeUnit(type))
 }
 

@@ -1,8 +1,8 @@
 import { ipcRenderer } from 'electron'
 
-import type { MainApi, MainApiMethod } from '../backend/contract/contract'
+import type { MainApi, MainApiMethod } from '../shared/main-api/MainApi'
 
-import { mainApiContract } from '../backend/contract/contract'
+import { mainApiContract } from '../shared/main-api/MainApi'
 
 const CHANNEL_PREFIX = 'main-api:'
 

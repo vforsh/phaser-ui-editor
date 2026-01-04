@@ -18,7 +18,7 @@ export function parseJsonBitmapFontFromAtlas(
 	fontName: string,
 	textureKey: string,
 	frameKey: string,
-	jsonKey: string
+	jsonKey: string,
 ): boolean {
 	let texture = scene.sys.textures.get(textureKey)
 	let frame = texture.get(frameKey)

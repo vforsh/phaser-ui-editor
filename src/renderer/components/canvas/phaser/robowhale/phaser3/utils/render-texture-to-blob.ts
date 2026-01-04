@@ -13,7 +13,7 @@ export function renderTextureToBlob(texture: RenderTexture, format: Format = 'im
 				resolve(blob)
 			},
 			format,
-			quality
+			quality,
 		)
 	})
 }

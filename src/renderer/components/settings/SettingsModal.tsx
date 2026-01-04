@@ -1,8 +1,9 @@
 import { Box, Group, Modal, ScrollArea, Stack } from '@mantine/core'
 import { Boxes, Code, Cog, FolderOpen, Layers, Palette, Settings as SettingsIcon } from 'lucide-react'
 import { match } from 'ts-pattern'
+
 import type { SettingsSectionId } from '../../settings/EditorSettings'
-import { SettingsNav, type SettingsNavSection } from './SettingsNav'
+
 import { AssetsSection } from './sections/AssetsSection'
 import { CanvasSection } from './sections/CanvasSection'
 import { DevSection } from './sections/DevSection'
@@ -10,6 +11,7 @@ import { GeneralSection } from './sections/GeneralSection'
 import { HierarchySection } from './sections/HierarchySection'
 import { InspectorSection } from './sections/InspectorSection'
 import { MiscSection } from './sections/MiscSection'
+import { SettingsNav, type SettingsNavSection } from './SettingsNav'
 
 const sections: SettingsNavSection[] = [
 	{ id: 'general', label: 'General', icon: Cog },
@@ -50,14 +52,7 @@ export function SettingsModal({ opened, onClose, activeSectionId, onSectionChang
 		.exhaustive()
 
 	return (
-		<Modal
-			opened={opened}
-			onClose={onClose}
-			title={MODAL_TITLE}
-			size={modalSize}
-			centered
-			transitionProps={{ duration: 100 }}
-		>
+		<Modal opened={opened} onClose={onClose} title={MODAL_TITLE} size={modalSize} centered transitionProps={{ duration: 100 }}>
 			<Group align="stretch" gap={0} wrap="nowrap">
 				<Box
 					w={240}

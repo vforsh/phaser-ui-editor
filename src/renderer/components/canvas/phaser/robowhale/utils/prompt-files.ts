@@ -18,7 +18,7 @@ export function promptFiles(options: FilePromptOptions): Promise<File[]> {
 				uploadInput.remove()
 				resolve(filesArr)
 			},
-			{ once: true }
+			{ once: true },
 		)
 
 		let accept = Array.isArray(options.fileTypes) ? options.fileTypes.join(', ') : options.fileTypes

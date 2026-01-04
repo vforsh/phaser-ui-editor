@@ -1,13 +1,6 @@
 import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine'
-import {
-	draggable,
-	dropTargetForElements,
-	ElementDropTargetGetFeedbackArgs,
-} from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
-import {
-	EditableObjectJson,
-	EditableObjectJsonType,
-} from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { draggable, dropTargetForElements, ElementDropTargetGetFeedbackArgs } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
+import { EditableObjectJson, EditableObjectJsonType } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { Group, Text } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { until } from '@open-draft/until'
@@ -29,6 +22,7 @@ import {
 import { ContextMenuItemOptions, ContextMenuOptions, useContextMenu } from 'mantine-contextmenu'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Snapshot, useSnapshot } from 'valtio'
+
 import { AppCommands } from '../../AppCommands'
 import { useAppCommands } from '../../di/DiHooks'
 import { CommandEmitter } from '../canvas/phaser/robowhale/utils/events/CommandEmitter'
@@ -50,7 +44,7 @@ function createContextMenuItems(
 	obj: Snapshot<EditableObjectJson>,
 	appCommands: CommandEmitter<AppCommands>,
 	isRoot = false,
-	onRenameStart: (objId: string) => void
+	onRenameStart: (objId: string) => void,
 ): ContextMenuItemOptions[] {
 	let dividers = 1
 	const divider = () => {
@@ -293,7 +287,7 @@ export default function HierarchyItem({
 
 					return true
 				},
-			})
+			}),
 		)
 
 		// Disable default drag preview
@@ -321,9 +315,7 @@ export default function HierarchyItem({
 
 	const getVisibleItems = (): EditableObjectJson[] => {
 		// find all dom elements with id starting with 'hierarchy-item-'
-		const items = document.querySelectorAll(
-			`#${HIERARCHY_ITEMS_CONTAINER_ID} [id^="hierarchy-item-"]`
-		) as NodeListOf<HTMLDivElement>
+		const items = document.querySelectorAll(`#${HIERARCHY_ITEMS_CONTAINER_ID} [id^="hierarchy-item-"]`) as NodeListOf<HTMLDivElement>
 
 		const objs: EditableObjectJson[] = []
 

@@ -1,6 +1,7 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { signalFromEvent } from '@components/canvas/phaser/robowhale/utils/events/create-abort-signal-from-event'
 import { proxy } from 'valtio'
+
 import { PrefabWebFontAsset } from '../../../../../../types/prefabs/PrefabAsset'
 import { ComponentsManager } from './components/base/ComponentsManager'
 import { EditableComponentJson } from './components/base/EditableComponent'
@@ -29,7 +30,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 		x: number,
 		y: number,
 		text: string,
-		style: EditableTextStyleJson
+		style: EditableTextStyleJson,
 	) {
 		super(scene, x, y, text, style as Phaser.Types.GameObjects.Text.TextStyle)
 
@@ -83,7 +84,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 						bottom: value,
 					}),
 			},
-			signal
+			signal,
 		)
 
 		new StateChangesEmitter(
@@ -112,7 +113,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 				shadowStroke: (value) => value !== undefined && this.style.setShadowStroke(value),
 				shadowFill: (value) => value !== undefined && this.style.setShadowFill(value),
 			},
-			signal
+			signal,
 		)
 	}
 
@@ -232,14 +233,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 		return this
 	}
 
-	override setShadow(
-		offsetX: number,
-		offsetY: number,
-		color: string,
-		blur: number,
-		stroke: boolean,
-		fill: boolean
-	): this {
+	override setShadow(offsetX: number, offsetY: number, color: string, blur: number, stroke: boolean, fill: boolean): this {
 		super.setShadow(offsetX, offsetY, color, blur, stroke, fill)
 
 		this.withoutEmits((state) => {

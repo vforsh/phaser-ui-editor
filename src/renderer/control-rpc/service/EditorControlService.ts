@@ -1,5 +1,7 @@
 import type { AppCommandsEmitter } from '../../AppCommands'
 import type { ControlApi } from '../api/ControlApi'
+import type { EditorControlContext } from './types'
+
 import { deleteObjects } from './handlers/deleteObjects'
 import { getAssetInfo } from './handlers/getAssetInfo'
 import { getCanvasMetrics } from './handlers/getCanvasMetrics'
@@ -18,7 +20,6 @@ import { selectObject } from './handlers/selectObject'
 import { setCamera } from './handlers/setCamera'
 import { switchToContext } from './handlers/switchToContext'
 import { takeCanvasScreenshot } from './handlers/takeCanvasScreenshot'
-import type { EditorControlContext } from './types'
 
 /**
  * Thin RPC-facing service that translates external control requests into internal editor commands.

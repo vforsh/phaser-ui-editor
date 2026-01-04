@@ -1,6 +1,8 @@
 import { ScrollArea, Stack, Text } from '@mantine/core'
-import { useKeyboardNavigation } from '../../hooks/useKeyboardNavigation'
+
 import type { RecentProject } from '../../types/project'
+
+import { useKeyboardNavigation } from '../../hooks/useKeyboardNavigation'
 import { RecentProjectItem } from './RecentProjectItem'
 
 interface RecentProjectsListProps {
@@ -10,12 +12,7 @@ interface RecentProjectsListProps {
 	checkProjectExists: (dir: string) => boolean
 }
 
-export function RecentProjectsList({
-	projects,
-	onSelectProject,
-	onRemoveProject,
-	checkProjectExists,
-}: RecentProjectsListProps) {
+export function RecentProjectsList({ projects, onSelectProject, onRemoveProject, checkProjectExists }: RecentProjectsListProps) {
 	const { focusedIndex, getItemProps } = useKeyboardNavigation({
 		items: projects,
 		onSelect: (project) => onSelectProject(project.dir),

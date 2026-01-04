@@ -1,9 +1,4 @@
-import {
-	AssetTreeBitmapFontData,
-	AssetTreeImageData,
-	AssetTreeSpritesheetFrameData,
-	AssetTreeWebFontData,
-} from '../assets'
+import { AssetTreeBitmapFontData, AssetTreeImageData, AssetTreeSpritesheetFrameData, AssetTreeWebFontData } from '../assets'
 
 /**
  * We actually only need the `id` property. The rest is for debugging & logging purposes.
@@ -32,7 +27,7 @@ export type PrefabWebFontAsset = BasePrefabAsset & {
 }
 
 export function createPrefabAsset<T extends PrefabAsset>(
-	asset: AssetTreeBitmapFontData | AssetTreeSpritesheetFrameData | AssetTreeWebFontData | AssetTreeImageData
+	asset: AssetTreeBitmapFontData | AssetTreeSpritesheetFrameData | AssetTreeWebFontData | AssetTreeImageData,
 ): T {
 	return {
 		id: asset.id,

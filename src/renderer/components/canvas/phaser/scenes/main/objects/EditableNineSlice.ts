@@ -1,11 +1,12 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { IPatchesConfig, NinePatch } from '@koreez/phaser3-ninepatch'
 import { proxy } from 'valtio'
+
 import { PrefabImageAsset, PrefabSpritesheetFrameAsset } from '../../../../../../types/prefabs/PrefabAsset'
-import { CreateEditableObjectJson, EDITABLE_SYMBOL, EditableObjectEvents, IEditableObject } from './EditableObject'
-import { StateChangesEmitter } from './StateChangesEmitter'
 import { ComponentsManager } from './components/base/ComponentsManager'
 import { EditableComponentJson } from './components/base/EditableComponent'
+import { CreateEditableObjectJson, EDITABLE_SYMBOL, EditableObjectEvents, IEditableObject } from './EditableObject'
+import { StateChangesEmitter } from './StateChangesEmitter'
 
 type Events = {
 	// custom events
@@ -30,7 +31,7 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 		height: number,
 		texture: string,
 		frame?: string | number,
-		ninePatchConfig?: IPatchesConfig
+		ninePatchConfig?: IPatchesConfig,
 	) {
 		super(scene, 0, 0, width, height, texture, frame, ninePatchConfig)
 

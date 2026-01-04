@@ -1,4 +1,5 @@
 import { Columns3, Dock, Globe, LayoutGrid, LucideIcon, Pointer, Rows3 } from 'lucide-react'
+
 import { EditableComponentType } from '../../../canvas/phaser/scenes/main/objects/components/base/EditableComponent'
 
 export type ComponentListItemData = {

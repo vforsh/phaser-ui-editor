@@ -2,6 +2,7 @@ import { Box, Image } from '@mantine/core'
 import { File, FileJson, FileSpreadsheet, FileType, Image as ImageIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { match } from 'ts-pattern'
+
 import { AssetTreeItemData, fetchImageUrl, isGraphicAsset } from '../../../types/assets'
 
 interface AssetPreviewProps {
@@ -32,11 +33,7 @@ export function AssetPreview({ asset }: AssetPreviewProps) {
 						justifyContent: 'center',
 					}}
 				>
-					<Image
-						src={imageUrl}
-						alt={asset.name}
-						style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-					/>
+					<Image src={imageUrl} alt={asset.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
 				</Box>
 			)
 		}

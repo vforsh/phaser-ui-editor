@@ -24,8 +24,8 @@ Constraints / decisions (from clarifications)
 
 - `MainScene` owns a `private rulers!: Rulers`
 - It instantiates rulers in `create()` and redraws them from `onResizeOrCameraChange()`:
-  - `this.rulers.redraw(gameSize, camera.zoom, camera.scrollX, camera.scrollY)`
-  - `state.canvas.camera.{zoom,scrollX,scrollY}` is updated at the same time
+    - `this.rulers.redraw(gameSize, camera.zoom, camera.scrollX, camera.scrollY)`
+    - `state.canvas.camera.{zoom,scrollX,scrollY}` is updated at the same time
 
 ### 1.2 What `Rulers.redraw()` currently does
 
@@ -43,10 +43,10 @@ Key calculations to preserve (v1 = exact match):
 - `columnsNum = (ceil(width / cellSize) + 1) * 2` (then capped to 100)
 - Uses `marginX = 5`, `marginY = 5`
 - Visible origin math is currently:
-  - `width = gameSize.width / cameraZoom`
-  - `height = gameSize.height / cameraZoom`
-  - `visibleLeft = cameraScrollX - width/2 + (width/2)*cameraZoom`
-  - `visibleTop = cameraScrollY - height/2 + (height/2)*cameraZoom`
+    - `width = gameSize.width / cameraZoom`
+    - `height = gameSize.height / cameraZoom`
+    - `visibleLeft = cameraScrollX - width/2 + (width/2)*cameraZoom`
+    - `visibleTop = cameraScrollY - height/2 + (height/2)*cameraZoom`
 
 **Plan note:** the `visibleLeft/visibleTop` formula looks unusual vs Phaser’s typical camera worldView math, but “same as it is now” implies we should copy this exactly first, then optionally fix after we have parity.
 
@@ -61,8 +61,8 @@ Implement a DOM overlay inside `src/components/canvas/CanvasContainer.tsx` (it a
 Add a new overlay component tree, conceptually:
 
 - `CanvasContainer`
-  - `<Canvas />` (Phaser canvas element)
-  - `<CanvasRulersOverlay />` (DOM-based rulers + guides; absolute positioned)
+    - `<Canvas />` (Phaser canvas element)
+    - `<CanvasRulersOverlay />` (DOM-based rulers + guides; absolute positioned)
 
 ### 2.2 File/module layout (proposed)
 
@@ -74,19 +74,19 @@ Because the existing `Rulers.ts` lives under Phaser scene folders, the cleanest 
 Proposed files:
 
 - `src/components/canvas/rulers/CanvasRulersOverlay.tsx`
-  - React component responsible for layout + event handling
+    - React component responsible for layout + event handling
 - `src/components/canvas/rulers/rulers-model.ts`
-  - Pure functions that compute tick/label positions from camera + size (ported from the current `Rulers.redraw()` logic)
+    - Pure functions that compute tick/label positions from camera + size (ported from the current `Rulers.redraw()` logic)
 - `src/components/canvas/rulers/guides-model.ts`
-  - Guide storage shape and helpers (create/update/clear)
+    - Guide storage shape and helpers (create/update/clear)
 - `src/components/canvas/rulers/CanvasRulersOverlay.module.css`
-  - Only if we need hover effects or cursor styling (per repo guidelines)
+    - Only if we need hover effects or cursor styling (per repo guidelines)
 
 Alternative (less ideal, but minimal churn):
 
 - Convert `src/components/canvas/phaser/scenes/main/Rulers.ts` into a DOM/React module and import it from `CanvasContainer`.
-  - This keeps the filename stable but mixes DOM concerns under a Phaser directory.
-  - Prefer the “move to `src/components/canvas/rulers/`” approach long-term.
+    - This keeps the filename stable but mixes DOM concerns under a Phaser directory.
+    - Prefer the “move to `src/components/canvas/rulers/`” approach long-term.
 
 ---
 
@@ -103,7 +103,7 @@ To make updates more immediate and reduce reliance on incidental redraw calls:
 Recommended approach:
 
 - Add a Phaser app event like `camera-changed` emitted from `MainScene.onResizeOrCameraChange()`
-  - Payload: `{ zoom, scrollX, scrollY }` + optionally `{ viewportW, viewportH }`
+    - Payload: `{ zoom, scrollX, scrollY }` + optionally `{ viewportW, viewportH }`
 - React overlay subscribes to that event (via existing DI/event plumbing)
 - React overlay also reads `state.canvas.camera` as a fallback/canonical snapshot
 
@@ -113,9 +113,9 @@ In the DOM overlay, the “viewport” is the `CanvasContainer` content box:
 
 - Track container size via `ResizeObserver` (or a Mantine hook if one is already standard in the repo).
 - This is required for:
-  - computing visible world area (via the existing formulas)
-  - placing the bottom ruler at the correct screen y
-  - pointer→world coordinate conversion for guides
+    - computing visible world area (via the existing formulas)
+    - placing the bottom ruler at the correct screen y
+    - pointer→world coordinate conversion for guides
 
 ---
 
@@ -161,9 +161,9 @@ They should:
 - sit above the Phaser canvas
 - not break existing overlays (drop preview, alignment controls)
 - use the same styling cues as current:
-  - background `#242424`
-  - text color `rgba(255, 255, 255, 0.66)`
-  - font family `Nunito` (DOM can use app font; Phaser currently hardcodes it)
+    - background `#242424`
+    - text color `rgba(255, 255, 255, 0.66)`
+    - font family `Nunito` (DOM can use app font; Phaser currently hardcodes it)
 
 ### 5.2 Labels/ticks computation (ported 1:1 first)
 
@@ -191,14 +191,14 @@ Current Phaser implementation has a TODO about hanging at high zoom; DOM can avo
 
 - Keep a hard cap similar to today’s `rowsNum/columnsNum <= 100` for parity (v1)
 - Update labels on:
-  - camera change events (throttled)
-  - container resize (debounced)
+    - camera change events (throttled)
+    - container resize (debounced)
 - Use `requestAnimationFrame` scheduling to coalesce rapid input updates
 
 Optional v2 optimization:
 
 - Render ticks/labels into a small `<canvas>` (2D) in each band to avoid many DOM nodes.
-  - Still “DOM-based” (no Phaser), but less interactive unless layered with a transparent pointer layer.
+    - Still “DOM-based” (no Phaser), but less interactive unless layered with a transparent pointer layer.
 
 ---
 
@@ -220,8 +220,8 @@ Decide persistence:
 Behavior:
 
 - When pointer is over:
-  - left ruler band → preview **horizontal** guide at hovered world Y
-  - bottom ruler band → preview **vertical** guide at hovered world X
+    - left ruler band → preview **horizontal** guide at hovered world Y
+    - bottom ruler band → preview **vertical** guide at hovered world X
 - Render preview as a thin line across the viewport (above canvas), with `pointer-events: none`.
 
 ### 6.3 Drag to create guides
@@ -229,36 +229,36 @@ Behavior:
 Behavior:
 
 - Pointer down on ruler band starts drag:
-  - Create a guide with orientation based on band
-  - While dragging, update its world coordinate continuously
-  - Pointer up finalizes
+    - Create a guide with orientation based on band
+    - While dragging, update its world coordinate continuously
+    - Pointer up finalizes
 - Use pointer capture (`setPointerCapture`) so drag continues outside band.
 
 Coordinate conversion:
 
 - Convert pointer `(clientX, clientY)` to container-local `(x, y)` via `getBoundingClientRect()`
 - Convert to world coordinate:
-  - For horizontal guide (from left ruler): `worldY = scrollY + y / zoom`
-  - For vertical guide (from bottom ruler): `worldX = scrollX + x / zoom`
+    - For horizontal guide (from left ruler): `worldY = scrollY + y / zoom`
+    - For vertical guide (from bottom ruler): `worldX = scrollX + x / zoom`
 
 ### 6.4 Right-click clears guides
 
 Behavior:
 
 - Context menu (`onContextMenu`) on either band:
-  - prevent default
-  - clear all guides
+    - prevent default
+    - clear all guides
 
 ### 6.5 Rendering guides
 
 Render guides as overlay lines positioned via world→screen mapping:
 
 - Vertical guide at worldX:
-  - `screenX = (worldX - scrollX) * zoom`
-  - line spans full viewport height
+    - `screenX = (worldX - scrollX) * zoom`
+    - line spans full viewport height
 - Horizontal guide at worldY:
-  - `screenY = (worldY - scrollY) * zoom`
-  - line spans full viewport width
+    - `screenY = (worldY - scrollY) * zoom`
+    - line spans full viewport width
 
 Include:
 
@@ -273,7 +273,7 @@ Include:
 
 - Add `CanvasRulersOverlay` to `CanvasContainer.tsx` as an absolutely positioned overlay.
 - Ensure z-index ordering:
-  - guides/rulers should appear above canvas, but not block asset drop preview if that’s more important (decide layering explicitly).
+    - guides/rulers should appear above canvas, but not block asset drop preview if that’s more important (decide layering explicitly).
 
 ### 7.2 Provide camera-change events (Phaser → React)
 
@@ -283,10 +283,10 @@ Include:
 ### 7.3 Remove Phaser rulers codepath entirely
 
 - In `MainScene.ts`:
-  - Remove `import { Rulers } from './Rulers'`
-  - Remove `private rulers!: Rulers`
-  - Remove instantiation in `create()`
-  - Remove `this.rulers.redraw(...)` call from `onResizeOrCameraChange()`
+    - Remove `import { Rulers } from './Rulers'`
+    - Remove `private rulers!: Rulers`
+    - Remove instantiation in `create()`
+    - Remove `this.rulers.redraw(...)` call from `onResizeOrCameraChange()`
 - Delete `src/components/canvas/phaser/scenes/main/Rulers.ts` (or keep only pure shared math moved elsewhere).
 
 ---
@@ -296,9 +296,9 @@ Include:
 ### 8.1 Visual parity (rulers)
 
 - At camera zooms: `0.25`, `0.5`, `1`, `2`, `4`, `10`:
-  - Labels appear in same places as before
-  - Label values match (same `cellSize` behavior)
-  - Label scaling matches (same `labelScale`)
+    - Labels appear in same places as before
+    - Label values match (same `cellSize` behavior)
+    - Label scaling matches (same `labelScale`)
 
 ### 8.2 Interaction behavior (guides)
 
@@ -321,4 +321,3 @@ Include:
 - Add tick lines (minor ticks + major ticks) to rulers (currently labels only)
 - Add guide selection/move/delete and snapping behavior
 - Persist guides per-prefab if desired (and decide whether they should export or remain editor-only)
-

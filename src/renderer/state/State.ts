@@ -5,6 +5,7 @@ import { debounce, merge } from 'es-toolkit'
 import { PartialDeep } from 'type-fest'
 import { proxy, subscribe as subscribeValtio, useSnapshot } from 'valtio'
 import { z } from 'zod'
+
 import { projectConfigSchema } from '../project/ProjectConfig'
 import { defaultEditorSettings, editorSettingsSchema, type EditorSettings } from '../settings/EditorSettings'
 import { AssetTreeItemData } from '../types/assets'
@@ -19,7 +20,7 @@ export const stateSchema = z.object({
 			name: z.string().min(1),
 			dir: absolutePathSchema,
 			lastOpenedAt: z.number().positive().int(),
-		})
+		}),
 	),
 	app: z.object({
 		history: z.object({
@@ -59,7 +60,7 @@ export const stateSchema = z.object({
 					assetId: z.string(),
 					name: z.string(),
 					lastOpenedAt: z.number().int().positive(),
-				})
+				}),
 			)
 			.default([]),
 		currentPrefab: z
@@ -145,7 +146,7 @@ const initialStateParsed = merge(
 		},
 	} satisfies PartialDeep<State>,
 	// @ts-expect-error persisted state shape is unknown until parsed
-	JSON.parse(localStorage.getItem('state') || '{}')
+	JSON.parse(localStorage.getItem('state') || '{}'),
 )
 
 // TODO handle errors
@@ -195,7 +196,7 @@ type Op = [op: 'set', path: Path, value: unknown, prevValue: unknown] | [op: 'de
 const subscribe = (
 	proxyObject: object,
 	callback: (unstable_ops: Op[]) => void,
-	options: { notifyInSync?: boolean; signal?: AbortSignal } = {}
+	options: { notifyInSync?: boolean; signal?: AbortSignal } = {},
 ): (() => void) => {
 	const unsub = subscribeValtio(proxyObject, callback, options.notifyInSync)
 

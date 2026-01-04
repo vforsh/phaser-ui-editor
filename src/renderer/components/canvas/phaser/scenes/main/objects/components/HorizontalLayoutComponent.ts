@@ -8,7 +8,7 @@ import { alignChildrenAroundCenter, getCellCenterOffset } from './LayoutUtils'
 export class HorizontalLayoutComponent extends BaseEditableComponent<HorizontalLayoutComponentJson> {
 	public readonly type = 'horizontal-layout'
 	private _stateChanges: StateChangesEmitter<HorizontalLayoutComponentJson>
-	protected declare _obj: EditableContainer
+	declare protected _obj: EditableContainer
 
 	private cellWidth = 100
 	private cellHeight = 100
@@ -55,13 +55,13 @@ export class HorizontalLayoutComponent extends BaseEditableComponent<HorizontalL
 					this.updateLayout()
 				},
 			},
-			this.destroySignal
+			this.destroySignal,
 		)
 
 		this._preAddChecks.push(
 			this._preAddChecksFactory.requireObjectType('Container'),
 			this._preAddChecksFactory.requireNoComponentOfType('vertical-layout'),
-			this._preAddChecksFactory.requireNoComponentOfType('grid-layout')
+			this._preAddChecksFactory.requireNoComponentOfType('grid-layout'),
 		)
 	}
 

@@ -1,6 +1,7 @@
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { ColorInput, Stack } from '@mantine/core'
 import { Snapshot, useSnapshot } from 'valtio'
+
 import { BaseSectionProps } from '../BaseSection'
 import { CheckboxCustom } from '../common/CheckboxCustom'
 import { NumberInputCustom } from '../common/NumberInputCustom'
@@ -20,15 +21,11 @@ interface DisplaySectionProps extends BaseSectionProps<EditableObjectJson> {}
 export function DisplaySection({ data }: DisplaySectionProps) {
 	const snap = useSnapshot(data)
 
-	const hasTint = (
-		obj: EditableObjectJson | Snapshot<EditableObjectJson>
-	): obj is EditableObjectJson & { tint: number } => {
+	const hasTint = (obj: EditableObjectJson | Snapshot<EditableObjectJson>): obj is EditableObjectJson & { tint: number } => {
 		return 'tint' in obj && typeof obj.tint === 'number'
 	}
 
-	const hasTintFill = (
-		obj: EditableObjectJson | Snapshot<EditableObjectJson>
-	): obj is EditableObjectJson & { tintFill: boolean } => {
+	const hasTintFill = (obj: EditableObjectJson | Snapshot<EditableObjectJson>): obj is EditableObjectJson & { tintFill: boolean } => {
 		return 'tintFill' in obj && typeof obj.tintFill === 'boolean'
 	}
 
@@ -66,11 +63,7 @@ export function DisplaySection({ data }: DisplaySectionProps) {
 			)}
 
 			{hasTintFill(data) && hasTintFill(snap) && (
-				<CheckboxCustom
-					label="Tint Fill"
-					checked={snap.tintFill}
-					onChange={(checked) => (data.tintFill = checked)}
-				/>
+				<CheckboxCustom label="Tint Fill" checked={snap.tintFill} onChange={(checked) => (data.tintFill = checked)} />
 			)}
 		</Stack>
 	)

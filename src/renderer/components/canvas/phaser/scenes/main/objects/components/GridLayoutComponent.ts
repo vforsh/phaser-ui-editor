@@ -8,7 +8,7 @@ import { alignChildrenAroundCenter } from './LayoutUtils'
 export class GridLayoutComponent extends BaseEditableComponent<GridLayoutComponentJson> {
 	public readonly type = 'grid-layout'
 	private _stateChanges: StateChangesEmitter<GridLayoutComponentJson>
-	protected declare _obj: EditableContainer
+	declare protected _obj: EditableContainer
 
 	private columns = 3
 	private cellWidth = 100
@@ -73,13 +73,13 @@ export class GridLayoutComponent extends BaseEditableComponent<GridLayoutCompone
 					this.updateLayout()
 				},
 			},
-			this.destroySignal
+			this.destroySignal,
 		)
 
 		this._preAddChecks.push(
 			this._preAddChecksFactory.requireObjectType('Container'),
 			this._preAddChecksFactory.requireNoComponentOfType('horizontal-layout'),
-			this._preAddChecksFactory.requireNoComponentOfType('vertical-layout')
+			this._preAddChecksFactory.requireNoComponentOfType('vertical-layout'),
 		)
 	}
 

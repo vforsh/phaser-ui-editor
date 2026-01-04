@@ -1,4 +1,5 @@
 import { z } from 'zod'
+
 import { LogLevel } from '../logs/LogsManager'
 
 export const settingsSectionIds = ['general', 'hierarchy', 'canvas', 'assets', 'inspector', 'dev', 'misc'] as const

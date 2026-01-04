@@ -1,9 +1,11 @@
 import { P, match } from 'ts-pattern'
-import { state, unproxy } from '../../../state/State'
+
 import type { AssetTreeItemData } from '../../../types/assets'
-import { getAssetById } from '../../../types/assets'
 import type { getAssetInfoCommand } from '../../api/commands/getAssetInfo'
 import type { CommandHandler } from '../types'
+
+import { state, unproxy } from '../../../state/State'
+import { getAssetById } from '../../../types/assets'
 import { findAssetByPath, normalizeAssetPaths } from '../utils/assets'
 
 /**

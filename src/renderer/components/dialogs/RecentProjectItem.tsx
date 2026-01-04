@@ -79,5 +79,5 @@ export const RecentProjectItem = forwardRef<HTMLButtonElement, RecentProjectItem
 				</Group>
 			</UnstyledButton>
 		)
-	}
+	},
 )

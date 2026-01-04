@@ -1,5 +1,6 @@
 import { state } from '@state/State'
 import { ILogObj, Logger } from 'tslog'
+
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { TypedEventEmitter } from '../../robowhale/phaser3/TypedEventEmitter'
 import { EditableObject, EditableObjectJson } from './objects/EditableObject'
@@ -21,7 +22,7 @@ export class CanvasClipboard extends TypedEventEmitter<Events> {
 
 	constructor(
 		private readonly scene: BaseScene,
-		private readonly options: ClipboardOptions
+		private readonly options: ClipboardOptions,
 	) {
 		super()
 

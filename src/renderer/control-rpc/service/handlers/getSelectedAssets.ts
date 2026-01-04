@@ -1,6 +1,7 @@
-import { state } from '../../../state/State'
 import type { getSelectedAssetsCommand } from '../../api/commands/getSelectedAssets'
 import type { CommandHandler } from '../types'
+
+import { state } from '../../../state/State'
 
 /**
  * @see {@link getSelectedAssetsCommand} for command definition

@@ -2,6 +2,7 @@ import { EditableNineSliceJson } from '@components/canvas/phaser/scenes/main/obj
 import { isSizeLockedForObjectJson } from '@components/canvas/phaser/scenes/main/objects/editing/editRestrictions'
 import { Box, Group, Stack, TextInput, Tooltip } from '@mantine/core'
 import { useSnapshot } from '@state/State'
+
 import { useNineSliceAssets } from '../../../../hooks/useNineSliceAssets'
 import { getAssetById } from '../../../../types/assets'
 import { AssetPicker } from '../../../common/AssetPicker/AssetPicker'

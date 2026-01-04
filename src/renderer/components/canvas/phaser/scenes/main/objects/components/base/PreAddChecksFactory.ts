@@ -1,4 +1,5 @@
 import { err, ok, Result } from 'neverthrow'
+
 import { EditableObject, EditableObjectType } from '../../EditableObject'
 import { EditableComponentType } from './EditableComponent'
 

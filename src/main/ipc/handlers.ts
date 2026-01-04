@@ -10,7 +10,7 @@ import sharp from 'sharp'
 import trash from 'trash'
 
 import type { TexturePacker } from '../../../../types/texture-packer'
-import type { MainApi } from '../../backend/contract/contract'
+import type { MainApi } from '../../shared/main-api/MainApi'
 
 import { normalizeAbsolutePath } from './utils/path'
 

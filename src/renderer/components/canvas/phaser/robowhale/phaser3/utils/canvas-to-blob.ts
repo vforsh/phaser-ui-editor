@@ -12,7 +12,7 @@ export function canvasToBlob(canvas: HTMLCanvasElement, type?: Format, quality?:
 					}
 				},
 				type,
-				quality
+				quality,
 			)
 		} catch (error) {
 			reject(error)

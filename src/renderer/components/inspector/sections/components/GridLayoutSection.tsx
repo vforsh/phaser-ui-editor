@@ -1,6 +1,7 @@
 import { GridLayoutComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/GridLayoutComponent'
 import { Group, Space, Stack, Switch } from '@mantine/core'
 import { useSnapshot } from 'valtio'
+
 import { BaseSectionProps } from '../BaseSection'
 import { NumberInputCustom } from '../common/NumberInputCustom'
 

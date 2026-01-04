@@ -1,6 +1,7 @@
 import { logger } from '@logs/logs'
 import { Box, Group, Paper, Stack } from '@mantine/core'
 import { useCallback, useEffect, useState } from 'react'
+
 import { useUndoHub } from '../di/DiHooks'
 import { openProjectByPath } from '../project/open-project'
 import { state, useSnapshot } from '../state/State'
@@ -56,9 +57,7 @@ export default function EditorLayout() {
 			const activeElement = document.activeElement
 			const isInputFocused =
 				activeElement instanceof HTMLElement &&
-				(activeElement.tagName === 'INPUT' ||
-					activeElement.tagName === 'TEXTAREA' ||
-					activeElement.isContentEditable)
+				(activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.isContentEditable)
 
 			if (isInputFocused) {
 				return
@@ -80,9 +79,7 @@ export default function EditorLayout() {
 			const activeElement = document.activeElement
 			const isInputFocused =
 				activeElement instanceof HTMLElement &&
-				(activeElement.tagName === 'INPUT' ||
-					activeElement.tagName === 'TEXTAREA' ||
-					activeElement.isContentEditable)
+				(activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.isContentEditable)
 
 			if (isInputFocused) {
 				return
@@ -170,9 +167,7 @@ export default function EditorLayout() {
 						)}
 
 						{/* Horizontal Divider */}
-						{(displayHierarchyPanel || displayAssetsPanel) && (
-							<ResizableDivider onResize={handleHierarchyResize} />
-						)}
+						{(displayHierarchyPanel || displayAssetsPanel) && <ResizableDivider onResize={handleHierarchyResize} />}
 
 						{/* Assets Panel */}
 						{displayAssetsPanel && (
@@ -236,11 +231,7 @@ export default function EditorLayout() {
 				</Paper>
 			</Group>
 
-			<OpenProjectDialog
-				opened={openProjectDialogOpen}
-				onClose={() => setOpenProjectDialogOpen(false)}
-				onOpenProject={openProject}
-			/>
+			<OpenProjectDialog opened={openProjectDialogOpen} onClose={() => setOpenProjectDialogOpen(false)} onOpenProject={openProject} />
 		</>
 	)
 }

@@ -12,7 +12,7 @@ export class Grid extends Phaser.GameObjects.Container {
 		gameSize: { width: number; height: number },
 		camera: Phaser.Cameras.Scene2D.Camera,
 		scrollX: number,
-		scrollY: number
+		scrollY: number,
 	): void {
 		this.redrawGrid(gameSize, camera, scrollX, scrollY)
 	}
@@ -21,7 +21,7 @@ export class Grid extends Phaser.GameObjects.Container {
 		gameSize: { width: number; height: number },
 		camera: Phaser.Cameras.Scene2D.Camera,
 		scrollX: number,
-		scrollY: number
+		scrollY: number,
 	) {
 		// TODO account for camera scroll
 

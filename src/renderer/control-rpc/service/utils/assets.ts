@@ -1,6 +1,8 @@
 import { match } from 'ts-pattern'
+
 import type { AssetTreeItemData } from '../../../types/assets'
 import type { AssetNode, AssetType } from '../../api/ControlApi'
+
 import { toProjectRelativePath } from './paths'
 
 export function normalizeAssetPaths(asset: AssetTreeItemData, projectDir: string): AssetNode {
@@ -30,9 +32,7 @@ export function normalizeAssetPaths(asset: AssetTreeItemData, projectDir: string
 			path: toProjectRelativePath(spritesheetFolder.path, projectDir),
 			imagePath: toProjectRelativePath(spritesheetFolder.imagePath, projectDir),
 			jsonPath: toProjectRelativePath(spritesheetFolder.jsonPath, projectDir),
-			project: spritesheetFolder.project
-				? toProjectRelativePath(spritesheetFolder.project, projectDir)
-				: undefined,
+			project: spritesheetFolder.project ? toProjectRelativePath(spritesheetFolder.project, projectDir) : undefined,
 			children: spritesheetFolder.children.map((child) => normalizeAssetPaths(child, projectDir)) as AssetNode[],
 		}))
 		.with({ type: 'spritesheet-frame' }, (spritesheetFrame) => ({
@@ -92,7 +92,7 @@ export function normalizeAssetPaths(asset: AssetTreeItemData, projectDir: string
 export function findAssetByPath(
 	items: AssetTreeItemData[],
 	projectRelativePath: string,
-	projectDir: string
+	projectDir: string,
 ): AssetTreeItemData | undefined {
 	for (const item of items) {
 		if (toProjectRelativePath(item.path, projectDir) === projectRelativePath) {

@@ -4,6 +4,7 @@ import { useDisclosure } from '@mantine/hooks'
 import { ChevronRight, ClipboardPaste, Copy, HelpCircle, MoreVertical, RotateCcw, Trash } from 'lucide-react'
 import { useState } from 'react'
 import { useSnapshot } from 'valtio'
+
 import sectionClasses from '../../InspectorSection.module.css'
 import { BaseSectionProps } from '../BaseSection'
 import classes from './ComponentSection.module.css'
@@ -72,16 +73,7 @@ interface ComponentSectionProps extends BaseSectionProps<EditableComponentJson> 
 	onPaste: () => void
 }
 
-export function ComponentSection({
-	data,
-	content,
-	onReset,
-	onMoveUp,
-	onMoveDown,
-	onRemove,
-	onCopy,
-	onPaste,
-}: ComponentSectionProps) {
+export function ComponentSection({ data, content, onReset, onMoveUp, onMoveDown, onRemove, onCopy, onPaste }: ComponentSectionProps) {
 	const componentType = data.type
 	const theme = useMantineTheme()
 	const [expanded, setExpanded] = useState(true)

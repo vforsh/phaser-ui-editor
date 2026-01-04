@@ -1,8 +1,10 @@
 import { P, match } from 'ts-pattern'
-import { state, unproxy } from '../../../state/State'
+
 import type { getObjectCommand } from '../../api/commands/getObject'
 import type { ControlInput } from '../../api/ControlApi'
 import type { CommandHandler } from '../types'
+
+import { state, unproxy } from '../../../state/State'
 import { resolveObjectIdByPath } from '../utils/object-path'
 
 /**

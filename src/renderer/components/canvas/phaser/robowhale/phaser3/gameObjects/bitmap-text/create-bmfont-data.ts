@@ -77,7 +77,7 @@ export function createBmfontData(
 	config: BitmapFontProjectConfig,
 	glyphs: Phaser.GameObjects.Text[],
 	texture: BitmapFontTexture,
-	font: Font
+	font: Font,
 ): BmFontData | null {
 	if (glyphs.length === 0) {
 		return null

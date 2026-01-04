@@ -1,12 +1,13 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { match } from 'ts-pattern'
+
+import { ComponentsManager } from './components/base/ComponentsManager'
+import { EditableComponentJson } from './components/base/EditableComponent'
 import { EditableBitmapText, EditableBitmapTextJson } from './EditableBitmapText'
 import { EditableContainer, EditableContainerJson } from './EditableContainer'
 import { EditableImage, EditableImageJson } from './EditableImage'
 import { EditableNineSlice, EditableNineSliceJson } from './EditableNineSlice'
 import { EditableText, EditableTextJson } from './EditableText'
-import { ComponentsManager } from './components/base/ComponentsManager'
-import { EditableComponentJson } from './components/base/EditableComponent'
 
 export const EDITABLE_SYMBOL = Symbol('EditableObject')
 
@@ -52,17 +53,13 @@ export type EditableObjectType = EditableObject['kind']
 
 export type EditableObjectOfType<T extends EditableObjectType> = Extract<EditableObject, { kind: T }>
 
-export function isObjectOfType<T extends EditableObjectType>(
-	obj: EditableObject,
-	type: T
-): obj is EditableObjectOfType<T> {
+export function isObjectOfType<T extends EditableObjectType>(obj: EditableObject, type: T): obj is EditableObjectOfType<T> {
 	return obj.kind === type
 }
 
 // #region JSON
-export type CreateEditableObjectJson<
-	T extends { readonly type: string; locked: boolean; components: EditableComponentJson[] },
-> = Phaser.Types.GameObjects.JSONGameObject & T
+export type CreateEditableObjectJson<T extends { readonly type: string; locked: boolean; components: EditableComponentJson[] }> =
+	Phaser.Types.GameObjects.JSONGameObject & T
 
 export type EditableObjectJson =
 	| EditableContainerJson

@@ -1,4 +1,5 @@
 import { Checkbox, CheckboxProps } from '@mantine/core'
+
 import classes from './CheckboxCustom.module.css'
 
 interface CheckboxCustomProps extends Omit<CheckboxProps, 'onChange'> {

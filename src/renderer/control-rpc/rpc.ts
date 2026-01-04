@@ -37,10 +37,7 @@ export type ControlIpc = {
 	sendEditorStatus: (status: { projectPath: string | null }) => void
 }
 
-export function createJsonRpcResult<M extends ControlMethod>(
-	id: JsonRpcId,
-	result: ControlOutput<M>
-): JsonRpcSuccess<M> {
+export function createJsonRpcResult<M extends ControlMethod>(id: JsonRpcId, result: ControlOutput<M>): JsonRpcSuccess<M> {
 	return {
 		jsonrpc: '2.0',
 		id,

@@ -1,6 +1,7 @@
 import { Badge, Button, Center, Group, Loader, Overlay, Paper, Stack, Text, ThemeIcon } from '@mantine/core'
 import { Cuboid } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+
 import { useAppCommands, useAppEvents, useUndoHub } from '../../di/DiHooks'
 import { State, state, useSnapshot } from '../../state/State'
 import { getAssetsOfType, isDraggableAsset, type AssetTreeItemData } from '../../types/assets'
@@ -259,9 +260,7 @@ export default function CanvasContainer() {
 															key={prefab.assetId}
 															variant="light"
 															size="xs"
-															onClick={() =>
-																appCommands.emit('open-prefab', prefab.assetId)
-															}
+															onClick={() => appCommands.emit('open-prefab', prefab.assetId)}
 														>
 															{prefab.name}
 														</Button>

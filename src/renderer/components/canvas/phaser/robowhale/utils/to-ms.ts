@@ -1,10 +1,4 @@
-export function toMs(value: {
-	days?: number
-	hours?: number
-	minutes?: number
-	seconds?: number
-	ms?: number
-}): number {
+export function toMs(value: { days?: number; hours?: number; minutes?: number; seconds?: number; ms?: number }): number {
 	let sum = 0
 
 	if (typeof value.days === 'number') {

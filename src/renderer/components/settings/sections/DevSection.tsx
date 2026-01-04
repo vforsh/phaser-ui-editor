@@ -1,5 +1,6 @@
 import { Button, Group, Select, Stack, Text } from '@mantine/core'
 import { useMemo } from 'react'
+
 import { logger } from '../../../logs/logs'
 import { LogLevel } from '../../../logs/LogsManager'
 import { clearSavedData, state, useSnapshot } from '../../../state/State'
@@ -13,7 +14,7 @@ export function DevSection() {
 				value: String(level),
 				label: LogLevel[level],
 			})),
-		[]
+		[],
 	)
 
 	const handleLogLevelChange = (value: string | null) => {
@@ -32,9 +33,7 @@ export function DevSection() {
 	}
 
 	const handleClearSavedData = () => {
-		const confirmed = window.confirm(
-			'Clear all saved editor data (including settings)? The app will reload after clearing.'
-		)
+		const confirmed = window.confirm('Clear all saved editor data (including settings)? The app will reload after clearing.')
 		if (!confirmed) {
 			return
 		}

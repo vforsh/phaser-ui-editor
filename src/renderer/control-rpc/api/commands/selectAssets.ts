@@ -1,4 +1,5 @@
 import { z } from 'zod'
+
 import { CommandDefinition } from '../ControlApi'
 
 export const selectAssetsCommand = {
@@ -19,7 +20,7 @@ export const selectAssetsCommand = {
 								path: z.string().min(1).describe('Project-relative path to the asset file'),
 							})
 							.strict(),
-					])
+					]),
 				)
 				.min(1)
 				.describe('List of assets to select (identified by ID or path)'),

@@ -1,6 +1,7 @@
-import { openProjectByPath } from '../../../project/open-project'
 import type { openProjectCommand } from '../../api/commands/openProject'
 import type { CommandHandler } from '../types'
+
+import { openProjectByPath } from '../../../project/open-project'
 
 /**
  * @see {@link openProjectCommand} for command definition

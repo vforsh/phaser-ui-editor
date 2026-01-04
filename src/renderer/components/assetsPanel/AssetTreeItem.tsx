@@ -1,22 +1,11 @@
 import { logger } from '@logs/logs'
 import { alpha, Group, Stack, Text, TextInput, UnstyledButton, useMantineTheme } from '@mantine/core'
 import { state } from '@state/State'
-import {
-	ChevronDown,
-	Cuboid,
-	File,
-	FileJson,
-	FileSpreadsheet,
-	FileType,
-	Folder,
-	FolderTree,
-	Image,
-	Images,
-	LayoutGrid,
-} from 'lucide-react'
+import { ChevronDown, Cuboid, File, FileJson, FileSpreadsheet, FileType, Folder, FolderTree, Image, Images, LayoutGrid } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { match } from 'ts-pattern'
 import { Snapshot, useSnapshot } from 'valtio'
+
 import { useDragAndDrop } from '../../hooks/useDragAndDrop'
 import { AssetTreeItemData, getExtension, getNameWithoutExtension, isDraggableAsset } from '../../types/assets'
 import { getAssetItemId } from './assetItemId'
@@ -283,11 +272,7 @@ export default function AssetTreeItem({
 						<Text
 							size="sm"
 							style={{
-								color: isSelected
-									? theme.white
-									: isHovered
-										? theme.colors.gray[1]
-										: theme.colors.gray[4],
+								color: isSelected ? theme.white : isHovered ? theme.colors.gray[1] : theme.colors.gray[4],
 								transition: 'color 100ms ease',
 								whiteSpace: 'nowrap',
 								overflow: 'hidden',

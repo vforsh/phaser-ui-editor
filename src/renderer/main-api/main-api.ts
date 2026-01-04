@@ -1,6 +1,6 @@
-import type { MainApi, MainApiMethod } from '../../backend/contract/contract'
+import type { MainApi, MainApiMethod } from '../../shared/main-api/MainApi'
 
-import { mainApiContract } from '../../backend/contract/contract'
+import { mainApiContract } from '../../shared/main-api/MainApi'
 
 function requireMainApi(): MainApi {
 	if (!window.mainApi) {

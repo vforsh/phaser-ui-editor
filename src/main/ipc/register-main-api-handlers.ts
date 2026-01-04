@@ -1,8 +1,8 @@
 import { ipcMain } from 'electron'
 
-import type { MainApiInput, MainApiMethod, MainApiOutput } from '../../backend/contract/contract'
+import type { MainApiInput, MainApiMethod, MainApiOutput } from '../../shared/main-api/MainApi'
 
-import { mainApiContract } from '../../backend/contract/contract'
+import { mainApiContract } from '../../shared/main-api/MainApi'
 import { mainApiHandlers } from './handlers'
 
 const CHANNEL_PREFIX = 'main-api:'

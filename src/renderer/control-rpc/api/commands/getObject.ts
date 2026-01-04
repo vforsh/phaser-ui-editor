@@ -1,5 +1,7 @@
 import type { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+
 import { z } from 'zod'
+
 import { CommandDefinition } from '../ControlApi'
 
 export const getObjectCommand = {
@@ -19,7 +21,5 @@ export const getObjectCommand = {
 				.strict(),
 		])
 		.describe('Input parameters for getting a game object (ID or path)'),
-	output: (z.unknown() as z.ZodType<EditableObjectJson>).describe(
-		'Editable object JSON for the resolved game object'
-	),
+	output: (z.unknown() as z.ZodType<EditableObjectJson>).describe('Editable object JSON for the resolved game object'),
 } satisfies CommandDefinition

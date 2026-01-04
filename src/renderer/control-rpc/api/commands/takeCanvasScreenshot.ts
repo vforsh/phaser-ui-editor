@@ -1,4 +1,5 @@
 import { z } from 'zod'
+
 import { absolutePathSchema } from '../../../state/Schemas'
 import { CommandDefinition } from '../ControlApi'
 
@@ -8,10 +9,7 @@ export const takeCanvasScreenshotCommand = {
 		'Takes a PNG screenshot of the current Phaser canvas, saves it into <projectDir>/screenshots, and returns the absolute file path.',
 	input: z
 		.object({
-			clean: z
-				.boolean()
-				.optional()
-				.describe('Hide editor overlays before capturing (best-effort). Defaults to false.'),
+			clean: z.boolean().optional().describe('Hide editor overlays before capturing (best-effort). Defaults to false.'),
 			format: z.enum(['png', 'jpg', 'webp']).optional().describe('File format/extension. Defaults to png.'),
 		})
 		.strict()

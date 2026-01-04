@@ -11,7 +11,7 @@ import { match } from 'ts-pattern'
 import { ILogObj, Logger } from 'tslog'
 import WebFont from 'webfontloader'
 
-import type { WebFontParsed } from '../../../../../../backend/contract/contract'
+import type { WebFontParsed } from '../../../../../../shared/main-api/MainApi'
 import type { BmFontData } from '../../robowhale/phaser3/gameObjects/bitmap-text/create-bmfont-data'
 
 import { AppCommandsEmitter } from '../../../../../AppCommands'

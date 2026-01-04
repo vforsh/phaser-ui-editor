@@ -2,6 +2,7 @@ import { EditableTextJson } from '@components/canvas/phaser/scenes/main/objects/
 import { AssetPicker } from '@components/common/AssetPicker/AssetPicker'
 import { ColorInput, Group, Stack } from '@mantine/core'
 import { State, state, useSnapshot } from '@state/State'
+
 import { getAssetsOfType } from '../../../../types/assets'
 import { BaseSectionProps } from '../BaseSection'
 import { CheckboxCustom } from '../common/CheckboxCustom'
@@ -28,13 +29,7 @@ export function TextSection({ data }: TextSectionProps) {
 
 	return (
 		<Stack gap="xs">
-			<TextareaCustom
-				rows={3}
-				label="Content"
-				value={snap.text}
-				onChange={(e) => (data.text = e.currentTarget.value)}
-				size="xs"
-			/>
+			<TextareaCustom rows={3} label="Content" value={snap.text} onChange={(e) => (data.text = e.currentTarget.value)} size="xs" />
 
 			<NumberInputCustom
 				label="Resolution"
@@ -51,9 +46,7 @@ export function TextSection({ data }: TextSectionProps) {
 				<AssetPicker
 					label="Font Family"
 					assetIds={webFontAssetIds}
-					selectedAssetId={
-						webFontAssets.find((asset) => asset.fontFamily === snap.style.fontFamily)?.id ?? null
-					}
+					selectedAssetId={webFontAssets.find((asset) => asset.fontFamily === snap.style.fontFamily)?.id ?? null}
 					onSelect={(assetId) => {
 						const asset = webFontAssets.find((asset) => asset.id === assetId)
 						if (asset) {
@@ -76,12 +69,7 @@ export function TextSection({ data }: TextSectionProps) {
 				/>
 			</Group>
 
-			<ColorInput
-				label="Font Color"
-				value={snap.style.color}
-				onChange={(value) => (data.style.color = value)}
-				size="xs"
-			/>
+			<ColorInput label="Font Color" value={snap.style.color} onChange={(value) => (data.style.color = value)} size="xs" />
 
 			{/* <NumberInput
 				label="Font Weight"

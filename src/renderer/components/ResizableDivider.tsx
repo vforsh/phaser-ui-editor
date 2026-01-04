@@ -44,11 +44,7 @@ export default function ResizableDivider({ onResize, vertical = false }: Resizab
 			style={{
 				// margin: '10px 0px',
 				'cursor': vertical ? 'col-resize' : 'row-resize',
-				'background': isDragging
-					? 'var(--mantine-color-blue-filled)'
-					: isHovered
-						? 'var(--mantine-color-dark-4)'
-						: 'transparent',
+				'background': isDragging ? 'var(--mantine-color-blue-filled)' : isHovered ? 'var(--mantine-color-dark-4)' : 'transparent',
 				'transition': `background-color ${TRANSITION_DURATION} ease`,
 				'width': vertical ? '8px' : '100%',
 				'height': vertical ? '100%' : '8px',

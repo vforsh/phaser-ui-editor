@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+
 import { EmptyEvents, TypedEvent, TypedEventMap } from '../utils/events/TypedEvent'
 
 /**
@@ -19,7 +20,7 @@ export class TypedEventEmitter<TEvents extends TypedEventMap = EmptyEvents> exte
 		event: TEvent,
 		listener: TEvents[TEvent],
 		context?: unknown,
-		signal?: AbortSignal
+		signal?: AbortSignal,
 	): this {
 		if (signal) {
 			if (signal.aborted) {
@@ -36,7 +37,7 @@ export class TypedEventEmitter<TEvents extends TypedEventMap = EmptyEvents> exte
 		event: TEvent,
 		listener: TEvents[TEvent],
 		context?: unknown,
-		signal?: AbortSignal
+		signal?: AbortSignal,
 	): this {
 		if (signal) {
 			if (signal.aborted) {
@@ -49,12 +50,7 @@ export class TypedEventEmitter<TEvents extends TypedEventMap = EmptyEvents> exte
 		return super.once(event, listener, context)
 	}
 
-	override off<TEvent extends TypedEvent<TEvents>>(
-		event: TEvent,
-		listener: TEvents[TEvent],
-		context?: unknown,
-		once?: boolean
-	): this {
+	override off<TEvent extends TypedEvent<TEvents>>(event: TEvent, listener: TEvents[TEvent], context?: unknown, once?: boolean): this {
 		return super.off(event, listener, context, once)
 	}
 
@@ -67,5 +63,4 @@ export class TypedEventEmitter<TEvents extends TypedEventMap = EmptyEvents> exte
 	}
 }
 
-export type TypedEventEmitterEvents<T extends TypedEventEmitter<any>> =
-	T extends TypedEventEmitter<infer E> ? keyof E : never
+export type TypedEventEmitterEvents<T extends TypedEventEmitter<any>> = T extends TypedEventEmitter<infer E> ? keyof E : never

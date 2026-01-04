@@ -1,10 +1,5 @@
 import { ActionIcon, Group, Tooltip, useMantineTheme } from '@mantine/core'
-import {
-	AlignCenterVertical,
-	AlignEndVertical,
-	AlignHorizontalDistributeCenter,
-	AlignStartVertical,
-} from 'lucide-react'
+import { AlignCenterVertical, AlignEndVertical, AlignHorizontalDistributeCenter, AlignStartVertical } from 'lucide-react'
 
 interface AlignmentControlsProps {
 	orientation: 'horizontal' | 'vertical'
@@ -14,13 +9,7 @@ interface AlignmentControlsProps {
 	onDistribute: () => void
 }
 
-export default function AlignmentControls({
-	orientation,
-	onAlignStart,
-	onAlignCenter,
-	onAlignEnd,
-	onDistribute,
-}: AlignmentControlsProps) {
+export default function AlignmentControls({ orientation, onAlignStart, onAlignCenter, onAlignEnd, onDistribute }: AlignmentControlsProps) {
 	const theme = useMantineTheme()
 	const isHorizontal = orientation === 'horizontal'
 	const iconColor = theme.colors.gray[5]
@@ -50,11 +39,7 @@ export default function AlignmentControls({
 			}}
 		>
 			<Tooltip label={isHorizontal ? 'Align left' : 'Align top'}>
-				<ActionIcon
-					variant="subtle"
-					onClick={onAlignStart}
-					aria-label={isHorizontal ? 'Align left' : 'Align top'}
-				>
+				<ActionIcon variant="subtle" onClick={onAlignStart} aria-label={isHorizontal ? 'Align left' : 'Align top'}>
 					<AlignStartVertical size={iconSize} color={iconColor} />
 				</ActionIcon>
 			</Tooltip>
@@ -66,11 +51,7 @@ export default function AlignmentControls({
 			</Tooltip>
 
 			<Tooltip label={isHorizontal ? 'Align right' : 'Align bottom'}>
-				<ActionIcon
-					variant="subtle"
-					onClick={onAlignEnd}
-					aria-label={isHorizontal ? 'Align right' : 'Align bottom'}
-				>
+				<ActionIcon variant="subtle" onClick={onAlignEnd} aria-label={isHorizontal ? 'Align right' : 'Align bottom'}>
 					<AlignEndVertical size={iconSize} color={iconColor} />
 				</ActionIcon>
 			</Tooltip>

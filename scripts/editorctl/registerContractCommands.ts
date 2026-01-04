@@ -1,16 +1,14 @@
 import { Command } from 'commander'
 import process from 'node:process'
 import { zodToJsonSchema } from 'zod-to-json-schema'
-import {
-	controlContract,
-	isControlMethod,
-	type ControlMethod,
-} from '../../src/control-rpc/api/ControlApi'
+
 import type { CommandDefinition } from '../../src/control-rpc/api/ControlApi'
-import { createValidationError } from './lib/errors'
-import { parseJsonObject, parseJsonText } from './lib/json-input'
-import { createInputHelpText } from './lib/help/json-schema-input-help'
 import type { Ctx } from './lib/context'
+
+import { controlContract, isControlMethod, type ControlMethod } from '../../src/control-rpc/api/ControlApi'
+import { createValidationError } from './lib/errors'
+import { createInputHelpText } from './lib/help/json-schema-input-help'
+import { parseJsonObject, parseJsonText } from './lib/json-input'
 
 export function registerContractCommands(program: Command, ctx: Ctx): void {
 	const entries = Object.entries(controlContract) as Array<[ControlMethod, CommandDefinition]>
@@ -77,9 +75,7 @@ export function registerIntrospectionCommands(program: Command): void {
 				name: `${controlMethod}Output`,
 			})
 
-			process.stdout.write(
-				`${JSON.stringify({ method: controlMethod, inputSchema, outputSchema }, null, 2)}\n`
-			)
+			process.stdout.write(`${JSON.stringify({ method: controlMethod, inputSchema, outputSchema }, null, 2)}\n`)
 		})
 }
 

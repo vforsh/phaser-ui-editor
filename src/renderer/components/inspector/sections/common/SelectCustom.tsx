@@ -1,5 +1,6 @@
 import { Select, SelectProps } from '@mantine/core'
 import { useEventListener } from '@mantine/hooks'
+
 import classes from './SelectCustom.module.css'
 
 interface SelectCustomProps<TOptions extends readonly string[]> extends Omit<SelectProps, 'onChange'> {
@@ -31,7 +32,7 @@ export function SelectCustom<TOptions extends readonly string[]>(props: SelectCu
 
 			onChange(newValue as TOptions[number])
 		},
-		{ passive: false }
+		{ passive: false },
 	)
 
 	return (

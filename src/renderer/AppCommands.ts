@@ -9,6 +9,7 @@ import {
 	EditableComponentType,
 } from '@components/canvas/phaser/scenes/main/objects/components/base/EditableComponent'
 import { EditableObjectType } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+
 import { CommandEmitter } from './components/canvas/phaser/robowhale/utils/events/CommandEmitter'
 import { AssetTreeItemData } from './types/assets'
 

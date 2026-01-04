@@ -72,7 +72,7 @@ export abstract class BaseScene extends Phaser.Scene {
 				}
 			},
 			context,
-			signal || this.shutdownSignal
+			signal || this.shutdownSignal,
 		)
 	}
 
@@ -85,7 +85,7 @@ export abstract class BaseScene extends Phaser.Scene {
 				}
 			},
 			context,
-			signal || this.shutdownSignal
+			signal || this.shutdownSignal,
 		)
 	}
 

@@ -12,6 +12,7 @@ import { state } from '@state/State'
 import { useMemo } from 'react'
 import { match } from 'ts-pattern'
 import { useSnapshot } from 'valtio'
+
 import { findParentContainerId, ReadonlyContainerJson } from '../../utils/findParentContainerId'
 import { BaseSectionProps } from '../BaseSection'
 import { NumberInputCustom } from '../common/NumberInputCustom'
@@ -35,7 +36,7 @@ export function LayoutSection({ data, objectId }: LayoutSectionProps) {
 	const isResizable = selectedObject?.type !== 'Text'
 
 	const conflictType = parent?.components?.find((component) =>
-		['horizontal-layout', 'vertical-layout', 'grid-layout'].includes(component.type)
+		['horizontal-layout', 'vertical-layout', 'grid-layout'].includes(component.type),
 	)?.type
 
 	const hasStretch = snap.horizontal.mode === 'stretch' || snap.vertical.mode === 'stretch'
@@ -53,7 +54,7 @@ export function LayoutSection({ data, objectId }: LayoutSectionProps) {
 						value as HorizontalConstraint['mode'],
 						snap.horizontal,
 						selectedObject,
-						parent
+						parent,
 					)
 				}}
 				data={[
@@ -79,12 +80,7 @@ export function LayoutSection({ data, objectId }: LayoutSectionProps) {
 				size="xs"
 				value={snap.vertical.mode}
 				onChange={(value) => {
-					data.vertical = buildVerticalConstraint(
-						value as VerticalConstraint['mode'],
-						snap.vertical,
-						selectedObject,
-						parent
-					)
+					data.vertical = buildVerticalConstraint(value as VerticalConstraint['mode'], snap.vertical, selectedObject, parent)
 				}}
 				data={[
 					{ label: 'None', value: 'none' },
@@ -212,12 +208,7 @@ function ScalarInput({
 			step={1}
 			decimalScale={isPercent ? 2 : 0}
 			size="xs"
-			rightSection={useMemo(
-				() => (
-					<UnitToggleLabel unit={scalar.unit} onToggle={onToggleUnit} />
-				),
-				[scalar.unit, onToggleUnit]
-			)}
+			rightSection={useMemo(() => <UnitToggleLabel unit={scalar.unit} onToggle={onToggleUnit} />, [scalar.unit, onToggleUnit])}
 			rightSectionWidth={40}
 		/>
 	)
@@ -249,7 +240,7 @@ function buildHorizontalConstraint(
 	mode: HorizontalConstraint['mode'],
 	current: HorizontalConstraint,
 	selectedObject: EditableObjectJson | undefined,
-	parent: EditableContainerJson | undefined
+	parent: EditableContainerJson | undefined,
 ): HorizontalConstraint {
 	const parentWidth = parent?.width ?? 0
 	const canCalculate = selectedObject && parent && parentWidth > 0
@@ -298,7 +289,7 @@ function buildVerticalConstraint(
 	mode: VerticalConstraint['mode'],
 	current: VerticalConstraint,
 	selectedObject: EditableObjectJson | undefined,
-	parent: EditableContainerJson | undefined
+	parent: EditableContainerJson | undefined,
 ): VerticalConstraint {
 	const parentHeight = parent?.height ?? 0
 	const canCalculate = selectedObject && parent && parentHeight > 0
@@ -343,10 +334,7 @@ function buildVerticalConstraint(
 		.exhaustive()
 }
 
-function getScalar(
-	constraint: HorizontalConstraint | VerticalConstraint,
-	key: 'start' | 'center' | 'end'
-): LayoutScalar {
+function getScalar(constraint: HorizontalConstraint | VerticalConstraint, key: 'start' | 'center' | 'end'): LayoutScalar {
 	return match(constraint)
 		.returnType<LayoutScalar>()
 		.with({ mode: 'start' }, (c) => (key === 'start' ? c.start : DEFAULT_SCALAR))
@@ -361,10 +349,7 @@ function getScalar(
 		.exhaustive()
 }
 
-function getMutableScalar(
-	constraint: HorizontalConstraint | VerticalConstraint,
-	key: 'start' | 'center' | 'end'
-): LayoutScalar | null {
+function getMutableScalar(constraint: HorizontalConstraint | VerticalConstraint, key: 'start' | 'center' | 'end'): LayoutScalar | null {
 	return match(constraint)
 		.returnType<LayoutScalar | null>()
 		.with({ mode: 'start' }, (c) => (key === 'start' ? c.start : null))
@@ -383,12 +368,7 @@ function cloneScalar(scalar: LayoutScalar): LayoutScalar {
 	return { value: scalar.value, unit: scalar.unit }
 }
 
-function updateScalarValue(
-	data: LayoutComponentJson,
-	axis: 'horizontal' | 'vertical',
-	key: 'start' | 'center' | 'end',
-	value: number
-) {
+function updateScalarValue(data: LayoutComponentJson, axis: 'horizontal' | 'vertical', key: 'start' | 'center' | 'end', value: number) {
 	const target = axis === 'horizontal' ? data.horizontal : data.vertical
 	const scalar = getMutableScalar(target, key)
 	if (!scalar) {
@@ -397,12 +377,7 @@ function updateScalarValue(
 	scalar.value = value
 }
 
-function toggleScalarUnit(
-	data: LayoutComponentJson,
-	axis: 'horizontal' | 'vertical',
-	key: 'start' | 'center' | 'end',
-	parentSize: number
-) {
+function toggleScalarUnit(data: LayoutComponentJson, axis: 'horizontal' | 'vertical', key: 'start' | 'center' | 'end', parentSize: number) {
 	const target = axis === 'horizontal' ? data.horizontal : data.vertical
 	const scalar = getMutableScalar(target, key)
 	if (!scalar) {

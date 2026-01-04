@@ -27,7 +27,7 @@ export function useKeyboardNavigation<T>({ items, onSelect }: UseKeyboardNavigat
 					break
 			}
 		},
-		[items, focusedIndex, onSelect]
+		[items, focusedIndex, onSelect],
 	)
 
 	const getItemProps = useCallback(
@@ -35,7 +35,7 @@ export function useKeyboardNavigation<T>({ items, onSelect }: UseKeyboardNavigat
 			onKeyDown: handleKeyDown,
 			tabIndex: focusedIndex === index ? 0 : -1,
 		}),
-		[handleKeyDown, focusedIndex]
+		[handleKeyDown, focusedIndex],
 	)
 
 	return {

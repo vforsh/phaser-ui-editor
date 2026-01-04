@@ -1,4 +1,5 @@
 import { z } from 'zod'
+
 import { CommandDefinition } from '../ControlApi'
 
 export type HierarchyNode = {
@@ -16,7 +17,7 @@ export const hierarchyNodeSchema: z.ZodType<HierarchyNode> = z.lazy(() =>
 			type: z.string().describe('Type of the game object'),
 			children: z.array(hierarchyNodeSchema).optional().describe('Children nodes in the hierarchy'),
 		})
-		.strict()
+		.strict(),
 )
 
 export const listHierarchyCommand = {

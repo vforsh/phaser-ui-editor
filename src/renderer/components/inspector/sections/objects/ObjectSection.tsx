@@ -4,6 +4,7 @@ import { copyToClipboard } from '@utils/copy-to-clipboard'
 import { Copy } from 'lucide-react'
 import { useCallback, useMemo } from 'react'
 import { useSnapshot } from 'valtio'
+
 import { BaseSectionProps } from '../BaseSection'
 import { CheckboxCustom } from '../common/CheckboxCustom'
 
@@ -42,7 +43,7 @@ export function ObjectSection({ data }: ObjectSectionProps) {
 							<Copy size={14} />
 						</ActionIcon>
 					),
-					[handleCopy, snap.type, theme.colors.gray]
+					[handleCopy, snap.type, theme.colors.gray],
 				)}
 			/>
 
@@ -63,7 +64,7 @@ export function ObjectSection({ data }: ObjectSectionProps) {
 							<Copy size={14} />
 						</ActionIcon>
 					),
-					[handleCopy, snap.id, theme.colors.gray]
+					[handleCopy, snap.id, theme.colors.gray],
 				)}
 			/>
 

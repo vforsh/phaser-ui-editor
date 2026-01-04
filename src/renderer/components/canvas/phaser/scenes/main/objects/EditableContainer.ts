@@ -1,5 +1,8 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { proxy } from 'valtio'
+
+import { ComponentsManager } from './components/base/ComponentsManager'
+import { EditableComponentJson } from './components/base/EditableComponent'
 import {
 	CreateEditableObjectJson,
 	EDITABLE_SYMBOL,
@@ -10,8 +13,6 @@ import {
 	isEditable,
 } from './EditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
-import { ComponentsManager } from './components/base/ComponentsManager'
-import { EditableComponentJson } from './components/base/EditableComponent'
 
 type Events = {
 	'editable-added': (child: EditableObject) => void
@@ -47,7 +48,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		x = 0,
 		y = 0,
 		children: Phaser.GameObjects.GameObject[] = [],
-		isRoot = false
+		isRoot = false,
 	) {
 		super(scene, x, y)
 
@@ -108,8 +109,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		const editables = this.editables
 
 		const hasChanges =
-			editables.length !== this._editablesCopy.length ||
-			editables.some((obj, index) => obj !== this._editablesCopy[index])
+			editables.length !== this._editablesCopy.length || editables.some((obj, index) => obj !== this._editablesCopy[index])
 
 		if (hasChanges) {
 			this._stateObj.children = editables.map((obj) => obj.stateObj)
@@ -132,12 +132,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 
 			// every change in child container will propagate to parent container
 			if (gameObject instanceof EditableContainer) {
-				gameObject.events.on(
-					'hierarchy-changed',
-					() => this.events.emit('hierarchy-changed'),
-					this,
-					this.preDestroySignal
-				)
+				gameObject.events.on('hierarchy-changed', () => this.events.emit('hierarchy-changed'), this, this.preDestroySignal)
 			}
 		}
 	}

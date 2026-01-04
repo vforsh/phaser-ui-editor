@@ -1,4 +1,5 @@
 import { ReadonlyDeep } from 'type-fest'
+
 import { Vector2Like } from '../../../PhaserApp'
 
 export type SelectionRectOptions = {

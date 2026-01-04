@@ -25,10 +25,7 @@ export type ComponentEditRestrictionContributor = {
 
 const contributors: Partial<Record<EditableComponentType, ComponentEditRestrictionContributor>> = {}
 
-export function registerComponentEditRestriction(
-	type: EditableComponentType,
-	contributor: ComponentEditRestrictionContributor
-) {
+export function registerComponentEditRestriction(type: EditableComponentType, contributor: ComponentEditRestrictionContributor) {
 	contributors[type] = contributor
 }
 
@@ -46,8 +43,7 @@ registerComponentEditRestriction('layout', {
 const parentLayoutContributor: ComponentEditRestrictionContributor = {
 	getChildRestrictions: (ctx) => {
 		const parentComp = ctx.parent?.components.find(
-			(c) =>
-				c.active && (c.type === 'horizontal-layout' || c.type === 'vertical-layout' || c.type === 'grid-layout')
+			(c) => c.active && (c.type === 'horizontal-layout' || c.type === 'vertical-layout' || c.type === 'grid-layout'),
 		)
 
 		if (!parentComp) return []
@@ -83,14 +79,10 @@ const sizeLockContributor: ComponentEditRestrictionContributor = {
 			reason: `Size is controlled by ${ctx.object.components.find((c) => c.active && (c.type === 'horizontal-layout' || c.type === 'vertical-layout' || c.type === 'grid-layout'))?.type === 'horizontal-layout' ? 'Horizontal Layout' : ctx.object.components.find((c) => c.active && (c.type === 'horizontal-layout' || c.type === 'vertical-layout' || c.type === 'grid-layout'))?.type === 'vertical-layout' ? 'Vertical Layout' : 'Grid Layout'} component`,
 			source: {
 				type: ctx.object.components.find(
-					(c) =>
-						c.active &&
-						(c.type === 'horizontal-layout' || c.type === 'vertical-layout' || c.type === 'grid-layout')
+					(c) => c.active && (c.type === 'horizontal-layout' || c.type === 'vertical-layout' || c.type === 'grid-layout'),
 				)?.type as EditableComponentType,
 				id: ctx.object.components.find(
-					(c) =>
-						c.active &&
-						(c.type === 'horizontal-layout' || c.type === 'vertical-layout' || c.type === 'grid-layout')
+					(c) => c.active && (c.type === 'horizontal-layout' || c.type === 'vertical-layout' || c.type === 'grid-layout'),
 				)?.id,
 			},
 		},
@@ -133,10 +125,7 @@ export function getEditLocksForRuntimeObject(obj: EditableObject): EditLock[] {
 	return getEditLocksForObjectJson(objectJson, parentJson)
 }
 
-export function isPositionLockedForObjectJson(
-	object: EditableObjectJson,
-	parent?: EditableContainerJson
-): EditLock | undefined {
+export function isPositionLockedForObjectJson(object: EditableObjectJson, parent?: EditableContainerJson): EditLock | undefined {
 	return getEditLocksForObjectJson(object, parent).find((lock) => lock.property === 'position')
 }
 
@@ -144,10 +133,7 @@ export function isPositionLockedForRuntimeObject(obj: EditableObject): EditLock 
 	return getEditLocksForRuntimeObject(obj).find((lock) => lock.property === 'position')
 }
 
-export function isSizeLockedForObjectJson(
-	object: EditableObjectJson,
-	parent?: EditableContainerJson
-): EditLock | undefined {
+export function isSizeLockedForObjectJson(object: EditableObjectJson, parent?: EditableContainerJson): EditLock | undefined {
 	return getEditLocksForObjectJson(object, parent).find((lock) => lock.property === 'size')
 }
 

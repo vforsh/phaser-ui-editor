@@ -13,7 +13,7 @@ export function downloadBlob(blob: Blob, name: string): HTMLAnchorElement {
 			bubbles: true,
 			cancelable: true,
 			view: window,
-		})
+		}),
 	)
 
 	document.body.removeChild(link)

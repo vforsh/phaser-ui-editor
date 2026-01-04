@@ -52,9 +52,7 @@ export class FastForward extends Phaser.Events.EventEmitter {
 	}
 
 	private getFastForwardables(): IFastForwardable[] {
-		return this.scene.sys.updateList
-			.getActive()
-			.filter((item) => this.isFastForwardable(item)) as IFastForwardable[]
+		return this.scene.sys.updateList.getActive().filter((item) => this.isFastForwardable(item)) as IFastForwardable[]
 	}
 
 	private isFastForwardable(item: Phaser.GameObjects.GameObject): item is IFastForwardable {

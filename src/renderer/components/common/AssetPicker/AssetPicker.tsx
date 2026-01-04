@@ -5,6 +5,7 @@ import { clsx } from 'clsx'
 import { LocateFixed, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { match } from 'ts-pattern'
+
 import { AssetTreeItemData, getAssetById } from '../../../types/assets'
 import classes from './AssetPicker.module.css'
 import { AssetPickerSelectMenu } from './AssetPickerSelectMenu'

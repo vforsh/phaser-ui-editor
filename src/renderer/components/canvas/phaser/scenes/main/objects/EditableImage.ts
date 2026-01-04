@@ -1,5 +1,6 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { proxy } from 'valtio'
+
 import { PrefabImageAsset, PrefabSpritesheetFrameAsset } from '../../../../../../types/prefabs/PrefabAsset'
 import { ComponentsManager } from './components/base/ComponentsManager'
 import { EditableComponentJson } from './components/base/EditableComponent'
@@ -28,7 +29,7 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 		x: number,
 		y: number,
 		texture: string,
-		frame?: string | number
+		frame?: string | number,
 	) {
 		super(scene, x, y, texture, frame)
 

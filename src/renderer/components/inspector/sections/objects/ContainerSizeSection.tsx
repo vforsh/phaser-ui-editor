@@ -4,6 +4,7 @@ import { NumberInputCustom } from '@components/inspector/sections/common/NumberI
 import { Box, Button, Group, Stack, Tooltip } from '@mantine/core'
 import { Info } from 'lucide-react'
 import { useSnapshot } from 'valtio'
+
 import { useAppCommands } from '../../../../di/DiHooks'
 import { BaseSectionProps } from '../BaseSection'
 

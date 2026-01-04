@@ -29,12 +29,5 @@
 		},
 		"types": ["phaser", "vite/client"]
 	},
-	"include": [
-		"electron.vite.config.ts",
-		"src/main/**/*.ts",
-		"src/preload/**/*.ts",
-		"src/backend/main/**/*.ts",
-		"src/backend/contract/**/*.ts",
-		"types/**/*.d.ts"
-	]
+	"include": ["electron.vite.config.ts", "src/main/**/*.ts", "src/preload/**/*.ts", "src/shared/**/*.ts", "types/**/*.d.ts"]
 }

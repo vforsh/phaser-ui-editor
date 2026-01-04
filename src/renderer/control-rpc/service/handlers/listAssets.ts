@@ -1,8 +1,9 @@
-import { state, unproxy } from '../../../state/State'
 import type { AssetTreeItemData } from '../../../types/assets'
 import type { listAssetsCommand } from '../../api/commands/listAssets'
 import type { AssetNode, AssetType } from '../../api/ControlApi'
 import type { CommandHandler } from '../types'
+
+import { state, unproxy } from '../../../state/State'
 import { normalizeAssetPaths, pruneAssetByType } from '../utils/assets'
 
 /**
@@ -18,9 +19,7 @@ export const listAssets: CommandHandler<'listAssets'> = (_ctx) => async (params)
 	const normalized = assets.map((asset) => normalizeAssetPaths(asset, state.projectDir!))
 
 	const filtered = requestedTypes
-		? normalized
-				.map((asset) => pruneAssetByType(asset, requestedTypes))
-				.filter((asset): asset is AssetNode => Boolean(asset))
+		? normalized.map((asset) => pruneAssetByType(asset, requestedTypes)).filter((asset): asset is AssetNode => Boolean(asset))
 		: (normalized as unknown as AssetNode[])
 
 	return { assets: filtered }

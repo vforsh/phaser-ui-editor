@@ -163,12 +163,7 @@ type CreateEditableObjectJson<
 		components: EditableComponentJson[]
 	},
 > = Phaser.Types.GameObjects.JSONGameObject & T
-type EditableObjectJson =
-	| EditableContainerJson
-	| EditableImageJson
-	| EditableNineSliceJson
-	| EditableTextJson
-	| EditableBitmapTextJson
+type EditableObjectJson = EditableContainerJson | EditableImageJson | EditableNineSliceJson | EditableTextJson | EditableBitmapTextJson
 
 type PrefabRef = {
 	id: string

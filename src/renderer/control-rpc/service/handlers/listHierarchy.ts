@@ -1,6 +1,7 @@
-import { state } from '../../../state/State'
 import type { listHierarchyCommand } from '../../api/commands/listHierarchy'
 import type { CommandHandler } from '../types'
+
+import { state } from '../../../state/State'
 import { buildHierarchyNode } from '../utils/hierarchy'
 
 /**

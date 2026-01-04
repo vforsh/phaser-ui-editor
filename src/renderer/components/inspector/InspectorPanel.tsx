@@ -1,5 +1,5 @@
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { EditableComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/base/EditableComponent'
+import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { Button, Divider, Group, ScrollArea, Stack } from '@mantine/core'
 import { useForceUpdate } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
@@ -8,6 +8,7 @@ import { ClipboardPaste, Eye, Image, Info, Move, Scaling, Type, TypeOutline } fr
 import { match } from 'ts-pattern'
 import { ILogObj, Logger } from 'tslog'
 import { useSnapshot } from 'valtio'
+
 import { useAppCommands } from '../../di/DiHooks'
 import { getAssetById, isGraphicAsset, type AssetTreeItemData } from '../../types/assets'
 import { InspectorSection, InspectorSectionDef } from './InspectorSection'

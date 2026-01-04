@@ -1,6 +1,7 @@
 import { NinePatchPlugin } from '@koreez/phaser3-ninepatch'
 import Phaser from 'phaser'
 import { useLayoutEffect, useRef } from 'react'
+
 import { AppCommands } from '../../AppCommands'
 import { AppEvents } from '../../AppEvents'
 import { usePhaserScope } from '../../di/DiHooks'
@@ -161,7 +162,7 @@ function createPhaserApp(
 	projectConfig: ProjectConfig,
 	appEvents: TypedEventEmitter<AppEvents>,
 	appCommands: CommandEmitter<AppCommands>,
-	undoHub: UndoHub
+	undoHub: UndoHub,
 ) {
 	const config: Phaser.Types.Core.GameConfig = {
 		type: Phaser.WEBGL,

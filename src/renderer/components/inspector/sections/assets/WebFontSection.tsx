@@ -4,7 +4,7 @@ import { until } from '@open-draft/until'
 import prettyBytes from 'pretty-bytes'
 import { useEffect, useState } from 'react'
 
-import { WebFontParsed } from '../../../../../backend/contract/contract'
+import { WebFontParsed } from '../../../../../shared/main-api/MainApi'
 import { AssetTreeWebFontData } from '../../../../types/assets'
 import { BaseSectionProps } from '../BaseSection'
 import { ReadonlyPropertyRow } from '../PropertyRow'

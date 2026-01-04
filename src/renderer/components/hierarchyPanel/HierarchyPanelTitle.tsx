@@ -1,6 +1,7 @@
 import { ActionIcon, Box, Group, Title, Tooltip, UnstyledButton, useMantineTheme } from '@mantine/core'
 import { state } from '@state/State'
 import { Save, Undo2 } from 'lucide-react'
+
 import styles from './HierarchyPanelTitle.module.css'
 
 interface HierarchyPanelTitleProps {
@@ -11,13 +12,7 @@ interface HierarchyPanelTitleProps {
 	onDiscard: () => void
 }
 
-export const HierarchyPanelTitle = ({
-	title,
-	prefabAssetId,
-	hasUnsavedChanges,
-	onSave,
-	onDiscard,
-}: HierarchyPanelTitleProps) => {
+export const HierarchyPanelTitle = ({ title, prefabAssetId, hasUnsavedChanges, onSave, onDiscard }: HierarchyPanelTitleProps) => {
 	const theme = useMantineTheme()
 
 	const handleTitleClick = () => {
@@ -43,24 +38,12 @@ export const HierarchyPanelTitle = ({
 			</UnstyledButton>
 			<Group gap="xs">
 				<Tooltip label="Discard unsaved changes">
-					<ActionIcon
-						variant="subtle"
-						size="md"
-						color={theme.colors.gray[5]}
-						disabled={!hasUnsavedChanges}
-						onClick={onDiscard}
-					>
+					<ActionIcon variant="subtle" size="md" color={theme.colors.gray[5]} disabled={!hasUnsavedChanges} onClick={onDiscard}>
 						<Undo2 size={14} />
 					</ActionIcon>
 				</Tooltip>
 				<Tooltip label="Save">
-					<ActionIcon
-						variant="subtle"
-						size="md"
-						color={theme.colors.gray[5]}
-						disabled={!hasUnsavedChanges}
-						onClick={onSave}
-					>
+					<ActionIcon variant="subtle" size="md" color={theme.colors.gray[5]} disabled={!hasUnsavedChanges} onClick={onSave}>
 						<Save size={14} />
 					</ActionIcon>
 				</Tooltip>

@@ -1,8 +1,10 @@
 import { P, match } from 'ts-pattern'
-import { state } from '../../../state/State'
-import { getAssetsOfType } from '../../../types/assets'
+
 import type { openPrefabCommand } from '../../api/commands/openPrefab'
 import type { CommandHandler } from '../types'
+
+import { state } from '../../../state/State'
+import { getAssetsOfType } from '../../../types/assets'
 
 /**
  * @see {@link openPrefabCommand} for command definition

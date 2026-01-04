@@ -3,11 +3,7 @@ import { HorizontalLayoutComponent, HorizontalLayoutComponentJson } from '../Hor
 import { LayoutComponent, LayoutComponentJson } from '../LayoutComponent'
 import { VerticalLayoutComponent, VerticalLayoutComponentJson } from '../VerticalLayoutComponent'
 
-export type EditableComponent =
-	| HorizontalLayoutComponent
-	| VerticalLayoutComponent
-	| GridLayoutComponent
-	| LayoutComponent
+export type EditableComponent = HorizontalLayoutComponent | VerticalLayoutComponent | GridLayoutComponent | LayoutComponent
 
 export type EditableComponentType = EditableComponent['type'] | 'localization' | 'input'
 

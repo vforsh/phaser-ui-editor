@@ -1,6 +1,9 @@
-import { P, match } from 'ts-pattern'
 import type { ILogObj, Logger } from 'tslog'
+
+import { P, match } from 'ts-pattern'
+
 import type { MainScene } from '../../MainScene'
+
 import { EditableBitmapText } from '../EditableBitmapText'
 import { EditableContainer } from '../EditableContainer'
 import { EditableImage } from '../EditableImage'
@@ -98,7 +101,7 @@ export class LayoutComponent extends BaseEditableComponent<LayoutComponentJson> 
 				'vertical.end.value': invalidate,
 				'vertical.end.unit': invalidate,
 			},
-			this.destroySignal
+			this.destroySignal,
 		)
 	}
 
@@ -120,7 +123,7 @@ export class LayoutComponent extends BaseEditableComponent<LayoutComponentJson> 
 		if (conflictType) {
 			if (!this.didWarnParentConflict) {
 				logger.warn(
-					`Layout disabled for '${this._obj.name}'(${this._obj.id}) because parent '${parent.name}'(${parent.id}) controls layout via '${conflictType}'.`
+					`Layout disabled for '${this._obj.name}'(${this._obj.id}) because parent '${parent.name}'(${parent.id}) controls layout via '${conflictType}'.`,
 				)
 				this.didWarnParentConflict = true
 			}
@@ -155,9 +158,7 @@ export class LayoutComponent extends BaseEditableComponent<LayoutComponentJson> 
 		})
 
 		const afterSize = getCurrentSize(obj)
-		const resized =
-			Math.abs(afterSize.width - beforeSize.width) > 0.0001 ||
-			Math.abs(afterSize.height - beforeSize.height) > 0.0001
+		const resized = Math.abs(afterSize.width - beforeSize.width) > 0.0001 || Math.abs(afterSize.height - beforeSize.height) > 0.0001
 
 		if (resized && obj instanceof EditableContainer) {
 			return { resizedContainer: obj }
@@ -190,7 +191,7 @@ export class LayoutComponent extends BaseEditableComponent<LayoutComponentJson> 
 	private applyHorizontal(
 		obj: EditableObject,
 		parent: EditableContainer,
-		args: { left: number; right: number; center: number; logger: Logger<ILogObj> }
+		args: { left: number; right: number; center: number; logger: Logger<ILogObj> },
 	): void {
 		match(this.horizontal.mode)
 			.returnType<void>()
@@ -199,27 +200,18 @@ export class LayoutComponent extends BaseEditableComponent<LayoutComponentJson> 
 			})
 			.with('start', () => {
 				this.didWarnNegativeWidth = false
-				const startPx = resolveScalar(
-					(this.horizontal as Extract<HorizontalConstraint, { mode: 'start' }>).start,
-					parent.width
-				)
+				const startPx = resolveScalar((this.horizontal as Extract<HorizontalConstraint, { mode: 'start' }>).start, parent.width)
 				const left = args.left + startPx
 				obj.setX(left + obj.displayWidth * obj.originX)
 			})
 			.with('center', () => {
 				this.didWarnNegativeWidth = false
-				const centerPx = resolveScalar(
-					(this.horizontal as Extract<HorizontalConstraint, { mode: 'center' }>).center,
-					parent.width
-				)
+				const centerPx = resolveScalar((this.horizontal as Extract<HorizontalConstraint, { mode: 'center' }>).center, parent.width)
 				obj.setX(args.center + centerPx)
 			})
 			.with('end', () => {
 				this.didWarnNegativeWidth = false
-				const endPx = resolveScalar(
-					(this.horizontal as Extract<HorizontalConstraint, { mode: 'end' }>).end,
-					parent.width
-				)
+				const endPx = resolveScalar((this.horizontal as Extract<HorizontalConstraint, { mode: 'end' }>).end, parent.width)
 				const right = args.right - endPx
 				obj.setX(right - obj.displayWidth * (1 - obj.originX))
 			})
@@ -231,9 +223,7 @@ export class LayoutComponent extends BaseEditableComponent<LayoutComponentJson> 
 				if (desiredWidth < 0) {
 					desiredWidth = 0
 					if (!this.didWarnNegativeWidth) {
-						args.logger.warn(
-							`Layout stretch resulted in negative width for '${obj.name}'(${obj.id}); clamped to 0.`
-						)
+						args.logger.warn(`Layout stretch resulted in negative width for '${obj.name}'(${obj.id}); clamped to 0.`)
 						this.didWarnNegativeWidth = true
 					}
 				} else {
@@ -256,7 +246,7 @@ export class LayoutComponent extends BaseEditableComponent<LayoutComponentJson> 
 	private applyVertical(
 		obj: EditableObject,
 		parent: EditableContainer,
-		args: { top: number; bottom: number; center: number; logger: Logger<ILogObj> }
+		args: { top: number; bottom: number; center: number; logger: Logger<ILogObj> },
 	): void {
 		match(this.vertical.mode)
 			.returnType<void>()
@@ -265,27 +255,18 @@ export class LayoutComponent extends BaseEditableComponent<LayoutComponentJson> 
 			})
 			.with('start', () => {
 				this.didWarnNegativeHeight = false
-				const startPx = resolveScalar(
-					(this.vertical as Extract<VerticalConstraint, { mode: 'start' }>).start,
-					parent.height
-				)
+				const startPx = resolveScalar((this.vertical as Extract<VerticalConstraint, { mode: 'start' }>).start, parent.height)
 				const top = args.top + startPx
 				obj.setY(top + obj.displayHeight * obj.originY)
 			})
 			.with('center', () => {
 				this.didWarnNegativeHeight = false
-				const centerPx = resolveScalar(
-					(this.vertical as Extract<VerticalConstraint, { mode: 'center' }>).center,
-					parent.height
-				)
+				const centerPx = resolveScalar((this.vertical as Extract<VerticalConstraint, { mode: 'center' }>).center, parent.height)
 				obj.setY(args.center + centerPx)
 			})
 			.with('end', () => {
 				this.didWarnNegativeHeight = false
-				const endPx = resolveScalar(
-					(this.vertical as Extract<VerticalConstraint, { mode: 'end' }>).end,
-					parent.height
-				)
+				const endPx = resolveScalar((this.vertical as Extract<VerticalConstraint, { mode: 'end' }>).end, parent.height)
 				const bottom = args.bottom - endPx
 				obj.setY(bottom - obj.displayHeight * (1 - obj.originY))
 			})
@@ -297,9 +278,7 @@ export class LayoutComponent extends BaseEditableComponent<LayoutComponentJson> 
 				if (desiredHeight < 0) {
 					desiredHeight = 0
 					if (!this.didWarnNegativeHeight) {
-						args.logger.warn(
-							`Layout stretch resulted in negative height for '${obj.name}'(${obj.id}); clamped to 0.`
-						)
+						args.logger.warn(`Layout stretch resulted in negative height for '${obj.name}'(${obj.id}); clamped to 0.`)
 						this.didWarnNegativeHeight = true
 					}
 				} else {
@@ -319,9 +298,7 @@ export class LayoutComponent extends BaseEditableComponent<LayoutComponentJson> 
 			.exhaustive()
 	}
 
-	private getParentLayoutConflict(
-		parent: EditableContainer
-	): 'horizontal-layout' | 'vertical-layout' | 'grid-layout' | null {
+	private getParentLayoutConflict(parent: EditableContainer): 'horizontal-layout' | 'vertical-layout' | 'grid-layout' | null {
 		if (parent.components.get('horizontal-layout')) {
 			return 'horizontal-layout'
 		}
@@ -362,7 +339,7 @@ function resizeObject(
 	width: number | undefined,
 	height: number | undefined,
 	logger: Logger<ILogObj>,
-	alreadyWarned: boolean
+	alreadyWarned: boolean,
 ): ResizeResult {
 	if (!obj.isResizable) {
 		if (!alreadyWarned && (width !== undefined || height !== undefined)) {
@@ -404,7 +381,7 @@ function resizeObject(
 function getTargetSize(
 	obj: EditableObject,
 	width: number | undefined,
-	height: number | undefined
+	height: number | undefined,
 ): { width: number; height: number } | null {
 	const current = getCurrentSize(obj)
 	const nextWidth = width ?? current.width
@@ -445,15 +422,11 @@ function cloneHorizontalConstraint(constraint: HorizontalConstraint): Horizontal
 		.with('none', () => ({ mode: 'none' }))
 		.with('start', () => ({
 			mode: 'start',
-			start: cloneScalar(
-				(constraint as Extract<HorizontalConstraint, { mode: 'start' }>).start ?? DEFAULT_SCALAR
-			),
+			start: cloneScalar((constraint as Extract<HorizontalConstraint, { mode: 'start' }>).start ?? DEFAULT_SCALAR),
 		}))
 		.with('center', () => ({
 			mode: 'center',
-			center: cloneScalar(
-				(constraint as Extract<HorizontalConstraint, { mode: 'center' }>).center ?? DEFAULT_SCALAR
-			),
+			center: cloneScalar((constraint as Extract<HorizontalConstraint, { mode: 'center' }>).center ?? DEFAULT_SCALAR),
 		}))
 		.with('end', () => ({
 			mode: 'end',
@@ -480,9 +453,7 @@ function cloneVerticalConstraint(constraint: VerticalConstraint): VerticalConstr
 		}))
 		.with('center', () => ({
 			mode: 'center',
-			center: cloneScalar(
-				(constraint as Extract<VerticalConstraint, { mode: 'center' }>).center ?? DEFAULT_SCALAR
-			),
+			center: cloneScalar((constraint as Extract<VerticalConstraint, { mode: 'center' }>).center ?? DEFAULT_SCALAR),
 		}))
 		.with('end', () => ({
 			mode: 'end',

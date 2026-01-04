@@ -11,11 +11,7 @@ type PhaserBmfontData = Phaser.Types.GameObjects.BitmapText.BitmapFontData
  *
  * @return {Phaser.Types.GameObjects.BitmapText.BitmapFontData} The parsed Bitmap Font data.
  */
-export function parseJsonBitmapFont(
-	json: BmFontData,
-	frame: Phaser.Textures.Frame,
-	texture?: Phaser.Textures.Texture
-): PhaserBmfontData {
+export function parseJsonBitmapFont(json: BmFontData, frame: Phaser.Textures.Frame, texture?: Phaser.Textures.Texture): PhaserBmfontData {
 	let textureX = frame.cutX
 	let textureY = frame.cutY
 	let textureWidth = frame.source.width

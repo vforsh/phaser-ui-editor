@@ -1,5 +1,6 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { ILogObj, Logger } from 'tslog'
+
 import { MainScene } from '../MainScene'
 import { EditableContainer } from '../objects/EditableContainer'
 import { EditableObject, isEditable } from '../objects/EditableObject'
@@ -200,7 +201,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 
 		// TODO get rid of the type assertion
 		const selectableUnderPointer = objectsUnderPointer.find(
-			(object) => this.selectables.includes(object as any) && !this.selection?.includes(object as any)
+			(object) => this.selectables.includes(object as any) && !this.selection?.includes(object as any),
 		) as EditableObject | undefined
 		if (!selectableUnderPointer) {
 			return
@@ -417,7 +418,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 				// this.logger.debug(`transform controls started following '${selection.objectsAsString}'`)
 			},
 			this,
-			this.destroySignal
+			this.destroySignal,
 		)
 
 		this.transformControls.events.on(
@@ -426,7 +427,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 				// this.logger.debug(`transform controls stopped following '${selectionContent}'`)
 			},
 			this,
-			this.destroySignal
+			this.destroySignal,
 		)
 
 		this.transformControls.events.on(
@@ -436,7 +437,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 				this.scene.startTransformControlsUndo(type)
 			},
 			this,
-			this.destroySignal
+			this.destroySignal,
 		)
 
 		this.transformControls.events.on(
@@ -446,7 +447,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 				this.scene.stopTransformControlsUndo()
 			},
 			this,
-			this.destroySignal
+			this.destroySignal,
 		)
 
 		this.transformControls.name = 'transform-controls'
@@ -520,12 +521,7 @@ export class EditContext extends TypedEventEmitter<Events> {
 		return isEditable(gameObject) && this.selectables.includes(gameObject)
 	}
 
-	private onContainerPointerDown(
-		container: EditableContainer,
-		pointer: Phaser.Input.Pointer,
-		x: number,
-		y: number
-	): void {
+	private onContainerPointerDown(container: EditableContainer, pointer: Phaser.Input.Pointer, x: number, y: number): void {
 		const now = Date.now()
 		const lastClick = this.containerClicks.get(container)
 		const msSinceLastClick = lastClick ? now - lastClick : Number.MAX_SAFE_INTEGER

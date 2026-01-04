@@ -1,5 +1,7 @@
 import { Group, Stack, Text, UnstyledButton } from '@mantine/core'
+
 import type { SettingsSectionId } from '../../settings/EditorSettings'
+
 import classes from './SettingsNav.module.css'
 
 export type SettingsNavSection = {

@@ -1,5 +1,6 @@
 import { State, state, useSnapshot } from '@state/State'
 import { useMemo } from 'react'
+
 import { AssetTreeImageData, AssetTreeSpritesheetData, getAssetsOfType } from '../types/assets'
 
 function isNineSliceImage(image: AssetTreeImageData) {
@@ -20,11 +21,9 @@ export function useNineSliceAssets() {
 	const assetsSnap = useSnapshot(state.assets.items)
 
 	const textures = useMemo(() => {
-		const images = getAssetsOfType(assetsSnap as State['assets']['items'], 'image').filter((item) =>
-			isNineSliceImage(item)
-		)
+		const images = getAssetsOfType(assetsSnap as State['assets']['items'], 'image').filter((item) => isNineSliceImage(item))
 		const spritesheets = getAssetsOfType(assetsSnap as State['assets']['items'], 'spritesheet').filter((item) =>
-			hasNineSliceFrames(item)
+			hasNineSliceFrames(item),
 		)
 
 		return [...images, ...spritesheets]

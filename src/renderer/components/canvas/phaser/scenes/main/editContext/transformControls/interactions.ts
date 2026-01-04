@@ -1,11 +1,13 @@
 import type { ILogObj, Logger } from 'tslog'
-import { signalFromEvent } from '../../../../robowhale/utils/events/create-abort-signal-from-event'
+
 import type { EditableObject } from '../../objects/EditableObject'
-import { trySetPositionUser } from '../../objects/editing/editRestrictions'
 import type { Selection } from '../Selection'
+import type { BorderHandles, CornerHandles, TransformControlHandles } from './factories'
+
+import { signalFromEvent } from '../../../../robowhale/utils/events/create-abort-signal-from-event'
+import { trySetPositionUser } from '../../objects/editing/editRestrictions'
 import { getSelectionFrame, type SelectionFrame } from '../selection-frame'
 import { canChangeOrigin } from '../Transformable'
-import type { BorderHandles, CornerHandles, TransformControlHandles } from './factories'
 import { setCircleHitArea, setRectHitArea } from './factories'
 import {
 	CursorManager,
@@ -31,18 +33,13 @@ export class RotateInteraction {
 		private readonly getSelection: () => Selection | null,
 		private readonly getControlsAngle: () => number,
 		private readonly events: Phaser.Events.EventEmitter,
-		private readonly destroySignal: AbortSignal
+		private readonly destroySignal: AbortSignal,
 	) {
 		this.install()
 	}
 
 	private install(): void {
-		const knobs = [
-			this.rotateKnobs.topLeft,
-			this.rotateKnobs.topRight,
-			this.rotateKnobs.bottomLeft,
-			this.rotateKnobs.bottomRight,
-		]
+		const knobs = [this.rotateKnobs.topLeft, this.rotateKnobs.topRight, this.rotateKnobs.bottomLeft, this.rotateKnobs.bottomRight]
 
 		knobs.forEach((knob) => {
 			knob.alpha = 0.001
@@ -91,13 +88,10 @@ export class RotateInteraction {
 
 		const selectionInitialPos = { x: selection.x, y: selection.y }
 
-		const pointerAngleRad = Math.atan2(
-			selectionInitialPos.y - pointerInitialPos.y,
-			selectionInitialPos.x - pointerInitialPos.x
-		)
+		const pointerAngleRad = Math.atan2(selectionInitialPos.y - pointerInitialPos.y, selectionInitialPos.x - pointerInitialPos.x)
 
 		const selectedTransforms = new Map<EditableObject, { angleDeg: number }>(
-			selection.objects.map((obj) => [obj, { angleDeg: obj.angle }])
+			selection.objects.map((obj) => [obj, { angleDeg: obj.angle }]),
 		)
 
 		this.scene.input.on(
@@ -123,7 +117,7 @@ export class RotateInteraction {
 				this.cursorManager.setRotateCursor(cursorAngle)
 			},
 			this,
-			AbortSignal.any([pointerUpSignal, this.destroySignal])
+			AbortSignal.any([pointerUpSignal, this.destroySignal]),
 		)
 
 		this.scene.input.once(
@@ -134,7 +128,7 @@ export class RotateInteraction {
 				this.events.emit('transform-end', 'rotate')
 			},
 			this,
-			this.destroySignal
+			this.destroySignal,
 		)
 	}
 }
@@ -153,18 +147,13 @@ export class ResizeInteraction {
 		private readonly getSelection: () => Selection | null,
 		private readonly getControlsAngle: () => number,
 		private readonly events: Phaser.Events.EventEmitter,
-		private readonly destroySignal: AbortSignal
+		private readonly destroySignal: AbortSignal,
 	) {
 		this.install()
 	}
 
 	private install(): void {
-		const knobs = [
-			this.resizeKnobs.topLeft,
-			this.resizeKnobs.topRight,
-			this.resizeKnobs.bottomLeft,
-			this.resizeKnobs.bottomRight,
-		]
+		const knobs = [this.resizeKnobs.topLeft, this.resizeKnobs.topRight, this.resizeKnobs.bottomLeft, this.resizeKnobs.bottomRight]
 
 		knobs.forEach((knob) => {
 			knob.setInteractive()
@@ -176,12 +165,7 @@ export class ResizeInteraction {
 			knob.setTintFill(this.options.resizeKnobs.fillColor)
 		})
 
-		const borders = [
-			this.resizeBorders.top,
-			this.resizeBorders.bottom,
-			this.resizeBorders.left,
-			this.resizeBorders.right,
-		]
+		const borders = [this.resizeBorders.top, this.resizeBorders.bottom, this.resizeBorders.left, this.resizeBorders.right]
 
 		borders.forEach((border) => {
 			border.on('pointerdown', this.resizeFromBorder.bind(this, border), this, this.destroySignal)
@@ -263,7 +247,7 @@ export class ResizeInteraction {
 		pointer: Phaser.Input.Pointer,
 		resizeDirection: ResizeDirection,
 		axis: 'both' | 'x' | 'y',
-		allowAspectRatio: boolean
+		allowAspectRatio: boolean,
 	) {
 		this.events.emit('transform-start', 'resize')
 
@@ -275,9 +259,7 @@ export class ResizeInteraction {
 		const knobIsLeft = resizeDirection.includes('left')
 		const knobIsTop = resizeDirection.includes('top')
 
-		this.logger.debug(
-			`resize '${resizeDirection}' start [${selection.objects.map((obj) => obj.name).join(', ')}] (${selection.count})`
-		)
+		this.logger.debug(`resize '${resizeDirection}' start [${selection.objects.map((obj) => obj.name).join(', ')}] (${selection.count})`)
 
 		const pointerUpSignal = signalFromEvent(this.scene.input, Phaser.Input.Events.POINTER_UP)
 
@@ -363,10 +345,8 @@ export class ResizeInteraction {
 				selectedTransforms.forEach((transform, obj) => {
 					const useAspectRatio = allowAspectRatio && axis === 'both' && pointer.event.shiftKey
 					const adjustedDy = useAspectRatio ? deltaX / transform.aspectRatio : deltaY
-					const newDisplayWidth =
-						axis === 'y' ? transform.width : Math.max(transform.width + deltaX, MIN_DISPLAY_SIZE)
-					const newDisplayHeight =
-						axis === 'x' ? transform.height : Math.max(transform.height + adjustedDy, MIN_DISPLAY_SIZE)
+					const newDisplayWidth = axis === 'y' ? transform.width : Math.max(transform.width + deltaX, MIN_DISPLAY_SIZE)
+					const newDisplayHeight = axis === 'x' ? transform.height : Math.max(transform.height + adjustedDy, MIN_DISPLAY_SIZE)
 
 					if (obj.kind === 'Container') {
 						const scaleX = transform.scaleX === 0 ? 1 : Math.abs(transform.scaleX)
@@ -394,7 +374,7 @@ export class ResizeInteraction {
 				selection.updateBounds()
 			},
 			this,
-			AbortSignal.any([pointerUpSignal, this.destroySignal])
+			AbortSignal.any([pointerUpSignal, this.destroySignal]),
 		)
 
 		this.scene.input.once(
@@ -425,7 +405,7 @@ export class ResizeInteraction {
 				this.events.emit('transform-end', 'resize')
 			},
 			this,
-			this.destroySignal
+			this.destroySignal,
 		)
 	}
 }
@@ -436,7 +416,7 @@ export class SelectionFollower {
 	 */
 	constructor(
 		private readonly controls: Phaser.GameObjects.Container,
-		private readonly handles: TransformControlHandles
+		private readonly handles: TransformControlHandles,
 	) {}
 
 	/**

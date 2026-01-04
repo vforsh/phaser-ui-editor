@@ -1,5 +1,7 @@
 import { useEffect, useMemo } from 'react'
+
 import type { AppCommandsEmitter } from '../AppCommands'
+
 import { logger } from '../logs/logs'
 import { state, subscribe } from '../state/State'
 import { controlContract, type ControlInput, type ControlMethod, type ControlOutput } from './api/ControlApi'
@@ -54,11 +56,7 @@ export function useControlRpcBridge(appCommands: AppCommandsEmitter): void {
 	}, [appCommands, scheduler])
 }
 
-function handleRpcRequest(
-	service: EditorControlService,
-	scheduler: RpcScheduler,
-	request: JsonRpcRequest
-): Promise<JsonRpcResponse> {
+function handleRpcRequest(service: EditorControlService, scheduler: RpcScheduler, request: JsonRpcRequest): Promise<JsonRpcResponse> {
 	const rpcLogger = logger.getOrCreate('control-rpc')
 
 	const validation = validateControlRequest(request)
@@ -108,10 +106,6 @@ function handleRpcRequest(
 	})
 }
 
-function callHandler<M extends ControlMethod>(
-	service: EditorControlService,
-	method: M,
-	input: ControlInput<M>
-): Promise<ControlOutput<M>> {
+function callHandler<M extends ControlMethod>(service: EditorControlService, method: M, input: ControlInput<M>): Promise<ControlOutput<M>> {
 	return service.handlers[method](input)
 }

@@ -1,6 +1,7 @@
 import { Button, Popover } from '@mantine/core'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
+
 import { EditableComponentType } from '../../../canvas/phaser/scenes/main/objects/components/base/EditableComponent'
 import { ComponentList } from './ComponentList'
 

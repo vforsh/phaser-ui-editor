@@ -1,6 +1,7 @@
 import { logger } from '@logs/logs'
 import { urlParams } from '@url-params'
 import { ILogObj, Logger } from 'tslog'
+
 import { Project } from '../../../../../project/Project'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { EditableContainer } from '../main/objects/EditableContainer'
@@ -10,7 +11,7 @@ export type TestSceneInitData = {
 }
 
 export class TestScene extends BaseScene {
-	public declare initData: TestSceneInitData
+	declare public initData: TestSceneInitData
 	private logger!: Logger<ILogObj>
 
 	public init(data: TestSceneInitData) {

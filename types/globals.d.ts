@@ -1,5 +1,5 @@
-import type { MainApi } from '../src/backend/contract/contract'
 import type { WindowEditorApi } from '../src/control-rpc/expose-window-editor'
+import type { MainApi } from '../src/shared/main-api/MainApi'
 
 import { Main } from '../Main'
 

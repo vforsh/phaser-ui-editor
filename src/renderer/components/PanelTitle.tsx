@@ -1,5 +1,6 @@
 import { Box, Title, UnstyledButton } from '@mantine/core'
 import React from 'react'
+
 import styles from './PanelTitle.module.css'
 
 interface PanelTitleProps {

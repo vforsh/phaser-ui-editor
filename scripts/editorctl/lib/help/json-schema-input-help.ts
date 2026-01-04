@@ -267,4 +267,3 @@ function buildExampleValue(schema: JsonSchema): unknown {
 
 	return null
 }
-

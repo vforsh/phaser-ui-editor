@@ -36,14 +36,6 @@ export type DeepReplace<T, Target, Replacement> = T extends object
 /**
  * Type representing the possible return values of the JavaScript typeof operator.
  */
-export type TypeofReturnValue =
-	| 'undefined'
-	| 'object'
-	| 'boolean'
-	| 'number'
-	| 'bigint'
-	| 'string'
-	| 'symbol'
-	| 'function'
+export type TypeofReturnValue = 'undefined' | 'object' | 'boolean' | 'number' | 'bigint' | 'string' | 'symbol' | 'function'
 
 export type Constructor<T> = new (...args: any[]) => T

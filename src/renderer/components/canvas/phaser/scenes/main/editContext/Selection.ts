@@ -1,4 +1,5 @@
 import { ReadonlyDeep } from 'type-fest'
+
 import { TypedEventEmitter } from '../../../robowhale/phaser3/TypedEventEmitter'
 import { EditableObject } from '../objects/EditableObject'
 import { isPositionLockedForRuntimeObject } from '../objects/editing/editRestrictions'

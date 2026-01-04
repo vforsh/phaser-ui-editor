@@ -1,5 +1,6 @@
 import { Group, Text, Tooltip } from '@mantine/core'
 import { useClipboard } from '@mantine/hooks'
+
 import classes from './PropertyRow.module.css'
 
 interface PropertyRowProps {

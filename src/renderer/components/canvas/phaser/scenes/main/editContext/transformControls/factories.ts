@@ -32,7 +32,7 @@ export type TextureKeys = {
 export class TextureFactory {
 	constructor(
 		private readonly scene: Phaser.Scene,
-		private readonly options: ReadonlyTransformControlOptions
+		private readonly options: ReadonlyTransformControlOptions,
 	) {}
 
 	/**
@@ -96,12 +96,7 @@ export class TextureFactory {
 
 		const graphics = this.scene.make.graphics()
 		graphics.fillStyle(0xffffff, 1)
-		graphics.fillRect(
-			0,
-			0,
-			this.options.resizeKnobs.fillSize * resolution,
-			this.options.resizeKnobs.fillSize * resolution
-		)
+		graphics.fillRect(0, 0, this.options.resizeKnobs.fillSize * resolution, this.options.resizeKnobs.fillSize * resolution)
 
 		const width = this.options.resizeKnobs.fillSize * resolution
 		const height = width
@@ -117,7 +112,7 @@ export class HandleFactory {
 	constructor(
 		private readonly scene: Phaser.Scene,
 		private readonly options: ReadonlyTransformControlOptions,
-		private readonly textures: TextureKeys
+		private readonly textures: TextureKeys,
 	) {}
 
 	/**
@@ -250,10 +245,6 @@ export function setCircleHitArea(input: Phaser.Types.Input.InteractiveObject, ra
 /**
  * Inflate an existing rectangular hit area by the given padding values.
  */
-export function inflateBorderHitArea(
-	input: Phaser.Types.Input.InteractiveObject,
-	paddingX: number,
-	paddingY: number
-): void {
+export function inflateBorderHitArea(input: Phaser.Types.Input.InteractiveObject, paddingX: number, paddingY: number): void {
 	Phaser.Geom.Rectangle.Inflate(input.hitArea, paddingX, paddingY)
 }

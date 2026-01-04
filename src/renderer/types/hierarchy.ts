@@ -35,9 +35,4 @@ type HierarchyBitmapText = EditableBitmapTextJson & {
 	isHovered?: boolean
 }
 
-export type HierarchyItemData =
-	| HierarchyImage
-	| HierarchyNineSlice
-	| HierarchyContainer
-	| HierarchyText
-	| HierarchyBitmapText
+export type HierarchyItemData = HierarchyImage | HierarchyNineSlice | HierarchyContainer | HierarchyText | HierarchyBitmapText

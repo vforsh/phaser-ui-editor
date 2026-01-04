@@ -72,10 +72,7 @@ export class Scrollable<T extends Phaser.GameObjects.GameObject> extends Phaser.
 
 		let dx = x ?? 0
 		let dy = y ?? 0
-		this.setInteractive(
-			new Phaser.Geom.Rectangle(-width / 2 + dx, -height / 2 + dy, width, height),
-			Phaser.Geom.Rectangle.Contains
-		)
+		this.setInteractive(new Phaser.Geom.Rectangle(-width / 2 + dx, -height / 2 + dy, width, height), Phaser.Geom.Rectangle.Contains)
 	}
 
 	private addPointerWheelListener() {
@@ -224,13 +221,7 @@ export class Scrollable<T extends Phaser.GameObjects.GameObject> extends Phaser.
 		if (isOverscroll) {
 			let position = pos
 			let overscrollAmount = position > scrollMax ? position - scrollMax : scrollMin - position
-			dampingK = Phaser.Math.MapLinear(
-				overscrollAmount,
-				0,
-				this.options.overscroll.maxDistance,
-				1,
-				this.options.autoScroll.damping
-			)
+			dampingK = Phaser.Math.MapLinear(overscrollAmount, 0, this.options.overscroll.maxDistance, 1, this.options.autoScroll.damping)
 		}
 
 		let velocity = Phaser.Math.MapLinearClamp(
@@ -238,7 +229,7 @@ export class Scrollable<T extends Phaser.GameObjects.GameObject> extends Phaser.
 			0,
 			this.options.autoScroll.maxDuration,
 			this.autoScrollSpeed,
-			0
+			0,
 		)
 
 		let shouldStop = Math.abs(velocity) < this.options.autoScroll.minSpeed

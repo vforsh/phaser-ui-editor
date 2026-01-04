@@ -3,20 +3,21 @@ import { IPatchesConfig } from '@koreez/phaser3-ninepatch'
 import { customAlphabet } from 'nanoid'
 import { match } from 'ts-pattern'
 import { ILogObj, Logger } from 'tslog'
+
 import {
 	PrefabBitmapFontAsset,
 	PrefabImageAsset,
 	PrefabSpritesheetFrameAsset,
 	PrefabWebFontAsset,
 } from '../../../../../../types/prefabs/PrefabAsset'
+import { EditableComponentJson } from './components/base/EditableComponent'
+import { EditableComponentsFactory } from './components/base/EditableComponentsFactory'
 import { EditableBitmapText, EditableBitmapTextJson } from './EditableBitmapText'
 import { EditableContainer, EditableContainerJson } from './EditableContainer'
 import { EditableImage, EditableImageJson } from './EditableImage'
 import { EditableNineSlice, EditableNineSliceJson } from './EditableNineSlice'
 import { EditableObject, EditableObjectJson } from './EditableObject'
 import { EditableText, EditableTextJson, EditableTextStyleJson } from './EditableText'
-import { EditableComponentJson } from './components/base/EditableComponent'
-import { EditableComponentsFactory } from './components/base/EditableComponentsFactory'
 
 type Events = {
 	// emitted after an object is created and has an id, but **not added to the scene**
@@ -64,7 +65,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 				this.emit('obj-destroyed', obj)
 			},
 			this,
-			this.destroySignal
+			this.destroySignal,
 		)
 
 		this.idsToObjects.set(obj.id, obj)
@@ -88,11 +89,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		return container
 	}
 
-	public image(
-		asset: PrefabImageAsset | PrefabSpritesheetFrameAsset,
-		texture: string,
-		frame?: string | number
-	): EditableImage {
+	public image(asset: PrefabImageAsset | PrefabSpritesheetFrameAsset, texture: string, frame?: string | number): EditableImage {
 		const id = this.getObjectId()
 		const image = new EditableImage(this.scene, id, asset, 0, 0, texture, frame)
 		this.register(image)
@@ -105,7 +102,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		height: number,
 		texture: string,
 		frame?: string | number,
-		patchesConfig?: IPatchesConfig
+		patchesConfig?: IPatchesConfig,
 	): EditableNineSlice {
 		const id = this.getObjectId()
 		const nineSlice = new EditableNineSlice(this.scene, id, asset, width, height, texture, frame, patchesConfig)
@@ -121,12 +118,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		return text
 	}
 
-	public bitmapText(
-		asset: PrefabBitmapFontAsset,
-		font: string,
-		content: string,
-		fontSize?: number
-	): EditableBitmapText {
+	public bitmapText(asset: PrefabBitmapFontAsset, font: string, content: string, fontSize?: number): EditableBitmapText {
 		const id = this.getObjectId()
 		const bitmapText = new EditableBitmapText(this.scene, id, asset, font, content, fontSize)
 		bitmapText.setOrigin(0.5)
@@ -198,7 +190,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 			json.height,
 			json.textureKey,
 			json.frameKey,
-			json.ninePatchConfig
+			json.ninePatchConfig,
 		)
 
 		nineSlice.setPosition(json.x, json.y)
@@ -235,15 +227,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 
 	private createBitmapTextFromJson(json: EditableBitmapTextJson): EditableBitmapText {
 		const id = this.getObjectId()
-		const bitmapText = new EditableBitmapText(
-			this.scene,
-			id,
-			json.asset,
-			json.font,
-			json.text,
-			json.fontSize,
-			json.align
-		)
+		const bitmapText = new EditableBitmapText(this.scene, id, json.asset, json.font, json.text, json.fontSize, json.align)
 
 		bitmapText.setPosition(json.x, json.y)
 		bitmapText.setName(json.name)

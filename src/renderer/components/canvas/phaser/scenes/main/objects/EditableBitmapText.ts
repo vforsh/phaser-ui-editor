@@ -1,5 +1,6 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { proxy } from 'valtio'
+
 import { PrefabBitmapFontAsset } from '../../../../../../types/prefabs/PrefabAsset'
 import { ComponentsManager } from './components/base/ComponentsManager'
 import { EditableComponentJson } from './components/base/EditableComponent'
@@ -28,7 +29,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		font: string,
 		text?: string | string[],
 		size?: number,
-		align?: number
+		align?: number,
 	) {
 		super(scene, 0, 0, font, text, size, align)
 

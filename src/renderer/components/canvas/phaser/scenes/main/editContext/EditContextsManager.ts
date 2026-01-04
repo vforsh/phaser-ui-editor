@@ -1,4 +1,5 @@
 import { ILogObj, Logger } from 'tslog'
+
 import { TypedEventEmitter } from '../../../robowhale/phaser3/TypedEventEmitter'
 import { MainScene } from '../MainScene'
 import { EditableContainer } from '../objects/EditableContainer'
@@ -57,7 +58,7 @@ export class EditContextsManager extends TypedEventEmitter<EditContextsManagerEv
 				switchTo: false,
 				isRoot: false,
 			} satisfies AddContextOptions,
-			options
+			options,
 		)
 
 		const context = new EditContext({

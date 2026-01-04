@@ -6,10 +6,7 @@ type StateObject = { [key: string]: unknown }
 
 type StatePaths<T extends StateObject> = Exclude<Path<T>, 'id' | 'type'>
 
-type ChangeCallback<T extends StateObject, K extends StatePaths<T>> = (
-	value: PathValue<T, K>,
-	prevValue: PathValue<T, K>
-) => void
+type ChangeCallback<T extends StateObject, K extends StatePaths<T>> = (value: PathValue<T, K>, prevValue: PathValue<T, K>) => void
 
 type ChangeCallbackMap<T extends StateObject> = {
 	[K in StatePaths<T>]?: ChangeCallback<T, K>
@@ -44,7 +41,7 @@ export class StateChangesEmitter<T extends StateObject> {
 					}
 				})
 			},
-			true
+			true,
 		)
 
 		if (signal) {
@@ -53,7 +50,7 @@ export class StateChangesEmitter<T extends StateObject> {
 				() => {
 					this.destroy()
 				},
-				{ once: true }
+				{ once: true },
 			)
 		}
 	}

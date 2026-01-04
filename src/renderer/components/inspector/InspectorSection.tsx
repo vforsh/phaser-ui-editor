@@ -5,16 +5,14 @@ import { VerticalLayoutComponentJson } from '@components/canvas/phaser/scenes/ma
 import { EditableBitmapTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableBitmapText'
 import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
 import { EditableImageJson } from '@components/canvas/phaser/scenes/main/objects/EditableImage'
-import {
-	EditableNineSlice,
-	EditableNineSliceJson,
-} from '@components/canvas/phaser/scenes/main/objects/EditableNineSlice'
+import { EditableNineSlice, EditableNineSliceJson } from '@components/canvas/phaser/scenes/main/objects/EditableNineSlice'
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { EditableTextJson, EditableTextStyleJson } from '@components/canvas/phaser/scenes/main/objects/EditableText'
 import { Box, Collapse, Group, Text, UnstyledButton } from '@mantine/core'
 import { ChevronRight, LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import { ValueOf } from 'type-fest'
+
 import { AssetTreeBitmapFontData, AssetTreeWebFontData } from '../../types/assets'
 import classes from './InspectorSection.module.css'
 import { AssetSectionData } from './sections/assets/AssetSection'

@@ -2,6 +2,7 @@ import { EditableBitmapTextJson } from '@components/canvas/phaser/scenes/main/ob
 import { Group, Stack } from '@mantine/core'
 import { state, State, useSnapshot } from '@state/State'
 import { uniq } from 'es-toolkit'
+
 import { getAssetById, getAssetsOfType } from '../../../../types/assets'
 import { AssetPicker } from '../../../common/AssetPicker/AssetPicker'
 import { BaseSectionProps } from '../BaseSection'
@@ -60,13 +61,7 @@ export function BitmapTextSection({ data }: BitmapTextSectionProps) {
 				</Text>
 			)} */}
 
-			<TextareaCustom
-				rows={3}
-				label="Content"
-				value={snap.text}
-				onChange={(e) => (data.text = e.currentTarget.value)}
-				size="xs"
-			/>
+			<TextareaCustom rows={3} label="Content" value={snap.text} onChange={(e) => (data.text = e.currentTarget.value)} size="xs" />
 
 			<Group grow>
 				<AssetPicker

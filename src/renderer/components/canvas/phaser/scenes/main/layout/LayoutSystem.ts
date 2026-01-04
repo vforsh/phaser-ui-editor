@@ -1,9 +1,11 @@
 import type { ILogObj, Logger } from 'tslog'
+
 import type { MainScene } from '../MainScene'
-import { EditableContainer } from '../objects/EditableContainer'
 import type { EditableObject } from '../objects/EditableObject'
 import type { EditableObjectsFactory } from '../objects/EditableObjectsFactory'
+
 import { LayoutComponent } from '../objects/components/LayoutComponent'
+import { EditableContainer } from '../objects/EditableContainer'
 
 type LayoutSystemOptions = {
 	scene: MainScene
@@ -28,12 +30,7 @@ export class LayoutSystem {
 	private readonly maxIterations = 1000
 
 	constructor(private readonly options: LayoutSystemOptions) {
-		this.options.objectsFactory.on(
-			'obj-registered',
-			(obj) => this.onObjectRegistered(obj),
-			this,
-			this.options.scene.shutdownSignal
-		)
+		this.options.objectsFactory.on('obj-registered', (obj) => this.onObjectRegistered(obj), this, this.options.scene.shutdownSignal)
 	}
 
 	/**

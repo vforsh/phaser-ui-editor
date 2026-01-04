@@ -33,6 +33,6 @@
 			"@hooks/*": ["./src/renderer/hooks/*"]
 		}
 	},
-	"include": ["src/renderer", "src/backend/contract", "types"],
+	"include": ["src/renderer", "types", "src/shared/main-api"],
 	"exclude": ["exports.d.ts", "src/main", "src/preload"]
 }

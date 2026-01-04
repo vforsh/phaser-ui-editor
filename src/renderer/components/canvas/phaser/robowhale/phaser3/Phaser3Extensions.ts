@@ -26,10 +26,7 @@ export class Phaser3Extensions {
 	}
 
 	public static extendGeom(): void {
-		Phaser.Geom.Rectangle.prototype.intersects = function (
-			rect: Phaser.Geom.Rectangle,
-			countTouchingEdges = false
-		): boolean {
+		Phaser.Geom.Rectangle.prototype.intersects = function (rect: Phaser.Geom.Rectangle, countTouchingEdges = false): boolean {
 			return rectIntersect(this, rect, countTouchingEdges)
 		}
 	}
@@ -54,7 +51,7 @@ export class Phaser3Extensions {
 			startAngle: number,
 			endAngle: number,
 			anticlockwise?: boolean,
-			overshoot?: number
+			overshoot?: number,
 		) {
 			let inverseStartAngle = endAngle
 			let inverseEndAngle = startAngle
@@ -84,9 +81,7 @@ export class Phaser3Extensions {
 			})
 		}
 
-		Phaser.Tweens.TweenManager.prototype.addCircleTween = function (
-			config: CircleTweenConfig
-		): Phaser.Tweens.Tween {
+		Phaser.Tweens.TweenManager.prototype.addCircleTween = function (config: CircleTweenConfig): Phaser.Tweens.Tween {
 			config.startAngle ??= -90
 			config.endAngle ??= config.startAngle + 360
 
@@ -232,7 +227,7 @@ export class Phaser3Extensions {
 		}
 
 		Phaser.GameObjects.Container.prototype.listAsString = function (
-			predicate: (item: Phaser.GameObjects.GameObject) => boolean = () => true
+			predicate: (item: Phaser.GameObjects.GameObject) => boolean = () => true,
 		) {
 			return `[${this.list
 				.filter(predicate)
@@ -258,9 +253,7 @@ export class Phaser3Extensions {
 
 		Phaser.Animations.AnimationManager.prototype.getFrameNames = function (atlasKey, prefix) {
 			let allFrames: string[] = this.game.textures.get(atlasKey).getFrameNames()
-			let animationFrameNames: string[] = allFrames
-				.filter((frameName) => frameName.includes(prefix))
-				.sort(sortByFrameNumbers)
+			let animationFrameNames: string[] = allFrames.filter((frameName) => frameName.includes(prefix)).sort(sortByFrameNumbers)
 
 			return animationFrameNames.map((frameName) => {
 				return {
@@ -335,7 +328,7 @@ export class Phaser3Extensions {
 		Phaser.Math.RandomDataGenerator.prototype.pickExceptMultiple = function <T>(
 			array: T[],
 			exceptions: T[],
-			safetyCounter: number = 100
+			safetyCounter: number = 100,
 		): T {
 			let item: T
 
@@ -366,30 +359,15 @@ export class Phaser3Extensions {
 			return new SimpleButton(this.scene, texture, frame, parent)
 		}
 
-		factory.toggleButton = function (
-			texture: string,
-			frame_1: string,
-			frame_2: string,
-			parent?: Phaser.GameObjects.Container
-		) {
+		factory.toggleButton = function (texture: string, frame_1: string, frame_2: string, parent?: Phaser.GameObjects.Container) {
 			return new ToggleButton(this.scene, texture, frame_1, frame_2, parent)
 		}
 
-		factory.soundButton = function (
-			texture: string,
-			frame_1: string,
-			frame_2: string,
-			parent?: Phaser.GameObjects.Container
-		) {
+		factory.soundButton = function (texture: string, frame_1: string, frame_2: string, parent?: Phaser.GameObjects.Container) {
 			return new SoundButton(this.scene, texture, frame_1, frame_2, parent)
 		}
 
-		factory.musicButton = function (
-			texture: string,
-			frame_1: string,
-			frame_2: string,
-			parent?: Phaser.GameObjects.Container
-		) {
+		factory.musicButton = function (texture: string, frame_1: string, frame_2: string, parent?: Phaser.GameObjects.Container) {
 			return new MusicButton(this.scene, texture, frame_1, frame_2, parent)
 		}
 
@@ -397,12 +375,7 @@ export class Phaser3Extensions {
 			return new ComplexButton(this.scene, backTexture, backFrame, parent)
 		}
 
-		factory.autoSizeText = function (
-			content,
-			style?,
-			options?,
-			parent?: Phaser.GameObjects.Container
-		): AutoSizeText {
+		factory.autoSizeText = function (content, style?, options?, parent?: Phaser.GameObjects.Container): AutoSizeText {
 			let text = new AutoSizeText(this.scene, 0, 0, content, style, options)
 
 			if (parent) {
@@ -414,11 +387,7 @@ export class Phaser3Extensions {
 			return text
 		}
 
-		factory.eventfulContainer = function (
-			x: number = 0,
-			y: number = 0,
-			children: Phaser.GameObjects.GameObject[] = []
-		) {
+		factory.eventfulContainer = function (x: number = 0, y: number = 0, children: Phaser.GameObjects.GameObject[] = []) {
 			const container = new EventfulContainer(this.scene, x, y, children)
 			this.existing(container)
 			return container
@@ -551,7 +520,7 @@ export class Phaser3Extensions {
 			key: string,
 			textureURL: string | string[],
 			fontDataURL: string,
-			addToTexture?: string
+			addToTexture?: string,
 		): Phaser.Loader.LoaderPlugin {
 			this.image(key, textureURL)
 			this.json(key, fontDataURL)
@@ -573,7 +542,7 @@ export class Phaser3Extensions {
 			atlasFrame: string,
 			dataURL: string,
 			xSpacing?: number,
-			ySpacing?: number
+			ySpacing?: number,
 		): Phaser.Loader.LoaderPlugin {
 			let xmlKey: string = fontKey + '_data'
 			this.xml(xmlKey, dataURL)
@@ -586,7 +555,7 @@ export class Phaser3Extensions {
 					atlasFrame,
 					xmlKey,
 					xSpacing,
-					ySpacing
+					ySpacing,
 				)
 				if (wasParsed === false) {
 					console.warn(`Can't add bitmap font ${fontKey}`)

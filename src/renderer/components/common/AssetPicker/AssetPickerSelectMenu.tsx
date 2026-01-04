@@ -2,6 +2,7 @@ import { alpha, Box, Modal, ScrollArea, Stack, Text, TextInput, useMantineTheme 
 import { State, state, useSnapshot } from '@state/State'
 import { Fzf } from 'fzf'
 import { useEffect, useMemo, useRef } from 'react'
+
 import { getAssetById, getAssetRelativePath } from '../../../types/assets'
 import classes from './AssetPickerSelectMenu.module.css'
 import { AssetPreview } from './AssetPreview'

@@ -2,6 +2,7 @@
 
 import { Command } from 'commander'
 import process from 'node:process'
+
 import { createCtx, Ctx } from './lib/context'
 import { handleError } from './lib/errors'
 import { registerContractCommands, registerIntrospectionCommands } from './registerContractCommands'

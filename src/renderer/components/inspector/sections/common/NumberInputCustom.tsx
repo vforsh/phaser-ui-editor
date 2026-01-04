@@ -1,5 +1,6 @@
 import { NumberInput, NumberInputProps } from '@mantine/core'
 import { useEventListener } from '@mantine/hooks'
+
 import classes from './NumberInputCustom.module.css'
 
 interface NumberInputCustomProps extends Omit<NumberInputProps, 'onChange'> {
@@ -51,7 +52,7 @@ export function NumberInputCustom(props: NumberInputCustomProps) {
 
 			onChange(roundedValue)
 		},
-		{ passive: false }
+		{ passive: false },
 	)
 
 	return (

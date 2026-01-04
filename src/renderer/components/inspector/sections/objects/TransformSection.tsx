@@ -1,15 +1,12 @@
 import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
-import {
-	canChangeOrigin,
-	canChangeScale,
-	EditableObjectJson,
-} from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { canChangeOrigin, canChangeScale, EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { isPositionLockedForObjectJson } from '@components/canvas/phaser/scenes/main/objects/editing/editRestrictions'
 import { NumberInputCustom } from '@components/inspector/sections/common/NumberInputCustom'
 import { findParentContainerId } from '@components/inspector/utils/findParentContainerId'
 import { Box, Group, Stack, Tooltip } from '@mantine/core'
 import { state } from '@state/State'
 import { useSnapshot } from 'valtio'
+
 import { BaseSectionProps } from '../BaseSection'
 
 interface TransformSectionProps extends BaseSectionProps<EditableObjectJson> {}
