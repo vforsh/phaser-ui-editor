@@ -9,6 +9,8 @@ export type GenericUrlParam =
 	| 'hierarchy'
 	| 'assets'
 	| 'inspector'
+	// absolute path to project dir, used for auto-opening on startup
+	| 'projectPath'
 	| 'clearConsole'
 	// to start with TestScene instead of MainScene
 	| 'test'

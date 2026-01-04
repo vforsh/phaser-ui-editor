@@ -16,6 +16,19 @@ type OpenedProject = {
 	assetsDir: string
 }
 
+/**
+ * Opens a project by absolute directory path and hydrates app state.
+ *
+ * Side effects:
+ * - Loads and parses `project.json5`
+ * - Builds the assets tree from the project's `assetsDir` (respecting `assetsIgnore`)
+ * - Updates `state.assets.items`, `state.project`, `state.projectDir`, `state.lastOpenedProjectDir`
+ * - Adds/updates entry in `state.recentProjects`
+ * - Notifies the main process (dev) via `controlIpc.sendEditorStatus({ projectPath })` if available
+ *
+ * @param projectDirPath Absolute path to the project directory containing `project.json5`.
+ * @returns `true` if the project was loaded and state was updated; otherwise `false`.
+ */
 export async function openProjectByPath(projectDirPath: string, log?: AppLogger): Promise<boolean> {
 	const logger = log ?? rootLogger
 

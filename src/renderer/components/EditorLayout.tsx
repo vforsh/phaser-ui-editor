@@ -3,6 +3,7 @@ import { Box, Group, Paper, Stack } from '@mantine/core'
 import { useCallback, useEffect, useState } from 'react'
 
 import { useUndoHub } from '../di/DiHooks'
+import { useGlobalUndoRedoShortcuts } from '../hooks/useGlobalUndoRedoShortcuts'
 import { openProjectByPath } from '../project/open-project'
 import { state, useSnapshot } from '../state/State'
 import { urlParams } from '../UrlParams'
@@ -74,42 +75,17 @@ export default function EditorLayout() {
 		return () => window.removeEventListener('keydown', onKeyDown)
 	}, [])
 
-	// global undo/redo shortcuts
-	useEffect(() => {
-		const onKeyDown = (event: KeyboardEvent) => {
-			const activeElement = document.activeElement
-			const isInputFocused =
-				activeElement instanceof HTMLElement &&
-				(activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.isContentEditable)
-
-			if (isInputFocused) {
-				return
-			}
-
-			const isModifierPressed = event.metaKey || event.ctrlKey
-			if (!isModifierPressed) {
-				return
-			}
-
-			const key = event.key.toLowerCase()
-			if (key === 'z' && !event.shiftKey) {
-				event.preventDefault()
-				void undoHub.undo()
-				return
-			}
-
-			if (key === 'y' || (key === 'z' && event.shiftKey)) {
-				event.preventDefault()
-				void undoHub.redo()
-			}
-		}
-
-		window.addEventListener('keydown', onKeyDown)
-		return () => window.removeEventListener('keydown', onKeyDown)
-	}, [undoHub])
+	useGlobalUndoRedoShortcuts({ undoHub })
 
 	// open last opened project if present
 	useEffect(() => {
+		const startProjectPath = urlParams.get('projectPath')
+		if (startProjectPath) {
+			// TODO handle loading state
+			openProject(startProjectPath)
+			return
+		}
+
 		const lastOpenedProjectDir = state.lastOpenedProjectDir
 		if (lastOpenedProjectDir) {
 			// TODO handle loading state
@@ -121,6 +97,15 @@ export default function EditorLayout() {
 	// display OpenProjectDialog if state.project is null
 	useEffect(() => {
 		if (snap.project || urlParams.getBool('e2e')) {
+			return
+		}
+
+		const startProjectPath = urlParams.get('projectPath')
+		if (startProjectPath) {
+			return
+		}
+
+		if (state.lastOpenedProjectDir) {
 			return
 		}
 
