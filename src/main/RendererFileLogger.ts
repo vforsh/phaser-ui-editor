@@ -14,6 +14,8 @@ export interface LoggerOptions {
 	maxBytes?: number
 	/** Maximum number of rotated log files to keep. Defaults to 10. */
 	maxFiles?: number
+	/** Maximum number of renderer run logs to keep in the logs directory. Defaults to 10. */
+	maxRuns?: number
 }
 
 const LEVEL_MAP: Record<string, string> = {
@@ -34,17 +36,23 @@ export class RendererFileLogger {
 	private readonly runId: string
 	private readonly maxBytes: number
 	private readonly maxFiles: number
+	private readonly maxRuns: number
 	private readonly logFilePath: string
 	private currentBytes = 0
 	private writeStream: fs.WriteStream | null = null
 	private writePromise = Promise.resolve()
+	private didPruneOldRuns = false
 
 	constructor(options: LoggerOptions) {
 		this.logsDir = options.logsDir
 		this.runId = options.runId
 		this.maxBytes = options.maxBytes ?? 1 * 1024 * 1024
 		this.maxFiles = options.maxFiles ?? 10
+		this.maxRuns = options.maxRuns ?? 10
 		this.logFilePath = path.join(this.logsDir, `renderer-${this.runId}.log`)
+
+		// Best-effort pruning of old run logs; keep logs/ from growing without bound in dev.
+		this.pruneOldRunLogsOnce()
 	}
 
 	/**
@@ -64,6 +72,7 @@ export class RendererFileLogger {
 	private getStream(): fs.WriteStream {
 		if (!this.writeStream) {
 			this.ensureDir()
+			this.pruneOldRunLogsOnce()
 			this.writeStream = fs.createWriteStream(this.logFilePath, { flags: 'a' })
 			if (fs.existsSync(this.logFilePath)) {
 				this.currentBytes = fs.statSync(this.logFilePath).size
@@ -74,30 +83,111 @@ export class RendererFileLogger {
 		return this.writeStream
 	}
 
+	private pruneOldRunLogsOnce(): void {
+		if (this.didPruneOldRuns) {
+			return
+		}
+		this.didPruneOldRuns = true
+
+		if (app.isPackaged) {
+			return
+		}
+
+		this.ensureDir()
+
+		const maxRuns = this.maxRuns
+		if (maxRuns <= 0) {
+			return
+		}
+
+		let dirEntries: fs.Dirent[]
+		try {
+			dirEntries = fs.readdirSync(this.logsDir, { withFileTypes: true })
+		} catch {
+			return
+		}
+
+		const rendererLogMatch = /^renderer-(.+?)\.log(?:\.(\d+))?$/
+		const groups = new Map<
+			string,
+			{
+				newestMtimeMs: number
+				fileNames: string[]
+			}
+		>()
+
+		for (const entry of dirEntries) {
+			if (!entry.isFile()) {
+				continue
+			}
+
+			const match = rendererLogMatch.exec(entry.name)
+			if (!match) {
+				continue
+			}
+
+			const baseName = `renderer-${match[1]}.log`
+			const fullPath = path.join(this.logsDir, entry.name)
+
+			let mtimeMs = 0
+			try {
+				mtimeMs = fs.statSync(fullPath).mtimeMs
+			} catch {
+				// ignore
+			}
+
+			const group = groups.get(baseName)
+			if (!group) {
+				groups.set(baseName, { newestMtimeMs: mtimeMs, fileNames: [entry.name] })
+				continue
+			}
+
+			group.fileNames.push(entry.name)
+			group.newestMtimeMs = Math.max(group.newestMtimeMs, mtimeMs)
+		}
+
+		const sortedGroups = [...groups.entries()].sort((a, b) => b[1].newestMtimeMs - a[1].newestMtimeMs)
+		const groupsToDelete = sortedGroups.slice(maxRuns)
+
+		for (const [, group] of groupsToDelete) {
+			for (const fileName of group.fileNames) {
+				const fullPath = path.join(this.logsDir, fileName)
+				try {
+					fs.unlinkSync(fullPath)
+				} catch {
+					// ignore
+				}
+			}
+		}
+	}
+
 	private async rotate(): Promise<void> {
 		if (this.writeStream) {
 			await new Promise<void>((resolve) => this.writeStream!.end(resolve))
 			this.writeStream = null
 		}
 
+		// Ensure the oldest rotated file is removed so we never exceed maxFiles.
+		const oldestPath = `${this.logFilePath}.${this.maxFiles}`
+		if (fs.existsSync(oldestPath)) {
+			try {
+				fs.unlinkSync(oldestPath)
+			} catch {
+				// ignore
+			}
+		}
+
 		// Shift existing files: .9 -> .10, .8 -> .9, ..., .1 -> .2
 		for (let i = this.maxFiles - 1; i >= 1; i--) {
 			const oldPath = `${this.logFilePath}.${i}`
 			const newPath = `${this.logFilePath}.${i + 1}`
-			if (fs.existsSync(oldPath)) {
-				if (i + 1 > this.maxFiles) {
-					try {
-						fs.unlinkSync(oldPath)
-					} catch (e) {
-						// ignore
-					}
-				} else {
-					try {
-						fs.renameSync(oldPath, newPath)
-					} catch (e) {
-						// ignore
-					}
-				}
+			if (!fs.existsSync(oldPath)) {
+				continue
+			}
+			try {
+				fs.renameSync(oldPath, newPath)
+			} catch {
+				// ignore
 			}
 		}
 
