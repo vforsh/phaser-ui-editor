@@ -1,5 +1,6 @@
-import './robowhale/phaser3/Phaser3Extensions'
 import { logger } from '@logs/logs'
+
+import './robowhale/phaser3/Phaser3Extensions'
 import { mainApi } from '@main-api/main-api'
 import { until } from '@open-draft/until'
 import { state } from '@state/State'
@@ -14,8 +15,9 @@ import { AppEvents, AppEventsEmitter } from '../../../AppEvents'
 import { UndoHub } from '../../../history/UndoHub'
 import { Project } from '../../../project/Project'
 import { ProjectConfig } from '../../../project/ProjectConfig'
-import { getAssetById, isAssetOfType } from '../../../types/assets'
+import { getAssetById, getAssetRelativePath, isAssetOfType } from '../../../types/assets'
 import { PrefabFile } from '../../../types/prefabs/PrefabFile'
+import { PrefabFile } from './../../../types/prefabs/PrefabFile'
 import { PhaserAppCommands, PhaserAppCommandsEmitter } from './PhaserAppCommands'
 import { PhaserAppEvents, PhaserAppEventsEmitter } from './PhaserAppEvents'
 import { Phaser3Extensions } from './robowhale/phaser3/Phaser3Extensions'
@@ -186,8 +188,9 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 
 		// TODO add zod validation and check if the loaded json is a valid prefab file
 		const prefabFile = data as PrefabFile
+		const prefabRelPath = getAssetRelativePath(prefabAsset.path)
 
-		this.logger.info(`loaded prefab '${prefabAsset.name}' (assetId: ${prefabAsset.id}, path: ${prefabAsset.path})`)
+		this.logger.info(`loaded prefab '${prefabAsset.name}' (assetId: ${prefabAsset.id}, path: ${prefabRelPath})`)
 		this.scene.start('MainScene', {
 			project: new Project({ config: this.projectConfig }),
 			prefabAsset,
