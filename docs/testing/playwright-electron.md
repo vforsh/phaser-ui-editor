@@ -27,6 +27,34 @@ npm run build
 
 Working example lives at: `tests/e2e/specs/tekton.launch.smoke.spec.ts`
 
+Tip: launch with project pre-opened:
+
+- The renderer supports `?projectPath=<absolute-path>` (see `src/renderer/UrlParams.ts` + `src/renderer/components/EditorLayout.tsx`).
+- In launch-mode tests, the easiest way to set URL params is `ELECTRON_RENDERER_URL`.
+    - This works because the main process loads `ELECTRON_RENDERER_URL` when set and preserves the query string.
+    - When `PW_E2E=1`, the app also forces `?e2e=1` automatically (it will not remove other params).
+
+```ts
+import path from 'node:path'
+import { pathToFileURL } from 'node:url'
+import { _electron as electron } from 'playwright'
+
+const TESTBED_PROJECT_PATH = '/Users/vlad/dev/papa-cherry-2' // must be absolute
+
+const rendererIndexHtml = path.join(process.cwd(), 'out/renderer/index.html')
+const rendererUrl = pathToFileURL(rendererIndexHtml)
+rendererUrl.searchParams.set('projectPath', TESTBED_PROJECT_PATH) // auto-open project on boot
+
+const app = await electron.launch({
+	args: ['.'],
+	env: {
+		...process.env,
+		PW_E2E: '1',
+		ELECTRON_RENDERER_URL: rendererUrl.toString(),
+	},
+})
+```
+
 Important nuance:
 
 - `openProject()` loads project state/assets, but **does not guarantee the canvas scene is booted**.
