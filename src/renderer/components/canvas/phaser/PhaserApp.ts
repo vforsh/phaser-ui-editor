@@ -105,7 +105,6 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 
 		this.appCommands = appCommands
 		this.appCommands.on('open-prefab', this.openPrefab, this, false, this.destroySignal)
-		this.appCommands.on('discard-unsaved-prefab', this.discardUnsavedPrefab, this, false, this.destroySignal)
 		this.appCommands.on('undo', () => this.undoHub.undo(), this, false, this.destroySignal)
 		this.appCommands.on('redo', () => this.undoHub.redo(), this, false, this.destroySignal)
 		this.appCommands.on('get-canvas-metrics', this.getCanvasMetrics, this, false, this.destroySignal)
@@ -198,10 +197,6 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 
 		// save the prefab asset id to the state so it will auto-open it next time
 		state.canvas.lastOpenedPrefabAssetId = prefabAssetId
-	}
-
-	private async discardUnsavedPrefab() {
-		console.log(`discardUnsavedPrefab`)
 	}
 
 	private getCanvasMetrics() {
