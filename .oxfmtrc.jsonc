@@ -1,0 +1,17 @@
+{
+	"$schema": "./node_modules/oxfmt/configuration_schema.json",
+
+	"semi": false,
+	"singleQuote": true,
+	"printWidth": 140,
+	"trailingComma": "all",
+
+	"tabWidth": 4,
+	"useTabs": true,
+	"quoteProps": "consistent",
+
+	"experimentalSortImports": {},
+	"experimentalSortPackageJson": true,
+
+	"ignorePatterns": ["dist/", "out/", "node_modules/", "test-results/", "logs/"],
+}

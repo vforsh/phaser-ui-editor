@@ -11,13 +11,13 @@
  * The generated type declarations allow the project to be used as a typed dependency in other TypeScript projects.
  */
 
+import type { CompilerOptions } from 'typescript'
+
 import { execSync } from 'child_process'
 import fse from 'fs-extra'
+import { format } from 'oxfmt'
 import { join } from 'path'
-import prettier from 'prettier'
 import readline from 'readline'
-import type { CompilerOptions } from 'typescript'
-import prettierConfig from '../.prettierrc.mjs'
 
 interface TsConfig {
 	compilerOptions?: CompilerOptions
@@ -39,10 +39,19 @@ console.log('Bundling type declarations with dtsroll...')
 execSync(`npx dtsroll ${exportsDtsPath}`, { stdio: 'inherit' })
 
 const exportsContent = await fse.readFile(exportsDtsPath, 'utf8')
-const exportsContentPrettyfied = await prettier.format(exportsContent, {
-	...prettierConfig,
-	parser: 'typescript',
+const { code: exportsContentPrettyfied, errors } = await format('exports.d.ts', exportsContent, {
+	printWidth: 140,
+	tabWidth: 4,
+	useTabs: true,
+	semi: false,
+	singleQuote: true,
+	trailingComma: 'all',
+	quoteProps: 'consistent',
 })
+
+if (errors.length > 0) {
+	throw new Error(`Failed to format exports.d.ts with oxfmt:\n${errors.join('\n')}`)
+}
 
 const exportsFinalPath = 'exports.d.ts'
 await fse.outputFile(exportsFinalPath, exportsContentPrettyfied)

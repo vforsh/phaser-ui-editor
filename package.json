@@ -1,7 +1,7 @@
 {
 	"name": "tekton-editor",
-	"productName": "Tekton Editor",
-	"main": "out/main/index.js",
+	"version": "0.0.10",
+	"private": true,
 	"author": {
 		"name": "Vladislav Forsh",
 		"email": "vlad@robowhale.com"
@@ -10,12 +10,15 @@
 		"type": "git",
 		"url": "git@github.com:vforsh/phaser-ui-editor.git"
 	},
-	"private": true,
-	"version": "0.0.10",
-	"type": "module",
 	"bin": {
 		"editorctl": "dist/editorctl/scripts/editorctl/index.js"
 	},
+	"files": [
+		"exports.d.ts"
+	],
+	"type": "module",
+	"main": "out/main/index.js",
+	"types": "exports.d.ts",
 	"scripts": {
 		"start": "electron-vite dev",
 		"dev": "electron-vite dev",
@@ -27,19 +30,21 @@
 		"build": "electron-vite build",
 		"lint": "rg --files -g '*.ts' -g '*.tsx' -g '*.js' -g '*.jsx' | xargs oxlint --max-warnings 0",
 		"lint:fix": "rg --files -g '*.ts' -g '*.tsx' -g '*.js' -g '*.jsx' | xargs oxlint --fix",
+		"format": "oxfmt --write .",
 		"preview": "electron-vite preview",
 		"build-types": "node scripts/build-types.ts",
-		"update-types": "node scripts/build-types.ts --push"
+		"update-types": "node scripts/build-types.ts --push",
+		"prepare": "simple-git-hooks"
 	},
 	"dependencies": {
 		"@atlaskit/pragmatic-drag-and-drop": "^1.5.0",
 		"@atlaskit/pragmatic-drag-and-drop-react-drop-indicator": "^1.2.0",
+		"@electron-toolkit/preload": "^3.0.2",
+		"@electron-toolkit/utils": "^4.0.0",
 		"@koreez/phaser3-ninepatch": "^2.0.2",
 		"@mantine/core": "^7.6.1",
 		"@mantine/hooks": "^7.6.1",
 		"@mantine/notifications": "^7.16.3",
-		"@electron-toolkit/preload": "^3.0.2",
-		"@electron-toolkit/utils": "^4.0.0",
 		"@open-draft/deferred-promise": "^2.2.0",
 		"@open-draft/until": "^2.1.0",
 		"@robowhale/phaser3-ninepatch-types-fix": "^1.0.4",
@@ -104,12 +109,13 @@
 		"fs-extra": "^11.2.0",
 		"globby": "^14.0.2",
 		"image-size": "^1.1.1",
+		"lint-staged": "^15.5.0",
+		"oxfmt": "^0.21.0",
 		"oxlint": "^1.36.0",
 		"postcss": "^8.4.35",
 		"postcss-preset-mantine": "^1.13.0",
-		"prettier": "^3.3.3",
-		"prettier-plugin-organize-imports": "^4.1.0",
 		"sharp": "^0.33.5",
+		"simple-git-hooks": "^2.11.1",
 		"tailwindcss": "^3.4.1",
 		"trash": "^9.0.0",
 		"tsx": "^4.20.5",
@@ -117,11 +123,16 @@
 		"vite": "7.3.0",
 		"vite-tsconfig-paths": "^6.0.3"
 	},
+	"simple-git-hooks": {
+		"pre-commit": "npx lint-staged"
+	},
+	"lint-staged": {
+		"*.{js,jsx,ts,tsx,json,jsonc,json5,yaml,yml,html,css,scss,less,md,mdx,graphql,gql,toml}": [
+			"oxfmt --write"
+		]
+	},
 	"engines": {
 		"node": ">=24.12.0"
 	},
-	"files": [
-		"exports.d.ts"
-	],
-	"types": "exports.d.ts"
+	"productName": "Tekton Editor"
 }
