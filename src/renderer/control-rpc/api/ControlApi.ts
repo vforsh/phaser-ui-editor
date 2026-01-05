@@ -27,6 +27,7 @@ export { assetNodeSchema, assetTypeSchema, type AssetNode, type AssetType } from
 export { hierarchyNodeSchema, type HierarchyNode } from './commands/listHierarchy'
 export { successSchema } from './shared-schemas'
 
+import { addObjectComponentCommand } from './commands/addObjectComponent'
 import { createObjectCommand, createObjectFromAssetCommand } from './commands/createObject'
 import { createPrefabInstanceCommand } from './commands/createPrefabInstance'
 import { deleteObjectsCommand } from './commands/deleteObjects'
@@ -48,6 +49,7 @@ import { openPrefabCommand } from './commands/openPrefab'
 import { openProjectCommand } from './commands/openProject'
 import { patchObjectCommand } from './commands/patchObject'
 import { patchObjectComponentCommand } from './commands/patchObjectComponent'
+import { removeObjectComponentCommand } from './commands/removeObjectComponent'
 import { renameObjectCommand } from './commands/renameObject'
 import { savePrefabCommand } from './commands/savePrefab'
 import { selectAssetsCommand } from './commands/selectAssets'
@@ -58,6 +60,7 @@ import { takeCanvasScreenshotCommand } from './commands/takeCanvasScreenshot'
 import { waitForCanvasIdleCommand } from './commands/waitForCanvasIdle'
 
 export const controlContract = {
+	addObjectComponent: addObjectComponentCommand,
 	openProject: openProjectCommand,
 	selectAssets: selectAssetsCommand,
 	getProjectInfo: getProjectInfoCommand,
@@ -74,6 +77,7 @@ export const controlContract = {
 	renameObject: renameObjectCommand,
 	patchObject: patchObjectCommand,
 	patchObjectComponent: patchObjectComponentCommand,
+	removeObjectComponent: removeObjectComponentCommand,
 	getObjectMeta: getObjectMetaCommand,
 	getAssetInfo: getAssetInfoCommand,
 	getSelectedAssets: getSelectedAssetsCommand,

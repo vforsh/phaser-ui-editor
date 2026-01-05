@@ -2,6 +2,7 @@ import type { AppCommandsEmitter } from '../../AppCommands'
 import type { ControlApi } from '../api/ControlApi'
 import type { EditorControlContext } from './types'
 
+import { addObjectComponent } from './handlers/addObjectComponent'
 import { createObject } from './handlers/createObject'
 import { createObjectFromAsset } from './handlers/createObjectFromAsset'
 import { createPrefabInstance } from './handlers/createPrefabInstance'
@@ -24,6 +25,7 @@ import { openPrefab } from './handlers/openPrefab'
 import { openProject } from './handlers/openProject'
 import { patchObject } from './handlers/patchObject'
 import { patchObjectComponent } from './handlers/patchObjectComponent'
+import { removeObjectComponent } from './handlers/removeObjectComponent'
 import { renameObject } from './handlers/renameObject'
 import { savePrefab } from './handlers/savePrefab'
 import { selectAssets } from './handlers/selectAssets'
@@ -49,6 +51,7 @@ export class EditorControlService {
 		// CRITICAL: Handlers MUST have the same names as commands defined in ControlApi.ts.
 		// If a command is renamed in the contract, the handler name here and in its module must be renamed too.
 		const handlers = {
+			addObjectComponent: addObjectComponent(this.ctx),
 			openProject: openProject(this.ctx),
 			selectAssets: selectAssets(this.ctx),
 			getProjectInfo: getProjectInfo(this.ctx),
@@ -65,6 +68,7 @@ export class EditorControlService {
 			renameObject: renameObject(this.ctx),
 			patchObject: patchObject(this.ctx),
 			patchObjectComponent: patchObjectComponent(this.ctx),
+			removeObjectComponent: removeObjectComponent(this.ctx),
 			getObjectMeta: getObjectMeta(this.ctx),
 			getAssetInfo: getAssetInfo(this.ctx),
 			getSelectedAssets: getSelectedAssets(this.ctx),

@@ -21,6 +21,7 @@ export function exposeWindowEditor(appCommands: AppCommandsEmitter): void {
 	// NEVER EVER use `params: any`
 	const editor: WindowEditorApi = {
 		getCanvasMetrics: (params) => handlers.getCanvasMetrics(params ?? {}),
+		addObjectComponent: (params) => handlers.addObjectComponent(params),
 		openProject: (params) => handlers.openProject(params),
 		getProjectInfo: (params) => handlers.getProjectInfo(params ?? {}),
 		openPrefab: (params) => handlers.openPrefab(params),
@@ -38,6 +39,7 @@ export function exposeWindowEditor(appCommands: AppCommandsEmitter): void {
 		renameObject: (params) => handlers.renameObject(params),
 		patchObject: (params) => handlers.patchObject(params),
 		patchObjectComponent: (params) => handlers.patchObjectComponent(params),
+		removeObjectComponent: (params) => handlers.removeObjectComponent(params),
 		getObjectMeta: (params) => handlers.getObjectMeta(params),
 		getAssetInfo: (params) => handlers.getAssetInfo(params),
 		getObject: (params) => handlers.getObject(params),
