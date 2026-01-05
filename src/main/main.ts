@@ -1,6 +1,7 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu } from 'electron'
 import getPort from 'get-port'
+import fs from 'node:fs'
 import path from 'node:path'
 
 import { CHANNELS } from '../shared/ipc/channels'
@@ -14,6 +15,7 @@ let controlRpcAddress = ''
 let rendererLogger: RendererFileLogger | null = null
 
 const isE2E = process.env.PW_E2E === '1'
+const baseTitle = 'Tekton Editor'
 
 if (!app.isPackaged && isE2E && process.env.PW_E2E_CDP_PORT) {
 	app.commandLine.appendSwitch('remote-debugging-port', process.env.PW_E2E_CDP_PORT)
@@ -64,6 +66,19 @@ const createWindow = () => {
 		},
 	})
 
+	const windowTitle = getWindowTitle()
+	if (windowTitle) {
+		mainWindow.setTitle(windowTitle)
+	}
+
+	mainWindow.on('page-title-updated', (event) => {
+		if (!windowTitle) {
+			return
+		}
+		event.preventDefault()
+		mainWindow?.setTitle(windowTitle)
+	})
+
 	if (is.dev && !isE2E) {
 		setupRendererLogger(mainWindow.webContents)
 	}
@@ -96,6 +111,64 @@ const createWindow = () => {
 			url.searchParams.set('e2e', '1')
 		}
 		mainWindow.loadURL(url.toString())
+	}
+}
+
+function getWindowTitle(): string {
+	const suffix = is.dev && !isE2E ? getDevTitleSuffix() : null
+	if (!suffix) {
+		return baseTitle
+	}
+	return `${baseTitle} [${suffix}]`
+}
+
+function getDevTitleSuffix(): string | null {
+	const branch = getGitBranchName()
+	const worktreeDir = path.basename(process.cwd())
+	if (branch && worktreeDir) {
+		if (worktreeDir === 'tekton') {
+			return branch
+		}
+		return `${branch} @ ${worktreeDir}`
+	}
+	return branch ?? worktreeDir ?? null
+}
+
+function getGitBranchName(): string | null {
+	try {
+		const gitPath = path.join(process.cwd(), '.git')
+		if (!fs.existsSync(gitPath)) {
+			return null
+		}
+
+		const stats = fs.statSync(gitPath)
+		const gitDir = stats.isDirectory() ? gitPath : resolveGitDirFromFile(gitPath)
+		if (!gitDir) {
+			return null
+		}
+
+		const headPath = path.join(gitDir, 'HEAD')
+		const head = fs.readFileSync(headPath, 'utf8').trim()
+		if (head.startsWith('ref:')) {
+			const ref = head.slice('ref:'.length).trim()
+			return ref.split('/').slice(2).join('/') || ref
+		}
+		return 'detached'
+	} catch {
+		return null
+	}
+}
+
+function resolveGitDirFromFile(gitFilePath: string): string | null {
+	try {
+		const content = fs.readFileSync(gitFilePath, 'utf8').trim()
+		if (!content.startsWith('gitdir:')) {
+			return null
+		}
+		const gitDirPath = content.slice('gitdir:'.length).trim()
+		return path.isAbsolute(gitDirPath) ? gitDirPath : path.resolve(path.dirname(gitFilePath), gitDirPath)
+	} catch {
+		return null
 	}
 }
 
