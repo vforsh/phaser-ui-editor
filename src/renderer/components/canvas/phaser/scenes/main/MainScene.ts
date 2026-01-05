@@ -7,6 +7,7 @@ import { AppCommandsEmitter } from '../../../../../AppCommands'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { Aligner, type AlignType } from './Aligner'
 import { CanvasClipboard } from './CanvasClipboard'
+import { ContextDimming } from './ContextDimming'
 import { EditContext } from './editContext/EditContext'
 import { EditContextsManager } from './editContext/EditContextsManager'
 import { Selection } from './editContext/Selection'
@@ -51,6 +52,7 @@ export class MainScene extends BaseScene {
 	private componentsFactory!: EditableComponentsFactory
 	private clipboard!: CanvasClipboard
 	private aligner!: Aligner
+	private contextDimming?: ContextDimming
 
 	public init(data: MainSceneInitData) {
 		super.init(data)
@@ -173,6 +175,17 @@ export class MainScene extends BaseScene {
 		this.deps.aligner = this.aligner
 
 		this.addContextFrame(this.editContexts.current!)
+
+		this.contextDimming = new ContextDimming({
+			logger: this.logger,
+			editContexts: this.editContexts,
+			getSuperRoot: () => this.superRoot,
+			grid: this.grid,
+			rulers: this.rulers,
+			contextFrame: this.contextFrame,
+			shutdownSignal: this.shutdownSignal,
+		})
+		this.contextDimming.install()
 
 		this.scale.on('resize', this.resize, this, this.shutdownSignal)
 
@@ -436,6 +449,8 @@ export class MainScene extends BaseScene {
 		this.logger.debug(`${this.scene.key} shutdown - start`)
 
 		super.onShutdown()
+
+		this.contextDimming?.destroy()
 
 		this.editContexts.destroy()
 
