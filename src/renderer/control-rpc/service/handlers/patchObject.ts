@@ -8,7 +8,7 @@ import { resolveObjectSelectorV0 } from '../utils/resolve-object-selector'
 /**
  * @see {@link patchObjectCommand} for command definition
  */
-export const patchObject: CommandHandler<'setObjectPatch'> = (_ctx) => async (params) => {
+export const patchObject: CommandHandler<'patchObject'> = (_ctx) => async (params) => {
 	const resolved = resolveObjectSelectorV0(params.target)
 	if (!resolved.ok) {
 		return resolved

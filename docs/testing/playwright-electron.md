@@ -135,12 +135,6 @@ test('launch: open project + wait for idle', async ({ windowEditor }) => {
 
 `window.editor` methods are exposed in `src/renderer/control-rpc/expose-window-editor.ts` and derived from the Zod control contract.
 
-- **Project lifecycle**: `openProject`, `getProjectInfo`, `openPrefab`, `savePrefab`
-- **Canvas stability**: `waitForCanvasIdle`, `getCanvasState`, `getCanvasMetrics`
-- **Hierarchy**: `listHierarchy`, `selectObject`, `moveObjectInHierarchy`, `renameObject`
-- **Objects**: `selectObject`, `getObject`, `setObjectPatch`, `setComponentPatch`, `deleteObjects`, `duplicateObject`
-- **Assets**: `listAssets`, `selectAssets`, `getSelectedAssets`, `getAssetInfo`
-
 If you need exact I/O shapes for any method:
 
 - Look at `src/renderer/control-rpc/api/commands/<method>.ts` (Zod `input`/`output`), referenced by `src/renderer/control-rpc/api/ControlApi.ts`.
