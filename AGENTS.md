@@ -15,8 +15,8 @@
 
 ## Git Worktrees
 
+- **Worktrees root**: worktrees are created as siblings under `~/dev/tekton-editor/`.
 - **Main checkout**: the primary working tree lives at `~/dev/tekton-editor/tekton`.
-- **Worktrees root**: additional worktrees are created as siblings under `~/dev/tekton-editor/`.
 - **One folder per worktree**: each worktree is named `tekton.<branch-sanitized>`, e.g.:
 
 ```bash
@@ -35,8 +35,8 @@ Common commands:
 
 ```bash
 wt list
-wt switch -c <branch>     # create branch + worktree, then switch
-wt merge                  # merge current worktree into default branch (usually `master` or `main`)
+wt switch -c <branch> -y    # create branch + worktree, then switch
+wt merge                    # merge current worktree into default branch (usually `master` or `main`)
 ```
 
 ## Typechecking
