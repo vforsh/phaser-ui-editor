@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import { CommandDefinition } from '../ControlApi'
-import { objectSelectorV0Schema, okResultSchema } from '../shared-schemas'
+import { objectSelectorV0Schema, okCreatedIdResultSchema } from '../shared-schemas'
 
 export const createPrefabInstanceCommand = {
 	group: 'objects',
@@ -22,5 +22,5 @@ export const createPrefabInstanceCommand = {
 		})
 		.strict()
 		.describe('Input parameters for creating a prefab instance'),
-	output: okResultSchema.describe('Result indicating whether the prefab instance was created'),
+	output: okCreatedIdResultSchema.describe('Result indicating whether the prefab instance was created'),
 } satisfies CommandDefinition

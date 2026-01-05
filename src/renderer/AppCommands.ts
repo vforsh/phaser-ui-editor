@@ -8,7 +8,7 @@ import {
 	EditableComponentJson,
 	EditableComponentType,
 } from '@components/canvas/phaser/scenes/main/objects/components/base/EditableComponent'
-import { EditableObjectType } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { EditableObjectType, type EditableObject } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 
 import { CommandEmitter } from './components/canvas/phaser/robowhale/utils/events/CommandEmitter'
 import { CameraParams } from './components/canvas/phaser/scenes/main/mainScene/MainSceneCamera'
@@ -22,7 +22,7 @@ export type AppCommands = {
 	// commands from hierarchy panel
 	'switch-to-context': (id: string) => void
 	'highlight-object': (id: string) => void
-	'create-object': (data: { clickedObjId: string; type: EditableObjectType }) => void
+	'create-object': (data: { clickedObjId: string; type: EditableObjectType }) => string | undefined
 	'copy-object': (id: string) => void
 	'duplicate-object': (id: string) => void
 	'cut-object': (id: string) => void
@@ -41,7 +41,7 @@ export type AppCommands = {
 
 	// commands from assets panel
 	'open-prefab': (prefabAssetId: string) => void
-	'handle-asset-drop': (data: { asset: AssetTreeItemData; position: { x: number; y: number } }) => void
+	'handle-asset-drop': (data: { asset: AssetTreeItemData; position: { x: number; y: number } }) => Promise<EditableObject | null>
 
 	// commands from align controls
 	'align': (type: AlignType) => void

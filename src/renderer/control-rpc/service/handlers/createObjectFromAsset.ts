@@ -18,7 +18,7 @@ function isSupportedAssetType(type: string): type is SupportedAssetType {
 export const createObjectFromAsset: CommandHandler<'createObjectFromAsset'> = (ctx) => async (params) => {
 	const resolved = resolveObjectSelectorV0(params.parent)
 	if (!resolved.ok) {
-		return resolved
+		return { ok: false, error: resolved.error }
 	}
 
 	const parent = state.canvas.objectById(resolved.id)
@@ -47,11 +47,23 @@ export const createObjectFromAsset: CommandHandler<'createObjectFromAsset'> = (c
 		}
 	}
 
-	ctx.appCommands.emit('select-object', parent.id)
-	ctx.appCommands.emit('handle-asset-drop', {
+	if (parent.type === 'Container') {
+		ctx.appCommands.emit('switch-to-context', parent.id)
+	} else {
+		ctx.appCommands.emit('select-object', parent.id)
+	}
+	const createdObj = await ctx.appCommands.emit('handle-asset-drop', {
 		asset,
 		position: params.position ?? { x: 0, y: 0 },
 	})
 
-	return { ok: true }
+	const createdId = createdObj?.id
+	if (!createdId) {
+		return {
+			ok: false,
+			error: { kind: 'internal', message: 'failed to create object from asset' },
+		}
+	}
+
+	return { ok: true, createdId }
 }

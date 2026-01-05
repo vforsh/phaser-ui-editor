@@ -180,7 +180,7 @@ export class MainSceneOps {
 		this.deps.logger.info(`highlighting '${obj.name}' (${objId})`)
 	}
 
-	public async createObject(data: { clickedObjId: string; type: EditableObjectType }) {
+	public createObject(data: { clickedObjId: string; type: EditableObjectType }): string | undefined {
 		const before = this.deps.history.isRestoring ? null : this.deps.history.captureSnapshot()
 		const clickedObj = this.deps.objectsFactory.getObjectById(data.clickedObjId)
 		if (!clickedObj) {
@@ -218,6 +218,8 @@ export class MainSceneOps {
 		if (before) {
 			void this.deps.history.push('Create object', before, this.deps.history.captureSnapshot())
 		}
+
+		return newObj.id
 	}
 
 	public copyObject(objId: string) {

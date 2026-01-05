@@ -10,7 +10,7 @@ import { resolveObjectSelectorV0 } from '../utils/resolve-object-selector'
 export const createObject: CommandHandler<'createObject'> = (ctx) => async (params) => {
 	const resolved = resolveObjectSelectorV0(params.parent)
 	if (!resolved.ok) {
-		return resolved
+		return { ok: false, error: resolved.error }
 	}
 
 	const parent = state.canvas.objectById(resolved.id)
@@ -21,6 +21,13 @@ export const createObject: CommandHandler<'createObject'> = (ctx) => async (para
 		}
 	}
 
-	ctx.appCommands.emit('create-object', { clickedObjId: parent.id, type: params.type })
-	return { ok: true }
+	const createdId = ctx.appCommands.emit('create-object', { clickedObjId: parent.id, type: params.type })
+	if (!createdId) {
+		return {
+			ok: false,
+			error: { kind: 'internal', message: 'failed to create object' },
+		}
+	}
+
+	return { ok: true, createdId }
 }

@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import { CommandDefinition } from '../ControlApi'
-import { objectSelectorV0Schema, okResultSchema } from '../shared-schemas'
+import { objectSelectorV0Schema, okCreatedIdResultSchema } from '../shared-schemas'
 
 const editableObjectTypeSchema = z.enum(['Container', 'Image', 'NineSlice', 'Text', 'BitmapText'])
 
@@ -15,7 +15,7 @@ export const createObjectCommand = {
 		})
 		.strict()
 		.describe('Input parameters for creating an object'),
-	output: okResultSchema.describe('Result indicating whether the object was created'),
+	output: okCreatedIdResultSchema.describe('Result indicating whether the object was created'),
 } satisfies CommandDefinition
 
 export const createObjectFromAssetCommand = {
@@ -36,5 +36,5 @@ export const createObjectFromAssetCommand = {
 		})
 		.strict()
 		.describe('Input parameters for creating an object from an asset'),
-	output: okResultSchema.describe('Result indicating whether the object was created'),
+	output: okCreatedIdResultSchema.describe('Result indicating whether the object was created'),
 } satisfies CommandDefinition

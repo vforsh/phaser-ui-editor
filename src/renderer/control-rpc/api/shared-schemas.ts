@@ -64,3 +64,26 @@ export const okResultSchema = z
 			.strict(),
 	])
 	.describe('Standard result payload for control RPC commands')
+
+export const okCreatedIdResultSchema = z
+	.union([
+		z
+			.object({
+				ok: z.literal(true).describe('Indicates the operation succeeded'),
+				createdId: z.string().min(1).describe('Runtime identifier of the created object'),
+			})
+			.strict(),
+		z
+			.object({
+				ok: z.literal(false).describe('Indicates the operation failed'),
+				error: commandErrorSchema,
+			})
+			.strict(),
+		z
+			.object({
+				ok: z.literal(false).describe('Indicates the operation was blocked'),
+				blocked: commandBlockedSchema,
+			})
+			.strict(),
+	])
+	.describe('Standard result payload for creation commands that return a created runtime id')
