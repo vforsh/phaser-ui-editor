@@ -2,18 +2,18 @@ import type { moveObjectInHierarchyCommand } from '../../api/commands/moveObject
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'
-import { resolveNodeSelectorV0 } from '../utils/resolve-node-selector'
+import { resolveObjectSelectorV0 } from '../utils/resolve-object-selector'
 
 /**
  * @see {@link moveObjectInHierarchyCommand} for command definition
  */
 export const moveObjectInHierarchy: CommandHandler<'moveObjectInHierarchy'> = (ctx) => async (params) => {
-	const target = resolveNodeSelectorV0(params.target)
+	const target = resolveObjectSelectorV0(params.target)
 	if (!target.ok) {
 		return target
 	}
 
-	const parent = resolveNodeSelectorV0(params.newParent)
+	const parent = resolveObjectSelectorV0(params.newParent)
 	if (!parent.ok) {
 		return parent
 	}

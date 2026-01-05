@@ -11,6 +11,7 @@ import { getAssetInfo } from './handlers/getAssetInfo'
 import { getCanvasMetrics } from './handlers/getCanvasMetrics'
 import { getCanvasState } from './handlers/getCanvasState'
 import { getObject } from './handlers/getObject'
+import { getObjectMeta } from './handlers/getObjectMeta'
 import { getPrefabContent } from './handlers/getPrefabContent'
 import { getPrefabDocument } from './handlers/getPrefabDocument'
 import { getProjectInfo } from './handlers/getProjectInfo'
@@ -24,10 +25,8 @@ import { openProject } from './handlers/openProject'
 import { patchObject } from './handlers/patchObject'
 import { patchObjectComponent } from './handlers/patchObjectComponent'
 import { renameObject } from './handlers/renameObject'
-import { resolveNode } from './handlers/resolveNode'
 import { savePrefab } from './handlers/savePrefab'
 import { selectAssets } from './handlers/selectAssets'
-import { selectNode } from './handlers/selectNode'
 import { selectObject } from './handlers/selectObject'
 import { setCamera } from './handlers/setCamera'
 import { switchToContext } from './handlers/switchToContext'
@@ -47,6 +46,8 @@ export class EditorControlService {
 	constructor(appCommands: AppCommandsEmitter) {
 		this.ctx = { appCommands }
 
+		// CRITICAL: Handlers MUST have the same names as commands defined in ControlApi.ts.
+		// If a command is renamed in the contract, the handler name here and in its module must be renamed too.
 		const handlers = {
 			openProject: openProject(this.ctx),
 			selectAssets: selectAssets(this.ctx),
@@ -55,7 +56,6 @@ export class EditorControlService {
 			listHierarchy: listHierarchy(this.ctx),
 			listAssets: listAssets(this.ctx),
 			selectObject: selectObject(this.ctx),
-			selectNode: selectNode(this.ctx),
 			switchToContext: switchToContext(this.ctx),
 			deleteObjects: deleteObjects(this.ctx),
 			createObject: createObject(this.ctx),
@@ -65,7 +65,7 @@ export class EditorControlService {
 			renameObject: renameObject(this.ctx),
 			setObjectPatch: patchObject(this.ctx),
 			setComponentPatch: patchObjectComponent(this.ctx),
-			resolveNode: resolveNode(this.ctx),
+			getObjectMeta: getObjectMeta(this.ctx),
 			getAssetInfo: getAssetInfo(this.ctx),
 			getSelectedAssets: getSelectedAssets(this.ctx),
 			getObject: getObject(this.ctx),

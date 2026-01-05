@@ -10,22 +10,22 @@ export const successSchema = z
 	.strict()
 	.describe('Standard success response')
 
-export const nodeSelectorV0Schema = z
+export const objectSelectorV0Schema = z
 	.union([
 		z
 			.object({
-				id: z.string().min(1).describe('Runtime identifier of the node'),
+				id: z.string().min(1).describe('Runtime identifier of the object'),
 			})
 			.strict(),
 		z
 			.object({
-				path: z.string().min(1).describe('Hierarchy path to the node'),
+				path: z.string().min(1).describe('Hierarchy path to the object'),
 			})
 			.strict(),
 	])
-	.describe('Node selector using runtime id or hierarchy path')
+	.describe('Object selector using runtime id or hierarchy path')
 
-export type NodeSelectorV0 = z.infer<typeof nodeSelectorV0Schema>
+export type ObjectSelectorV0 = z.infer<typeof objectSelectorV0Schema>
 
 export const commandErrorSchema = z
 	.object({

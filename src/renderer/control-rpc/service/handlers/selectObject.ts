@@ -1,36 +1,26 @@
-import { P, match } from 'ts-pattern'
-
 import type { selectObjectCommand } from '../../api/commands/selectObject'
-import type { ControlInput } from '../../api/ControlApi'
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'
-import { resolveObjectIdByPath } from '../utils/object-path'
+import { resolveObjectSelectorV0 } from '../utils/resolve-object-selector'
 
 /**
  * @see {@link selectObjectCommand} for command definition
  */
 export const selectObject: CommandHandler<'selectObject'> = (ctx) => async (params) => {
-	const id = resolveObjectId(params)
-	ctx.appCommands.emit('select-object', id)
-	return { success: true }
-}
+	const resolved = resolveObjectSelectorV0(params.target)
+	if (!resolved.ok) {
+		return resolved
+	}
 
-function resolveObjectId(params: ControlInput<'selectObject'>): string {
-	const id = match(params)
-		.with({ id: P.string }, ({ id }) => id)
-		.with({ path: P.string }, ({ path }) => {
-			const root = state.canvas.root
-			if (!root) {
-				throw new Error('no prefab is open')
-			}
-			const resolvedId = resolveObjectIdByPath(root, path)
-			if (!resolvedId) {
-				throw new Error(`object not found for path '${path}'`)
-			}
-			return resolvedId
-		})
-		.exhaustive()
+	const obj = state.canvas.objectById(resolved.id)
+	if (!obj) {
+		return {
+			ok: false,
+			error: { kind: 'validation', message: `object not found for id '${resolved.id}'` },
+		}
+	}
 
-	return id
+	ctx.appCommands.emit('select-object', obj.id)
+	return { ok: true }
 }

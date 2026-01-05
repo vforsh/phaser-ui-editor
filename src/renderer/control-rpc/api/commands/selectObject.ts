@@ -1,24 +1,16 @@
 import { z } from 'zod'
 
 import { CommandDefinition } from '../ControlApi'
-import { successSchema } from '../shared-schemas'
+import { objectSelectorV0Schema, okResultSchema } from '../shared-schemas'
 
 export const selectObjectCommand = {
 	group: 'objects',
-	description: 'Selects a game object in the current scene, identified by its ID or path.',
+	description: 'Selects an object in the current prefab, identified by runtime id or hierarchy path.',
 	input: z
-		.union([
-			z
-				.object({
-					id: z.string().min(1).describe('Unique identifier of the game object'),
-				})
-				.strict(),
-			z
-				.object({
-					path: z.string().min(1).describe('Path to the game object in the hierarchy'),
-				})
-				.strict(),
-		])
-		.describe('Input parameters for selecting a game object (ID or path)'),
-	output: successSchema.describe('Success response indicating the object was selected'),
+		.object({
+			target: objectSelectorV0Schema,
+		})
+		.strict()
+		.describe('Input parameters for selecting an object'),
+	output: okResultSchema.describe('Result indicating whether the object was selected'),
 } satisfies CommandDefinition

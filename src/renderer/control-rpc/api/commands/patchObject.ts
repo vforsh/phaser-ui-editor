@@ -1,14 +1,14 @@
 import { z } from 'zod'
 
 import { CommandDefinition } from '../ControlApi'
-import { nodeSelectorV0Schema, okResultSchema } from '../shared-schemas'
+import { objectSelectorV0Schema, okResultSchema } from '../shared-schemas'
 
 export const patchObjectCommand = {
 	group: 'objects',
 	description: 'Applies a whitelisted patch to an object state.',
 	input: z
 		.object({
-			target: nodeSelectorV0Schema.describe('Target node selector'),
+			target: objectSelectorV0Schema,
 			patch: z.record(z.unknown()).describe('Patch object with whitelisted fields'),
 		})
 		.strict()

@@ -176,7 +176,8 @@ Why: both main and renderer validate incoming requests using this contract, and 
 Files:
 
 - Add a new handler module in `src/control-rpc/service/handlers/` (flat files).
-- Export a `createHandlers(ctx)` function that returns `{ yourMethod: async (params) => ... }`.
+- Export a factory function (e.g. `export const yourMethod: CommandHandler<'yourMethod'> = (ctx) => ...`) that returns the async handler.
+- **Naming requirement**: The handler function name MUST match the command name defined in `ControlApi.ts`. If you rename a command, you MUST rename its handler too.
 
 Use **guard clauses** (return early / throw early) for validation.
 Translate the request into internal actions:

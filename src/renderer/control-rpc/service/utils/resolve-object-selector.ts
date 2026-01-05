@@ -1,13 +1,13 @@
-import type { NodeSelectorV0 } from '../../api/shared-schemas'
+import type { ObjectSelectorV0 } from '../../api/shared-schemas'
 
 import { state } from '../../../state/State'
 import { resolveObjectIdByPath } from './object-path'
 
-export type ResolveNodeSelectorV0Result =
+export type ResolveObjectSelectorV0Result =
 	| { ok: true; id: string; path?: string }
 	| { ok: false; error: { kind: 'validation'; message: string } }
 
-export function resolveNodeSelectorV0(selector: NodeSelectorV0): ResolveNodeSelectorV0Result {
+export function resolveObjectSelectorV0(selector: ObjectSelectorV0): ResolveObjectSelectorV0Result {
 	if ('id' in selector) {
 		return { ok: true, id: selector.id }
 	}

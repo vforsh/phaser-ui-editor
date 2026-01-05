@@ -3,7 +3,7 @@ import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'
 import { getAssetById } from '../../../types/assets'
-import { resolveNodeSelectorV0 } from '../utils/resolve-node-selector'
+import { resolveObjectSelectorV0 } from '../utils/resolve-object-selector'
 
 const SUPPORTED_ASSET_TYPES = ['image', 'spritesheet-frame', 'prefab', 'web-font', 'bitmap-font'] as const
 type SupportedAssetType = (typeof SUPPORTED_ASSET_TYPES)[number]
@@ -16,7 +16,7 @@ function isSupportedAssetType(type: string): type is SupportedAssetType {
  * @see {@link createObjectFromAssetCommand} for command definition
  */
 export const createObjectFromAsset: CommandHandler<'createObjectFromAsset'> = (ctx) => async (params) => {
-	const resolved = resolveNodeSelectorV0(params.parent)
+	const resolved = resolveObjectSelectorV0(params.parent)
 	if (!resolved.ok) {
 		return resolved
 	}

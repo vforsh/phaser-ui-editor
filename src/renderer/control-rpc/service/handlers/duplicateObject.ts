@@ -2,13 +2,13 @@ import type { duplicateObjectCommand } from '../../api/commands/duplicateObject'
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'
-import { resolveNodeSelectorV0 } from '../utils/resolve-node-selector'
+import { resolveObjectSelectorV0 } from '../utils/resolve-object-selector'
 
 /**
  * @see {@link duplicateObjectCommand} for command definition
  */
 export const duplicateObject: CommandHandler<'duplicateObject'> = (ctx) => async (params) => {
-	const resolved = resolveNodeSelectorV0(params.target)
+	const resolved = resolveObjectSelectorV0(params.target)
 	if (!resolved.ok) {
 		return resolved
 	}

@@ -137,7 +137,7 @@ test('launch: open project + wait for idle', async ({ windowEditor }) => {
 
 - **Project lifecycle**: `openProject`, `getProjectInfo`, `openPrefab`, `savePrefab`
 - **Canvas stability**: `waitForCanvasIdle`, `getCanvasState`, `getCanvasMetrics`
-- **Hierarchy**: `listHierarchy`, `selectNode`, `moveObjectInHierarchy`, `renameObject`
+- **Hierarchy**: `listHierarchy`, `selectObject`, `moveObjectInHierarchy`, `renameObject`
 - **Objects**: `selectObject`, `getObject`, `setObjectPatch`, `setComponentPatch`, `deleteObjects`, `duplicateObject`
 - **Assets**: `listAssets`, `selectAssets`, `getSelectedAssets`, `getAssetInfo`
 

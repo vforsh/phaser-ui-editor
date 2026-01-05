@@ -2,13 +2,13 @@ import type { renameObjectCommand } from '../../api/commands/renameObject'
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'
-import { resolveNodeSelectorV0 } from '../utils/resolve-node-selector'
+import { resolveObjectSelectorV0 } from '../utils/resolve-object-selector'
 
 /**
  * @see {@link renameObjectCommand} for command definition
  */
 export const renameObject: CommandHandler<'renameObject'> = (_ctx) => async (params) => {
-	const resolved = resolveNodeSelectorV0(params.target)
+	const resolved = resolveObjectSelectorV0(params.target)
 	if (!resolved.ok) {
 		return resolved
 	}

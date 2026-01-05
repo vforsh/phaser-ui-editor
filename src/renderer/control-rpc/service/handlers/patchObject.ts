@@ -3,13 +3,13 @@ import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'
 import { applyWhitelistedPatch } from '../utils/apply-whitelisted-patch'
-import { resolveNodeSelectorV0 } from '../utils/resolve-node-selector'
+import { resolveObjectSelectorV0 } from '../utils/resolve-object-selector'
 
 /**
  * @see {@link patchObjectCommand} for command definition
  */
 export const patchObject: CommandHandler<'setObjectPatch'> = (_ctx) => async (params) => {
-	const resolved = resolveNodeSelectorV0(params.target)
+	const resolved = resolveObjectSelectorV0(params.target)
 	if (!resolved.ok) {
 		return resolved
 	}

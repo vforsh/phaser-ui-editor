@@ -4,13 +4,13 @@ import type { patchObjectComponentCommand } from '../../api/commands/patchObject
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'
-import { resolveNodeSelectorV0 } from '../utils/resolve-node-selector'
+import { resolveObjectSelectorV0 } from '../utils/resolve-object-selector'
 
 /**
  * @see {@link patchObjectComponentCommand} for command definition
  */
 export const patchObjectComponent: CommandHandler<'setComponentPatch'> = (_ctx) => async (params) => {
-	const resolved = resolveNodeSelectorV0(params.target)
+	const resolved = resolveObjectSelectorV0(params.target)
 	if (!resolved.ok) {
 		return resolved
 	}

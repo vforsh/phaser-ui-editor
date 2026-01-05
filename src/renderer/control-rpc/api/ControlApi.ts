@@ -35,6 +35,7 @@ import { getAssetInfoCommand } from './commands/getAssetInfo'
 import { getCanvasMetricsCommand } from './commands/getCanvasMetrics'
 import { getCanvasStateCommand } from './commands/getCanvasState'
 import { getObjectCommand } from './commands/getObject'
+import { getObjectMetaCommand } from './commands/getObjectMeta'
 import { getPrefabContentCommand } from './commands/getPrefabContent'
 import { getPrefabDocumentCommand } from './commands/getPrefabDocument'
 import { getProjectInfoCommand } from './commands/getProjectInfo'
@@ -48,10 +49,8 @@ import { openProjectCommand } from './commands/openProject'
 import { patchObjectCommand } from './commands/patchObject'
 import { patchObjectComponentCommand } from './commands/patchObjectComponent'
 import { renameObjectCommand } from './commands/renameObject'
-import { resolveNodeCommand } from './commands/resolveNode'
 import { savePrefabCommand } from './commands/savePrefab'
 import { selectAssetsCommand } from './commands/selectAssets'
-import { selectNodeCommand } from './commands/selectNode'
 import { selectObjectCommand } from './commands/selectObject'
 import { setCameraCommand } from './commands/setCamera'
 import { switchToContextCommand } from './commands/switchToContext'
@@ -66,7 +65,6 @@ export const controlContract = {
 	listHierarchy: listHierarchyCommand,
 	listAssets: listAssetsCommand,
 	selectObject: selectObjectCommand,
-	selectNode: selectNodeCommand,
 	switchToContext: switchToContextCommand,
 	deleteObjects: deleteObjectsCommand,
 	createObject: createObjectCommand,
@@ -76,7 +74,7 @@ export const controlContract = {
 	renameObject: renameObjectCommand,
 	setObjectPatch: patchObjectCommand,
 	setComponentPatch: patchObjectComponentCommand,
-	resolveNode: resolveNodeCommand,
+	getObjectMeta: getObjectMetaCommand,
 	getAssetInfo: getAssetInfoCommand,
 	getSelectedAssets: getSelectedAssetsCommand,
 	getObject: getObjectCommand,

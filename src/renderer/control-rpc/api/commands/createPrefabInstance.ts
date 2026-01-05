@@ -1,14 +1,14 @@
 import { z } from 'zod'
 
 import { CommandDefinition } from '../ControlApi'
-import { nodeSelectorV0Schema, okResultSchema } from '../shared-schemas'
+import { objectSelectorV0Schema, okResultSchema } from '../shared-schemas'
 
 export const createPrefabInstanceCommand = {
 	group: 'objects',
 	description: 'Creates a prefab instance (stub via asset drop).',
 	input: z
 		.object({
-			parent: nodeSelectorV0Schema.describe('Parent node selector'),
+			parent: objectSelectorV0Schema,
 			prefabAssetId: z.string().min(1).describe('Prefab asset id'),
 			position: z
 				.object({

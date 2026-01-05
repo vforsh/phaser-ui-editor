@@ -2,13 +2,13 @@ import type { createObjectCommand } from '../../api/commands/createObject'
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'
-import { resolveNodeSelectorV0 } from '../utils/resolve-node-selector'
+import { resolveObjectSelectorV0 } from '../utils/resolve-object-selector'
 
 /**
  * @see {@link createObjectCommand} for command definition
  */
 export const createObject: CommandHandler<'createObject'> = (ctx) => async (params) => {
-	const resolved = resolveNodeSelectorV0(params.parent)
+	const resolved = resolveObjectSelectorV0(params.parent)
 	if (!resolved.ok) {
 		return resolved
 	}
