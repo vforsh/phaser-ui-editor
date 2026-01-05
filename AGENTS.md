@@ -5,38 +5,38 @@
 - Oracle: run `npx -y @steipete/oracle --help` once/session before first use.
 - Style: telegraph. Drop filler/grammar. Min tokens (global AGENTS + replies).
 
+## Critical Thinking
+
+- Fix root cause (not band-aid).
+- Unsure: read more code; if still stuck, ask w/ short options.
+- Conflicts: call out; pick safer path.
+- Unrecognized changes: assume other agent; keep going; focus your changes. If it causes issues, stop + ask user.
+- Leave breadcrumb notes in thread.
+
 ## Git Worktrees
 
-- **Main checkout**: the primary working tree lives at `phaser-ui-editor/` (this repo).
-- **Worktrees root**: additional worktrees are organized under the sibling directory `phaser-ui-editor-worktrees/`.
-- **One folder per worktree**: each worktree should be created as its own subdirectory inside `phaser-ui-editor-worktrees/`, typically named after the branch/ticket, e.g.:
+- **Main checkout**: the primary working tree lives at `~/dev/tekton-editor/tekton`.
+- **Worktrees root**: additional worktrees are created as siblings under `~/dev/tekton-editor/`.
+- **One folder per worktree**: each worktree is named `tekton.<branch-sanitized>`, e.g.:
 
 ```bash
-phaser-ui-editor-worktrees/
-  feature-snap-to-grid/
-  bugfix-inspector-zod/
-  LIN-123-canvas-selection/
+tekton-editor/
+  tekton/
+  tekton.feature-snap-to-grid/
+  tekton.bugfix-inspector-zod/
+  tekton.LIN-123-canvas-selection/
 ```
-
-- **Conventions**:
-    - Keep `master` (or the mainline branch) in `phaser-ui-editor/`; use worktrees for parallel feature/bugfix work.
-    - Use `git worktree list` to see all linked worktrees.
-    - Prefer short, unique directory names (branch/ticket), because the folder name becomes the “human” identity of that worktree.
-    - When asked to create a new branch/worktree, use names like `feature/some-concise-desc` where the suffix is **kebab-case** and **~3–5 words max**. Common prefixes: `feature/`, `bugfix/`, `docs/` (e.g. `feature/dom-based-rulers`, `bugfix/inspector-zod-parse`, `docs/editorctl-overview`).
-- After creating a new worktree, run `npm ci` inside that worktree (each worktree has its own `node_modules`).
-- Use `fnm` to switch to the Node version specified in `package.json` before installing deps or running scripts.
 
 ## Worktrunk (`wt`) CLI
 
-This repo supports managing worktrees via the `wt` CLI from Worktrunk: `https://github.com/max-sixty/worktrunk`.
+This repo supports managing worktrees via the `wt` CLI from Worktrunk: `https://github.com/max-sixty/worktrunk`. Workflow details: `docs/workflows/git/git-worktrees.md`.
 
 Common commands:
 
 ```bash
 wt list
-wt switch <branch>        # jump to existing worktree for branch
 wt switch -c <branch>     # create branch + worktree, then switch
-wt remove                 # remove current worktree (and typically its branch)
+wt merge                  # merge current worktree into default branch (usually `master` or `main`)
 ```
 
 ## Typechecking
@@ -114,11 +114,3 @@ In development, the **main editor window** renderer `console.*` output is captur
 - **Rotation**: 1MB max per file; keep 10 rotated files: `.log.1` … `.log.10`
 - **When enabled**: dev only (`app.isPackaged === false`). Currently also disabled for Playwright E2E runs (`PW_E2E=1`).
 - **Quirk**: because this uses Electron’s `console-message` (string payload), `console.log('label', someObject)` may show up as `label [object Object]` rather than a pretty/structured object dump. Capturing rich objects would require a preload + IPC bridge (or CDP).
-
-## Critical Thinking
-
-- Fix root cause (not band-aid).
-- Unsure: read more code; if still stuck, ask w/ short options.
-- Conflicts: call out; pick safer path.
-- Unrecognized changes: assume other agent; keep going; focus your changes. If it causes issues, stop + ask user.
-- Leave breadcrumb notes in thread.
