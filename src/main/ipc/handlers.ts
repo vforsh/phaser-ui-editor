@@ -1,4 +1,4 @@
-import { dialog, shell } from 'electron'
+import { BrowserWindow, dialog, shell } from 'electron'
 import { Font, FontCollection, create } from 'fontkit'
 import fse from 'fs-extra'
 import { globby } from 'globby'
@@ -209,6 +209,32 @@ export const mainApiHandlers: MainApi = {
 
 		const outPath = path.join(normalizedDir, fileName)
 		await fse.writeFile(outPath, Buffer.from(bytes))
+
+		return { path: outPath }
+	},
+	async takeAppScreenshot({ targetDir, fileName, format }) {
+		const windows = BrowserWindow.getAllWindows()
+		const window = windows[0]
+		if (!window || window.isDestroyed()) {
+			throw new Error('no renderer window available')
+		}
+
+		const image = await window.webContents.capturePage()
+		const pngBuffer = image.toPNG()
+		const outputFormat = format ?? 'png'
+
+		let outputBuffer = pngBuffer
+		if (outputFormat === 'jpg') {
+			outputBuffer = await sharp(pngBuffer).jpeg({ quality: 95 }).toBuffer()
+		} else if (outputFormat === 'webp') {
+			outputBuffer = await sharp(pngBuffer).webp({ quality: 95 }).toBuffer()
+		}
+
+		const normalizedDir = normalizeAbsolutePath(targetDir)
+		await fse.ensureDir(normalizedDir)
+
+		const outPath = path.join(normalizedDir, fileName)
+		await fse.writeFile(outPath, outputBuffer)
 
 		return { path: outPath }
 	},

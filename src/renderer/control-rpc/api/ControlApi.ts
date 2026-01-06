@@ -56,6 +56,7 @@ import { selectAssetsCommand } from './commands/selectAssets'
 import { selectObjectCommand } from './commands/selectObject'
 import { setCameraCommand } from './commands/setCamera'
 import { switchToContextCommand } from './commands/switchToContext'
+import { takeAppScreenshotCommand } from './commands/takeAppScreenshot'
 import { takeCanvasScreenshotCommand } from './commands/takeCanvasScreenshot'
 import { waitForCanvasIdleCommand } from './commands/waitForCanvasIdle'
 
@@ -89,6 +90,7 @@ export const controlContract = {
 	listEditors: listEditorsCommand,
 	setCamera: setCameraCommand,
 	waitForCanvasIdle: waitForCanvasIdleCommand,
+	takeAppScreenshot: takeAppScreenshotCommand,
 	takeCanvasScreenshot: takeCanvasScreenshotCommand,
 	savePrefab: savePrefabCommand,
 	createPrefabInstance: createPrefabInstanceCommand,

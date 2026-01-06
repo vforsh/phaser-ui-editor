@@ -198,6 +198,14 @@ export const mainApiContract = {
 		}),
 		output: z.object({ path: absPathSchema }),
 	},
+	takeAppScreenshot: {
+		input: z.object({
+			targetDir: absPathSchema,
+			fileName: z.string().min(1),
+			format: z.enum(['png', 'jpg', 'webp']).optional(),
+		}),
+		output: z.object({ path: absPathSchema }),
+	},
 	showItemInFolder: {
 		input: z.object({ path: absPathSchema }),
 		output: z.object({ success: z.literal(true) }),

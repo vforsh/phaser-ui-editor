@@ -32,6 +32,7 @@ import { selectAssets } from './handlers/selectAssets'
 import { selectObject } from './handlers/selectObject'
 import { setCamera } from './handlers/setCamera'
 import { switchToContext } from './handlers/switchToContext'
+import { takeAppScreenshot } from './handlers/takeAppScreenshot'
 import { takeCanvasScreenshot } from './handlers/takeCanvasScreenshot'
 import { waitForCanvasIdle } from './handlers/waitForCanvasIdle'
 
@@ -80,6 +81,7 @@ export class EditorControlService {
 			listEditors: listEditors(this.ctx),
 			setCamera: setCamera(this.ctx),
 			waitForCanvasIdle: waitForCanvasIdle(this.ctx),
+			takeAppScreenshot: takeAppScreenshot(this.ctx),
 			takeCanvasScreenshot: takeCanvasScreenshot(this.ctx),
 			savePrefab: savePrefab(this.ctx),
 			createPrefabInstance: createPrefabInstance(this.ctx),
