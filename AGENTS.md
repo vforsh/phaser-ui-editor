@@ -53,6 +53,29 @@ npm run typecheck
 
 Do NOT use `typecheck-dev` for one-shot typechecking (it’s watch mode).
 
+## UI polish reviews (`eikon` CLI)
+
+Use `eikon` to get a visual-polish critique of Tekton UI screenshots (spot inconsistencies, misalignments, spacing/typography issues).
+
+In this repo, `editorctl` screenshot commands like `takeAppScreenshot` / `takeAppPartScreenshot` **save to `<projectDir>/screenshots` and return an absolute file path** — perfect for feeding directly into `eikon`.
+
+Examples:
+
+```bash
+# Take a screenshot via editorctl, then run eikon on it (path printed in JSON output)
+npm run editorctl -- --port <wsPort> call takeAppScreenshot '{"format":"png"}'
+eikon /absolute/path/from/the/printed/json.png --preset web-ui
+
+# Polished UI review preset (no prompt required)
+eikon /absolute/path/to/screenshot.png --preset web-ui
+
+# Add extra context for what you want reviewed
+eikon /absolute/path/to/screenshot.png --preset web-ui "Focus on spacing + typography"
+
+# Save output to a file
+eikon /absolute/path/to/screenshot.png --preset web-ui --out ui-review.md
+```
+
 ## Running & testing the editor (agent workflow)
 
 When implementing features that need runtime verification (Canvas/Hierarchy/Inspector behaviors, control RPC, etc.), use the running desktop editor instance and drive it via `editorctl`.
