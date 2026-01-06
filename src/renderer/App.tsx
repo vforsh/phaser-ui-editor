@@ -26,7 +26,7 @@ import { TOKENS } from './di/tokens'
 import { UndoHub } from './history/UndoHub'
 import { logger } from './logs/logs'
 import { isSettingsSectionId, type SettingsSectionId } from './settings/EditorSettings'
-import { state } from './state/State'
+import { clearSavedData, state } from './state/State'
 
 const theme = createTheme({
 	primaryColor: 'blue',
@@ -140,6 +140,16 @@ function App() {
 
 		return window.appMenu.onOpenControlRpcCommands(() => {
 			setControlRpcCommandsOpened(true)
+		})
+	}, [])
+
+	useEffect(() => {
+		if (!window.appMenu?.onClearSavedData) {
+			return
+		}
+
+		return window.appMenu.onClearSavedData(({ skipConfirmation }) => {
+			clearSavedData({ skipConfirmation })
 		})
 	}, [])
 

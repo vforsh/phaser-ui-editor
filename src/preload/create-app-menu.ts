@@ -4,6 +4,7 @@ const MENU_TAKE_CANVAS_SCREENSHOT = 'menu:take-canvas-screenshot'
 const MENU_OPEN_SETTINGS = 'menu:open-settings'
 const MENU_TOGGLE_PANEL = 'menu:toggle-panel'
 const MENU_OPEN_CONTROL_RPC_COMMANDS = 'menu:open-control-rpc-commands'
+const MENU_CLEAR_SAVED_DATA = 'menu:clear-saved-data'
 
 type SettingsSectionId = 'general' | 'hierarchy' | 'canvas' | 'assets' | 'inspector' | 'dev' | 'misc'
 type PanelId = 'hierarchy' | 'assets' | 'inspector'
@@ -56,6 +57,17 @@ export function createAppMenu() {
 
 			return () => {
 				ipcRenderer.off(MENU_OPEN_CONTROL_RPC_COMMANDS, listener)
+			}
+		},
+		onClearSavedData: (callback: (payload: { skipConfirmation?: boolean }) => void) => {
+			const listener = (_event: unknown, payload: { skipConfirmation?: boolean }) => {
+				callback(payload ?? {})
+			}
+
+			ipcRenderer.on(MENU_CLEAR_SAVED_DATA, listener)
+
+			return () => {
+				ipcRenderer.off(MENU_CLEAR_SAVED_DATA, listener)
 			}
 		},
 	}

@@ -158,7 +158,12 @@ const initialState = stateSchema.parse(initialStateParsed)
 
 const state = proxy(initialState)
 
+let isSavingBlocked = false
+
 const debouncedSaveState = debounce(() => {
+	if (isSavingBlocked) {
+		return
+	}
 	const serializedState = serializeState()
 	localStorage.setItem('state', serializedState)
 }, 1000)
@@ -213,7 +218,14 @@ const subscribe = (
 
 export { derive, state, subscribe, unproxy, useSnapshot }
 
-export function clearSavedData(): void {
+export function clearSavedData(options: { skipConfirmation?: boolean } = {}): void {
+	if (!options.skipConfirmation && !window.confirm('Are you sure you want to clear all saved data and reload the app?')) {
+		return
+	}
+
+	isSavingBlocked = true
+	debouncedSaveState.cancel()
+
 	try {
 		localStorage.removeItem('state')
 	} finally {

@@ -308,6 +308,18 @@ const createAppMenu = () => {
 			label: 'Tools',
 			submenu: [
 				{
+					label: 'Clear Saved Data',
+					click: (_menuItem, browserWindow, event) => {
+						const win = browserWindow ?? mainWindow
+						if (!win) {
+							return
+						}
+
+						win.webContents.send('menu:clear-saved-data', { skipConfirmation: event.shiftKey })
+					},
+				},
+				{ type: 'separator' },
+				{
 					label: 'Editor Commands',
 					click: openControlRpcCommands,
 				},
