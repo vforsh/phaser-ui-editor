@@ -13,6 +13,9 @@ let mainWindow: BrowserWindow | null = null
 let controlRpcServer: ControlRpcServer | null = null
 let controlRpcAddress = ''
 let rendererLogger: RendererFileLogger | null = null
+const LOG_LEVEL_OPTIONS = ['SILLY', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL'] as const
+type LogLevelOption = (typeof LOG_LEVEL_OPTIONS)[number]
+let currentMinLogLevel: LogLevelOption | null = null
 
 const isE2E = process.env.PW_E2E === '1'
 const baseTitle = 'Tekton Editor'
@@ -114,6 +117,19 @@ const createWindow = () => {
 	}
 }
 
+ipcMain.on('menu:update-min-log-level', (_event, payload: { level?: string }) => {
+	if (!payload?.level) {
+		return
+	}
+
+	if (!isLogLevelOption(payload.level)) {
+		return
+	}
+
+	currentMinLogLevel = payload.level
+	createAppMenu()
+})
+
 function getWindowTitle(): string {
 	const suffix = is.dev && !isE2E ? getDevTitleSuffix() : null
 	if (!suffix) {
@@ -132,6 +148,10 @@ function getDevTitleSuffix(): string | null {
 		return `${branch} @ ${worktreeDir}`
 	}
 	return branch ?? worktreeDir ?? null
+}
+
+function isLogLevelOption(value: unknown): value is LogLevelOption {
+	return typeof value === 'string' && (LOG_LEVEL_OPTIONS as readonly string[]).includes(value)
 }
 
 function getGitBranchName(): string | null {
@@ -307,6 +327,23 @@ const createAppMenu = () => {
 		{
 			label: 'Tools',
 			submenu: [
+				{
+					label: 'Minimal Log Level',
+					submenu: LOG_LEVEL_OPTIONS.map((level) => ({
+						label: level,
+						type: 'radio',
+						checked: currentMinLogLevel === level,
+						click: () => {
+							const win = BrowserWindow.getFocusedWindow() ?? mainWindow
+							if (!win) {
+								return
+							}
+
+							win.webContents.send('menu:set-min-log-level', { level })
+						},
+					})),
+				},
+				{ type: 'separator' },
 				{
 					label: 'Clear Saved Data',
 					click: (_menuItem, browserWindow, event) => {

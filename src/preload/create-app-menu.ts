@@ -5,6 +5,8 @@ const MENU_OPEN_SETTINGS = 'menu:open-settings'
 const MENU_TOGGLE_PANEL = 'menu:toggle-panel'
 const MENU_OPEN_CONTROL_RPC_COMMANDS = 'menu:open-control-rpc-commands'
 const MENU_CLEAR_SAVED_DATA = 'menu:clear-saved-data'
+const MENU_SET_MIN_LOG_LEVEL = 'menu:set-min-log-level'
+const MENU_UPDATE_MIN_LOG_LEVEL = 'menu:update-min-log-level'
 
 type SettingsSectionId = 'general' | 'hierarchy' | 'canvas' | 'assets' | 'inspector' | 'dev' | 'misc'
 type PanelId = 'hierarchy' | 'assets' | 'inspector'
@@ -69,6 +71,20 @@ export function createAppMenu() {
 			return () => {
 				ipcRenderer.off(MENU_CLEAR_SAVED_DATA, listener)
 			}
+		},
+		onSetMinLogLevel: (callback: (payload: { level?: string }) => void) => {
+			const listener = (_event: unknown, payload: { level?: string }) => {
+				callback(payload ?? {})
+			}
+
+			ipcRenderer.on(MENU_SET_MIN_LOG_LEVEL, listener)
+
+			return () => {
+				ipcRenderer.off(MENU_SET_MIN_LOG_LEVEL, listener)
+			}
+		},
+		notifyMinLogLevel: (payload: { level?: string }) => {
+			ipcRenderer.send(MENU_UPDATE_MIN_LOG_LEVEL, payload ?? {})
 		},
 	}
 }

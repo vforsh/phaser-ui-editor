@@ -16,6 +16,8 @@ declare global {
 			onTogglePanel: (callback: (payload: { panel: 'hierarchy' | 'assets' | 'inspector' }) => void) => () => void
 			onOpenControlRpcCommands: (callback: () => void) => () => void
 			onClearSavedData: (callback: (payload: { skipConfirmation?: boolean }) => void) => () => void
+			onSetMinLogLevel: (callback: (payload: { level?: string }) => void) => () => void
+			notifyMinLogLevel: (payload: { level?: string }) => void
 		}
 		editor?: WindowEditorApi
 		/**

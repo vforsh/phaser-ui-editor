@@ -25,8 +25,9 @@ import { DiProvider } from './di/DiContext'
 import { TOKENS } from './di/tokens'
 import { UndoHub } from './history/UndoHub'
 import { logger } from './logs/logs'
+import { LogLevel } from './logs/LogsManager'
 import { isSettingsSectionId, type SettingsSectionId } from './settings/EditorSettings'
-import { clearSavedData, state } from './state/State'
+import { clearSavedData, state, subscribe } from './state/State'
 
 const theme = createTheme({
 	primaryColor: 'blue',
@@ -150,6 +151,59 @@ function App() {
 
 		return window.appMenu.onClearSavedData(({ skipConfirmation }) => {
 			clearSavedData({ skipConfirmation })
+		})
+	}, [])
+
+	useEffect(() => {
+		if (!window.appMenu?.onSetMinLogLevel) {
+			return
+		}
+
+		const appLogger = logger.getOrCreate('app')
+
+		return window.appMenu.onSetMinLogLevel(({ level }) => {
+			if (!level) {
+				return
+			}
+
+			const levelKey = level as keyof typeof LogLevel
+			if (LogLevel[levelKey] === undefined) {
+				return
+			}
+
+			const nextLevel = LogLevel[levelKey] as LogLevel
+			const prevLevel = state.settings.dev.minLogLevel
+			if (prevLevel === nextLevel) {
+				return
+			}
+
+			state.settings.dev.minLogLevel = nextLevel
+			logger.setMinLogLevel(nextLevel)
+			window.appMenu?.notifyMinLogLevel?.({ level: LogLevel[nextLevel] })
+			appLogger.info(`change min log level ${LogLevel[prevLevel]} -> ${LogLevel[nextLevel]}`)
+		})
+	}, [])
+
+	useEffect(() => {
+		if (!window.appMenu?.notifyMinLogLevel) {
+			return
+		}
+
+		const sendMinLogLevel = (level: LogLevel) => {
+			window.appMenu?.notifyMinLogLevel?.({ level: LogLevel[level] })
+		}
+
+		let lastLevel = state.settings.dev.minLogLevel
+		sendMinLogLevel(lastLevel)
+
+		return subscribe(state, () => {
+			const nextLevel = state.settings.dev.minLogLevel
+			if (nextLevel === lastLevel) {
+				return
+			}
+
+			lastLevel = nextLevel
+			sendMinLogLevel(nextLevel)
 		})
 	}, [])
 

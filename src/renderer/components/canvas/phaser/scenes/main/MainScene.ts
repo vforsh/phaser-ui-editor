@@ -64,6 +64,7 @@ export class MainScene extends BaseScene {
 
 		this.logger = logger.getOrCreate('canvas')
 
+		this.logger.debug('canvas: debug-visible-if-minlevel<=DEBUG')
 		this.logger.info('MainScene init', data)
 	}
 
