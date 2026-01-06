@@ -5,6 +5,7 @@ import type { EditorControlContext } from './types'
 import { addObjectComponent } from './handlers/addObjectComponent'
 import { createObject } from './handlers/createObject'
 import { createObjectFromAsset } from './handlers/createObjectFromAsset'
+import { createPrefabAsset } from './handlers/createPrefabAsset'
 import { createPrefabInstance } from './handlers/createPrefabInstance'
 import { deleteObjects } from './handlers/deleteObjects'
 import { duplicateObject } from './handlers/duplicateObject'
@@ -85,7 +86,8 @@ export class EditorControlService {
 			takeCanvasScreenshot: takeCanvasScreenshot(this.ctx),
 			savePrefab: savePrefab(this.ctx),
 			createPrefabInstance: createPrefabInstance(this.ctx),
-		} satisfies ControlApi
+			createPrefabAsset: createPrefabAsset(this.ctx),
+		} as ControlApi
 
 		this.handlers = handlers
 	}

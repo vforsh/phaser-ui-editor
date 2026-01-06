@@ -29,6 +29,7 @@ export { successSchema } from './shared-schemas'
 
 import { addObjectComponentCommand } from './commands/addObjectComponent'
 import { createObjectCommand, createObjectFromAssetCommand } from './commands/createObject'
+import { createPrefabAssetCommand } from './commands/createPrefabAsset'
 import { createPrefabInstanceCommand } from './commands/createPrefabInstance'
 import { deleteObjectsCommand } from './commands/deleteObjects'
 import { duplicateObjectCommand } from './commands/duplicateObject'
@@ -94,6 +95,7 @@ export const controlContract = {
 	takeCanvasScreenshot: takeCanvasScreenshotCommand,
 	savePrefab: savePrefabCommand,
 	createPrefabInstance: createPrefabInstanceCommand,
+	createPrefabAsset: createPrefabAssetCommand,
 } as const
 
 /**
