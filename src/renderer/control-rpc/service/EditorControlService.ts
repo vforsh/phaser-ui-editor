@@ -87,7 +87,7 @@ export class EditorControlService {
 			savePrefab: savePrefab(this.ctx),
 			createPrefabInstance: createPrefabInstance(this.ctx),
 			createPrefabAsset: createPrefabAsset(this.ctx),
-		} as ControlApi
+		} satisfies ControlApi
 
 		this.handlers = handlers
 	}

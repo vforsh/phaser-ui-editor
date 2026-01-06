@@ -5,6 +5,7 @@ export const COMMAND_GROUPS = {
 	objects: 'objects',
 	hierarchy: 'hierarchy',
 	misc: 'misc',
+	debug: 'debug',
 } as const
 
 export type CommandGroup = keyof typeof COMMAND_GROUPS

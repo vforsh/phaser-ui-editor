@@ -4,7 +4,7 @@ import { absolutePathSchema } from '../../../state/Schemas'
 import { CommandDefinition } from '../ControlApi'
 
 export const takeCanvasScreenshotCommand = {
-	group: 'misc',
+	group: 'debug',
 	description:
 		'Takes a PNG screenshot of the current Phaser canvas, saves it into <projectDir>/screenshots, and returns the absolute file path.',
 	input: z

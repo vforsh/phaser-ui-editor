@@ -4,7 +4,7 @@ import { absolutePathSchema } from '../../../state/Schemas'
 import { CommandDefinition } from '../ControlApi'
 
 export const takeAppScreenshotCommand = {
-	group: 'misc',
+	group: 'debug',
 	description:
 		'Takes a screenshot of the full app window (web contents), saves it into <projectDir>/screenshots, and returns the absolute file path.',
 	input: z
