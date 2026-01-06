@@ -2,6 +2,10 @@
 
 - Keep files <~500 LOC; split/refactor as needed.
 - Commits: Conventional Commits (`feat|fix|refactor|build|ci|chore|docs|style|perf|test`).
+- Never ship generic/squash placeholder messages (especially from `wt merge`): e.g. `Changes to 7 files` (see `cd52f7b49013d5592454f746a34ab60e14018ccd`). Always replace with a real Conventional Commit summary (and a short body when useful).
+    - If `wt merge` proposes a default message, edit it before accepting.
+    - If it does not prompt and produces a generic message, stop and **amend** before merging/pushing.
+    - Prefer: `fix(inspector): validate zod schema on save` / `feat(canvas): add snap-to-grid toggles`
 - Oracle: run `npx -y @steipete/oracle --help` once/session before first use.
 - Style: telegraph. Drop filler/grammar. Min tokens (global AGENTS + replies).
 
