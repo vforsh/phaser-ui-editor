@@ -46,6 +46,18 @@ export const URL_PARAMS = [
 		group: 'project',
 	},
 	{
+		name: 'prefabId',
+		description:
+			'Prefab asset id to auto-open on boot (requires `projectPath`). Prefab id takes precedence over `prefabPath` when both are set.',
+		group: 'project',
+	},
+	{
+		name: 'prefabPath',
+		description:
+			'Project-relative prefab path to auto-open on boot (requires `projectPath`). Use the path returned by `window.editor.listAssets()`. `prefabId` takes precedence when both are set.',
+		group: 'project',
+	},
+	{
 		name: 'clearConsole',
 		description: 'Clears console in specific scopes (example: `clearConsole=scene`).',
 		group: 'debug',

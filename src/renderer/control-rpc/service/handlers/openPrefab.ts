@@ -4,7 +4,7 @@ import type { openPrefabCommand } from '../../api/commands/openPrefab'
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'
-import { getAssetsOfType } from '../../../types/assets'
+import { findAssetByPath } from '../utils/assets'
 
 /**
  * @see {@link openPrefabCommand} for command definition
@@ -24,7 +24,14 @@ export const openPrefab: CommandHandler<'openPrefab'> = (ctx) => async (params) 
 }
 
 function resolvePrefabIdByPath(prefabPath: string): string | undefined {
-	const prefabAssets = getAssetsOfType(state.assets.items, 'prefab')
-	const asset = prefabAssets.find((item) => item.path === prefabPath)
-	return asset?.id
+	if (!state.projectDir) {
+		return undefined
+	}
+
+	const asset = findAssetByPath(state.assets.items, prefabPath, state.projectDir)
+	if (!asset || asset.type !== 'prefab') {
+		return undefined
+	}
+
+	return asset.id
 }

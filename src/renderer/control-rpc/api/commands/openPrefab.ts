@@ -5,7 +5,7 @@ import { successSchema } from '../shared-schemas'
 
 export const openPrefabCommand = {
 	group: 'assets',
-	description: 'Opens a prefab for editing, identified by either its asset ID or file path.',
+	description: 'Opens a prefab for editing, identified by either its asset ID or project-relative path.',
 	input: z
 		.union([
 			z
@@ -15,7 +15,7 @@ export const openPrefabCommand = {
 				.strict(),
 			z
 				.object({
-					path: z.string().min(1).describe('Project-relative path to the prefab file'),
+					path: z.string().min(1).describe('Project-relative path to the prefab file (as returned by listAssets)'),
 				})
 				.strict(),
 		])

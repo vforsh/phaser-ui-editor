@@ -34,16 +34,30 @@ Tip: launch with project pre-opened:
     - This works because the main process loads `ELECTRON_RENDERER_URL` when set and preserves the query string.
     - When `PW_E2E=1`, the app also forces `?e2e=1` automatically (it will not remove other params).
 
+#### Open a prefab on boot
+
+You can auto-open a prefab by adding `prefabId` or `prefabPath` alongside `projectPath`.
+
+- `prefabId` takes precedence when both are present.
+- `prefabPath` must be project-relative (same shape as `window.editor.listAssets()`).
+
 ```ts
-import path from 'node:path'
-import { pathToFileURL } from 'node:url'
+import { buildRendererUrl } from '../../tests/e2e/utils/renderer-url'
+
+const rendererUrl = buildRendererUrl({
+	projectPath: '/Users/vlad/dev/papa-cherry-2',
+	prefabPath: 'assets/prefabs/example.prefab',
+	// prefabId: '<asset-id>',
+})
+```
+
+```ts
 import { _electron as electron } from 'playwright'
+import { buildRendererUrl } from '../../tests/e2e/utils/renderer-url'
 
 const TESTBED_PROJECT_PATH = '/Users/vlad/dev/papa-cherry-2' // must be absolute
 
-const rendererIndexHtml = path.join(process.cwd(), 'out/renderer/index.html')
-const rendererUrl = pathToFileURL(rendererIndexHtml)
-rendererUrl.searchParams.set('projectPath', TESTBED_PROJECT_PATH) // auto-open project on boot
+const rendererUrl = buildRendererUrl({ projectPath: TESTBED_PROJECT_PATH }) // auto-open project on boot
 
 const app = await electron.launch({
 	args: ['.'],

@@ -7,6 +7,7 @@ import { AppEvents } from '../../AppEvents'
 import { usePhaserScope } from '../../di/DiHooks'
 import { UndoHub } from '../../history/UndoHub'
 import { ProjectConfig } from '../../project/ProjectConfig'
+import { maybeSeedInitialPrefabFromUrlParams } from '../../url-params/auto-open-prefab-once'
 import { PhaserApp } from './phaser/PhaserApp'
 import { TypedEventEmitter } from './phaser/robowhale/phaser3/TypedEventEmitter'
 import { CommandEmitter } from './phaser/robowhale/utils/events/CommandEmitter'
@@ -120,6 +121,8 @@ export const Canvas: React.FC<Props> = ({ projectDir, projectConfig, appEvents, 
 			if (phaserAppRef.current && activeProjectDirRef.current && activeProjectDirRef.current !== projectDir) {
 				destroyCurrent('project-changed')
 			}
+
+			maybeSeedInitialPrefabFromUrlParams({ projectDir })
 
 			const phaserApp = createPhaserApp(canvas, projectConfigRef.current, appEvents, appCommands, undoHub)
 
