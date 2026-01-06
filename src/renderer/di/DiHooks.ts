@@ -2,6 +2,7 @@ import { Container } from '@needle-di/core'
 import { useContext } from 'react'
 
 import { UndoHub } from '../history/UndoHub'
+import { ModalService } from '../modals/ModalService'
 import { DiContext } from './DiContextValue'
 import { TOKENS, type PhaserScope } from './tokens'
 
@@ -53,4 +54,9 @@ export function usePhaserCommands() {
 export function useUndoHub(): UndoHub {
 	const container = useDi()
 	return container.get(TOKENS.UndoHub)
+}
+
+export function useModalService(): ModalService {
+	const container = useDi()
+	return container.get(TOKENS.ModalService)
 }

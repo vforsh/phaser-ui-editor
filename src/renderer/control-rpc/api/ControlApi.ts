@@ -29,6 +29,8 @@ export { hierarchyNodeSchema, type HierarchyNode } from './commands/listHierarch
 export { successSchema } from './shared-schemas'
 
 import { addObjectComponentCommand } from './commands/addObjectComponent'
+import { closeAllModalsCommand } from './commands/closeAllModals'
+import { closeModalCommand } from './commands/closeModal'
 import { createObjectCommand, createObjectFromAssetCommand } from './commands/createObject'
 import { createPrefabAssetCommand } from './commands/createPrefabAsset'
 import { createPrefabInstanceCommand } from './commands/createPrefabInstance'
@@ -46,7 +48,9 @@ import { getSelectedAssetsCommand } from './commands/getSelectedAssets'
 import { listAssetsCommand } from './commands/listAssets'
 import { listEditorsCommand } from './commands/listEditors'
 import { listHierarchyCommand } from './commands/listHierarchy'
+import { listModalsCommand } from './commands/listModals'
 import { moveObjectInHierarchyCommand } from './commands/moveObjectInHierarchy'
+import { openModalCommand } from './commands/openModal'
 import { openPrefabCommand } from './commands/openPrefab'
 import { openProjectCommand } from './commands/openProject'
 import { patchObjectCommand } from './commands/patchObject'
@@ -66,6 +70,10 @@ import { waitForCanvasIdleCommand } from './commands/waitForCanvasIdle'
 export const controlContract = {
 	addObjectComponent: addObjectComponentCommand,
 	openProject: openProjectCommand,
+	openModal: openModalCommand,
+	closeModal: closeModalCommand,
+	closeAllModals: closeAllModalsCommand,
+	listModals: listModalsCommand,
 	selectAssets: selectAssetsCommand,
 	getProjectInfo: getProjectInfoCommand,
 	openPrefab: openPrefabCommand,

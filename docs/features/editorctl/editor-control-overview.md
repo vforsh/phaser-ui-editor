@@ -166,6 +166,23 @@ Example (`editorctl`):
 npm run editorctl -- --port <wsPort> call takeAppPartScreenshot '{"selector":"[data-testid=\\"hierarchy-panel\\"]","format":"png"}'
 ```
 
+## Modal commands (misc group)
+
+These commands control **global** renderer modals. Only one modal can be open at a time; opening a modal closes any previously open modal.
+
+- `openModal`: open a modal by id (optional params per modal)
+- `closeModal`: close a specific modal by id
+- `closeAllModals`: close any open modal
+- `listModals`: list all modals and their open/closed status
+
+Examples (`editorctl`):
+
+```bash
+npm run editorctl -- --port <wsPort> call openModal '{"id":"settings","params":{"sectionId":"general"}}'
+npm run editorctl -- --port <wsPort> call listModals '{}'
+npm run editorctl -- --port <wsPort> call closeAllModals '{}'
+```
+
 ## How to add new command
 
 This checklist covers the end-to-end path: **external JSON-RPC → main WS router → renderer bridge → `EditorControlService` → internal editor action → `editorctl`**.

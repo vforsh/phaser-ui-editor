@@ -10,6 +10,8 @@ import {
 } from '@components/canvas/phaser/scenes/main/objects/components/base/EditableComponent'
 import { EditableObjectType, type EditableObject } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 
+import type { ModalId, ModalListResult, ModalParamsById } from './modals/ModalIds'
+
 import { CommandEmitter } from './components/canvas/phaser/robowhale/utils/events/CommandEmitter'
 import { CameraParams } from './components/canvas/phaser/scenes/main/mainScene/MainSceneCamera'
 import { ScreenshotOptions } from './components/canvas/phaser/scenes/main/mainScene/MainSceneScreenshot'
@@ -73,6 +75,12 @@ export type AppCommands = {
 		isConnected: boolean
 		currentPrefabAssetId?: string
 	}
+
+	// modals
+	'open-modal': (payload: { id: ModalId; params?: ModalParamsById[ModalId] }) => void
+	'close-modal': (payload: { id: ModalId }) => void
+	'close-all-modals': () => void
+	'list-modals': () => ModalListResult
 }
 
 export type AppCommandsEmitter = CommandEmitter<AppCommands>

@@ -3,6 +3,8 @@ import type { ControlApi } from '../api/ControlApi'
 import type { EditorControlContext } from './types'
 
 import { addObjectComponent } from './handlers/addObjectComponent'
+import { closeAllModals } from './handlers/closeAllModals'
+import { closeModal } from './handlers/closeModal'
 import { createObject } from './handlers/createObject'
 import { createObjectFromAsset } from './handlers/createObjectFromAsset'
 import { createPrefabAsset } from './handlers/createPrefabAsset'
@@ -21,7 +23,9 @@ import { getSelectedAssets } from './handlers/getSelectedAssets'
 import { listAssets } from './handlers/listAssets'
 import { listEditors } from './handlers/listEditors'
 import { listHierarchy } from './handlers/listHierarchy'
+import { listModals } from './handlers/listModals'
 import { moveObjectInHierarchy } from './handlers/moveObjectInHierarchy'
+import { openModal } from './handlers/openModal'
 import { openPrefab } from './handlers/openPrefab'
 import { openProject } from './handlers/openProject'
 import { patchObject } from './handlers/patchObject'
@@ -56,6 +60,10 @@ export class EditorControlService {
 		const handlers = {
 			addObjectComponent: addObjectComponent(this.ctx),
 			openProject: openProject(this.ctx),
+			openModal: openModal(this.ctx),
+			closeModal: closeModal(this.ctx),
+			closeAllModals: closeAllModals(this.ctx),
+			listModals: listModals(this.ctx),
 			selectAssets: selectAssets(this.ctx),
 			getProjectInfo: getProjectInfo(this.ctx),
 			openPrefab: openPrefab(this.ctx),

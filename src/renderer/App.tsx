@@ -8,9 +8,8 @@ import { Notifications, notifications } from '@mantine/notifications'
 import { UrlParams } from '@url-params'
 import { Check, X } from 'lucide-react'
 import { ContextMenuProvider } from 'mantine-contextmenu'
-import { useEffect, useMemo, useState } from 'react'
-
-import type { ControlRpcGroup } from './components/controlRpcCommands/controlRpcCommandsModel'
+import { useEffect, useMemo } from 'react'
+import { useSnapshot } from 'valtio'
 
 import { AppCommands } from './AppCommands'
 import { AppEvents } from './AppEvents'
@@ -27,7 +26,8 @@ import { TOKENS } from './di/tokens'
 import { UndoHub } from './history/UndoHub'
 import { logger } from './logs/logs'
 import { LogLevel } from './logs/LogsManager'
-import { isSettingsSectionId, type SettingsSectionId } from './settings/EditorSettings'
+import { ModalService } from './modals/ModalService'
+import { isSettingsSectionId } from './settings/EditorSettings'
 import { clearSavedData, state, subscribe } from './state/State'
 
 const theme = createTheme({
@@ -47,6 +47,8 @@ function App() {
 		container.bind({ provide: TOKENS.AppEvents, useValue: new TypedEventEmitter<AppEvents>() })
 		const appCommands = new CommandEmitter<AppCommands>('app')
 		container.bind({ provide: TOKENS.AppCommands, useValue: appCommands })
+		const modalService = new ModalService(appCommands)
+		container.bind({ provide: TOKENS.ModalService, useValue: modalService })
 		exposeWindowEditor(appCommands)
 		const undoHub = new UndoHub({
 			onChange: (historyState) => {
@@ -60,10 +62,10 @@ function App() {
 
 	const appCommands = diContainer.get(TOKENS.AppCommands)
 	useControlRpcBridge(appCommands)
-	const [settingsOpened, setSettingsOpened] = useState(false)
-	const [activeSettingsSectionId, setActiveSettingsSectionId] = useState<SettingsSectionId>('general')
-	const [controlRpcCommandsOpened, setControlRpcCommandsOpened] = useState(false)
-	const [activeControlRpcGroup, setActiveControlRpcGroup] = useState<ControlRpcGroup>('assets')
+	const modalService = diContainer.get(TOKENS.ModalService)
+	const modalState = useSnapshot(modalService.state)
+	const settingsParams = modalService.getParams('settings')
+	const controlRpcParams = modalService.getParams('controlRpcCommands')
 
 	useEffect(() => {
 		if (!window.appMenu) {
@@ -114,10 +116,9 @@ function App() {
 
 		return window.appMenu.onOpenSettings(({ section }) => {
 			const nextSection = isSettingsSectionId(section) ? section : 'general'
-			setActiveSettingsSectionId(nextSection)
-			setSettingsOpened(true)
+			modalService.open('settings', { sectionId: nextSection })
 		})
-	}, [])
+	}, [modalService])
 
 	useEffect(() => {
 		if (!window.appMenu?.onTogglePanel) {
@@ -141,9 +142,9 @@ function App() {
 		}
 
 		return window.appMenu.onOpenControlRpcCommands(() => {
-			setControlRpcCommandsOpened(true)
+			modalService.open('controlRpcCommands')
 		})
-	}, [])
+	}, [modalService])
 
 	useEffect(() => {
 		if (!window.appMenu?.onClearSavedData) {
@@ -235,16 +236,16 @@ function App() {
 						<EditorLayout />
 					</AppShell>
 					<SettingsModal
-						opened={settingsOpened}
-						onClose={() => setSettingsOpened(false)}
-						activeSectionId={activeSettingsSectionId}
-						onSectionChange={setActiveSettingsSectionId}
+						opened={modalState.active?.id === 'settings'}
+						onClose={() => modalService.close('settings')}
+						activeSectionId={settingsParams.sectionId}
+						onSectionChange={(sectionId) => modalService.open('settings', { sectionId })}
 					/>
 					<ControlRpcCommandsModal
-						opened={controlRpcCommandsOpened}
-						onClose={() => setControlRpcCommandsOpened(false)}
-						activeGroup={activeControlRpcGroup}
-						onGroupChange={setActiveControlRpcGroup}
+						opened={modalState.active?.id === 'controlRpcCommands'}
+						onClose={() => modalService.close('controlRpcCommands')}
+						activeGroup={controlRpcParams.group}
+						onGroupChange={(group) => modalService.open('controlRpcCommands', { group })}
 					/>
 				</DiProvider>
 			</ContextMenuProvider>

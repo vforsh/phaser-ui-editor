@@ -130,6 +130,25 @@ test('tekton: launch smoke (window.editor + openProject + waitForCanvasIdle)', a
 			}
 		})
 
+		await test.step('modal control (window.editor)', async () => {
+			await windowEditor.call(page, 'closeAllModals', {})
+
+			const initialList = await windowEditor.call(page, 'listModals', {})
+			expect((initialList as { activeModalId?: unknown }).activeModalId).toBeNull()
+
+			await windowEditor.call(page, 'openModal', { id: 'settings', params: { sectionId: 'general' } })
+
+			const settingsList = await windowEditor.call(page, 'listModals', {})
+			expect((settingsList as { activeModalId?: unknown }).activeModalId).toBe('settings')
+
+			await windowEditor.call(page, 'openModal', { id: 'controlRpcCommands' })
+
+			const commandsList = await windowEditor.call(page, 'listModals', {})
+			expect((commandsList as { activeModalId?: unknown }).activeModalId).toBe('controlRpcCommands')
+
+			await windowEditor.call(page, 'closeAllModals', {})
+		})
+
 		await test.step('getProjectInfo', async () => {
 			const projectInfo = await windowEditor.call(page, 'getProjectInfo', {})
 			expect(projectInfo).toBeTruthy()
