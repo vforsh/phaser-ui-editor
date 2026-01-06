@@ -112,6 +112,14 @@ export default function EditorLayout() {
 		setOpenProjectDialogOpen(true)
 	}, [snap.project])
 
+	// close OpenProjectDialog once a project is opened (incl. control-rpc openProject)
+	const isProjectOpen = !!snap.project
+	useEffect(() => {
+		if (isProjectOpen) {
+			setOpenProjectDialogOpen(false)
+		}
+	}, [isProjectOpen])
+
 	const openProject = async (projectDirPath: string) => {
 		await openProjectByPath(projectDirPath, logger)
 	}
