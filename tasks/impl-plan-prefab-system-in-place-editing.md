@@ -1,7 +1,5 @@
 # Prefab System w/ Nested Prefabs + In-Place Editing (Hierarchy-Locked) — Implementation Plan
 
-This plan adapts the prefab design in `~/Downloads/prefab_system_with_in_place_editing.md` to this editor’s current architecture:
-
 - **Runtime is the model** today: `MainScene` constructs Phaser `Editable*` objects and Valtio state (`EditableContainer.stateObj`) and uses `root.toJson()` for snapshots/undo/save.
 - **Prefab file** today: `PrefabFile = { content: EditableContainerJson | null, assetPack: PackFileSection[] }` (`src/renderer/types/prefabs/PrefabFile.ts`).
 - **Prefab “instance” today**: dropping a prefab asset loads its `PrefabFile.content`, sets `prefab: {id,name}` on the root container JSON, and instantiates it via `EditableObjectsFactory.fromJson()` (`MainScene` around the `handle-asset-drop` path). There is no nested-prefab metadata beyond that marker.
