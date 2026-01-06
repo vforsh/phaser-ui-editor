@@ -154,6 +154,18 @@ All callers (main WS router, renderer bridge, `EditorControlService`, and `edito
 
 Paths returned by `listAssets` are **project-relative** (relative to `projectDir`). For spritesheet frames/folders, `path` is a **virtual hierarchy path** used for display.
 
+## Screenshot commands (debug group)
+
+- `takeAppScreenshot`: Full app window (web contents) screenshot.
+- `takeCanvasScreenshot`: Phaser canvas screenshot (optionally hides editor overlays).
+- `takeAppPartScreenshot`: DOM element screenshot selected by CSS selector (first match, viewport-clipped).
+
+Example (`editorctl`):
+
+```bash
+npm run editorctl -- --port <wsPort> call takeAppPartScreenshot '{"selector":"[data-testid=\\"hierarchy-panel\\"]","format":"png"}'
+```
+
 ## How to add new command
 
 This checklist covers the end-to-end path: **external JSON-RPC → main WS router → renderer bridge → `EditorControlService` → internal editor action → `editorctl`**.

@@ -238,11 +238,46 @@ export const mainApiHandlers: MainApi = {
 
 		return { path: outPath }
 	},
+	async takeAppPartScreenshot({ targetDir, fileName, format, rect, quality }) {
+		const windows = BrowserWindow.getAllWindows()
+		const window = windows[0]
+		if (!window || window.isDestroyed()) {
+			throw new Error('no renderer window available')
+		}
+
+		const image = await window.webContents.capturePage(rect)
+		const pngBuffer = image.toPNG()
+		const outputFormat = format ?? 'png'
+		const normalizedQuality = clampImageQuality(quality)
+
+		let outputBuffer = pngBuffer
+		if (outputFormat === 'jpg') {
+			outputBuffer = await sharp(pngBuffer).jpeg({ quality: normalizedQuality }).toBuffer()
+		} else if (outputFormat === 'webp') {
+			outputBuffer = await sharp(pngBuffer).webp({ quality: normalizedQuality }).toBuffer()
+		}
+
+		const normalizedDir = normalizeAbsolutePath(targetDir)
+		await fse.ensureDir(normalizedDir)
+
+		const outPath = path.join(normalizedDir, fileName)
+		await fse.writeFile(outPath, outputBuffer)
+
+		return { path: outPath }
+	},
 	async showItemInFolder({ path: targetPath }) {
 		const normalized = normalizeAbsolutePath(targetPath)
 		shell.showItemInFolder(normalized)
 		return { success: true }
 	},
+}
+
+function clampImageQuality(quality?: number): number {
+	if (quality === undefined || Number.isNaN(quality)) {
+		return 95
+	}
+
+	return Math.min(100, Math.max(0, Math.round(quality)))
 }
 
 function isFontCollection(font: Font | FontCollection): font is FontCollection {

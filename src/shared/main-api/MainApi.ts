@@ -67,6 +67,13 @@ const fileDialogOptionsSchema = z
 	})
 	.optional()
 
+const captureRectSchema = z.object({
+	x: z.number().int(),
+	y: z.number().int(),
+	width: z.number().int(),
+	height: z.number().int(),
+})
+
 export const webFontParsedSchema = z.object({
 	base64: z.string(),
 	type: z.string(),
@@ -203,6 +210,16 @@ export const mainApiContract = {
 			targetDir: absPathSchema,
 			fileName: z.string().min(1),
 			format: z.enum(['png', 'jpg', 'webp']).optional(),
+		}),
+		output: z.object({ path: absPathSchema }),
+	},
+	takeAppPartScreenshot: {
+		input: z.object({
+			targetDir: absPathSchema,
+			fileName: z.string().min(1),
+			format: z.enum(['png', 'jpg', 'webp']).optional(),
+			rect: captureRectSchema,
+			quality: z.number().int().min(0).max(100).optional(),
 		}),
 		output: z.object({ path: absPathSchema }),
 	},
