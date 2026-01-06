@@ -126,6 +126,10 @@ export class MainSceneHistory {
 			}
 
 			this.deps.editContexts.reset()
+			// `reset()` clears all contexts, but `super-root` is a long-lived container that won't be
+			// re-registered during snapshot restore. Re-add it so restoring a snapshot that was taken
+			// while `super-root` was active can't crash.
+			this.deps.editContexts.add(this.deps.getSuperRoot(), { switchTo: false })
 
 			const newRoot = this.deps.objectsFactory.fromJson(snapshot.rootJson, true) as EditableContainer
 			this.deps.setRoot(newRoot)
@@ -137,6 +141,10 @@ export class MainSceneHistory {
 				if (obj && isObjectOfType(obj, 'Container')) {
 					targetContext = obj
 				}
+			}
+
+			if (targetContext && !this.deps.editContexts.getContext(targetContext)) {
+				targetContext = newRoot
 			}
 
 			if (targetContext) {

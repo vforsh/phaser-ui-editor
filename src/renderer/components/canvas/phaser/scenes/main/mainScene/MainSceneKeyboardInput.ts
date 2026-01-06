@@ -78,10 +78,7 @@ export class MainSceneKeyboardInput {
 		}
 
 		event.preventDefault()
-		this.deps.history.updateUnsavedChanges() // Just in case, usually save is handled by persistence
-		this.deps.history.applySnapshot(this.deps.history.captureSnapshot()) // Wait, save is different
-		// Persistence handles savePrefab via command, but keyboard is wired here
-		// MainScene will delegate savePrefab to persistence
+		void this.deps.persistence.savePrefab()
 	}
 
 	private onKeyDownSelectAll(event: KeyboardEvent) {
