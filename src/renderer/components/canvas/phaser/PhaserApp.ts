@@ -4,7 +4,7 @@ import './robowhale/phaser3/Phaser3Extensions'
 import { mainApi } from '@main-api/main-api'
 import { until } from '@open-draft/until'
 import { state } from '@state/State'
-import { urlParams } from '@url-params'
+import { UrlParams } from '@url-params'
 import { getErrorLog } from '@utils/error/utils'
 import ResizeSensor from 'css-element-queries/src/ResizeSensor'
 import { debounce } from 'es-toolkit'
@@ -88,7 +88,7 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 
 		super(phaserConfig)
 
-		if (urlParams.get('clearConsole') === 'phaser') {
+		if (UrlParams.get('clearConsole') === 'phaser') {
 			console.clear()
 		}
 
@@ -115,7 +115,7 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 		this.scene.add('MainScene', MainScene)
 		// this.scene.add('TestScene', TestScene)
 
-		if (urlParams.getBool('test')) {
+		if (UrlParams.getBool('test')) {
 			this.scene.start('TestScene', {
 				project: new Project({ config: projectConfig }),
 			} satisfies TestSceneInitData)

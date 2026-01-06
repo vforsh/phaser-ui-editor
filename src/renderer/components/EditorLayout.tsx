@@ -6,7 +6,7 @@ import { useUndoHub } from '../di/DiHooks'
 import { useGlobalUndoRedoShortcuts } from '../hooks/useGlobalUndoRedoShortcuts'
 import { openProjectByPath } from '../project/open-project'
 import { state, useSnapshot } from '../state/State'
-import { urlParams } from '../UrlParams'
+import { UrlParams } from '../url-params/UrlParams'
 import AssetsPanel from './assetsPanel/AssetsPanel'
 import CanvasContainer from './canvas/CanvasContainer'
 import OpenProjectDialog from './dialogs/OpenProjectDialog'
@@ -79,7 +79,7 @@ export default function EditorLayout() {
 
 	// open last opened project if present
 	useEffect(() => {
-		const startProjectPath = urlParams.get('projectPath')
+		const startProjectPath = UrlParams.get('projectPath')
 		if (startProjectPath) {
 			// TODO handle loading state
 			openProject(startProjectPath)
@@ -96,11 +96,11 @@ export default function EditorLayout() {
 
 	// display OpenProjectDialog if state.project is null
 	useEffect(() => {
-		if (snap.project || urlParams.getBool('e2e')) {
+		if (snap.project || UrlParams.getBool('e2e')) {
 			return
 		}
 
-		const startProjectPath = urlParams.get('projectPath')
+		const startProjectPath = UrlParams.get('projectPath')
 		if (startProjectPath) {
 			return
 		}

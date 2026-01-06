@@ -1,6 +1,6 @@
 import { logger } from '@logs/logs'
 import { state } from '@state/State'
-import { urlParams } from '@url-params'
+import { UrlParams } from '@url-params'
 import { ILogObj, Logger } from 'tslog'
 
 import { AppCommandsEmitter } from '../../../../../AppCommands'
@@ -57,7 +57,7 @@ export class MainScene extends BaseScene {
 	public init(data: MainSceneInitData) {
 		super.init(data)
 
-		const clearConsole = urlParams.get('clearConsole') === 'scene'
+		const clearConsole = UrlParams.get('clearConsole') === 'scene'
 		if (clearConsole) {
 			console.clear()
 		}

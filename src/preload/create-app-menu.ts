@@ -7,6 +7,7 @@ const MENU_OPEN_CONTROL_RPC_COMMANDS = 'menu:open-control-rpc-commands'
 const MENU_CLEAR_SAVED_DATA = 'menu:clear-saved-data'
 const MENU_SET_MIN_LOG_LEVEL = 'menu:set-min-log-level'
 const MENU_UPDATE_MIN_LOG_LEVEL = 'menu:update-min-log-level'
+const MENU_LOG_URL_PARAMS = 'menu:log-url-params'
 
 type SettingsSectionId = 'general' | 'hierarchy' | 'canvas' | 'assets' | 'inspector' | 'dev' | 'misc'
 type PanelId = 'hierarchy' | 'assets' | 'inspector'
@@ -81,6 +82,17 @@ export function createAppMenu() {
 
 			return () => {
 				ipcRenderer.off(MENU_SET_MIN_LOG_LEVEL, listener)
+			}
+		},
+		onLogUrlParams: (callback: () => void) => {
+			const listener = () => {
+				callback()
+			}
+
+			ipcRenderer.on(MENU_LOG_URL_PARAMS, listener)
+
+			return () => {
+				ipcRenderer.off(MENU_LOG_URL_PARAMS, listener)
 			}
 		},
 		notifyMinLogLevel: (payload: { level?: string }) => {

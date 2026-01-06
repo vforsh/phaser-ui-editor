@@ -343,6 +343,17 @@ const createAppMenu = () => {
 						},
 					})),
 				},
+				{
+					label: 'Log URL Params',
+					click: () => {
+						const win = BrowserWindow.getFocusedWindow() ?? mainWindow
+						if (!win) {
+							return
+						}
+
+						win.webContents.send('menu:log-url-params', {})
+					},
+				},
 				{ type: 'separator' },
 				{
 					label: 'Clear Saved Data',

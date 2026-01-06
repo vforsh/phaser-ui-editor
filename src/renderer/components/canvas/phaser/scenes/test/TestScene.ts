@@ -1,5 +1,5 @@
 import { logger } from '@logs/logs'
-import { urlParams } from '@url-params'
+import { UrlParams } from '@url-params'
 import { ILogObj, Logger } from 'tslog'
 
 import { Project } from '../../../../../project/Project'
@@ -17,7 +17,7 @@ export class TestScene extends BaseScene {
 	public init(data: TestSceneInitData) {
 		super.init(data)
 
-		const clearConsole = urlParams.get('clearConsole') === 'scene'
+		const clearConsole = UrlParams.get('clearConsole') === 'scene'
 		if (clearConsole) {
 			console.clear()
 		}

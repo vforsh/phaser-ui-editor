@@ -5,6 +5,7 @@ import './styles/layout.css'
 import { mainApi } from '@main-api/main-api'
 import { AppShell, createTheme, MantineProvider } from '@mantine/core'
 import { Notifications, notifications } from '@mantine/notifications'
+import { UrlParams } from '@url-params'
 import { Check, X } from 'lucide-react'
 import { ContextMenuProvider } from 'mantine-contextmenu'
 import { useEffect, useMemo, useState } from 'react'
@@ -151,6 +152,24 @@ function App() {
 
 		return window.appMenu.onClearSavedData(({ skipConfirmation }) => {
 			clearSavedData({ skipConfirmation })
+		})
+	}, [])
+
+	useEffect(() => {
+		if (!window.appMenu?.onLogUrlParams) {
+			return
+		}
+
+		return window.appMenu.onLogUrlParams(() => {
+			const presentUrlParams = Object.entries(UrlParams.getAll()).filter(([, value]) => value !== null)
+
+			console.group('URL params')
+			if (presentUrlParams.length === 0) {
+				console.log('none')
+			} else {
+				console.log(Object.fromEntries(presentUrlParams))
+			}
+			console.groupEnd()
 		})
 	}, [])
 

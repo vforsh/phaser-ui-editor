@@ -22,7 +22,7 @@
 		"paths": {
 			"@state/*": ["./src/renderer/state/*"],
 			"@logs/*": ["./src/renderer/logs/*"],
-			"@url-params": ["./src/renderer/UrlParams.ts"],
+			"@url-params": ["./src/renderer/url-params"],
 			"@components/*": ["./src/renderer/components/*"],
 			"@utils/*": ["./src/renderer/utils/*"],
 			"@hooks/*": ["./src/renderer/hooks/*"]

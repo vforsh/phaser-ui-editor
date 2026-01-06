@@ -17,6 +17,7 @@ declare global {
 			onOpenControlRpcCommands: (callback: () => void) => () => void
 			onClearSavedData: (callback: (payload: { skipConfirmation?: boolean }) => void) => () => void
 			onSetMinLogLevel: (callback: (payload: { level?: string }) => void) => () => void
+			onLogUrlParams: (callback: () => void) => () => void
 			notifyMinLogLevel: (payload: { level?: string }) => void
 		}
 		editor?: WindowEditorApi
