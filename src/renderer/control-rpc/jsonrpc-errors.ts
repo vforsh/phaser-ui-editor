@@ -16,6 +16,10 @@ export const ERR_NO_RENDERER_WINDOW = -32001
 export const ERR_RENDERER_TIMEOUT = -32002
 export const ERR_INVALID_RPC_RESPONSE = -32003
 export const ERR_BUSY = -32004
+export const ERR_ELEMENT_NOT_FOUND = -32010
+export const ERR_INVALID_SELECTOR = -32011
+export const ERR_NO_PROJECT_OPEN = -32012
+export const ERR_ZERO_SIZE = -32013
 
 export type JsonRpcErrorData =
 	| { kind: 'zod'; issues: unknown; traceId: string }

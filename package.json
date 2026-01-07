@@ -50,6 +50,7 @@
 		"@needle-di/core": "^1.1.0",
 		"@open-draft/deferred-promise": "^2.2.0",
 		"@open-draft/until": "^2.1.0",
+		"@renoun/screenshot": "^0.1.1",
 		"@robowhale/phaser3-ninepatch-types-fix": "^1.0.4",
 		"@sindresorhus/is": "^7.0.1",
 		"@types/blueimp-md5": "^2.18.2",

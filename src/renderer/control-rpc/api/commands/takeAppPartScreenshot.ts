@@ -10,15 +10,20 @@ export const takeAppPartScreenshotCommand = {
 	input: z
 		.object({
 			selector: z.string().min(1).describe('CSS selector used with document.querySelector'),
-			clean: z.boolean().optional().describe('Accepted for parity with takeCanvasScreenshot; currently a no-op. Defaults to false.'),
 			format: z.enum(['png', 'jpg', 'webp']).optional().describe('File format/extension. Defaults to png.'),
 			quality: z
 				.number()
-				.int()
 				.min(0)
 				.max(100)
 				.optional()
-				.describe('Quality for jpg/webp output (0..100). Ignored for png. Defaults to 95.'),
+				.describe('Quality for jpg/webp output (0..1 or 0..100). Ignored for png. Defaults to 0.92.'),
+			scale: z.number().optional().describe('Rendering scale factor. Defaults to devicePixelRatio.'),
+			includeFixed: z
+				.enum(['none', 'intersecting', 'all'])
+				.optional()
+				.describe('How to include fixed-position elements. Defaults to intersecting.'),
+			backgroundColor: z.union([z.string(), z.null()]).optional().describe('Canvas background color (null for transparency).'),
+			clipToViewport: z.boolean().optional().describe('Clip to viewport before capture. Defaults to true.'),
 		})
 		.strict()
 		.describe('Input parameters for taking a screenshot of a DOM element'),

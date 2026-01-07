@@ -5,6 +5,7 @@ import type { AppCommandsEmitter } from '../AppCommands'
 import { logger } from '../logs/logs'
 import { state, subscribe } from '../state/State'
 import { controlContract, type ControlInput, type ControlMethod, type ControlOutput } from './api/ControlApi'
+import { ControlOperationalError } from './control-errors'
 import { ERR_INVALID_RPC_RESPONSE, JSONRPC_INTERNAL_ERROR } from './jsonrpc-errors'
 import { validateControlRequest } from './jsonrpc-validate'
 import { createJsonRpcError, createJsonRpcResult, JsonRpcRequest, JsonRpcResponse } from './rpc'
@@ -95,6 +96,17 @@ function handleRpcRequest(service: EditorControlService, scheduler: RpcScheduler
 	}
 
 	return run().catch((error: unknown) => {
+		if (error instanceof ControlOperationalError) {
+			const errorResponse = createJsonRpcError(id, error.code, error.message, {
+				kind: 'operational',
+				reason: error.reason,
+				traceId,
+				details: error.details,
+			})
+			rpcLogger.error({ traceId, method, phase: 'error', code: error.code, message: error.message })
+			return errorResponse
+		}
+
 		const message = error instanceof Error ? error.message : 'internal error'
 		const errorResponse = createJsonRpcError(id, JSONRPC_INTERNAL_ERROR, message, {
 			kind: 'exception',
