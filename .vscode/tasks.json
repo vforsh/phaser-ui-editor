@@ -56,6 +56,30 @@
 			"problemMatcher": []
 		},
 		{
+			"label": "package: app (mac dir)",
+			"detail": "Packages the app for macOS in directory mode.",
+			"type": "shell",
+			"command": "npm run package:mac:dir",
+			"group": "build",
+			"problemMatcher": []
+		},
+		{
+			"label": "package: app (mac dir unsigned)",
+			"detail": "Packages the app for macOS in directory mode without signing.",
+			"type": "shell",
+			"command": "npm run package:mac:dir:unsigned",
+			"group": "build",
+			"problemMatcher": []
+		},
+		{
+			"label": "package: app (full)",
+			"detail": "Builds and packages the app using electron-builder for all platforms defined in package.json.",
+			"type": "shell",
+			"command": "npm run package",
+			"group": "build",
+			"problemMatcher": []
+		},
+		{
 			"label": "kill: apps",
 			"detail": "Stops any running Electron app instances for this workspace (does not fail if none are running).",
 			"type": "shell",

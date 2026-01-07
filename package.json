@@ -2,6 +2,7 @@
 	"name": "tekton-editor",
 	"version": "0.0.10",
 	"private": true,
+	"description": "A desktop editor for creating and editing UI prefabs for Phaser 3 games",
 	"author": {
 		"name": "Vladislav Forsh",
 		"email": "vlad@robowhale.com"
@@ -39,6 +40,9 @@
 		"lint:fix": "rg --files -g '*.ts' -g '*.tsx' -g '*.js' -g '*.jsx' | xargs oxlint --fix",
 		"format": "oxfmt --write .",
 		"preview": "electron-vite preview",
+		"package": "npm run build && electron-builder",
+		"package:mac:dir": "npm run build && electron-builder --mac --dir",
+		"package:mac:dir:unsigned": "npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --dir",
 		"build-types": "node scripts/build-types.ts",
 		"update-types": "node scripts/build-types.ts --push",
 		"prepare": "simple-git-hooks"
@@ -87,6 +91,7 @@
 		"pretty-bytes": "^6.1.1",
 		"react": "^19.2.3",
 		"react-dom": "^19.2.3",
+		"sharp": "^0.33.5",
 		"ts-pattern": "^5.5.0",
 		"tslog": "^4.9.3",
 		"type-fest": "^4.28.0",
@@ -112,6 +117,7 @@
 		"commander": "^13.0.0",
 		"dtsroll": "^1.4.1",
 		"electron": "^39.2.7",
+		"electron-builder": "^26.4.0",
 		"electron-vite": "^5.0.0",
 		"exit-hook": "^5.0.1",
 		"fontkit": "^2.0.4",
@@ -123,7 +129,6 @@
 		"oxlint": "^1.36.0",
 		"postcss": "^8.4.35",
 		"postcss-preset-mantine": "^1.13.0",
-		"sharp": "^0.33.5",
 		"simple-git-hooks": "^2.11.1",
 		"tailwindcss": "^3.4.19",
 		"trash": "^10.0.1",
@@ -142,6 +147,28 @@
 	},
 	"engines": {
 		"node": ">=24.12.0"
+	},
+	"build": {
+		"appId": "com.tekton.editor",
+		"productName": "Tekton Editor",
+		"directories": {
+			"output": "dist"
+		},
+		"files": [
+			"out/**/*",
+			"package.json"
+		],
+		"asar": true,
+		"mac": {
+			"target": "dmg",
+			"category": "public.app-category.developer-tools"
+		},
+		"win": {
+			"target": "nsis"
+		},
+		"linux": {
+			"target": "AppImage"
+		}
 	},
 	"productName": "Tekton Editor"
 }
