@@ -1,4 +1,4 @@
-import type { ObjectSelectorV0 } from '../../api/shared-schemas'
+import type { ObjectSelectorV0 } from '@tekton/control-rpc-contract'
 
 import { state } from '../../../state/State'
 import { resolveObjectIdByPath } from './object-path'

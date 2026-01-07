@@ -1,4 +1,5 @@
-import type { setCameraCommand } from '../../api/commands/setCamera'
+import type { setCameraCommand } from '@tekton/control-rpc-contract/commands/setCamera'
+
 import type { CommandHandler } from '../types'
 
 /**

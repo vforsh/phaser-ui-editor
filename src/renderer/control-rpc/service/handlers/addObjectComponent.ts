@@ -1,6 +1,7 @@
+import type { addObjectComponentCommand } from '@tekton/control-rpc-contract/commands/addObjectComponent'
+
 import { EditableComponentType } from '@components/canvas/phaser/scenes/main/objects/components/base/EditableComponent'
 
-import type { addObjectComponentCommand } from '../../api/commands/addObjectComponent'
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'

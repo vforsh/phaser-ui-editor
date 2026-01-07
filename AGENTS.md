@@ -83,6 +83,13 @@ When implementing features that need runtime verification (Canvas/Hierarchy/Insp
 
 Docs: [`docs/features/editorctl/editorctl.md`](./docs/features/editorctl/editorctl.md)
 
+### `editorctl` CLI quick usage
+
+- Always run `npm run build:packages` before using `editorctl` (fresh checkout or after contract changes).
+- Prefer meta commands for discovery: `methods`, `schema <method>`, `call <method> '<json>'`.
+- Always pass `--` before CLI args: `npm run editorctl -- ...`
+- Use `--port <wsPort>` from `listEditors` for targeted calls.
+
 ### 1) Discover running editor instances (required first step)
 
 Run:

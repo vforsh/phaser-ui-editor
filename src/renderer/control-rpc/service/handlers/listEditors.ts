@@ -1,4 +1,5 @@
-import type { listEditorsCommand } from '../../api/commands/listEditors'
+import type { listEditorsCommand } from '@tekton/control-rpc-contract/commands/listEditors'
+
 import type { CommandHandler } from '../types'
 
 /**

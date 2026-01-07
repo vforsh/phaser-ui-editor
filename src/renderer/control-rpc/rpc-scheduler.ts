@@ -1,4 +1,4 @@
-import { ControlMethod } from './api/ControlApi'
+import { controlContract, type ControlMethod } from '@tekton/control-rpc-contract'
 
 /**
  * Scheduler for RPC commands that ensures write commands are executed sequentially (FIFO)
@@ -11,13 +11,7 @@ export class RpcScheduler {
 	 * Determines if a method is a "write" (mutating) command.
 	 */
 	isWriteMethod(method: ControlMethod): boolean {
-		return (
-			method !== 'listHierarchy' &&
-			method !== 'listAssets' &&
-			method !== 'getProjectInfo' &&
-			method !== 'getAssetInfo' &&
-			method !== 'listEditors'
-		)
+		return controlContract[method].kind === 'write'
 	}
 
 	/**

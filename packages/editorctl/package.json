@@ -1,0 +1,17 @@
+{
+	"name": "@tekton/editorctl",
+	"version": "0.0.0",
+	"private": true,
+	"bin": {
+		"editorctl": "./dist/cli.js"
+	},
+	"files": [
+		"dist"
+	],
+	"type": "module",
+	"dependencies": {
+		"@tekton/editorctl-client": "file:../editorctl-client",
+		"@tekton/json-schema-utils": "file:../json-schema-utils",
+		"commander": "^13.0.0"
+	}
+}

@@ -1,6 +1,7 @@
+import type { selectAssetsCommand } from '@tekton/control-rpc-contract/commands/selectAssets'
+
 import { P, match } from 'ts-pattern'
 
-import type { selectAssetsCommand } from '../../api/commands/selectAssets'
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'

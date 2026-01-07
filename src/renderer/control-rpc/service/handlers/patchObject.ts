@@ -1,4 +1,5 @@
-import type { patchObjectCommand } from '../../api/commands/patchObject'
+import type { patchObjectCommand } from '@tekton/control-rpc-contract/commands/patchObject'
+
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'

@@ -1,8 +1,7 @@
+import { COMMAND_GROUPS, controlContract, type ControlMethod } from '@tekton/control-rpc-contract'
+import { buildExampleObject, derefRoot, isObjectSchema, renderObjectShape } from '@tekton/json-schema-utils'
 import { useMemo } from 'react'
 import { zodToJsonSchema } from 'zod-to-json-schema'
-
-import { buildExampleObject, derefRoot, isObjectSchema, renderObjectShape } from '../../../shared/json-schema/schemaShape'
-import { COMMAND_GROUPS, controlContract, type ControlMethod } from '../../control-rpc/api/ControlApi'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type JsonSchema = any

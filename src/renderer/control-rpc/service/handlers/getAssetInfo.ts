@@ -1,7 +1,8 @@
+import type { getAssetInfoCommand } from '@tekton/control-rpc-contract/commands/getAssetInfo'
+
 import { P, match } from 'ts-pattern'
 
 import type { AssetTreeItemData } from '../../../types/assets'
-import type { getAssetInfoCommand } from '../../api/commands/getAssetInfo'
 import type { CommandHandler } from '../types'
 
 import { state, unproxy } from '../../../state/State'

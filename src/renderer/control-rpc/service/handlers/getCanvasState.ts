@@ -1,4 +1,5 @@
-import type { getCanvasStateCommand } from '../../api/commands/getCanvasState'
+import type { getCanvasStateCommand } from '@tekton/control-rpc-contract/commands/getCanvasState'
+
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'

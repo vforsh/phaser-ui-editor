@@ -47,6 +47,11 @@ web_modules/
 # TypeScript cache
 *.tsbuildinfo
 
+# Package sources should be TS-only (no emitted JS/DTs in src/)
+packages/**/src/**/*.js
+packages/**/src/**/*.d.ts
+packages/**/src/**/*.map
+
 # Optional npm cache directory
 .npm
 

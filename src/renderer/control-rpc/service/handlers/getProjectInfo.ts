@@ -1,4 +1,5 @@
-import type { getProjectInfoCommand } from '../../api/commands/getProjectInfo'
+import type { getProjectInfoCommand } from '@tekton/control-rpc-contract/commands/getProjectInfo'
+
 import type { CommandHandler } from '../types'
 
 import { state, unproxy } from '../../../state/State'

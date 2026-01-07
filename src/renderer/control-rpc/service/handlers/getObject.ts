@@ -1,7 +1,8 @@
+import type { ControlInput } from '@tekton/control-rpc-contract'
+import type { getObjectCommand } from '@tekton/control-rpc-contract/commands/getObject'
+
 import { P, match } from 'ts-pattern'
 
-import type { getObjectCommand } from '../../api/commands/getObject'
-import type { ControlInput } from '../../api/ControlApi'
 import type { CommandHandler } from '../types'
 
 import { state, unproxy } from '../../../state/State'

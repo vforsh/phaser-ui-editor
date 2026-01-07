@@ -1,5 +1,6 @@
+import type { ControlApi } from '@tekton/control-rpc-contract'
+
 import type { AppCommandsEmitter } from '../../AppCommands'
-import type { ControlApi } from '../api/ControlApi'
 import type { EditorControlContext } from './types'
 
 import { addObjectComponent } from './handlers/addObjectComponent'
@@ -14,6 +15,7 @@ import { duplicateObject } from './handlers/duplicateObject'
 import { getAssetInfo } from './handlers/getAssetInfo'
 import { getCanvasMetrics } from './handlers/getCanvasMetrics'
 import { getCanvasState } from './handlers/getCanvasState'
+import { getControlMeta } from './handlers/getControlMeta'
 import { getObject } from './handlers/getObject'
 import { getObjectMeta } from './handlers/getObjectMeta'
 import { getPrefabContent } from './handlers/getPrefabContent'
@@ -88,6 +90,7 @@ export class EditorControlService {
 			getPrefabDocument: getPrefabDocument(this.ctx),
 			getCanvasState: getCanvasState(this.ctx),
 			getCanvasMetrics: getCanvasMetrics(this.ctx),
+			getControlMeta: getControlMeta(this.ctx),
 			listEditors: listEditors(this.ctx),
 			setCamera: setCamera(this.ctx),
 			waitForCanvasIdle: waitForCanvasIdle(this.ctx),

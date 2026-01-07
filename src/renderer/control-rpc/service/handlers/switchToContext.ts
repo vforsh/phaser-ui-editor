@@ -1,7 +1,8 @@
+import type { ControlInput } from '@tekton/control-rpc-contract'
+import type { switchToContextCommand } from '@tekton/control-rpc-contract/commands/switchToContext'
+
 import { P, match } from 'ts-pattern'
 
-import type { switchToContextCommand } from '../../api/commands/switchToContext'
-import type { ControlInput } from '../../api/ControlApi'
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'

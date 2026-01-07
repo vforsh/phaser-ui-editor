@@ -1,3 +1,5 @@
+import type { createPrefabAssetCommand } from '@tekton/control-rpc-contract/commands/createPrefabAsset'
+
 import { mainApi } from '@main-api/main-api'
 import { until } from '@open-draft/until'
 import { state, stateSchema } from '@state/State'
@@ -5,7 +7,6 @@ import md5 from 'blueimp-md5'
 import path from 'path-browserify-esm'
 
 import type { AssetTreeItemData } from '../../../types/assets'
-import type { createPrefabAssetCommand } from '../../api/commands/createPrefabAsset'
 import type { CommandHandler } from '../types'
 
 import { buildAssetTree } from '../../../components/assetsPanel/build-asset-tree'

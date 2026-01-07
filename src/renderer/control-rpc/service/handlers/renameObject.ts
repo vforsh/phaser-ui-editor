@@ -1,4 +1,5 @@
-import type { renameObjectCommand } from '../../api/commands/renameObject'
+import type { renameObjectCommand } from '@tekton/control-rpc-contract/commands/renameObject'
+
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'

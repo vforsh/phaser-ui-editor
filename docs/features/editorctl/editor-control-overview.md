@@ -4,7 +4,7 @@ This feature provides **external control of the running editor** by translating 
 
 There are **two entry points**:
 
-- **`editorctl` (CLI)**: Path: `scripts/editorctl/`. Derives CLI commands from the control contract (`src/control-rpc/api/ControlApi.ts`) and uses JSON-only stdin/stdout.
+- **`editorctl` (CLI)**: Path: `packages/editorctl/`. Uses runtime discovery (`getControlMeta`) and JSON-only stdin/stdout.
 - **WebSocket JSON-RPC (main process)**: external tools connect to Electron via `ws://127.0.0.1:<port>`, send JSON-RPC requests, and receive JSON-RPC responses.
 - **Window API (renderer)**: dev-only `window.editor.*` methods that call the same internal service directly (no IPC/WS).
 
@@ -21,12 +21,12 @@ Speaks **JSON-RPC 2.0** over WebSocket:
 
 ### `editorctl` (CLI)
 
-Path: `scripts/editorctl/`
+Path: `packages/editorctl/`
 
 - Usage doc: [`editorctl.md`](./editorctl.md)
-- Derives one CLI command per control method from `controlContract` (e.g. `openProject`, `getAssetInfo`, `listHierarchy`, `selectObject`), plus `editorctl methods` and `editorctl schema <method>` for introspection.
-- Sends JSON-RPC over WebSocket using `WsTransport` (`scripts/editorctl/lib/transport/ws.ts`) and `RpcClient` (`scripts/editorctl/lib/rpc/client.ts`).
-- **Type source**: `scripts/editorctl/lib/rpc/types.ts` imports types from `src/control-rpc/api/ControlApi.ts`.
+- Exposes meta-only commands (`call`, `methods`, `schema`, `help`) and relies on `getControlMeta` for discovery.
+- Sends JSON-RPC over WebSocket using `@tekton/editorctl-client`.
+- **Type source**: `@tekton/control-rpc-contract`.
 
 ### Main process WebSocket router: `ControlRpcServer`
 
@@ -42,7 +42,7 @@ Responsibilities:
 Important behavior:
 
 - Always targets **the first BrowserWindow** (`BrowserWindow.getAllWindows()[0]`).
-- Validation uses the **control contract** (`src/control-rpc/api/ControlApi.ts`) for both method allowlisting and parameter parsing.
+- Validation uses the **control contract** (`@tekton/control-rpc-contract`) for both method allowlisting and parameter parsing.
 
 ### Preload IPC bridge: `window.controlIpc`
 
@@ -60,7 +60,7 @@ Enablement (current behavior):
 
 ### Renderer bridge: `useControlRpcBridge`
 
-Path: `src/control-rpc/renderer-rpc.ts`
+Path: `src/renderer/control-rpc/renderer-rpc.ts`
 
 Responsibilities:
 
@@ -76,7 +76,7 @@ Error handling (current behavior):
 
 ### Renderer API: `window.editor`
 
-Path: `src/control-rpc/expose-window-editor.ts` (wired in `src/App.tsx`)
+Path: `src/renderer/control-rpc/expose-window-editor.ts` (wired in `src/App.tsx`)
 
 Responsibilities:
 
@@ -84,7 +84,7 @@ Responsibilities:
 
 ### Command translation layer: `EditorControlService`
 
-Path: `src/control-rpc/service/EditorControlService.ts`
+Path: `src/renderer/control-rpc/service/EditorControlService.ts`
 
 This is the **“thin waist”**:
 
@@ -139,7 +139,7 @@ sequenceDiagram
 
 There is now a **single control contract**:
 
-- `src/control-rpc/api/ControlApi.ts`
+- `packages/control-rpc-contract/src/ControlApi.ts`
     - Defines Zod schemas for inputs/outputs (runtime validation).
     - Provides derived `ControlMethod` / `ControlInput` / `ControlOutput` types.
 
@@ -191,9 +191,9 @@ This checklist covers the end-to-end path: **external JSON-RPC → main WS route
 
 Pick a **camelCase** method string, e.g. `duplicateObject`.
 
-### 2) Add the method to `src/control-rpc/api/ControlApi.ts`
+### 2) Add the method to `packages/control-rpc-contract/src/ControlApi.ts`
 
-File: `src/control-rpc/api/ControlApi.ts`
+File: `packages/control-rpc-contract/src/ControlApi.ts`
 
 - Add a new entry with `input` and `output` Zod schemas.
 - Keep names **camelCase**.
@@ -204,7 +204,7 @@ Why: both main and renderer validate incoming requests using this contract, and 
 
 Files:
 
-- Add a new handler module in `src/control-rpc/service/handlers/` (flat files).
+- Add a new handler module in `src/renderer/control-rpc/service/handlers/` (flat files).
 - Export a factory function (e.g. `export const yourMethod: CommandHandler<'yourMethod'> = (ctx) => ...`) that returns the async handler.
 - **Naming requirement**: The handler function name MUST match the command name defined in `ControlApi.ts`. If you rename a command, you MUST rename its handler too.
 
@@ -216,14 +216,14 @@ Translate the request into internal actions:
 
 ### 4) Add your handler to the service assembly
 
-File: `src/control-rpc/service/EditorControlService.ts`
+File: `src/renderer/control-rpc/service/EditorControlService.ts`
 
 - Import your handler module and spread it into the handler map.
 - The `satisfies ControlApi` check ensures new contract methods cannot be missed.
 
 ### 5) Expose it on `window.editor` (optional but recommended for dev)
 
-File: `src/control-rpc/expose-window-editor.ts`
+File: `src/renderer/control-rpc/expose-window-editor.ts`
 
 - Add `window.editor.<yourMethodCamelCase> = (params) => handlers.<yourMethodCamelCase>(params)`
 
@@ -235,12 +235,12 @@ Also update typings:
 
 No extra work needed beyond the control contract:
 
-- `scripts/editorctl/lib/rpc/types.ts` imports from `src/control-rpc/api/ControlApi.ts`.
+- `@tekton/editorctl-client` imports types from `@tekton/control-rpc-contract`.
 - `editorctl` will pick up new types automatically.
 
 ### 7) `editorctl` CLI (no changes required)
 
-`editorctl` derives its commands directly from `controlContract`. When you add a new RPC method, the CLI is updated automatically without manual command files or registrations.
+`editorctl` uses `getControlMeta` at runtime. When you add a new RPC method, it shows up in discovery without manual CLI registrations.
 
 ### 8) Sanity-check method validation and routing assumptions
 

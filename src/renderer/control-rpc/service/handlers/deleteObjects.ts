@@ -1,4 +1,5 @@
-import type { deleteObjectsCommand } from '../../api/commands/deleteObjects'
+import type { deleteObjectsCommand } from '@tekton/control-rpc-contract/commands/deleteObjects'
+
 import type { CommandHandler } from '../types'
 
 /**

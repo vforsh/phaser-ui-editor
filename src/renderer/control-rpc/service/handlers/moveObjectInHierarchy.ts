@@ -1,4 +1,5 @@
-import type { moveObjectInHierarchyCommand } from '../../api/commands/moveObjectInHierarchy'
+import type { moveObjectInHierarchyCommand } from '@tekton/control-rpc-contract/commands/moveObjectInHierarchy'
+
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'

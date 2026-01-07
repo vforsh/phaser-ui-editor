@@ -1,6 +1,7 @@
+import type { AssetNode, AssetType } from '@tekton/control-rpc-contract'
+import type { listAssetsCommand } from '@tekton/control-rpc-contract/commands/listAssets'
+
 import type { AssetTreeItemData } from '../../../types/assets'
-import type { listAssetsCommand } from '../../api/commands/listAssets'
-import type { AssetNode, AssetType } from '../../api/ControlApi'
 import type { CommandHandler } from '../types'
 
 import { state, unproxy } from '../../../state/State'

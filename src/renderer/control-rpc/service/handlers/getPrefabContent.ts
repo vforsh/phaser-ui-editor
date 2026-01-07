@@ -1,4 +1,5 @@
-import type { getPrefabContentCommand } from '../../api/commands/getPrefabContent'
+import type { getPrefabContentCommand } from '@tekton/control-rpc-contract/commands/getPrefabContent'
+
 import type { CommandHandler } from '../types'
 
 import { state, unproxy } from '../../../state/State'

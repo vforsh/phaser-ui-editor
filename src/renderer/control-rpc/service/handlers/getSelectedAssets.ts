@@ -1,4 +1,5 @@
-import type { getSelectedAssetsCommand } from '../../api/commands/getSelectedAssets'
+import type { getSelectedAssetsCommand } from '@tekton/control-rpc-contract/commands/getSelectedAssets'
+
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'

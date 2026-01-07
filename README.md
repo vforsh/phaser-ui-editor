@@ -57,6 +57,14 @@ Install dependencies:
 npm install
 ```
 
+Build workspace packages (required before running the app or `editorctl`):
+
+```bash
+npm run build:packages
+```
+
+If you hit a "Cannot find module .../dist/..." error during dev or `editorctl`, re-run that command.
+
 Start Electron + Vite dev mode:
 
 ```bash
@@ -142,6 +150,6 @@ The app itself is an Electron + Vite project and isn’t set up to publish/consu
 
 ## External control
 
-The editor exposes a small dev-only control surface for automation/testing.
+The editor exposes a control surface for automation/testing.
 
 See [`docs/features/editorctl/editor-control.md`](docs/features/editorctl/editor-control.md).

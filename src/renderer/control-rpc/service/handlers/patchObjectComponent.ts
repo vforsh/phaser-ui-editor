@@ -1,6 +1,7 @@
+import type { patchObjectComponentCommand } from '@tekton/control-rpc-contract/commands/patchObjectComponent'
+
 import { P, match } from 'ts-pattern'
 
-import type { patchObjectComponentCommand } from '../../api/commands/patchObjectComponent'
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'

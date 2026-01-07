@@ -1,4 +1,4 @@
-import type { ControlMethod, ControlOutput } from './api/ControlApi'
+import type { ControlMethod, ControlOutput } from '@tekton/control-rpc-contract'
 
 export const CONTROL_RPC_REQUEST_CHANNEL = 'control:rpc-request'
 export const CONTROL_RPC_RESPONSE_CHANNEL = 'control:rpc-response'

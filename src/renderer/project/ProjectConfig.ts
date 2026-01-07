@@ -1,7 +1,6 @@
+import { absolutePathSchema, minimatchPatternSchema, relativePathSchema } from '@tekton/control-rpc-contract'
 import { ReadonlyDeep } from 'type-fest'
 import { z } from 'zod'
-
-import { absolutePathSchema, minimatchPatternSchema, relativePathSchema } from '../state/Schemas'
 
 export const projectConfigSchema = z.object({
 	name: z.string().min(1),

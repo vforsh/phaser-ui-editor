@@ -1,10 +1,10 @@
+import { controlContract, type ControlInput, type ControlMethod, type ControlOutput } from '@tekton/control-rpc-contract'
 import { useEffect, useMemo } from 'react'
 
 import type { AppCommandsEmitter } from '../AppCommands'
 
 import { logger } from '../logs/logs'
 import { state, subscribe } from '../state/State'
-import { controlContract, type ControlInput, type ControlMethod, type ControlOutput } from './api/ControlApi'
 import { ControlOperationalError } from './control-errors'
 import { ERR_INVALID_RPC_RESPONSE, JSONRPC_INTERNAL_ERROR } from './jsonrpc-errors'
 import { validateControlRequest } from './jsonrpc-validate'

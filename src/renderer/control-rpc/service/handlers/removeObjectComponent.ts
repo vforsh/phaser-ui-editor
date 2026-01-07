@@ -1,7 +1,8 @@
+import type { removeObjectComponentCommand } from '@tekton/control-rpc-contract/commands/removeObjectComponent'
+
 import { EditableComponentType } from '@components/canvas/phaser/scenes/main/objects/components/base/EditableComponent'
 import { P, match } from 'ts-pattern'
 
-import type { removeObjectComponentCommand } from '../../api/commands/removeObjectComponent'
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'

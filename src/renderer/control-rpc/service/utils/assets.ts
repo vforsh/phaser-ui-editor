@@ -1,7 +1,8 @@
+import type { AssetNode, AssetType } from '@tekton/control-rpc-contract'
+
 import { match } from 'ts-pattern'
 
 import type { AssetTreeItemData } from '../../../types/assets'
-import type { AssetNode, AssetType } from '../../api/ControlApi'
 
 import { toProjectRelativePath } from './paths'
 
