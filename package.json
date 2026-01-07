@@ -20,8 +20,9 @@
 	"main": "out/main/index.js",
 	"types": "exports.d.ts",
 	"scripts": {
-		"start": "electron-vite dev --watch",
-		"dev": "electron-vite dev --watch",
+		"start": "node scripts/start-desktop-app-with-cleanup.mjs",
+		"start:bg": "START_IN_BACKGROUND=1 node scripts/start-desktop-app-with-cleanup.mjs",
+		"dev": "npm run start",
 		"editorctl": "tsx scripts/editorctl/index.ts",
 		"build:editorctl": "tsc --project tsconfig.editorctl.json",
 		"link:editorctl": "npm run build:editorctl && npm link",
