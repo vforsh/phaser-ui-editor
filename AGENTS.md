@@ -69,11 +69,11 @@ eikon /absolute/path/from/the/printed/json.png --preset web-ui
 # Polished UI review preset (no prompt required)
 eikon /absolute/path/to/screenshot.png --preset web-ui
 
+# Layout-first pass (alignment/spacing/layout issues)
+eikon /absolute/path/to/screenshot.png --preset web-ui-layout
+
 # Add extra context for what you want reviewed
 eikon /absolute/path/to/screenshot.png --preset web-ui "Focus on spacing + typography"
-
-# Save output to a file
-eikon /absolute/path/to/screenshot.png --preset web-ui --out ui-review.md
 ```
 
 ## Running & testing the editor (agent workflow)
@@ -95,7 +95,8 @@ npm run editorctl -- listEditors
 If `listEditors` returns an empty list (no `editors`), start the editor:
 
 ```bash
-npm start
+# Prefer background start to NOT DISRUPT USER
+npm run start:bg
 ```
 
 Wait until the terminal prints a line like:
