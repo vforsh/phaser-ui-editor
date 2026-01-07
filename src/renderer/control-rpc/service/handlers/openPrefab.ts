@@ -1,6 +1,7 @@
+import type { openPrefabCommand } from '@tekton/control-rpc-contract/commands/openPrefab'
+
 import { P, match } from 'ts-pattern'
 
-import type { openPrefabCommand } from '../../api/commands/openPrefab'
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'

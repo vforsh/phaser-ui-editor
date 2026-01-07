@@ -1,0 +1,26 @@
+{
+	"name": "@tekton/control-rpc-contract",
+	"version": "0.0.0",
+	"private": true,
+	"files": [
+		"dist"
+	],
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		},
+		"./commands/*": {
+			"types": "./dist/commands/*.d.ts",
+			"default": "./dist/commands/*.js"
+		}
+	},
+	"dependencies": {
+		"minimatch": "^10.0.1",
+		"path-browserify-esm": "^1.0.6",
+		"zod": "^3.25.76"
+	}
+}

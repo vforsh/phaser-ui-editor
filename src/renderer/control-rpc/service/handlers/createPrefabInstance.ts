@@ -1,4 +1,5 @@
-import type { createPrefabInstanceCommand } from '../../api/commands/createPrefabInstance'
+import type { createPrefabInstanceCommand } from '@tekton/control-rpc-contract/commands/createPrefabInstance'
+
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'

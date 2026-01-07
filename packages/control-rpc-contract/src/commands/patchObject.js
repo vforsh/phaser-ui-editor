@@ -1,0 +1,16 @@
+import { z } from 'zod'
+
+import { objectSelectorV0Schema, okResultSchema } from '../shared-schemas'
+export const patchObjectCommand = {
+	group: 'objects',
+	description: 'Applies a whitelisted patch to an object state.',
+	input: z
+		.object({
+			target: objectSelectorV0Schema,
+			patch: z.record(z.unknown()).describe('Patch object with whitelisted fields'),
+		})
+		.strict()
+		.describe('Input parameters for patching an object'),
+	output: okResultSchema.describe('Result indicating whether the object patch was applied'),
+}
+//# sourceMappingURL=patchObject.js.map

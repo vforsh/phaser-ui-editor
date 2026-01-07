@@ -1,4 +1,5 @@
-import type { selectObjectCommand } from '../../api/commands/selectObject'
+import type { selectObjectCommand } from '@tekton/control-rpc-contract/commands/selectObject'
+
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'

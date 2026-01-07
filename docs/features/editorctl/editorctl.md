@@ -2,10 +2,10 @@
 
 `editorctl` is the repo’s **command-line client** for controlling a running Tekton Editor instance via **JSON-RPC 2.0 over WebSocket**.
 
-The implementation lives in `scripts/editorctl/`:
+The implementation lives in `packages/editorctl/`:
 
 - It connects to the editor’s WebSocket control server at `ws://127.0.0.1:<port>`.
-- It derives its RPC surface from the shared control contract (`src/control-rpc/api/ControlApi.ts`).
+- It discovers its RPC surface from the running editor via `getControlMeta`.
 - It is **machine-friendly**: inputs/outputs are JSON (useful for scripting and CI).
 
 If you’re looking for the architecture and how the editor routes requests internally, see [`editor-control-overview.md`](./editor-control-overview.md).
@@ -26,7 +26,7 @@ npm run editorctl -- --port 17870 -- methods
 
 ### Meta commands (introspection + generic invocation)
 
-This doc intentionally does **not** list the per-method commands (they are derived from the contract). Instead, use these meta commands to discover and call methods safely.
+`editorctl` exposes **meta-only** commands. Use these to discover and call methods safely.
 
 #### `methods`
 

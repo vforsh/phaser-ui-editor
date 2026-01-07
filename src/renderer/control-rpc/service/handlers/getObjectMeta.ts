@@ -1,4 +1,5 @@
-import type { getObjectMetaCommand } from '../../api/commands/getObjectMeta'
+import type { getObjectMetaCommand } from '@tekton/control-rpc-contract/commands/getObjectMeta'
+
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'

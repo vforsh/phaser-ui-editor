@@ -1,4 +1,5 @@
-import type { createObjectCommand } from '../../api/commands/createObject'
+import type { createObjectCommand } from '@tekton/control-rpc-contract/commands/createObject'
+
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'

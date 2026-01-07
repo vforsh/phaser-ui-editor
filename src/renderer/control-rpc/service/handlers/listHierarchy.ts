@@ -1,4 +1,5 @@
-import type { listHierarchyCommand } from '../../api/commands/listHierarchy'
+import type { listHierarchyCommand } from '@tekton/control-rpc-contract/commands/listHierarchy'
+
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'

@@ -8,8 +8,8 @@ This repo supports Playwright-driven E2E testing of the Tekton Editor desktop ap
     - Installed in `src/renderer/App.tsx` via `exposeWindowEditor(appCommands)`.
     - Implemented in `src/renderer/control-rpc/expose-window-editor.ts`.
 - **Payload schemas live in the control contract** (Zod):
-    - Source of truth: `src/renderer/control-rpc/api/ControlApi.ts`
-    - Per-method input/output schema: `src/renderer/control-rpc/api/commands/*.ts`
+- Source of truth: `packages/control-rpc-contract/src/ControlApi.ts`
+- Per-method input/output schema: `packages/control-rpc-contract/src/commands/*.ts`
 
 ---
 
@@ -140,7 +140,7 @@ test('launch: open project + wait for idle', async ({ windowEditor }) => {
 
 - **Prefer `window.editor.waitForCanvasIdle({})` over timeouts** after actions that affect the canvas.
 - **If you don’t know the params** for a method:
-    - Open `src/renderer/control-rpc/api/commands/<method>.ts` and read the Zod `input` schema.
+    - Open `packages/control-rpc-contract/src/commands/<method>.ts` and read the Zod `input` schema.
     - Or (optional) use `editorctl schema <method>` to print the JSON schema.
 
 ---
@@ -151,4 +151,4 @@ test('launch: open project + wait for idle', async ({ windowEditor }) => {
 
 If you need exact I/O shapes for any method:
 
-- Look at `src/renderer/control-rpc/api/commands/<method>.ts` (Zod `input`/`output`), referenced by `src/renderer/control-rpc/api/ControlApi.ts`.
+- Look at `packages/control-rpc-contract/src/commands/<method>.ts` (Zod `input`/`output`), referenced by `packages/control-rpc-contract/src/ControlApi.ts`.

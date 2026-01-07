@@ -1,4 +1,5 @@
-import type { closeAllModalsCommand } from '../../api/commands/closeAllModals'
+import type { closeAllModalsCommand } from '@tekton/control-rpc-contract/commands/closeAllModals'
+
 import type { CommandHandler } from '../types'
 
 /**

@@ -1,5 +1,6 @@
 import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import { absolutePathSchema } from '@tekton/control-rpc-contract'
 import { derive } from 'derive-valtio'
 import { debounce, merge } from 'es-toolkit'
 import { PartialDeep } from 'type-fest'
@@ -10,7 +11,6 @@ import { projectConfigSchema } from '../project/ProjectConfig'
 import { defaultEditorSettings, editorSettingsSchema, type EditorSettings } from '../settings/EditorSettings'
 import { AssetTreeItemData } from '../types/assets'
 import { getObjectKeys } from '../utils/collection/get-object-keys'
-import { absolutePathSchema } from './Schemas'
 import { isValtioRef, unproxy } from './valtio-utils'
 
 export const stateSchema = z.object({

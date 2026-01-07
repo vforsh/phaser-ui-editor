@@ -1,4 +1,5 @@
-import type { openProjectCommand } from '../../api/commands/openProject'
+import type { openProjectCommand } from '@tekton/control-rpc-contract/commands/openProject'
+
 import type { CommandHandler } from '../types'
 
 import { openProjectByPath } from '../../../project/open-project'

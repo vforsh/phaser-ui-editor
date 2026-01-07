@@ -1,0 +1,20 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"baseUrl": ".",
+		"paths": {
+			"@tekton/editorctl-client": ["../editorctl-client/src/index.ts"],
+			"@tekton/json-schema-utils": ["../json-schema-utils/src/index.ts"]
+		},
+		"rootDir": "src",
+		"outDir": "dist",
+		"sourceMap": true,
+		"declaration": false,
+		"strict": true,
+		"skipLibCheck": true,
+		"preserveShebang": true
+	},
+	"include": ["src"]
+}

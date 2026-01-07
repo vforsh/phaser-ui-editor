@@ -1,4 +1,4 @@
-import { ControlMethod } from './api/ControlApi'
+import { ControlMethod } from '@tekton/control-rpc-contract'
 
 /**
  * Scheduler for RPC commands that ensures write commands are executed sequentially (FIFO)

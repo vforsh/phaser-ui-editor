@@ -1,4 +1,5 @@
-import type { listModalsCommand } from '../../api/commands/listModals'
+import type { listModalsCommand } from '@tekton/control-rpc-contract/commands/listModals'
+
 import type { CommandHandler } from '../types'
 
 /**

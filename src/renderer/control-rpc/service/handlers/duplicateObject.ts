@@ -1,4 +1,5 @@
-import type { duplicateObjectCommand } from '../../api/commands/duplicateObject'
+import type { duplicateObjectCommand } from '@tekton/control-rpc-contract/commands/duplicateObject'
+
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'

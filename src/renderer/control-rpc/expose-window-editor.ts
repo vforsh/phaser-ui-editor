@@ -1,5 +1,6 @@
+import type { ControlInput, ControlMethod, ControlOutput } from '@tekton/control-rpc-contract'
+
 import type { AppCommandsEmitter } from '../AppCommands'
-import type { ControlInput, ControlMethod, ControlOutput } from './api/ControlApi'
 
 import { EditorControlService } from './service/EditorControlService'
 
@@ -50,6 +51,7 @@ export function exposeWindowEditor(appCommands: AppCommandsEmitter): void {
 		getPrefabContent: (params) => handlers.getPrefabContent(params ?? {}),
 		getPrefabDocument: (params) => handlers.getPrefabDocument(params ?? {}),
 		getCanvasState: (params) => handlers.getCanvasState(params ?? {}),
+		getControlMeta: (params) => handlers.getControlMeta(params ?? {}),
 		listEditors: (params) => handlers.listEditors(params ?? {}),
 		setCamera: (params) => handlers.setCamera(params ?? {}),
 		waitForCanvasIdle: (params) => handlers.waitForCanvasIdle(params ?? {}),

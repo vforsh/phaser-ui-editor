@@ -1,5 +1,6 @@
+import type { ControlApi, ControlMethod } from '@tekton/control-rpc-contract'
+
 import type { AppCommandsEmitter } from '../../AppCommands'
-import type { ControlApi, ControlMethod } from '../api/ControlApi'
 
 export type EditorControlContext = {
 	appCommands: AppCommandsEmitter

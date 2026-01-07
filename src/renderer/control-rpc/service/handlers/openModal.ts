@@ -1,4 +1,5 @@
-import type { openModalCommand } from '../../api/commands/openModal'
+import type { openModalCommand } from '@tekton/control-rpc-contract/commands/openModal'
+
 import type { CommandHandler } from '../types'
 
 /**

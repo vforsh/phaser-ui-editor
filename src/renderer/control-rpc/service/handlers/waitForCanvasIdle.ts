@@ -1,4 +1,5 @@
-import type { waitForCanvasIdleCommand } from '../../api/commands/waitForCanvasIdle'
+import type { waitForCanvasIdleCommand } from '@tekton/control-rpc-contract/commands/waitForCanvasIdle'
+
 import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'
