@@ -1,10 +1,12 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
-import { successSchema } from '../shared-schemas'
+import type { CommandDefinition } from '../ControlApi.js'
+
+import { successSchema } from '../shared-schemas.js'
 
 export const openProjectCommand = {
 	group: 'misc',
+	kind: 'write',
 	description: 'Opens a project from the specified file system path.',
 	input: z
 		.object({

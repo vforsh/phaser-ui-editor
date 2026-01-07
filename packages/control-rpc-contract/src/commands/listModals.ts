@@ -1,7 +1,8 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
-import { MODAL_IDS } from '../modal-ids'
+import type { CommandDefinition } from '../ControlApi.js'
+
+import { MODAL_IDS } from '../modal-ids.js'
 
 const modalIdSchema = z.enum(MODAL_IDS)
 
@@ -14,6 +15,7 @@ const modalEntrySchema = z
 
 export const listModalsCommand = {
 	group: 'misc',
+	kind: 'read',
 	description: 'Lists all known global modals and their open/closed status.',
 	input: z.object({}).strict().describe('Input parameters for listing modals (empty)'),
 	output: z

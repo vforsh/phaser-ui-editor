@@ -1,3 +1,4 @@
+import { TransportError } from '@tekton/editorctl-client'
 import process from 'node:process'
 
 export enum ExitCode {
@@ -42,7 +43,7 @@ function serializeError(error: unknown): { exitCode: ExitCode; payload: JsonErro
 	let details: unknown
 
 	if (error && typeof error === 'object') {
-		if ('isTransportError' in error && error.isTransportError) {
+		if (error instanceof TransportError || ('isTransportError' in error && error.isTransportError)) {
 			exitCode = ExitCode.Transport
 			code = 'transport_error'
 		} else if ('isRpcError' in error && error.isRpcError) {

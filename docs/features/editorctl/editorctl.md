@@ -15,8 +15,14 @@ If you’re looking for the architecture and how the editor routes requests inte
 From the repo root:
 
 ```bash
+npm run build:packages
+```
+
+```bash
 npm run editorctl -- --help
 ```
+
+If you hit a "Cannot find module .../dist/..." error, re-run `npm run build:packages`.
 
 By default, `editorctl` connects to port `17870`. To target a different port:
 

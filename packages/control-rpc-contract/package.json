@@ -13,6 +13,22 @@
 			"types": "./dist/index.d.ts",
 			"default": "./dist/index.js"
 		},
+		"./modal-ids": {
+			"types": "./dist/modal-ids.d.ts",
+			"default": "./dist/modal-ids.js"
+		},
+		"./settings-sections": {
+			"types": "./dist/settings-sections.d.ts",
+			"default": "./dist/settings-sections.js"
+		},
+		"./shared-schemas": {
+			"types": "./dist/shared-schemas.d.ts",
+			"default": "./dist/shared-schemas.js"
+		},
+		"./state-schemas": {
+			"types": "./dist/state-schemas.d.ts",
+			"default": "./dist/state-schemas.js"
+		},
 		"./commands/*": {
 			"types": "./dist/commands/*.d.ts",
 			"default": "./dist/commands/*.js"

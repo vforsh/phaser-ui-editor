@@ -1,10 +1,12 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
-import { objectSelectorV0Schema, okCreatedIdResultSchema } from '../shared-schemas'
+import type { CommandDefinition } from '../ControlApi.js'
+
+import { objectSelectorV0Schema, okCreatedIdResultSchema } from '../shared-schemas.js'
 
 export const createPrefabInstanceCommand = {
 	group: 'objects',
+	kind: 'write',
 	description: 'Creates a prefab instance (stub via asset drop).',
 	input: z
 		.object({

@@ -1,9 +1,10 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
+import type { CommandDefinition } from '../ControlApi.js'
 
 export const createPrefabAssetCommand = {
 	group: 'assets',
+	kind: 'write',
 	description: 'Creates a new prefab asset file on disk at the given project-relative path, and returns its asset id.',
 	input: z
 		.object({

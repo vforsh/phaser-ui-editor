@@ -1,13 +1,15 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
-import { MODAL_IDS } from '../modal-ids'
-import { successSchema } from '../shared-schemas'
+import type { CommandDefinition } from '../ControlApi.js'
+
+import { MODAL_IDS } from '../modal-ids.js'
+import { successSchema } from '../shared-schemas.js'
 
 const modalIdSchema = z.enum(MODAL_IDS)
 
 export const closeModalCommand = {
 	group: 'misc',
+	kind: 'write',
 	description: 'Closes a specific global modal by id.',
 	input: z
 		.object({

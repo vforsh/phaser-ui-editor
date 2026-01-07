@@ -1,10 +1,12 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
-import { okResultSchema } from '../shared-schemas'
+import type { CommandDefinition } from '../ControlApi.js'
+
+import { okResultSchema } from '../shared-schemas.js'
 
 export const waitForCanvasIdleCommand = {
 	group: 'misc',
+	kind: 'read',
 	description: 'Waits until the canvas state becomes idle (prefab loaded and selections stabilized).',
 	input: z
 		.object({

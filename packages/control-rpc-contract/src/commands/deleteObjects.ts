@@ -1,10 +1,12 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
-import { successSchema } from '../shared-schemas'
+import type { CommandDefinition } from '../ControlApi.js'
+
+import { successSchema } from '../shared-schemas.js'
 
 export const deleteObjectsCommand = {
 	group: 'objects',
+	kind: 'write',
 	description: 'Deletes multiple game objects from the current scene by their IDs.',
 	input: z
 		.object({

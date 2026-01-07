@@ -1,10 +1,12 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
-import { objectSelectorV0Schema } from '../shared-schemas'
+import type { CommandDefinition } from '../ControlApi.js'
+
+import { objectSelectorV0Schema } from '../shared-schemas.js'
 
 export const getObjectMetaCommand = {
 	group: 'objects',
+	kind: 'read',
 	description: 'Resolves an object selector to runtime object metadata.',
 	input: z
 		.object({

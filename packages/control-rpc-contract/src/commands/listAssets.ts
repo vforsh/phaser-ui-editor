@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
+import type { CommandDefinition } from '../ControlApi.js'
 
 export const assetTypeSchema = z
 	.enum([
@@ -222,6 +222,7 @@ export const assetNodeSchema: z.ZodType<AssetNode> = z.lazy(() => {
 
 export const listAssetsCommand = {
 	group: 'assets',
+	kind: 'read',
 	description: 'Lists all assets in the project, optionally filtered by type.',
 	input: z
 		.object({

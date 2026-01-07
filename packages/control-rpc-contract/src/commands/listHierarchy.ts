@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
+import type { CommandDefinition } from '../ControlApi.js'
 
 export type HierarchyNode = {
 	id: string
@@ -22,6 +22,7 @@ export const hierarchyNodeSchema: z.ZodType<HierarchyNode> = z.lazy(() =>
 
 export const listHierarchyCommand = {
 	group: 'hierarchy',
+	kind: 'read',
 	description: 'Retrieves the complete scene hierarchy of the currently edited context.',
 	input: z.object({}).strict().describe('Input parameters for listing hierarchy (empty)'),
 	output: hierarchyNodeSchema.describe('Root node of the scene hierarchy'),

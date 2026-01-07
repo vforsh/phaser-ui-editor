@@ -1,10 +1,12 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
-import { successSchema } from '../shared-schemas'
+import type { CommandDefinition } from '../ControlApi.js'
+
+import { successSchema } from '../shared-schemas.js'
 
 export const switchToContextCommand = {
 	group: 'misc',
+	kind: 'write',
 	description:
 		'Switches the canvas edit context to the specified Container. Provide the container object id directly, or an object hierarchy path (e.g. "/Root/Group[0]").',
 	input: z

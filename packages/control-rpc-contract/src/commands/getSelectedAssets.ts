@@ -1,9 +1,10 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
+import type { CommandDefinition } from '../ControlApi.js'
 
 export const getSelectedAssetsCommand = {
 	group: 'assets',
+	kind: 'read',
 	description: 'Retrieves the IDs of the currently selected assets.',
 	input: z.object({}).strict().describe('Empty input for getting selected assets'),
 	output: z

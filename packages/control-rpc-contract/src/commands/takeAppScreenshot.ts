@@ -1,10 +1,12 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
-import { absolutePathSchema } from '../state-schemas'
+import type { CommandDefinition } from '../ControlApi.js'
+
+import { absolutePathSchema } from '../state-schemas.js'
 
 export const takeAppScreenshotCommand = {
 	group: 'debug',
+	kind: 'read',
 	description:
 		'Takes a screenshot of the full app window (web contents), saves it into <projectDir>/screenshots, and returns the absolute file path.',
 	input: z

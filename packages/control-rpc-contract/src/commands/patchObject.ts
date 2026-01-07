@@ -1,10 +1,12 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
-import { objectSelectorV0Schema, okResultSchema } from '../shared-schemas'
+import type { CommandDefinition } from '../ControlApi.js'
+
+import { objectSelectorV0Schema, okResultSchema } from '../shared-schemas.js'
 
 export const patchObjectCommand = {
 	group: 'objects',
+	kind: 'write',
 	description: 'Applies a whitelisted patch to an object state.',
 	input: z
 		.object({

@@ -1,10 +1,12 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
-import { successSchema } from '../shared-schemas'
+import type { CommandDefinition } from '../ControlApi.js'
+
+import { successSchema } from '../shared-schemas.js'
 
 export const openPrefabCommand = {
 	group: 'assets',
+	kind: 'write',
 	description: 'Opens a prefab for editing, identified by either its asset ID or project-relative path.',
 	input: z
 		.union([

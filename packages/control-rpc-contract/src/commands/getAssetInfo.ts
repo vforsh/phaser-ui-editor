@@ -1,10 +1,12 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
-import { assetNodeSchema } from './listAssets'
+import type { CommandDefinition } from '../ControlApi.js'
+
+import { assetNodeSchema } from './listAssets.js'
 
 export const getAssetInfoCommand = {
 	group: 'assets',
+	kind: 'read',
 	description: 'Retrieves detailed information about a specific asset by its ID or path.',
 	input: z
 		.union([

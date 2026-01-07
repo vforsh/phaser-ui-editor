@@ -1,10 +1,12 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
-import { objectSelectorV0Schema, okResultSchema } from '../shared-schemas'
+import type { CommandDefinition } from '../ControlApi.js'
+
+import { objectSelectorV0Schema, okResultSchema } from '../shared-schemas.js'
 
 export const addObjectComponentCommand = {
 	group: 'objects',
+	kind: 'write',
 	description: 'Adds a component to the target object and applies optional overrides.',
 	input: z
 		.object({

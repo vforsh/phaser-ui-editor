@@ -1,9 +1,10 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
+import type { CommandDefinition } from '../ControlApi.js'
 
 export const getPrefabDocumentCommand = {
 	group: 'misc',
+	kind: 'read',
 	description: 'Returns the current prefab document (expanded JSON stub).',
 	input: z.object({}).strict().describe('No input parameters'),
 	output: z

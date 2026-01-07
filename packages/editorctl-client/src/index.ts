@@ -50,7 +50,8 @@ export type EditorctlClient = ClientType
  *
  * @param options - Connection options such as the control RPC port.
  * @returns A client instance for making RPC calls.
- * @throws Error with `isTransportError` or `isRpcError` when the request fails.
+ * @throws TransportError when the transport fails.
+ * @throws Error with `isRpcError` when the request fails at the JSON-RPC layer.
  *
  * @example
  * ```ts
@@ -61,3 +62,5 @@ export type EditorctlClient = ClientType
  * ```
  */
 export const createEditorctlClient = createClient
+
+export { TransportError } from './transport/ws'

@@ -1,9 +1,10 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
+import type { CommandDefinition } from '../ControlApi.js'
 
 export const getCanvasMetricsCommand = {
 	group: 'misc',
+	kind: 'read',
 	description: 'Gets current canvas DOM metrics and rendering status.',
 	input: z.object({}).strict().describe('Input parameters for getting canvas metrics (empty)'),
 	output: z

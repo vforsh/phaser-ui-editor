@@ -57,6 +57,14 @@ Install dependencies:
 npm install
 ```
 
+Build workspace packages (required before running the app or `editorctl`):
+
+```bash
+npm run build:packages
+```
+
+If you hit a "Cannot find module .../dist/..." error during dev or `editorctl`, re-run that command.
+
 Start Electron + Vite dev mode:
 
 ```bash

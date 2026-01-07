@@ -1,9 +1,10 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
+import type { CommandDefinition } from '../ControlApi.js'
 
 export const selectAssetsCommand = {
 	group: 'assets',
+	kind: 'write',
 	description: 'Selects one or more assets in the assets panel, identified by their IDs or paths.',
 	input: z
 		.object({

@@ -1,7 +1,21 @@
 // The JSON Schema shape produced by `zod-to-json-schema` includes many variants.
 // Keep this intentionally loose; we only read a small, common subset at runtime.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type JsonSchema = any
+export type JsonSchemaLike = {
+	$ref?: string
+	definitions?: Record<string, JsonSchemaLike>
+	type?: string | string[]
+	properties?: Record<string, JsonSchemaLike>
+	required?: string[]
+	enum?: unknown[]
+	items?: JsonSchemaLike | JsonSchemaLike[]
+	oneOf?: JsonSchemaLike[]
+	anyOf?: JsonSchemaLike[]
+	allOf?: JsonSchemaLike[]
+	description?: string
+	[key: string]: unknown
+}
+
+type JsonSchema = JsonSchemaLike
 
 /**
  * Dereferences a schema that uses `$ref: "#/definitions/<name>"` into its root definition.
@@ -100,7 +114,8 @@ export function summarizeType(schema: JsonSchema): string {
 	}
 
 	if (schema.type === 'array') {
-		const itemType = schema.items ? summarizeType(schema.items) : 'unknown'
+		const itemsSchema = Array.isArray(schema.items) ? schema.items[0] : schema.items
+		const itemType = itemsSchema ? summarizeType(itemsSchema) : 'unknown'
 		return `array<${itemType}>`
 	}
 
@@ -127,8 +142,11 @@ export function formatAllowedValues(schema: JsonSchema): string | undefined {
 		return formatEnum(schema.enum)
 	}
 
-	if (schema.type === 'array' && schema.items?.enum?.length) {
-		return formatEnum(schema.items.enum)
+	if (schema.type === 'array') {
+		const itemsSchema = Array.isArray(schema.items) ? schema.items[0] : schema.items
+		if (itemsSchema?.enum?.length) {
+			return formatEnum(itemsSchema.enum)
+		}
 	}
 
 	return undefined
@@ -187,10 +205,11 @@ function buildExampleValue(schema: JsonSchema): unknown {
 	}
 
 	if (schema.type === 'array') {
-		if (schema.items?.enum?.length) {
-			return schema.items.enum.slice(0, 2)
+		const itemsSchema = Array.isArray(schema.items) ? schema.items[0] : schema.items
+		if (itemsSchema?.enum?.length) {
+			return itemsSchema.enum.slice(0, 2)
 		}
-		return schema.items ? [buildExampleValue(schema.items)] : []
+		return itemsSchema ? [buildExampleValue(itemsSchema)] : []
 	}
 
 	if (isObjectSchema(schema)) {

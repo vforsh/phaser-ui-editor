@@ -1,9 +1,10 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
+import type { CommandDefinition } from '../ControlApi.js'
 
 export const listEditorsCommand = {
 	group: 'misc',
+	kind: 'read',
 	description: 'Lists all currently running editor windows and their associated projects.',
 	input: z.object({}).strict().describe('Input parameters for listing editors (empty)'),
 	output: z

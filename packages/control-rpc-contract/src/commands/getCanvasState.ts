@@ -1,9 +1,10 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
+import type { CommandDefinition } from '../ControlApi.js'
 
 export const getCanvasStateCommand = {
 	group: 'misc',
+	kind: 'read',
 	description: 'Gets the current canvas state (selection, prefab, unsaved changes, camera).',
 	input: z.object({}).strict().describe('Input parameters for getting canvas state (empty)'),
 	output: z

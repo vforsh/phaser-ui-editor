@@ -1,12 +1,14 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
-import { objectSelectorV0Schema, okCreatedIdResultSchema } from '../shared-schemas'
+import type { CommandDefinition } from '../ControlApi.js'
+
+import { objectSelectorV0Schema, okCreatedIdResultSchema } from '../shared-schemas.js'
 
 const editableObjectTypeSchema = z.enum(['Container', 'Image', 'NineSlice', 'Text', 'BitmapText'])
 
 export const createObjectCommand = {
 	group: 'objects',
+	kind: 'write',
 	description: 'Creates a new object under the provided parent node.',
 	input: z
 		.object({
@@ -20,6 +22,7 @@ export const createObjectCommand = {
 
 export const createObjectFromAssetCommand = {
 	group: 'objects',
+	kind: 'write',
 	description: 'Creates a new object from an asset (using the same pipeline as asset drop).',
 	input: z
 		.object({

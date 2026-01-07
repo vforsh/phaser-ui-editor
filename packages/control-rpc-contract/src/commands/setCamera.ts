@@ -1,10 +1,12 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
-import { successSchema } from '../shared-schemas'
+import type { CommandDefinition } from '../ControlApi.js'
+
+import { successSchema } from '../shared-schemas.js'
 
 export const setCameraCommand = {
 	group: 'misc',
+	kind: 'write',
 	description: 'Updates the main canvas camera zoom and/or scroll position.',
 	input: z
 		.object({

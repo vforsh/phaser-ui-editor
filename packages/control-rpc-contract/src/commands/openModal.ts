@@ -1,9 +1,10 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
-import { CONTROL_RPC_GROUP_IDS } from '../modal-ids'
-import { settingsSectionIds } from '../settings-sections'
-import { successSchema } from '../shared-schemas'
+import type { CommandDefinition } from '../ControlApi.js'
+
+import { CONTROL_RPC_GROUP_IDS } from '../modal-ids.js'
+import { settingsSectionIds } from '../settings-sections.js'
+import { successSchema } from '../shared-schemas.js'
 
 const settingsSectionIdSchema = z.enum(settingsSectionIds)
 const controlRpcGroupSchema = z.enum(CONTROL_RPC_GROUP_IDS)
@@ -22,6 +23,7 @@ const controlRpcCommandsParamsSchema = z
 
 export const openModalCommand = {
 	group: 'misc',
+	kind: 'write',
 	description: 'Opens a global renderer modal by id, closing any currently open modal.',
 	input: z
 		.discriminatedUnion('id', [

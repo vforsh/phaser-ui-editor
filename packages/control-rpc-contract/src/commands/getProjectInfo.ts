@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
+import type { CommandDefinition } from '../ControlApi.js'
 
 export const projectConfigSchema = z
 	.object({
@@ -31,6 +31,7 @@ export type ProjectConfig = z.infer<typeof projectConfigSchema>
 
 export const getProjectInfoCommand = {
 	group: 'misc',
+	kind: 'read',
 	description: 'Retrieves information about the currently open project.',
 	input: z.object({}).strict().describe('Input parameters for getting project info (empty)'),
 	output: projectConfigSchema

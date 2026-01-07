@@ -16,6 +16,7 @@
 	},
 	"dependencies": {
 		"@tekton/control-rpc-contract": "file:../control-rpc-contract",
+		"nanoid": "^5.1.6",
 		"ws": "^8.18.0"
 	}
 }

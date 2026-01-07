@@ -1,10 +1,12 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
-import { objectSelectorV0Schema, okResultSchema } from '../shared-schemas'
+import type { CommandDefinition } from '../ControlApi.js'
+
+import { objectSelectorV0Schema, okResultSchema } from '../shared-schemas.js'
 
 export const moveObjectInHierarchyCommand = {
 	group: 'hierarchy',
+	kind: 'write',
 	description: 'Moves an object to a new parent and index within the hierarchy.',
 	input: z
 		.object({

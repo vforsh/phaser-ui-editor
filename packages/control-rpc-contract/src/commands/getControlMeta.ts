@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
+import type { CommandDefinition } from '../ControlApi.js'
 
 export const controlMetaMethodSchema = z
 	.object({
@@ -26,6 +26,7 @@ export type ControlMeta = z.infer<typeof controlMetaSchema>
 
 export const getControlMetaCommand = {
 	group: 'debug',
+	kind: 'read',
 	description: 'Returns control RPC method metadata and JSON schemas.',
 	input: z.object({}).strict().describe('No parameters.'),
 	output: controlMetaSchema.describe('Control RPC metadata and JSON schemas.'),

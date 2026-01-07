@@ -6,6 +6,13 @@ export interface WsTransportOptions {
 	retryDelay?: number
 }
 
+export class TransportError extends Error {
+	constructor(message: string, options?: { cause?: unknown }) {
+		super(message, options)
+		this.name = 'TransportError'
+	}
+}
+
 export class WsTransport {
 	constructor(private options: WsTransportOptions) {}
 
@@ -33,21 +40,38 @@ export class WsTransport {
 	private trySend(payload: string): Promise<string> {
 		return new Promise((resolve, reject) => {
 			const ws = new WebSocket(`ws://127.0.0.1:${this.options.port}`)
+			let settled = false
+
+			const finishResolve = (value: string) => {
+				if (settled) return
+				settled = true
+				resolve(value)
+				ws.close()
+			}
+
+			const finishReject = (error: Error) => {
+				if (settled) return
+				settled = true
+				reject(error)
+				ws.close()
+			}
 
 			ws.on('open', () => {
 				ws.send(payload)
 			})
 
 			ws.on('message', (data) => {
-				resolve(data.toString())
-				ws.close()
+				finishResolve(data.toString())
 			})
 
 			ws.on('error', (err) => {
-				const transportError = new Error(`Connection error: ${err.message}`)
-				// @ts-expect-error - attaching transport error flag
-				transportError.isTransportError = true
-				reject(transportError)
+				finishReject(new TransportError(`Connection error: ${err.message}`, { cause: err }))
+			})
+
+			ws.on('close', (code, reason) => {
+				if (settled) return
+				const details = reason?.toString() ? ` (${reason.toString()})` : ''
+				finishReject(new TransportError(`Connection closed before response (code ${code})${details}`))
 			})
 		})
 	}

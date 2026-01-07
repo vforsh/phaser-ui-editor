@@ -1,9 +1,10 @@
 import { z } from 'zod'
 
-import { CommandDefinition } from '../ControlApi'
+import type { CommandDefinition } from '../ControlApi.js'
 
 export const getObjectCommand = {
 	group: 'objects',
+	kind: 'read',
 	description: 'Gets a game object JSON in the current prefab, identified by its ID or path.',
 	input: z
 		.union([
