@@ -1,5 +1,5 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
-import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu } from 'electron'
+import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu, screen } from 'electron'
 import getPort from 'get-port'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -19,6 +19,7 @@ let currentMinLogLevel: LogLevelOption | null = null
 
 const isE2E = process.env.PW_E2E === '1'
 const baseTitle = 'Tekton Editor'
+const startInBackground = shouldStartInBackground()
 
 if (!app.isPackaged && isE2E && process.env.PW_E2E_CDP_PORT) {
 	app.commandLine.appendSwitch('remote-debugging-port', process.env.PW_E2E_CDP_PORT)
@@ -48,8 +49,14 @@ app.whenReady().then(() => {
 	setImmediate(() => setupControlRpcServer())
 
 	app.on('activate', () => {
+		if (mainWindow) {
+			mainWindow.show()
+			return
+		}
+
 		if (BrowserWindow.getAllWindows().length === 0) {
 			createWindow()
+			return
 		}
 	})
 })
@@ -68,6 +75,10 @@ const createWindow = () => {
 			preload: preloadPath,
 		},
 	})
+
+	if (startInBackground) {
+		sizeWindowToPrimaryWorkArea(mainWindow)
+	}
 
 	const windowTitle = getWindowTitle()
 	if (windowTitle) {
@@ -88,6 +99,10 @@ const createWindow = () => {
 
 	mainWindow.once('ready-to-show', () => {
 		if (!mainWindow) {
+			return
+		}
+
+		if (startInBackground) {
 			return
 		}
 
@@ -205,7 +220,7 @@ function setupRendererLogger(webContents: Electron.WebContents) {
 const createAppMenu = () => {
 	const isMac = process.platform === 'darwin'
 	const openSettings = () => {
-		const win = BrowserWindow.getFocusedWindow() ?? mainWindow
+		const win = getActiveBrowserWindow()
 		if (!win) {
 			return
 		}
@@ -214,7 +229,7 @@ const createAppMenu = () => {
 	}
 
 	const openControlRpcCommands = () => {
-		const win = BrowserWindow.getFocusedWindow() ?? mainWindow
+		const win = getActiveBrowserWindow()
 		if (!win) {
 			return
 		}
@@ -269,7 +284,7 @@ const createAppMenu = () => {
 					label: 'Toggle Hierarchy Panel',
 					accelerator: 'CmdOrCtrl+1',
 					click: () => {
-						const win = BrowserWindow.getFocusedWindow() ?? mainWindow
+						const win = getActiveBrowserWindow()
 						win?.webContents.send('menu:toggle-panel', { panel: 'hierarchy' })
 					},
 				},
@@ -277,7 +292,7 @@ const createAppMenu = () => {
 					label: 'Toggle Assets Panel',
 					accelerator: 'CmdOrCtrl+2',
 					click: () => {
-						const win = BrowserWindow.getFocusedWindow() ?? mainWindow
+						const win = getActiveBrowserWindow()
 						win?.webContents.send('menu:toggle-panel', { panel: 'assets' })
 					},
 				},
@@ -285,7 +300,7 @@ const createAppMenu = () => {
 					label: 'Toggle Inspector Panel',
 					accelerator: 'CmdOrCtrl+3',
 					click: () => {
-						const win = BrowserWindow.getFocusedWindow() ?? mainWindow
+						const win = getActiveBrowserWindow()
 						win?.webContents.send('menu:toggle-panel', { panel: 'inspector' })
 					},
 				},
@@ -303,7 +318,7 @@ const createAppMenu = () => {
 				{
 					label: 'Take Canvas Screenshot',
 					click: () => {
-						const win = BrowserWindow.getFocusedWindow() ?? mainWindow
+						const win = getActiveBrowserWindow()
 						if (!win) {
 							return
 						}
@@ -314,7 +329,7 @@ const createAppMenu = () => {
 				{
 					label: 'Take Clean Canvas Screenshot',
 					click: () => {
-						const win = BrowserWindow.getFocusedWindow() ?? mainWindow
+						const win = getActiveBrowserWindow()
 						if (!win) {
 							return
 						}
@@ -334,7 +349,7 @@ const createAppMenu = () => {
 						type: 'radio',
 						checked: currentMinLogLevel === level,
 						click: () => {
-							const win = BrowserWindow.getFocusedWindow() ?? mainWindow
+							const win = getActiveBrowserWindow()
 							if (!win) {
 								return
 							}
@@ -346,7 +361,7 @@ const createAppMenu = () => {
 				{
 					label: 'Log URL Params',
 					click: () => {
-						const win = BrowserWindow.getFocusedWindow() ?? mainWindow
+						const win = getActiveBrowserWindow()
 						if (!win) {
 							return
 						}
@@ -358,7 +373,7 @@ const createAppMenu = () => {
 				{
 					label: 'Clear Saved Data',
 					click: (_menuItem, browserWindow, event) => {
-						const win = browserWindow ?? mainWindow
+						const win = browserWindow instanceof BrowserWindow ? browserWindow : mainWindow
 						if (!win) {
 							return
 						}
@@ -429,3 +444,28 @@ app.on('window-all-closed', () => {
 app.on('before-quit', () => {
 	rendererLogger?.dispose()
 })
+
+function shouldStartInBackground(): boolean {
+	if (process.env.START_IN_BACKGROUND === '1') {
+		return true
+	}
+
+	// Allow CLI usage: `npm start -- --background`
+	return process.argv.includes('--background')
+}
+
+function sizeWindowToPrimaryWorkArea(win: BrowserWindow) {
+	const display = screen.getPrimaryDisplay()
+	// "workArea" excludes menu bar/dock/taskbar. This keeps the window effectively
+	// "max-sized" while still hidden, without using `maximize()` (which would show it).
+	win.setBounds(display.workArea, false)
+}
+
+function getActiveBrowserWindow(): BrowserWindow | null {
+	const win = BrowserWindow.getFocusedWindow()
+	if (win instanceof BrowserWindow) {
+		return win
+	}
+
+	return mainWindow
+}
