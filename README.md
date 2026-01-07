@@ -142,6 +142,6 @@ The app itself is an Electron + Vite project and isn’t set up to publish/consu
 
 ## External control
 
-The editor exposes a small dev-only control surface for automation/testing.
+The editor exposes a control surface for automation/testing.
 
 See [`docs/features/editorctl/editor-control.md`](docs/features/editorctl/editor-control.md).
