@@ -210,6 +210,15 @@ export const mainApiContract = {
 		input: z.object({ path: absPathSchema }),
 		output: z.object({ success: z.literal(true) }),
 	},
+	showCanvasContextMenu: {
+		input: z.object({
+			x: z.number(),
+			y: z.number(),
+		}),
+		output: z.object({
+			action: z.enum(['rectangle', 'ellipse']).nullable(),
+		}),
+	},
 } as const
 
 export type MainApiContract = typeof mainApiContract

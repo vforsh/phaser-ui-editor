@@ -1,4 +1,4 @@
-import { BrowserWindow, dialog, shell } from 'electron'
+import { BrowserWindow, Menu, dialog, shell } from 'electron'
 import { Font, FontCollection, create } from 'fontkit'
 import fse from 'fs-extra'
 import { globby } from 'globby'
@@ -242,6 +242,51 @@ export const mainApiHandlers: MainApi = {
 		const normalized = normalizeAbsolutePath(targetPath)
 		shell.showItemInFolder(normalized)
 		return { success: true }
+	},
+	async showCanvasContextMenu({ x, y }) {
+		const window = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows().find((w) => !w.isDestroyed()) ?? null
+		if (!window) {
+			return { action: null }
+		}
+
+		return await new Promise<{ action: 'rectangle' | 'ellipse' | null }>((resolve) => {
+			let resolved = false
+			const safeResolve = (action: 'rectangle' | 'ellipse' | null) => {
+				if (resolved) {
+					return
+				}
+				resolved = true
+				resolve({ action })
+			}
+
+			const menu = Menu.buildFromTemplate([
+				{
+					label: 'Add',
+					submenu: [
+						{
+							label: 'Graphics',
+							submenu: [
+								{
+									label: 'Rectangle',
+									click: () => safeResolve('rectangle'),
+								},
+								{
+									label: 'Ellipse',
+									click: () => safeResolve('ellipse'),
+								},
+							],
+						},
+					],
+				},
+			])
+
+			menu.popup({
+				window,
+				x: Math.round(x),
+				y: Math.round(y),
+				callback: () => safeResolve(null),
+			})
+		})
 	},
 }
 

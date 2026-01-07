@@ -1,5 +1,5 @@
 import { BaseScene } from '@components/canvas/phaser/robowhale/phaser3/scenes/BaseScene'
-import { once } from 'es-toolkit'
+import { noop, once } from 'es-toolkit'
 import { match } from 'ts-pattern'
 import { Logger } from 'tslog'
 
@@ -64,7 +64,7 @@ export class MainScenePointerInput {
 		match(buttonType)
 			.with('left', () => this.onLeftPointerDown(pointer, objectsUnderPointer))
 			.with('middle', () => this.startCameraDrag(pointer))
-			.with('right', () => console.log('right button click'))
+			.with('right', () => noop())
 			.exhaustive()
 	}
 

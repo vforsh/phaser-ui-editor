@@ -1,11 +1,13 @@
 import { NinePatchPlugin } from '@koreez/phaser3-ninepatch'
 import Phaser from 'phaser'
-import { useLayoutEffect, useRef } from 'react'
+import { useCallback, useLayoutEffect, useRef } from 'react'
 
 import { AppCommands } from '../../AppCommands'
 import { AppEvents } from '../../AppEvents'
 import { usePhaserScope } from '../../di/DiHooks'
 import { UndoHub } from '../../history/UndoHub'
+import { logger } from '../../logs/logs'
+import { mainApi } from '../../main-api/main-api'
 import { ProjectConfig } from '../../project/ProjectConfig'
 import { maybeSeedInitialPrefabFromUrlParams } from '../../url-params/auto-open-prefab-once'
 import { PhaserApp } from './phaser/PhaserApp'
@@ -57,9 +59,34 @@ export const Canvas: React.FC<Props> = ({ projectDir, projectConfig, appEvents, 
 	const phaserScope = usePhaserScope()
 	const activeProjectDirRef = useRef<string | null>(null)
 	const projectConfigRef = useRef<ProjectConfig>(projectConfig)
+	const canvasLogger = logger.getOrCreate('canvas')
 
 	// Keep the latest config without forcing Phaser re-init.
 	projectConfigRef.current = projectConfig
+
+	const openCanvasContextMenu = useCallback(
+		async (event: React.MouseEvent | MouseEvent) => {
+			event.preventDefault()
+			event.stopPropagation?.()
+
+			// Electron `Menu.popup({ window, x, y })` expects window-relative coords.
+			// The +1px offset is intentional: it helps avoid the top menu item being immediately "hot"/selected
+			// on show when the cursor is exactly aligned with the menu origin.
+			const x = ('clientX' in event ? event.clientX : 0) + 1
+			const y = ('clientY' in event ? event.clientY : 0) + 1
+			canvasLogger.info(`[context-menu] show at (x: ${x}, y: ${y})`)
+
+			const result = await mainApi.showCanvasContextMenu({ x, y })
+			if (result.action === 'rectangle') {
+				canvasLogger.info('[context-menu] Add → Graphics → Rectangle')
+				return
+			}
+			if (result.action === 'ellipse') {
+				canvasLogger.info('[context-menu] Add → Graphics → Ellipse')
+			}
+		},
+		[canvasLogger],
+	)
 
 	useLayoutEffect(() => {
 		let cancelled = false
@@ -143,14 +170,16 @@ export const Canvas: React.FC<Props> = ({ projectDir, projectConfig, appEvents, 
 			}
 			destroyCurrent('react-effect-cleanup')
 		}
-	}, [projectDir, appEvents, appCommands, phaserScope, undoHub])
+	}, [projectDir, appEvents, appCommands, openCanvasContextMenu, phaserScope, undoHub])
 
 	return (
 		<canvas
 			ref={canvasRef}
 			id="canvas"
+			data-testid="canvas-phaser"
 			// specify tab index to make canvas focusable
 			tabIndex={0}
+			onContextMenu={openCanvasContextMenu}
 			style={{
 				borderRadius: 'inherit',
 				maxWidth: '100%',
