@@ -7,7 +7,6 @@
     - If `wt merge` proposes a default message, edit it before accepting.
     - If it does not prompt and produces a generic message, stop and **amend** before merging/pushing.
     - Prefer: `fix(inspector): validate zod schema on save` / `feat(canvas): add snap-to-grid toggles`
-- Oracle: run `npx -y @steipete/oracle --help` once/session before first use.
 - Style: telegraph. Drop filler/grammar. Min tokens (global AGENTS + replies).
 
 ## Critical Thinking
