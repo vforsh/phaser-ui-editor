@@ -1,6 +1,7 @@
 ## Agent Protocol
 
 - Keep files <~500 LOC; split/refactor as needed.
+- For app UI, add `data-testid` to all **stable, large components** (anything we expect tests/automation to target long-term). Prefer stable IDs; don’t key off copy/labels/DOM structure.
 - Commits: Conventional Commits (`feat|fix|refactor|build|ci|chore|docs|style|perf|test`).
 - Never ship generic/squash placeholder messages (especially from `wt merge`): e.g. `Changes to 7 files` (see `cd52f7b49013d5592454f746a34ab60e14018ccd`). Always replace with a real Conventional Commit summary (and a short body when useful).
     - If `wt merge` proposes a default message, edit it before accepting.
