@@ -1,151 +1,99 @@
-## Agent Protocol
+## General rules
 
-- Keep files <~500 LOC; split/refactor as needed.
-- For app UI, add `data-testid` to all **stable, large components** (anything we expect tests/automation to target long-term). Prefer stable IDs; don’t key off copy/labels/DOM structure.
-- Commits: Conventional Commits (`feat|fix|refactor|build|ci|chore|docs|style|perf|test`).
-- Never ship generic/squash placeholder messages (especially from `wt merge`): e.g. `Changes to 7 files` (see `cd52f7b49013d5592454f746a34ab60e14018ccd`). Always replace with a real Conventional Commit summary (and a short body when useful).
-    - If `wt merge` proposes a default message, edit it before accepting.
-    - If it does not prompt and produces a generic message, stop and **amend** before merging/pushing.
-    - Prefer: `fix(inspector): validate zod schema on save` / `feat(canvas): add snap-to-grid toggles`
-- Style: telegraph. Drop filler/grammar. Min tokens (global AGENTS + replies).
+- **Keep files small**: Keep files under ~500 LOC so changes stay reviewable. If a file starts to sprawl, split it before adding more logic. Prefer extracting cohesive helpers/hooks/subcomponents over adding branching in-place.
+
+- **Stable UI test IDs**: For app UI, add `data-testid` to _stable, large components_ (things tests/automation will target long-term). Use durable IDs; stable across copy/layout refactors. Don’t derive IDs from labels or DOM structure.
+
+- **Commits**: Conventional Commits only (`feat|fix|refactor|build|ci|chore|docs|style|perf|test`). Pick type by user-visible intent, not files touched. If there’s nuance: add a short “why” body.
+
+- **Merge messages**: No generic/squash placeholders (esp. from `wt merge`) like `Changes to 7 files`. Replace with a real Conventional Commit summary describing the outcome, not the mechanics. Add a short body when it clarifies constraints/edge cases/follow-ups.
+
+- **Writing style**: Direct; information-dense. Avoid filler, repetition, and long preambles (esp. in agent replies and “how-to” docs). Optimize for scanability: someone should find the rule fast and apply it correctly.
+
+- **Meta (adding rules here)**: When adding new rules/sections to `AGENTS.md`, keep them short and scannable. 3-5 sentences per bullet. Use the existing format: `##` section headers, bold-labeled bullets, and `---` separators between sections. Prefer telegraph style; add extra sentences only when they prevent misinterpretation.
+
+- **Plans (implementation/refactor)**: When the user asks for an implementation or refactor plan, always end the plan with a short “final checklist”. It must explicitly say to run `npm run typecheck` and `npm run lint` after implementation, and to fix any errors found (use `npm run lint:fix` when appropriate). Keep this checklist to 1–2 short sentences.
+
+- **Typechecking**: Use `npm run typecheck` for one-shot typechecking. Don’t use `typecheck-dev` for “quick checks” (watch mode).
+
+---
 
 ## Critical Thinking
 
-- Fix root cause (not band-aid).
-- Unsure: read more code; if still stuck, ask w/ short options.
-- Conflicts: call out; pick safer path.
-- Unrecognized changes: assume other agent; keep going; focus your changes. If it causes issues, stop + ask user.
-- Leave breadcrumb notes in thread.
+- **Fix root cause**: Fix the underlying cause, not symptoms. Trace failures to the violated invariant/contract; correct it. Add guards/fallbacks only when product-required (not to hide bugs).
+
+- **Unclear?**: Read more code until you understand the existing pattern + constraints. Still unclear: ask concise questions with a small set of options. Don’t guess across layers (UI + RPC + data model) at once.
+
+- **Conflicts**: Call out the conflict; state the tradeoff (1–2 sentences). Prefer the safer path when uncertainty is high (esp. persistence/editor behavior/user data). If risk is real: propose a minimal, reversible first step.
+
+- **Unrecognized changes**: Assume intentional/another agent; keep going; focus scope. If it affects your work (types/APIs/build), stop and ask before large rewrites. When in doubt: isolate your fix; don’t depend on speculative refactors.
+
+- **Breadcrumbs**: Leave short notes about what changed + why (esp. non-obvious decisions). Mention key files/functions so someone can follow the trail. If you rejected an approach: leave a one-line reason to prevent rework.
+
+---
 
 ## Git Worktrees
 
-- **Worktrees root**: worktrees are created as siblings under `~/dev/tekton-editor/`.
-- **Main checkout**: the primary working tree lives at `~/dev/tekton-editor/tekton`.
-- **One folder per worktree**: each worktree is named `tekton.<branch-sanitized>`, e.g.:
+- **Worktrees root**: Worktrees live as siblings under `~/dev/tekton-editor/` "container" directory.
 
-```bash
-tekton-editor/
-  tekton/
-  tekton.feature-snap-to-grid/
-  tekton.bugfix-inspector-zod/
-  tekton.LIN-123-canvas-selection/
-```
+- **Main checkout**: Primary working tree: `~/dev/tekton-editor/tekton` (`master` branch). Treat it as the default base for tooling/scripts unless a worktree is mentioned.
 
-## Worktrunk (`wt`) CLI
+- **One folder per worktree**: Name each worktree `tekton.<branch-sanitized>`. Keep names consistent so branch ↔ folder is obvious at a glance. Example: `feature/snap-to-grid` → `tekton.feature-snap-to-grid`.
 
-This repo supports managing worktrees via the `wt` CLI from Worktrunk: `https://github.com/max-sixty/worktrunk`. Workflow details: `docs/workflows/git/git-worktrees.md`.
+- **Worktrunk (`wt`) CLI**: Manage worktrees via Worktrunk’s `wt` CLI: `https://github.com/max-sixty/worktrunk`. Use it to create/switch worktrees without manual branch/folder wiring.
 
-Common commands:
+- **Worktrunk workflow docs**: See `docs/workflows/git/git-worktrees.md`. Unsure which `wt` command fits: check docs before improvising. Keep examples aligned with the real repo layout.
 
-```bash
-wt list
-wt switch -c <branch> -y    # create branch + worktree, then switch
-wt merge                    # merge current worktree into default branch (usually `master` or `main`)
-```
+- **Worktrunk common commands**: `wt list` (see worktrees), `wt switch -c <branch> -y` (create + switch), `wt merge` (merge back). Always sanity-check merge commit message before shipping.
 
-## Typechecking
+---
 
-Agents MUST use:
+## Running & testing the editor
 
-```bash
-npm run typecheck
-```
+- **When**: If the feature needs runtime verification (Canvas/Hierarchy/Inspector behavior, control RPC, etc.), drive the running editor via `editorctl`. Use it when runtime behavior can differ from code review (selection, focus, IPC, rendering). Prefer validating the user’s workflow, not just the happy path.
 
-Do NOT use `typecheck-dev` for one-shot typechecking (it’s watch mode).
+- **Docs**: See [`docs/features/editorctl/editorctl.md`](./docs/features/editorctl/editorctl.md). Use docs to discover methods + payload shapes (don’t guess). If you add/change a method/contract: update docs so the workflow stays reliable.
 
-## UI polish reviews (`eikon` CLI)
+- **Pre-flight**: Run `npm run build:packages` before `editorctl` (esp. fresh checkout / contract changes). Avoid “method not found” / schema mismatch from stale packages. If runtime behavior is weird: rebuild before digging deeper.
 
-Use `eikon` to get a visual-polish critique of Tekton UI screenshots (spot inconsistencies, misalignments, spacing/typography issues).
+- **Discover**: Prefer meta commands (`methods`, `schema <method>`, `call <method> '<json>'`) to explore capabilities. Stay aligned with the current RPC surface area; avoid calling non-existent commands. When unsure: inspect schemas; don’t infer params.
 
-In this repo, `editorctl` screenshot commands like `takeAppScreenshot` / `takeAppPartScreenshot` **save to `<projectDir>/screenshots` and return an absolute file path** — perfect for feeding directly into `eikon`.
+- **CLI args**: Always pass `--` before args (e.g. `npm run editorctl -- ...`) so npm forwards flags correctly. Avoid subtle “args swallowed” issues. Keep examples consistent.
 
-Examples:
+- **Targeting**: Use `--port <wsPort>` from `listEditors`. If multiple editors are running, don’t guess—choose the one matching the right project + launch dir. Wrong targeting creates “works on my machine” false positives.
 
-```bash
-# Take a screenshot via editorctl, then run eikon on it (path printed in JSON output)
-npm run editorctl -- --port <wsPort> call takeAppScreenshot '{"format":"png"}'
-eikon /absolute/path/from/the/printed/json.png --preset web-ui
+- **1) Discover running editors**: Start with `npm run editorctl -- listEditors` to find running instances + ports. Treat as required first step; most follow-ups depend on correct targeting. If multiple entries: pick the one for your worktree.
 
-# Polished UI review preset (no prompt required)
-eikon /absolute/path/to/screenshot.png --preset web-ui
+- **2) If none are running**: If `listEditors` is empty, start the editor (prefer `npm run start:bg`; don’t disrupt the user). Wait for the `[control-rpc] ws://127.0.0.1:<port>` line; then run `listEditors` again. If startup is messy: check build/package issues before retrying.
 
-# Layout-first pass (alignment/spacing/layout issues)
-eikon /absolute/path/to/screenshot.png --preset web-ui-layout
+- **Wait for**: In start output, look for `[control-rpc] ws://127.0.0.1:<port>` (control channel ready). Only then re-run `listEditors` to confirm port is discoverable. Avoid startup races + inconsistent results.
 
-# Add extra context for what you want reviewed
-eikon /absolute/path/to/screenshot.png --preset web-ui "Focus on spacing + typography"
-```
+- **3) Pick the right instance**: If multiple instances: choose deliberately. Use `projectPath` (what’s open / should be open) and `appLaunchDir` (which checkout) to confirm. When documenting, include the chosen port for reproducibility.
 
-## Running & testing the editor (agent workflow)
+- **Instance `projectPath`**: Should match the project you intend to test (default: `/Users/vlad/dev/papa-cherry-2`). If it doesn’t: open the correct project before deeper calls. Prevents debugging the wrong state.
 
-When implementing features that need runtime verification (Canvas/Hierarchy/Inspector behaviors, control RPC, etc.), use the running desktop editor instance and drive it via `editorctl`.
+- **Instance `appLaunchDir`**: Should match the worktree/checkout you’re working in. If it points elsewhere: you may be testing old code. Fix targeting before trusting results.
 
-Docs: [`docs/features/editorctl/editorctl.md`](./docs/features/editorctl/editorctl.md)
+- **4) Open a project**: Most commands won’t work without an open project. Use default testbed `/Users/vlad/dev/papa-cherry-2` (has `project.json5`) unless user specifies another. Confirm via reported `projectPath`.
 
-### `editorctl` CLI quick usage
+- **Default testbed**: Open `/Users/vlad/dev/papa-cherry-2` via `openProject` using the discovered port. Keep the path explicit for reproducibility. If it fails: double-check port + project existence.
 
-- Always run `npm run build:packages` before using `editorctl` (fresh checkout or after contract changes).
-- Prefer meta commands for discovery: `methods`, `schema <method>`, `call <method> '<json>'`.
-- Always pass `--` before CLI args: `npm run editorctl -- ...`
-- Use `--port <wsPort>` from `listEditors` for targeted calls.
+- **Subsequent calls**: Use the discovered `wsPort` for all follow-up `call <method>` invocations. Prefer copy/paste from `listEditors` over retyping. Keep commands consistent so you can compare results across runs.
 
-### 1) Discover running editor instances (required first step)
+- **Tip**: Use `projectPath` from `listEditors` to confirm the project is actually open. Don’t assume the editor remembered your last project (esp. across restarts). This saves time when commands mysteriously no-op.
 
-Run:
-
-```bash
-npm run editorctl -- listEditors
-```
-
-### 2) If no editor is running, start one
-
-If `listEditors` returns an empty list (no `editors`), start the editor:
-
-```bash
-# Prefer background start to NOT DISRUPT USER
-npm run start:bg
-```
-
-Wait until the terminal prints a line like:
-
-```text
-[control-rpc] ws://127.0.0.1:<port>
-```
-
-Then run `npm run editorctl -- listEditors` again.
-
-### 3) Choose the correct instance
-
-If multiple entries are returned, select the correct one by:
-
-- **`projectPath`**: ensure it matches the project you intend to test (default testbed: `/Users/vlad/dev/papa-cherry-2`)
-- **`appLaunchDir`**: ensure it matches the worktree/checkout you are working in
-
-### 4) Send commands to the discovered port
-
-Almost no commands will work unless a project is open in that editor instance.
-
-Use `/Users/vlad/dev/papa-cherry-2` (has `project.json5`) as the default **testbed project** for testing editor functionality:
-
-```bash
-npm run editorctl -- --port <wsPort> call openProject '{"path":"/Users/vlad/dev/papa-cherry-2"}'
-```
-
-Use the discovered **`wsPort`** for subsequent calls:
-
-```bash
-npm run editorctl -- --port <wsPort> call <method> '<json-params>'
-```
-
-Tip: use `projectPath` from `listEditors` to confirm the project is actually open.
+---
 
 ## Renderer console logs → `logs/` (dev-only)
 
-In development, the **main editor window** renderer `console.*` output is captured from the main process and written to per-run log files under `./logs`.
+- **What**: In dev, main window renderer `console.*` is captured by the main process and written under `./logs`. Use it for quick debugging when you can’t attach devtools or want a stable artifact. Treat as dev-only diagnostics, not a replacement for real error reporting.
 
-- **What’s captured**: renderer `console-message` events (log/info/warn/error/debug). This does **not** include uncaught errors / unhandled rejections.
-- **Where**: `./logs/renderer-<runId>.log`
-- **Line format**: `ISO_TIMESTAMP LEVEL: message` (no URL/line/window id)
-- **Rotation**: 1MB max per file; keep 10 rotated files: `.log.1` … `.log.10`
-- **When enabled**: dev only (`app.isPackaged === false`). Currently also disabled for Playwright E2E runs (`PW_E2E=1`).
-- **Quirk**: because this uses Electron’s `console-message` (string payload), `console.log('label', someObject)` may show up as `label [object Object]` rather than a pretty/structured object dump. Capturing rich objects would require a preload + IPC bridge (or CDP).
+- **Where**: Files live at `./logs/renderer-<runId>.log`. One file per run; easy correlation to a single launch. When sharing bug reports, include the relevant run ID log.
+
+- **When enabled**: Dev only (`app.isPackaged === false`). Disabled for Playwright E2E (`PW_E2E=1`) so tests aren’t polluted and prod stays lean. Expect logs and don’t see them: check these flags first.
+
+- **Logging (use channels)**: For app logging, use the channel-based logger from `src/renderer/logs/logs.ts` (import `logger`) and pick the channel that best matches the purpose via `logger.getOrCreate(<channel>)`. Channels are defined in `src/renderer/logs/LogChannel.ts`. Avoid raw `console.*` for non-trivial logging; it’s easy to lose context and harder to filter.
+
+- **Logging (string-first)**: Put the main information in a string so it survives into text logs reliably. If you need to log structured data, serialize it (e.g. JSON) into the message string (or include a short, string summary + a serialized payload). Don’t rely on logging raw objects as separate args for anything important.
+
+- **Quirk**: Uses Electron `console-message` (string payload), so object logging can degrade (e.g. `label [object Object]`). Prefer serializing important structured data. Rich objects would need extra plumbing (preload + IPC bridge, or CDP).
