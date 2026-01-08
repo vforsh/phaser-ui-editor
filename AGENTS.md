@@ -10,7 +10,11 @@
 
 - **Writing style**: Direct; information-dense. Avoid filler, repetition, and long preambles (esp. in agent replies and “how-to” docs). Optimize for scanability: someone should find the rule fast and apply it correctly.
 
-- **Meta (adding rules here)**: When adding new rules/sections to `AGENTS.md`, keep them short and scannable. 3-5 sentences per bullet. Use the existing format: `##` section headers, bold-labeled bullets, and `---` separators between sections. Prefer telegraph style; add extra sentences only when they prevent misinterpretation.
+- **Adding rules**: When adding new rules/sections to `AGENTS.md`, keep them short and scannable. 3-5 sentences per bullet. Use the existing format: `##` section headers, bold-labeled bullets, and `---` separators between sections. Prefer telegraph style; add extra sentences only when they prevent misinterpretation.
+
+- **Return early (guard clauses)**: Use guard clauses to handle error conditions and edge cases first. Return early to avoid deep nesting. Prefer multiple small guards over one large nested block.
+
+- **Locality (order by call sequence)**: Declare functions/methods close to their callsites. Order them in call sequence (caller before callee) so readers can follow top-to-bottom. Keep helpers next to the primary method that uses them unless they’re widely reused.
 
 - **Plans (implementation/refactor)**: When the user asks for an implementation or refactor plan, always end the plan with a short “final checklist”. It must explicitly say to run `npm run typecheck` and `npm run lint` after implementation, and to fix any errors found (use `npm run lint:fix` when appropriate). Keep this checklist to 1–2 short sentences.
 
@@ -84,16 +88,12 @@
 
 ---
 
-## Renderer console logs → `logs/` (dev-only)
+## Logging
 
-- **What**: In dev, main window renderer `console.*` is captured by the main process and written under `./logs`. Use it for quick debugging when you can’t attach devtools or want a stable artifact. Treat as dev-only diagnostics, not a replacement for real error reporting.
+- **Log files**: In dev, main window renderer `console.*` is captured by the main process and written under `./logs` (files live at `./logs/renderer-<runId>.log`). Use it for quick debugging when you can’t attach devtools or want a stable artifact. Treat as dev-only diagnostics, not a replacement for real error reporting.
 
-- **Where**: Files live at `./logs/renderer-<runId>.log`. One file per run; easy correlation to a single launch. When sharing bug reports, include the relevant run ID log.
+- **Quirk**: Uses Electron `console-message` (string payload), so object logging can degrade (e.g. `label [object Object]`). Prefer serializing important structured data.
 
-- **When enabled**: Dev only (`app.isPackaged === false`). Disabled for Playwright E2E (`PW_E2E=1`) so tests aren’t polluted and prod stays lean. Expect logs and don’t see them: check these flags first.
+- **Log channels**: For app logging, use the channel-based logger from `src/renderer/logs/logs.ts` (import `logger`) and pick the channel that best matches the purpose via `logger.getOrCreate(<channel>)`. Channels are defined in `src/renderer/logs/LogChannel.ts`. Avoid raw `console.*` for non-trivial logging; it’s easy to lose context and harder to filter.
 
-- **Logging (use channels)**: For app logging, use the channel-based logger from `src/renderer/logs/logs.ts` (import `logger`) and pick the channel that best matches the purpose via `logger.getOrCreate(<channel>)`. Channels are defined in `src/renderer/logs/LogChannel.ts`. Avoid raw `console.*` for non-trivial logging; it’s easy to lose context and harder to filter.
-
-- **Logging (string-first)**: Put the main information in a string so it survives into text logs reliably. If you need to log structured data, serialize it (e.g. JSON) into the message string (or include a short, string summary + a serialized payload). Don’t rely on logging raw objects as separate args for anything important.
-
-- **Quirk**: Uses Electron `console-message` (string payload), so object logging can degrade (e.g. `label [object Object]`). Prefer serializing important structured data. Rich objects would need extra plumbing (preload + IPC bridge, or CDP).
+- **String-first logging**: Put the main information in a string so it survives into text logs reliably. If you need to log structured data, serialize it (e.g. JSON) into the message string (or include a short, string summary + a serialized payload). Don’t rely on logging raw objects as separate args for anything important.
