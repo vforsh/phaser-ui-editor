@@ -6,6 +6,8 @@ import type { EditorControlContext } from './types'
 import { addObjectComponent } from './handlers/addObjectComponent'
 import { closeAllModals } from './handlers/closeAllModals'
 import { closeModal } from './handlers/closeModal'
+import { createGraphicsAt } from './handlers/createGraphicsAt'
+import { createGraphicsObject } from './handlers/createGraphicsObject'
 import { createObject } from './handlers/createObject'
 import { createObjectFromAsset } from './handlers/createObjectFromAsset'
 import { createPrefabAsset } from './handlers/createPrefabAsset'
@@ -74,6 +76,8 @@ export class EditorControlService {
 			deleteObjects: deleteObjects(this.ctx),
 			createObject: createObject(this.ctx),
 			createObjectFromAsset: createObjectFromAsset(this.ctx),
+			createGraphicsAt: createGraphicsAt(this.ctx),
+			createGraphicsObject: createGraphicsObject(this.ctx),
 			duplicateObject: duplicateObject(this.ctx),
 			moveObjectInHierarchy: moveObjectInHierarchy(this.ctx),
 			renameObject: renameObject(this.ctx),

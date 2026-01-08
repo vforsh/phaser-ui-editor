@@ -17,6 +17,12 @@ import { CameraParams } from './components/canvas/phaser/scenes/main/mainScene/M
 import { ScreenshotOptions } from './components/canvas/phaser/scenes/main/mainScene/MainSceneScreenshot'
 import { AssetTreeItemData } from './types/assets'
 
+export type CreateGraphicsAtData = {
+	shape: 'rectangle' | 'ellipse'
+	parentId: string
+	canvasPos: { x: number; y: number }
+}
+
 /**
  * Commands to request Phaser app to perform some actions
  */
@@ -25,6 +31,7 @@ export type AppCommands = {
 	'switch-to-context': (id: string) => void
 	'highlight-object': (id: string) => void
 	'create-object': (data: { clickedObjId: string; type: EditableObjectType }) => string | undefined
+	'create-graphics-at': (data: CreateGraphicsAtData) => string | undefined
 	'copy-object': (id: string) => void
 	'duplicate-object': (id: string) => void
 	'cut-object': (id: string) => void

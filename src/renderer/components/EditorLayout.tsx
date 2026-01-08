@@ -202,6 +202,7 @@ export default function EditorLayout() {
 				<Paper
 					style={{
 						width: rightPanelWidth,
+						minWidth: 0,
 						backgroundColor: 'inherit',
 						transition: 'width 0.05s ease-out',
 						padding: '4px 4px 4px 0px',

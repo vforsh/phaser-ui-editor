@@ -1,96 +1,71 @@
 ## Verification flow (features + bugfixes)
 
-This doc describes the **default verification protocol** after implementing a feature or fixing a bug.
+Default verification protocol after implementing a feature or fixing a bug.
 
-The flow is based on:
+Tools:
 
-- **`editorctl` CLI** (external control of the running editor) — see [`docs/features/editorctl/editor-control-overview.md`](../features/editorctl/editor-control-overview.md)
-- **Temporary `info` logs** (string-first) and reading renderer logs from the repo `./logs` directory — see `AGENTS.md` “Logging”
+- **`editorctl` CLI** — see [`docs/features/editorctl/editor-control-overview.md`](../features/editorctl/editor-control-overview.md)
+- **Renderer logs** under `./logs` (plus temporary `info` breadcrumbs when needed) — see `AGENTS.md` “Logging”
 
 ---
 
 ## Preconditions (dev)
 
-- **Build packages**: run `npm run build:packages` (especially after contract/control changes)
-- **Have a reproducible target**: pick a project and a prefab that reliably demonstrates the behavior (feature or bug)
+- **Build packages (when needed)**: run `npm run build:packages` (especially after contract/control changes)
+- **Pick a deterministic repro target**: a project + prefab that reliably demonstrates the behavior
 
 ---
 
-## Step 1: Ensure a running editor instance (discover a `wsPort`)
+## Checklist (copy/paste friendly)
 
-Use `editorctl` discovery first. Do not guess ports.
+- **Discover a running editor (`wsPort`)** (don’t guess ports):
 
 ```bash
 npm run editorctl -- listEditors
 ```
 
-- **If `listEditors` returns an instance**: pick the one matching the checkout/worktree you’re working on (`appLaunchDir`) and the correct open project (`projectPath`).
-- **If `listEditors` is empty**: start the editor via the background start script, wait for the `[control-rpc] ws://127.0.0.1:<port>` line, then re-run `listEditors`:
+- **If `listEditors` is empty**: start the editor, wait for `[control-rpc] ws://127.0.0.1:<port>`, then re-run discovery:
 
 ```bash
 npm run start:bg
-```
-
-```bash
 npm run editorctl -- listEditors
 ```
 
-Once you have the port, use it consistently:
+- **Pick the right instance**: match your checkout (`appLaunchDir`) and intended project (`projectPath`).
+- **Use the chosen port consistently**:
 
 ```bash
 npm run editorctl -- --port <wsPort> methods
 ```
 
----
-
-## Step 2: Open the project you will use for verification
-
-Open the project directory that contains `project.json5`.
+- **Open the project** (must contain `project.json5`):
 
 ```bash
 npm run editorctl -- --port <wsPort> call openProject '{"path":"/Users/vlad/dev/papa-cherry-2"}'
 ```
 
-Then confirm the editor state (optional but useful when debugging “no-op” behavior):
+- **If commands “no-op”**: confirm control meta (optional but high-signal):
 
 ```bash
 npm run editorctl -- --port <wsPort> call getControlMeta '{}'
 ```
 
----
-
-## Step 3: Open the prefab / scene that reproduces the behavior
-
-Pick a prefab that is a reliable reproduction/verification target.
-
-- **Tip**: use `listAssets` to find prefabs/folders and confirm paths are project-relative.
-
-Example:
+- **Find and open the repro prefab** (paths are project-relative):
 
 ```bash
 npm run editorctl -- --port <wsPort> call listAssets '{"types":["prefab"]}'
 ```
 
-Then open the chosen prefab (method name/params are contract-driven; use `schema` when unsure):
-
 ```bash
 npm run editorctl -- --port <wsPort> schema openPrefab
-```
-
-```bash
 npm run editorctl -- --port <wsPort> call openPrefab '{"path":"<project-relative-prefab-path>"}'
 ```
 
----
+- **Execute the verification sequence** via `editorctl` with minimal, deterministic commands:
+    - **Feature**: perform the new workflow
+    - **Bugfix**: reproduce the original failure sequence; confirm it no longer reproduces
 
-## Step 4: Perform the action(s) that verify the change
-
-Drive the editor via `editorctl` with **minimal, deterministic** commands:
-
-- **Feature verification**: perform the new workflow (e.g. create object, duplicate, rename, change component, etc.)
-- **Bugfix verification**: reproduce the original failure sequence and confirm it no longer happens
-
-When you don’t remember the exact method name/shape:
+- **If you don’t remember method names/shapes**:
 
 ```bash
 npm run editorctl -- --port <wsPort> methods
@@ -99,52 +74,38 @@ npm run editorctl -- --port <wsPort> schema <methodName>
 
 ---
 
-## Step 5: Add temporary `info` logs to validate internal state transitions
+## Add temporary logs (required for verification)
 
-When behavior can’t be confidently validated via UI alone (selection, focus, IPC ordering, renderer state, etc.), add **temporary logs**:
+This document is for AI agents: **verification must be log-driven**.
+
+Add minimal, targeted `info` breadcrumbs to prove internal state transitions (selection, focus, IPC ordering, renderer state):
 
 - **Use the channel-based logger**: import `logger` from `src/renderer/logs/logs.ts`
 - **Pick a relevant channel**: defined in `src/renderer/logs/LogChannel.ts`
-- **Log string-first**: keep the key information in the string so it survives into text logs reliably
-- **Level**: use `info` for these temporary breadcrumbs (remove them before finishing)
+- **Log string-first** (survives into text logs reliably; serialize payloads you care about)
+- **Remove these logs before finishing**
 
-Re-run the same verification commands to generate the logs you need.
+Then re-run the same `editorctl` reproduction sequence and verify the outcome by inspecting the newest `./logs/renderer-*.log`.
 
 ---
 
-## Step 6: Read and analyze logs from `./logs`
+## Read logs (`./logs`) and iterate
 
-Renderer `console.*` output is captured and written under the repo’s `./logs` directory:
+Renderer `console.*` output is captured and written under:
 
 - `./logs/renderer-<runId>.log`
 
-Workflow:
-
-- Identify the newest `renderer-*.log` updated during your verification run
-- Search for your channel/messages and confirm the expected ordering/state
-- Use logs to answer: **did the internal invariant/contract hold?** If not, tighten the reproduction and add more _targeted_ info logs.
-
----
-
-## Step 7: Iterate until logs confirm the expected result
-
-Repeat:
-
-- Reproduce via `editorctl` (same sequence, minimal inputs)
-- Observe logs
-- Narrow the search area (smaller reproduction, fewer moving parts)
-- Fix the root cause (don’t just mask symptoms)
-
-Stop iterating only when:
-
-- The external behavior is correct, and
-- Logs confirm the expected internal path/state (where applicable)
+- **Check**: the newest `renderer-*.log` updated during your run contains your messages in the expected order/state.
+- **Key question**: did the internal invariant/contract hold? If not, tighten the repro and add more targeted logs.
+- **Stop iterating only when**:
+    - The external behavior is correct, and
+    - Logs confirm the expected internal path/state (where applicable)
 
 ---
 
-## Step 8: Cleanup + final checks (definition of done)
+## Definition of done
 
-- **Remove all temporary debug/verification logs** you added for investigation
+- **Remove all temporary debug/verification logs**
 - Run **typecheck**:
 
 ```bash
@@ -158,7 +119,6 @@ npm run lint
 npm run lint:fix
 ```
 
-Then report outcome:
-
-- **Feature**: verified via `editorctl` reproduction + logs; final checks passed
-- **Bugfix**: original repro no longer reproduces; final checks passed
+- **Report outcome**:
+    - **Feature**: verified via `editorctl` repro + logs; final checks passed
+    - **Bugfix**: original repro no longer reproduces; final checks passed

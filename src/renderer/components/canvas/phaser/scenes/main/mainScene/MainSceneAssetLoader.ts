@@ -66,6 +66,7 @@ export class MainSceneAssetLoader {
 				.with({ type: 'Text' }, (text) => [text.asset])
 				.with({ type: 'BitmapText' }, (bitmapText) => [bitmapText.asset])
 				.with({ type: 'NineSlice' }, (nineSlice) => [nineSlice.asset])
+				.with({ type: 'Graphics' }, () => [])
 				.exhaustive()
 
 			for (const asset of objectAssets) {

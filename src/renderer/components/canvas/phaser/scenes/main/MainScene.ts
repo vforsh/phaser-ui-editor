@@ -64,7 +64,6 @@ export class MainScene extends BaseScene {
 
 		this.logger = logger.getOrCreate('canvas')
 
-		this.logger.debug('canvas: debug-visible-if-minlevel<=DEBUG')
 		this.logger.info('MainScene init', data)
 	}
 
@@ -408,6 +407,7 @@ export class MainScene extends BaseScene {
 		appCommands.on('switch-to-context', (id) => this.ops.switchToContext(id), this, false, signal)
 		appCommands.on('highlight-object', (id) => this.ops.highlightObject(id), this, false, signal)
 		appCommands.on('create-object', (data) => this.ops.createObject(data), this, false, signal)
+		appCommands.on('create-graphics-at', (data) => this.ops.createGraphicsAt(data), this, false, signal)
 		appCommands.on('duplicate-object', (id) => this.ops.duplicateObject(id), this, false, signal)
 		appCommands.on('delete-objects', (ids) => this.ops.deleteObjects(ids), this, false, signal)
 		appCommands.on(

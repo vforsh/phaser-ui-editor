@@ -1,6 +1,6 @@
 import { EditableComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/base/EditableComponent'
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
-import { Button, Divider, Group, ScrollArea, Stack } from '@mantine/core'
+import { Button, Divider, Group, Stack } from '@mantine/core'
 import { useForceUpdate } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
 import { state } from '@state/State'
@@ -12,6 +12,7 @@ import { useSnapshot } from 'valtio'
 import { useAppCommands } from '../../di/DiHooks'
 import { getAssetById, isGraphicAsset, type AssetTreeItemData } from '../../types/assets'
 import { InspectorSection, InspectorSectionDef } from './InspectorSection'
+import { InspectorSectionsScrollArea } from './InspectorSectionsScrollArea'
 import { NoSelection } from './NoSelection'
 import { AssetSection } from './sections/assets/AssetSection'
 import { BitmapFontSection } from './sections/assets/BitmapFontSection'
@@ -27,6 +28,9 @@ import { VerticalLayoutSection } from './sections/components/VerticalLayoutSecti
 import { BitmapTextSection } from './sections/objects/BitmapTextSection'
 import { ContainerSizeSection } from './sections/objects/ContainerSizeSection'
 import { DisplaySection } from './sections/objects/DisplaySection'
+import { GraphicsFillSection } from './sections/objects/GraphicsFillSection'
+import { GraphicsShapeSection } from './sections/objects/GraphicsShapeSection'
+import { GraphicsStrokeSection } from './sections/objects/GraphicsStrokeSection'
 import { ImageSection } from './sections/objects/ImageSection'
 import { NineSliceSection } from './sections/objects/NineSliceSection'
 import { ObjectSection } from './sections/objects/ObjectSection'
@@ -73,24 +77,7 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 		const selectedAsset = getAssetById(assetsSnap.items as AssetTreeItemData[], selectedAssetId)
 		if (selectedAsset) {
 			const sections = createSections({ type: 'asset', data: selectedAsset })
-			return (
-				<ScrollArea style={{ flex: 1 }}>
-					<Stack gap="xs" p="xs">
-						{sections.map((section) => {
-							return (
-								<InspectorSection
-									key={section.type}
-									type={section.type}
-									title={section.title}
-									icon={section.icon}
-									content={section.content}
-									defaultExpanded={section.defaultExpanded}
-								/>
-							)
-						})}
-					</Stack>
-				</ScrollArea>
-			)
+			return <InspectorSectionsScrollArea data-testid="inspector-panel-scroll-area" sections={sections} />
 		}
 	}
 
@@ -100,156 +87,160 @@ export default function InspectorPanel({ logger }: InspectorPanelProps) {
 		if (selectedObject) {
 			const sections = createSections({ type: 'object', data: selectedObject })
 			return (
-				<ScrollArea style={{ flex: 1 }}>
-					<Stack gap="xs" p="xs">
-						{sections.map((section) => {
-							if (section.type.startsWith('comp-')) {
-								const componentData = section.data as EditableComponentJson
-								return (
-									<ComponentSection
-										key={section.type}
-										data={componentData}
-										content={section.content}
-										onReset={() => {
-											// TODO components - implement reset functionality
-										}}
-										onMoveUp={() => {
-											const moveUpResult = appCommands.emit('move-component-up', {
-												componentType: componentData.type,
-												objectId: selectedObjectId,
-											})!
-
-											if (moveUpResult.isOk()) {
-												forceUpdate()
-											} else {
-												notifications.show({
-													title: 'Failed to move component up',
-													message: `${moveUpResult.error}`,
-													color: 'red',
-													autoClose: 10_000,
-												})
-											}
-										}}
-										onMoveDown={() => {
-											const moveDownResult = appCommands.emit('move-component-down', {
-												componentType: componentData.type,
-												objectId: selectedObjectId,
-											})!
-
-											if (moveDownResult.isOk()) {
-												forceUpdate()
-											} else {
-												notifications.show({
-													title: 'Failed to move component down',
-													message: `${moveDownResult.error}`,
-													color: 'red',
-													autoClose: 10_000,
-												})
-											}
-										}}
-										onRemove={() => {
-											const removeResult = appCommands.emit('remove-component', {
-												componentType: componentData.type,
-												objectId: selectedObjectId,
-											})!
-
-											if (removeResult.isOk()) {
-												forceUpdate()
-											} else {
-												notifications.show({
-													title: 'Failed to remove component',
-													message: `${removeResult.error}`,
-													color: 'red',
-													autoClose: 10_000,
-												})
-											}
-										}}
-										onCopy={() => {
-											state.inspector.componentsClipboard.push(JSON.stringify(componentData))
-											notifications.show({
-												title: 'Clipboard',
-												message: `Component '${componentData.type}' copied to clipboard`,
-												color: 'green',
-												autoClose: 5_000,
-											})
-										}}
-										onPaste={() => {
-											// TODO components - implement paste functionality
-										}}
-									/>
-								)
-							}
-
+				<InspectorSectionsScrollArea
+					data-testid="inspector-panel-scroll-area"
+					sections={sections}
+					renderSection={(section) => {
+						if (section.type.startsWith('comp-')) {
+							const componentData = section.data as EditableComponentJson
 							return (
-								<InspectorSection
+								<ComponentSection
 									key={section.type}
-									type={section.type}
-									title={section.title}
-									icon={section.icon}
+									data={componentData}
 									content={section.content}
-									defaultExpanded={section.defaultExpanded}
+									onReset={() => {
+										// TODO components - implement reset functionality
+									}}
+									onMoveUp={() => {
+										const moveUpResult = appCommands.emit('move-component-up', {
+											componentType: componentData.type,
+											objectId: selectedObjectId,
+										})!
+
+										if (moveUpResult.isOk()) {
+											forceUpdate()
+										} else {
+											notifications.show({
+												title: 'Failed to move component up',
+												message: `${moveUpResult.error}`,
+												color: 'red',
+												autoClose: 10_000,
+											})
+										}
+									}}
+									onMoveDown={() => {
+										const moveDownResult = appCommands.emit('move-component-down', {
+											componentType: componentData.type,
+											objectId: selectedObjectId,
+										})!
+
+										if (moveDownResult.isOk()) {
+											forceUpdate()
+										} else {
+											notifications.show({
+												title: 'Failed to move component down',
+												message: `${moveDownResult.error}`,
+												color: 'red',
+												autoClose: 10_000,
+											})
+										}
+									}}
+									onRemove={() => {
+										const removeResult = appCommands.emit('remove-component', {
+											componentType: componentData.type,
+											objectId: selectedObjectId,
+										})!
+
+										if (removeResult.isOk()) {
+											forceUpdate()
+										} else {
+											notifications.show({
+												title: 'Failed to remove component',
+												message: `${removeResult.error}`,
+												color: 'red',
+												autoClose: 10_000,
+											})
+										}
+									}}
+									onCopy={() => {
+										state.inspector.componentsClipboard.push(JSON.stringify(componentData))
+										notifications.show({
+											title: 'Clipboard',
+											message: `Component '${componentData.type}' copied to clipboard`,
+											color: 'green',
+											autoClose: 5_000,
+										})
+									}}
+									onPaste={() => {
+										// TODO components - implement paste functionality
+									}}
 								/>
 							)
-						})}
-						<Divider />
-						<Group grow gap="xs">
-							<Button
-								variant="light"
-								leftSection={CLIPBOARD_PASTE_ICON}
-								disabled={state.inspector.componentsClipboard.length === 0}
-								onClick={() => {
-									const componentRaw = state.inspector.componentsClipboard.pop()
-									const componentParsed = componentRaw ? JSON.parse(componentRaw) : null
-									if (!componentParsed) {
-										return
-									}
+						}
 
-									const pasteResult = appCommands.emit('paste-component', {
-										componentData: componentParsed as EditableComponentJson,
-										objectId: selectedObjectId,
-									})
-
-									if (!pasteResult) {
-										return
-									}
-
-									if (pasteResult.isOk()) {
-										forceUpdate()
-									} else {
-										notifications.show({
-											title: 'Failed to paste component',
-											message: `${pasteResult.error}`,
-											color: 'red',
-											autoClose: 10_000,
-										})
-									}
-								}}
-							>
-								Paste Component
-							</Button>
-
-							<AddComponentButton
-								onAddComponent={(type) => {
-									const addResult = appCommands.emit('add-component', {
-										componentType: type,
-										objectId: selectedObjectId,
-									})!
-
-									if (addResult.isOk()) {
-										forceUpdate()
-									} else {
-										notifications.show({
-											title: 'Failed to add component',
-											message: `${addResult.error}`,
-											color: 'red',
-											autoClose: 10_000,
-										})
-									}
-								}}
+						return (
+							<InspectorSection
+								key={section.type}
+								type={section.type}
+								title={section.title}
+								icon={section.icon}
+								content={section.content}
+								defaultExpanded={section.defaultExpanded}
 							/>
-						</Group>
-					</Stack>
-				</ScrollArea>
+						)
+					}}
+					footer={
+						<>
+							<Divider />
+							<Group grow gap="xs">
+								<Button
+									variant="light"
+									leftSection={CLIPBOARD_PASTE_ICON}
+									disabled={state.inspector.componentsClipboard.length === 0}
+									onClick={() => {
+										const componentRaw = state.inspector.componentsClipboard.pop()
+										const componentParsed = componentRaw ? JSON.parse(componentRaw) : null
+										if (!componentParsed) {
+											return
+										}
+
+										const pasteResult = appCommands.emit('paste-component', {
+											componentData: componentParsed as EditableComponentJson,
+											objectId: selectedObjectId,
+										})
+
+										if (!pasteResult) {
+											return
+										}
+
+										if (pasteResult.isOk()) {
+											forceUpdate()
+										} else {
+											notifications.show({
+												title: 'Failed to paste component',
+												message: `${pasteResult.error}`,
+												color: 'red',
+												autoClose: 10_000,
+											})
+										}
+									}}
+								>
+									Paste Component
+								</Button>
+
+								<AddComponentButton
+									onAddComponent={(type) => {
+										const addResult = appCommands.emit('add-component', {
+											componentType: type,
+											objectId: selectedObjectId,
+										})!
+
+										if (addResult.isOk()) {
+											forceUpdate()
+										} else {
+											notifications.show({
+												title: 'Failed to add component',
+												message: `${addResult.error}`,
+												color: 'red',
+												autoClose: 10_000,
+											})
+										}
+									}}
+								/>
+							</Group>
+						</>
+					}
+				/>
 			)
 		}
 	}
@@ -388,6 +379,34 @@ function getObjectSections(obj: EditableObjectJson): InspectorSectionDef[] {
 					icon: Image,
 					data: nineSlice,
 					content: <NineSliceSection data={nineSlice} />,
+					defaultExpanded: true,
+				},
+			]
+		})
+		.with({ type: 'Graphics' }, (graphics) => {
+			return [
+				{
+					type: 'obj-graphics-shape',
+					title: 'Graphics Shape',
+					icon: Scaling,
+					data: graphics,
+					content: <GraphicsShapeSection data={graphics} />,
+					defaultExpanded: true,
+				},
+				{
+					type: 'obj-graphics-fill',
+					title: 'Graphics Fill',
+					icon: Eye,
+					data: graphics.fill,
+					content: <GraphicsFillSection data={graphics.fill} />,
+					defaultExpanded: true,
+				},
+				{
+					type: 'obj-graphics-stroke',
+					title: 'Graphics Stroke',
+					icon: Eye,
+					data: graphics.stroke,
+					content: <GraphicsStrokeSection data={graphics.stroke} />,
 					defaultExpanded: true,
 				},
 			]

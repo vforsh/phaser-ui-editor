@@ -33,6 +33,8 @@ export { successSchema } from './shared-schemas.js'
 import { addObjectComponentCommand } from './commands/addObjectComponent.js'
 import { closeAllModalsCommand } from './commands/closeAllModals.js'
 import { closeModalCommand } from './commands/closeModal.js'
+import { createGraphicsAtCommand } from './commands/createGraphicsAt.js'
+import { createGraphicsObjectCommand } from './commands/createGraphicsObject.js'
 import { createObjectCommand, createObjectFromAssetCommand } from './commands/createObject.js'
 import { createPrefabAssetCommand } from './commands/createPrefabAsset.js'
 import { createPrefabInstanceCommand } from './commands/createPrefabInstance.js'
@@ -85,6 +87,8 @@ export const controlContract = {
 	deleteObjects: deleteObjectsCommand,
 	createObject: createObjectCommand,
 	createObjectFromAsset: createObjectFromAssetCommand,
+	createGraphicsAt: createGraphicsAtCommand,
+	createGraphicsObject: createGraphicsObjectCommand,
 	duplicateObject: duplicateObjectCommand,
 	moveObjectInHierarchy: moveObjectInHierarchyCommand,
 	renameObject: renameObjectCommand,

@@ -825,6 +825,7 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 				<ScrollArea
 					style={{ flex: 1 }}
 					id="assets-panel-scroll-area"
+					data-testid="assets-panel-scroll-area"
 					onContextMenu={(event) => {
 						// display root context menu only if clicked on the scroll area
 						if ((event.target as HTMLElement).parentElement?.id !== 'assets-panel-scroll-area') {

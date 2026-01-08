@@ -14,6 +14,7 @@ import { EditableComponentJson } from './components/base/EditableComponent'
 import { EditableComponentsFactory } from './components/base/EditableComponentsFactory'
 import { EditableBitmapText, EditableBitmapTextJson } from './EditableBitmapText'
 import { EditableContainer, EditableContainerJson } from './EditableContainer'
+import { EditableGraphics, EditableGraphicsJson, GraphicsFillJson, GraphicsShapeJson, GraphicsStrokeJson } from './EditableGraphics'
 import { EditableImage, EditableImageJson } from './EditableImage'
 import { EditableNineSlice, EditableNineSliceJson } from './EditableNineSlice'
 import { EditableObject, EditableObjectJson } from './EditableObject'
@@ -126,6 +127,38 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		return bitmapText
 	}
 
+	public graphicsRectangle(): EditableGraphics {
+		return this.graphics({
+			type: 'rectangle',
+			cornerRadius: {
+				mode: 'simple',
+				simple: 0,
+				advanced: { tl: 0, tr: 0, br: 0, bl: 0 },
+			},
+		})
+	}
+
+	public graphicsEllipse(): EditableGraphics {
+		return this.graphics({ type: 'ellipse' })
+	}
+
+	private graphics(shape: GraphicsShapeJson): EditableGraphics {
+		const id = this.getObjectId()
+		const fill: GraphicsFillJson = { enabled: true, color: 0xffffff, alpha: 1 }
+		const stroke: GraphicsStrokeJson = {
+			enabled: false,
+			color: 0xffffff,
+			alpha: 1,
+			width: 1,
+			lineJoin: 'miter',
+			lineCap: 'butt',
+			miterLimit: 10,
+		}
+		const graphics = new EditableGraphics(this.scene, id, 0, 0, 120, 80, shape, fill, stroke)
+		this.register(graphics)
+		return graphics
+	}
+
 	/**
 	 * Creates an object but it **doesn't add it to the scene**
 	 */
@@ -136,6 +169,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 			.with({ type: 'NineSlice' }, (json) => this.createNineSliceFromJson(json))
 			.with({ type: 'Text' }, (json) => this.createTextFromJson(json))
 			.with({ type: 'BitmapText' }, (json) => this.createBitmapTextFromJson(json))
+			.with({ type: 'Graphics' }, (json) => this.createGraphicsFromJson(json))
 			.exhaustive()
 
 		this.register(obj)
@@ -243,6 +277,23 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		this.initComponents(bitmapText, json.components)
 
 		return bitmapText
+	}
+
+	private createGraphicsFromJson(json: EditableGraphicsJson): EditableGraphics {
+		const id = this.getObjectId()
+		const graphics = new EditableGraphics(this.scene, id, json.x, json.y, json.width, json.height, json.shape, json.fill, json.stroke)
+
+		graphics.setName(json.name)
+		graphics.setVisible(json.visible)
+		graphics.setAlpha(json.alpha)
+		graphics.setRotation(json.rotation)
+		graphics.setDepth(json.depth)
+		graphics.setBlendMode(json.blendMode)
+		graphics.setScale(json.scale.x, json.scale.y)
+		graphics.locked = json.locked
+		this.initComponents(graphics, json.components)
+
+		return graphics
 	}
 
 	private initComponents(obj: EditableObject, components: EditableComponentJson[]): void {

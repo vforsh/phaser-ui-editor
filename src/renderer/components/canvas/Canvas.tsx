@@ -2,13 +2,14 @@ import { NinePatchPlugin } from '@koreez/phaser3-ninepatch'
 import Phaser from 'phaser'
 import { useCallback, useLayoutEffect, useRef } from 'react'
 
-import { AppCommands } from '../../AppCommands'
+import { AppCommands, type CreateGraphicsAtData } from '../../AppCommands'
 import { AppEvents } from '../../AppEvents'
 import { usePhaserScope } from '../../di/DiHooks'
 import { UndoHub } from '../../history/UndoHub'
 import { logger } from '../../logs/logs'
 import { mainApi } from '../../main-api/main-api'
 import { ProjectConfig } from '../../project/ProjectConfig'
+import { state } from '../../state/State'
 import { maybeSeedInitialPrefabFromUrlParams } from '../../url-params/auto-open-prefab-once'
 import { PhaserApp } from './phaser/PhaserApp'
 import { TypedEventEmitter } from './phaser/robowhale/phaser3/TypedEventEmitter'
@@ -79,13 +80,45 @@ export const Canvas: React.FC<Props> = ({ projectDir, projectConfig, appEvents, 
 			const result = await mainApi.showCanvasContextMenu({ x, y })
 			if (result.action === 'rectangle') {
 				canvasLogger.info('[context-menu] Add → Graphics → Rectangle')
+				const parentId = state.canvas.activeContextId
+				if (!parentId) {
+					return
+				}
+				const rect = canvasRef.current?.getBoundingClientRect()
+				if (!rect) {
+					return
+				}
+				const canvasX = event.clientX - rect.left
+				const canvasY = event.clientY - rect.top
+				const payload: CreateGraphicsAtData = {
+					shape: 'rectangle',
+					parentId,
+					canvasPos: { x: canvasX, y: canvasY },
+				}
+				appCommands.emit('create-graphics-at', payload)
 				return
 			}
 			if (result.action === 'ellipse') {
 				canvasLogger.info('[context-menu] Add → Graphics → Ellipse')
+				const parentId = state.canvas.activeContextId
+				if (!parentId) {
+					return
+				}
+				const rect = canvasRef.current?.getBoundingClientRect()
+				if (!rect) {
+					return
+				}
+				const canvasX = event.clientX - rect.left
+				const canvasY = event.clientY - rect.top
+				const payload: CreateGraphicsAtData = {
+					shape: 'ellipse',
+					parentId,
+					canvasPos: { x: canvasX, y: canvasY },
+				}
+				appCommands.emit('create-graphics-at', payload)
 			}
 		},
-		[canvasLogger],
+		[appCommands, canvasLogger],
 	)
 
 	useLayoutEffect(() => {

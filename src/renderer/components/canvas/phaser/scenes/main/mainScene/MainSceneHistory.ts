@@ -292,7 +292,7 @@ export class MainSceneHistory {
 					obj.setPosition(obj.x, obj.y)
 					obj.setAngle(obj.angle)
 
-					if (obj.kind !== 'Container' && obj.kind !== 'NineSlice') {
+					if (obj.kind !== 'Container' && obj.kind !== 'NineSlice' && obj.kind !== 'Graphics') {
 						obj.setOrigin(obj.originX, obj.originY)
 					}
 

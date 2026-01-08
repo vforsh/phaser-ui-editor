@@ -2,6 +2,7 @@ import { state } from '@state/State'
 import { err } from 'neverthrow'
 import { match } from 'ts-pattern'
 
+import { CreateGraphicsAtData } from '../../../../../../AppCommands'
 import { getAssetById } from '../../../../../../types/assets'
 import { AssetTreeItemData } from '../../../../../../types/assets'
 import { EditContext } from '../editContext/EditContext'
@@ -10,6 +11,7 @@ import { Selection } from '../editContext/Selection'
 import { AddComponentResult, MoveComponentResult, RemoveComponentResult } from '../objects/components/base/ComponentsManager'
 import { EditableComponentJson, EditableComponentType } from '../objects/components/base/EditableComponent'
 import { EditableContainer } from '../objects/EditableContainer'
+import { EditableGraphics } from '../objects/EditableGraphics'
 import { EditableObject, EditableObjectType, isEditable, isObjectOfType } from '../objects/EditableObject'
 import { isPositionLockedForRuntimeObject } from '../objects/editing/editRestrictions'
 import { MainSceneComponentOps } from './MainSceneComponentOps'
@@ -198,6 +200,7 @@ export class MainSceneOps {
 
 		const newObj = match(data.type)
 			.with('Container', () => this.deps.objectsFactory.container('group'))
+			.with('Graphics', () => this.deps.objectsFactory.graphicsRectangle())
 			.with('Image', () => null)
 			.with('Text', () => null)
 			.with('BitmapText', () => null)
@@ -217,6 +220,45 @@ export class MainSceneOps {
 
 		if (before) {
 			void this.deps.history.push('Create object', before, this.deps.history.captureSnapshot())
+		}
+
+		return newObj.id
+	}
+
+	public createGraphicsAt(data: CreateGraphicsAtData): string | undefined {
+		const before = this.deps.history.isRestoring ? null : this.deps.history.captureSnapshot()
+		const parentObj = this.deps.objectsFactory.getObjectById(data.parentId)
+		if (!parentObj) {
+			return
+		}
+
+		const editContext = isObjectOfType(parentObj, 'Container')
+			? this.deps.editContexts.getContext(parentObj)
+			: this.deps.editContexts.findParentContext(parentObj)
+
+		if (!editContext) {
+			return
+		}
+
+		if (editContext.target === this.deps.getSuperRoot()) {
+			return
+		}
+
+		const world = this.deps.scene.cameras.main.getWorldPoint(data.canvasPos.x, data.canvasPos.y)
+		const newObj =
+			data.shape === 'rectangle' ? this.deps.objectsFactory.graphicsRectangle() : this.deps.objectsFactory.graphicsEllipse()
+
+		newObj.setPosition(world.x, world.y)
+
+		const newObjName = this.getNewObjectName(editContext, newObj)
+		newObj.setName(newObjName)
+
+		this.deps.editContexts.switchTo(editContext.target)
+		editContext.target.add(newObj)
+		editContext.setSelection([newObj])
+
+		if (before) {
+			void this.deps.history.push('Create graphics', before, this.deps.history.captureSnapshot())
 		}
 
 		return newObj.id
@@ -368,12 +410,14 @@ export class MainSceneOps {
 	}
 
 	public getNewObjectName(context: EditContext, objToName: EditableObject, prefix?: string): string {
-		const _prefix = prefix ?? this.createNamePrefix(objToName)
+		const base = prefix ?? this.createNamePrefix(objToName)
+		const forceNumberSuffix = this.shouldForceNumberSuffix(objToName)
 
 		let n = 1
-		let name = `${_prefix}`
+		let name = forceNumberSuffix ? `${base}_${n}` : `${base}`
 		while (context.target.editables.some((item) => item.name === name)) {
-			name = `${_prefix}_${++n}`
+			n += 1
+			name = `${base}_${n}`
 		}
 
 		return name
@@ -383,12 +427,23 @@ export class MainSceneOps {
 		if (!obj.name) {
 			return match(obj)
 				.with({ kind: 'Container' }, () => 'group')
+				.with({ kind: 'Graphics' }, (obj) => this.getGraphicsNamePrefix(obj))
 				.otherwise((obj) => {
 					return obj.asset.name.split('.').slice(0, -1).join('.')
 				})
 		}
 
 		return obj.name.replace(/_\d+$/, '')
+	}
+
+	private getGraphicsNamePrefix(obj: EditableGraphics): string {
+		const shapeType = obj.getShapeType()
+		const suffix = shapeType === 'rectangle' ? 'rect' : shapeType
+		return `graphics_${suffix}`
+	}
+
+	private shouldForceNumberSuffix(obj: EditableObject): boolean {
+		return obj.kind === 'Graphics'
 	}
 
 	public resetImageOriginalSize(data: { objectId: string }) {

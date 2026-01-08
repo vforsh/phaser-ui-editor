@@ -5,6 +5,7 @@ import { ComponentsManager } from './components/base/ComponentsManager'
 import { EditableComponentJson } from './components/base/EditableComponent'
 import { EditableBitmapText, EditableBitmapTextJson } from './EditableBitmapText'
 import { EditableContainer, EditableContainerJson } from './EditableContainer'
+import { EditableGraphics, EditableGraphicsJson } from './EditableGraphics'
 import { EditableImage, EditableImageJson } from './EditableImage'
 import { EditableNineSlice, EditableNineSliceJson } from './EditableNineSlice'
 import { EditableText, EditableTextJson } from './EditableText'
@@ -62,7 +63,7 @@ export interface IEditableObject {
 	setOriginVisualOnly(x: number, y: number): this
 }
 
-export type EditableObject = EditableContainer | EditableImage | EditableNineSlice | EditableText | EditableBitmapText
+export type EditableObject = EditableContainer | EditableImage | EditableNineSlice | EditableText | EditableBitmapText | EditableGraphics
 
 export type EditableObjectType = EditableObject['kind']
 
@@ -82,6 +83,7 @@ export type EditableObjectJson =
 	| EditableNineSliceJson
 	| EditableTextJson
 	| EditableBitmapTextJson
+	| EditableGraphicsJson
 
 export type EditableObjectJsonType = EditableObjectJson['type']
 // #endregion
@@ -93,6 +95,7 @@ export function isTintable(obj: EditableObject): obj is EditableObject & { tint:
 export function canChangeOrigin(type: EditableObjectJsonType): boolean {
 	return match(type)
 		.with('Container', () => false)
+		.with('Graphics', () => false)
 		.with('NineSlice', () => false)
 		.with('Image', () => true)
 		.with('Text', () => true)
@@ -103,6 +106,7 @@ export function canChangeOrigin(type: EditableObjectJsonType): boolean {
 export function canChangeScale(type: EditableObjectJsonType): boolean {
 	return match(type)
 		.with('Container', () => true)
+		.with('Graphics', () => true)
 		.with('NineSlice', () => false)
 		.with('Image', () => true)
 		.with('Text', () => true)

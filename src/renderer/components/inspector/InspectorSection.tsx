@@ -4,6 +4,7 @@ import { LayoutComponentJson } from '@components/canvas/phaser/scenes/main/objec
 import { VerticalLayoutComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/VerticalLayoutComponent'
 import { EditableBitmapTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableBitmapText'
 import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
+import { EditableGraphicsJson } from '@components/canvas/phaser/scenes/main/objects/EditableGraphics'
 import { EditableImageJson } from '@components/canvas/phaser/scenes/main/objects/EditableImage'
 import { EditableNineSlice, EditableNineSliceJson } from '@components/canvas/phaser/scenes/main/objects/EditableNineSlice'
 import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
@@ -39,6 +40,9 @@ type ObjectSectionDef =
 	| { type: 'obj-nine-patch'; data: EditableNineSlice }
 	| { type: 'obj-container'; data: EditableContainerJson }
 	| { type: 'obj-container-grid'; data: EditableContainerJson }
+	| { type: 'obj-graphics-shape'; data: EditableGraphicsJson }
+	| { type: 'obj-graphics-fill'; data: EditableGraphicsJson['fill'] }
+	| { type: 'obj-graphics-stroke'; data: EditableGraphicsJson['stroke'] }
 
 type ComponentSectionDef =
 	| { type: 'comp-horizontal-layout'; data: HorizontalLayoutComponentJson }
