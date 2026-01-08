@@ -68,8 +68,6 @@ import { switchToContextCommand } from './commands/switchToContext.js'
 import { takeAppPartScreenshotCommand } from './commands/takeAppPartScreenshot.js'
 import { takeAppScreenshotCommand } from './commands/takeAppScreenshot.js'
 import { takeCanvasScreenshotCommand } from './commands/takeCanvasScreenshot.js'
-import { waitForCanvasIdleCommand } from './commands/waitForCanvasIdle.js'
-
 export const controlContract = {
 	addObjectComponent: addObjectComponentCommand,
 	openProject: openProjectCommand,
@@ -104,7 +102,6 @@ export const controlContract = {
 	getControlMeta: getControlMetaCommand,
 	listEditors: listEditorsCommand,
 	setCamera: setCameraCommand,
-	waitForCanvasIdle: waitForCanvasIdleCommand,
 	takeAppScreenshot: takeAppScreenshotCommand,
 	takeAppPartScreenshot: takeAppPartScreenshotCommand,
 	takeCanvasScreenshot: takeCanvasScreenshotCommand,

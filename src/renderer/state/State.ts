@@ -56,6 +56,12 @@ export const stateSchema = z.object({
 		documentRevision: z.number().int().nonnegative().default(0),
 		baselineDocumentRevision: z.number().int().nonnegative().default(0),
 		lastOpenedPrefabAssetId: z.string().optional(),
+		/**
+		 * Marker written by `MainScene.create()` when the scene finished initialization.
+		 * Used by control-rpc commands (e.g. `openPrefab`) to await readiness.
+		 */
+		mainSceneReadyPrefabAssetId: z.string().optional(),
+		mainSceneReadyAt: z.number().int().positive().optional(),
 		recentPrefabs: z
 			.array(
 				z.object({

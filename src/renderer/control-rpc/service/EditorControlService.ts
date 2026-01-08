@@ -42,8 +42,6 @@ import { switchToContext } from './handlers/switchToContext'
 import { takeAppPartScreenshot } from './handlers/takeAppPartScreenshot'
 import { takeAppScreenshot } from './handlers/takeAppScreenshot'
 import { takeCanvasScreenshot } from './handlers/takeCanvasScreenshot'
-import { waitForCanvasIdle } from './handlers/waitForCanvasIdle'
-
 /**
  * Thin RPC-facing service that translates external control requests into internal editor commands.
  */
@@ -93,7 +91,6 @@ export class EditorControlService {
 			getControlMeta: getControlMeta(this.ctx),
 			listEditors: listEditors(this.ctx),
 			setCamera: setCamera(this.ctx),
-			waitForCanvasIdle: waitForCanvasIdle(this.ctx),
 			takeAppScreenshot: takeAppScreenshot(this.ctx),
 			takeAppPartScreenshot: takeAppPartScreenshot(this.ctx),
 			takeCanvasScreenshot: takeCanvasScreenshot(this.ctx),

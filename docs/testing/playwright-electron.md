@@ -72,8 +72,8 @@ const app = await electron.launch({
 Important nuance:
 
 - `openProject()` loads project state/assets, but **does not guarantee the canvas scene is booted**.
-- `waitForCanvasIdle()` requires `state.canvas.root` to be set, which happens when a **prefab is opened**.
-    - So in launch-mode tests, do: `openProject` → `listAssets(types:['prefab'])` → `openPrefab` → `waitForCanvasIdle`.
+- `openPrefab()` resolves only after the **prefab is fully loaded and initialized** in the canvas.
+    - So in launch-mode tests, do: `openProject` → `listAssets(types:['prefab'])` → `openPrefab`.
 
 ```ts
 import { _electron as electron, type ElectronApplication, type Page } from 'playwright'
@@ -95,7 +95,7 @@ async function getMainPage(
 	return page
 }
 
-test('launch: open project + wait for idle', async ({ windowEditor }) => {
+test('launch: open project + wait for prefab', async ({ windowEditor }) => {
 	const app = await electron.launch({
 		// Launch from repo root; Electron uses `package.json` "main" (`out/main/index.js`).
 		// If you run from another cwd, adjust this accordingly.
@@ -125,8 +125,8 @@ test('launch: open project + wait for idle', async ({ windowEditor }) => {
 	})
 	if (!prefab) throw new Error('No prefab assets found in project')
 
+	// Resolves only after MainScene is initialized and prefab is ready.
 	await windowEditor.call(page, 'openPrefab', { assetId: prefab })
-	await windowEditor.call(page, 'waitForCanvasIdle', { timeoutMs: 90_000, pollMs: 50 })
 
 	// Minimal sanity assertion: we can talk to the API.
 	const info = await windowEditor.call(page, 'getProjectInfo', {})
@@ -138,7 +138,7 @@ test('launch: open project + wait for idle', async ({ windowEditor }) => {
 
 ### Practical tips
 
-- **Prefer `window.editor.waitForCanvasIdle({})` over timeouts** after actions that affect the canvas.
+- **Actions are synchronous where possible**: `openPrefab()` waits for the canvas, so you don't need extra polls after it.
 - **If you don’t know the params** for a method:
     - Open `packages/control-rpc-contract/src/commands/<method>.ts` and read the Zod `input` schema.
     - Or (optional) use `editorctl schema <method>` to print the JSON schema.

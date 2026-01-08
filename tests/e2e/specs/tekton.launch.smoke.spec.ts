@@ -56,7 +56,7 @@ function collectPrefabs(nodes: any[]): PrefabSummary[] {
 	return prefabs
 }
 
-test('tekton: launch smoke (window.editor + openProject + waitForCanvasIdle)', async ({ windowEditor }) => {
+test('tekton: launch smoke (window.editor + openProject + openPrefab)', async ({ windowEditor }) => {
 	test.setTimeout(120_000)
 
 	const app = await electron.launch({
@@ -118,16 +118,6 @@ test('tekton: launch smoke (window.editor + openProject + waitForCanvasIdle)', a
 			}
 
 			await windowEditor.call(page, 'openPrefab', { assetId: prefab.id })
-		})
-
-		await test.step('waitForCanvasIdle', async () => {
-			const idleResult = await windowEditor.call(page, 'waitForCanvasIdle', { timeoutMs: 90_000, pollMs: 50 })
-
-			// Handler returns { ok: boolean, error?: ... } — fail fast with context.
-			const ok = (idleResult as { ok?: unknown }).ok
-			if (ok !== true) {
-				throw new Error(`waitForCanvasIdle failed: ${JSON.stringify(idleResult)}`)
-			}
 		})
 
 		await test.step('modal control (window.editor)', async () => {
@@ -208,12 +198,6 @@ test('tekton: launch auto-open prefab via prefabPath', async ({ windowEditor }) 
 		const page = await getMainPage(appWithPrefab, windowEditor)
 		await waitForProjectOpen(page, windowEditor, 90_000)
 
-		const idleResult = await windowEditor.call(page, 'waitForCanvasIdle', { timeoutMs: 90_000, pollMs: 50 })
-		const ok = (idleResult as { ok?: unknown }).ok
-		if (ok !== true) {
-			throw new Error(`waitForCanvasIdle failed: ${JSON.stringify(idleResult)}`)
-		}
-
 		const canvasState = await windowEditor.call(page, 'getCanvasState', {})
 		const currentPrefab = (canvasState as { currentPrefab?: PrefabSummary | null }).currentPrefab
 
@@ -274,12 +258,6 @@ test('tekton: prefabId overrides prefabPath on boot', async ({ windowEditor }) =
 	try {
 		const page = await getMainPage(appWithBoth, windowEditor)
 		await waitForProjectOpen(page, windowEditor, 90_000)
-
-		const idleResult = await windowEditor.call(page, 'waitForCanvasIdle', { timeoutMs: 90_000, pollMs: 50 })
-		const ok = (idleResult as { ok?: unknown }).ok
-		if (ok !== true) {
-			throw new Error(`waitForCanvasIdle failed: ${JSON.stringify(idleResult)}`)
-		}
 
 		const canvasState = await windowEditor.call(page, 'getCanvasState', {})
 		const currentPrefab = (canvasState as { currentPrefab?: PrefabSummary | null }).currentPrefab

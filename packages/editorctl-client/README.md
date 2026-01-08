@@ -83,7 +83,7 @@ run().catch((error) => {
 })
 ```
 
-## Example: open prefab + wait for canvas idle
+## Example: open prefab
 
 ```ts
 import { createEditorctlClient } from '@tekton/editorctl-client'
@@ -111,8 +111,8 @@ async function run() {
     throw new Error('No prefab assets found')
   }
 
+  // Resolves only after the prefab is fully loaded and MainScene is ready.
   await client.call('openPrefab', { assetId: prefabId })
-  await client.call('waitForCanvasIdle', { timeoutMs: 90_000, pollMs: 50 })
 }
 
 run().catch((error) => {

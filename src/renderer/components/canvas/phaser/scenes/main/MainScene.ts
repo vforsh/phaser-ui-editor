@@ -212,6 +212,10 @@ export class MainScene extends BaseScene {
 		state.canvas.objectById = (id: string) => this.objectsFactory.getObjectById(id)?.stateObj
 		state.canvas.siblingIds = (id: string) => this.getObjectSiblingsIds(id)
 		this.history.setBaseline()
+
+		// Signal "scene is ready" for automation/control-rpc callers.
+		state.canvas.mainSceneReadyPrefabAssetId = this.initData.prefabAsset.id
+		state.canvas.mainSceneReadyAt = Date.now()
 	}
 
 	private initComponentsFactory() {

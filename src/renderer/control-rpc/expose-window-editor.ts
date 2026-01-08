@@ -54,7 +54,6 @@ export function exposeWindowEditor(appCommands: AppCommandsEmitter): void {
 		getControlMeta: (params) => handlers.getControlMeta(params ?? {}),
 		listEditors: (params) => handlers.listEditors(params ?? {}),
 		setCamera: (params) => handlers.setCamera(params ?? {}),
-		waitForCanvasIdle: (params) => handlers.waitForCanvasIdle(params ?? {}),
 		takeAppScreenshot: (params) => handlers.takeAppScreenshot(params ?? {}),
 		takeAppPartScreenshot: (params) => handlers.takeAppPartScreenshot(params),
 		takeCanvasScreenshot: (params) => handlers.takeCanvasScreenshot(params ?? {}),

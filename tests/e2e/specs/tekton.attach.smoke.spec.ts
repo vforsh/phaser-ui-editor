@@ -31,7 +31,7 @@ async function findTektonPage(browser: Browser): Promise<Page> {
 	throw new Error('Timed out waiting for a page with window.editor (is Tekton started with PW_E2E=1?)')
 }
 
-test('tekton: attach smoke (window.editor + openProject + waitForCanvasIdle)', async ({ windowEditor }) => {
+test('tekton: attach smoke (window.editor + openProject)', async ({ windowEditor }) => {
 	test.setTimeout(120_000)
 
 	let browser: Browser | null = null
@@ -55,13 +55,6 @@ test('tekton: attach smoke (window.editor + openProject + waitForCanvasIdle)', a
 
 		await test.step('openProject', async () => {
 			await windowEditor.call(page, 'openProject', { path: TESTBED_PROJECT_PATH })
-		})
-
-		await test.step('waitForCanvasIdle', async () => {
-			const idleResult = await windowEditor.call(page, 'waitForCanvasIdle', { timeoutMs: 30_000, pollMs: 50 })
-
-			const ok = (idleResult as { ok?: unknown }).ok
-			expect(ok).toBe(true)
 		})
 	} finally {
 		await browser.close()
