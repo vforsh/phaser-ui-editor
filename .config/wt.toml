@@ -11,6 +11,9 @@ editor-control-ws-port = "npx tsx ./scripts/worktree/ensure-editor-control-ws-po
 # Install root dependencies for the worktree.
 install = "npx tsx ./scripts/worktree/install-deps.ts"
 
+# Build workspace packages (contracts/clients/cli).
+build-packages = "npm run build:packages"
+
 [pre-merge]
 typecheck = "npm run typecheck"
 lint = "npm run lint:fix"
