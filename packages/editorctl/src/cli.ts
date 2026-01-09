@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { createEditorctlClient } from '@tekton/editorctl-client'
+import { createClient } from '@tekton/editorctl-client'
 import { Command } from 'commander'
 import process from 'node:process'
 
@@ -24,7 +24,7 @@ program
 
 const getClient = () => {
 	const options = program.opts()
-	return createEditorctlClient({ port: options.port })
+	return createClient({ port: options.port })
 }
 
 registerCallCommand(program, getClient)

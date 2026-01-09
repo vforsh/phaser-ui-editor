@@ -9,7 +9,7 @@ import { RpcClient } from './rpc/client'
 import { WsTransport } from './transport/ws'
 
 /**
- * Connection options for {@link createEditorctlClient}.
+ * Connection options for {@link createClient}.
  */
 export interface EditorctlClientOptions {
 	/**
@@ -26,6 +26,11 @@ export interface EditorctlClientOptions {
 	 * @defaultValue 100
 	 */
 	retryDelay?: number
+	/**
+	 * Timeout (in milliseconds) to wait for a single request/call roundtrip.
+	 * @defaultValue 30000
+	 */
+	timeoutMs?: number
 }
 
 /**
@@ -92,6 +97,7 @@ class EditorctlClientImpl implements EditorctlClientBase {
 			port: options.port,
 			maxAttempts: options.maxAttempts,
 			retryDelay: options.retryDelay,
+			timeoutMs: options.timeoutMs,
 		})
 		this.rpc = new RpcClient(transport)
 	}
@@ -128,6 +134,14 @@ class EditorctlClientImpl implements EditorctlClientBase {
 
 const reservedMethodNames = new Set(['call', 'methods', 'schema'])
 
+/**
+ * Attaches control RPC methods from the contract directly to the client instance.
+ *
+ * This provides a deterministic set of methods based on the build-time contract,
+ * supporting IDE autocompletion and direct property access.
+ *
+ * @param client - The client instance to attach methods to.
+ */
 function attachControlMethods(client: EditorctlClientBase): void {
 	for (const method of Object.keys(controlContract).sort()) {
 		if (reservedMethodNames.has(method) || method in client) {
@@ -143,6 +157,16 @@ function attachControlMethods(client: EditorctlClientBase): void {
 	}
 }
 
+/**
+ * Wraps the client in a Proxy to provide dynamic access to control RPC methods.
+ *
+ * This serves as a fallback for forward-compatibility, allowing the client to
+ * call new methods added to the editor even if they aren't yet in the build-time contract.
+ * Functions are memoized per method name to maintain stable references.
+ *
+ * @param client - The base client instance to wrap.
+ * @returns A proxied client instance with dynamic method support.
+ */
 function createControlMethodsProxy(client: EditorctlClientBase): EditorctlClient {
 	const cachedMethods = new Map<string, (input?: ControlInput<ControlMethod>) => Promise<ControlOutput<ControlMethod>>>()
 	const proxyTarget = client as EditorctlClient
@@ -187,19 +211,19 @@ function createControlMethodsProxy(client: EditorctlClientBase): EditorctlClient
  *
  * @example
  * ```ts
- * import { createEditorctlClient, discoverEditors } from '@tekton/editorctl-client'
+ * import { createClient, discoverEditors } from '@tekton/editorctl-client'
  *
  * const [editor] = await discoverEditors()
  *
  * // Pass editor directly:
- * const client = createEditorctlClient(editor)
+ * const client = createClient(editor)
  *
  * // Or pass options:
- * const client = createEditorctlClient({ port: editor.wsPort })
+ * const client = createClient({ port: editor.wsPort })
  * ```
  */
-export function createEditorctlClient(options: EditorctlClientOptions | DiscoveredEditor): EditorctlClient {
-	const normalizedOptions: EditorctlClientOptions = 'wsPort' in options ? { port: options.wsPort } : options
+export function createClient(options: EditorctlClientOptions | DiscoveredEditor): EditorctlClient {
+	const normalizedOptions: EditorctlClientOptions = 'wsPort' in options ? { ...options, port: options.wsPort } : options
 	const client = new EditorctlClientImpl(normalizedOptions)
 	attachControlMethods(client)
 	return createControlMethodsProxy(client)

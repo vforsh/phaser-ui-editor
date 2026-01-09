@@ -1,4 +1,4 @@
-import { createEditorctlClient, discoverEditors } from '@tekton/editorctl-client'
+import { createClient, discoverEditors } from '@tekton/editorctl-client'
 import process from 'node:process'
 
 async function run() {
@@ -15,8 +15,8 @@ async function run() {
 	process.stdout.write(`discover: ${editors.length} editor(s)\n`)
 	process.stdout.write(`picked: ${editor.wsUrl} (pid ${editor.pid})\n`)
 
-	const client = createEditorctlClient({ port: editor.wsPort })
-	const ping = await client.call('ping', {})
+	const client = createClient({ port: editor.wsPort })
+	const ping = await client.ping()
 	process.stdout.write(`ping: ok instanceId=${ping.instanceId} project=${ping.projectPath ?? 'null'}\n`)
 }
 

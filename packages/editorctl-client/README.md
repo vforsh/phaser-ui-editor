@@ -5,14 +5,14 @@ Typed Node/Bun client for Tekton Editor control RPC.
 ## Usage
 
 ```ts
-import { createEditorctlClient, discoverEditors } from '@tekton/editorctl-client'
+import { createClient, discoverEditors } from '@tekton/editorctl-client'
 
 const [editor] = await discoverEditors()
 if (!editor) {
   throw new Error('No running editors found')
 }
 
-const client = createEditorctlClient({ port: editor.wsPort })
+const client = createClient({ port: editor.wsPort })
 
 // Call generated convenience methods directly.
 await client.openProject({ path: '/Users/vlad/dev/papa-cherry-2' })
@@ -20,88 +20,6 @@ await client.ping()
 
 const meta = await client.methods()
 const schema = await client.schema('openProject')
-```
-
-## Generated control methods
-
-Control RPC methods are generated from `@tekton/control-rpc-contract` and exposed directly on the client instance. Prefer these when you want typed calls with rich JSDoc, while keeping the lower-level `call()` available for dynamic use cases.
-
-```ts
-await client.openProject({ path: '/Users/vlad/dev/papa-cherry-2' })
-await client.ping()
-```
-
-Generated sources live under `src/__generated__` and are intentionally uncommitted. Build/typecheck runs codegen automatically.
-
-## Dev smoke script
-
-Run the generated-method smoke script from the repo root:
-
-```bash
-npx tsx scripts/editorctl-client-generated-methods-smoke.ts
-```
-
-## One-shot call (no client)
-
-Use `withEditorPort()` or `withEditor()` when you want to perform a single RPC request without creating a long-lived client object.
-
-```ts
-import { withEditor, withEditorPort, discoverEditors } from '@tekton/editorctl-client'
-
-// Option A: Use a discovered editor instance.
-const [editor] = await discoverEditors()
-if (editor) {
-  await withEditor(editor).call('openProject', { path: '/Users/vlad/dev/papa-cherry-2' })
-}
-
-// Option B: Use a known port directly.
-await withEditorPort(17870).call('ping', {})
-
-// Optional: override the default 30s per-request timeout.
-await withEditorPort(17870, { timeoutMs: 5_000 }).call('ping', {})
-```
-
-## Example: open project + inspect methods
-
-```ts
-import { createEditorctlClient, discoverEditors } from '@tekton/editorctl-client'
-
-async function run() {
-  // Discover running editors and pick one.
-  const editors = await discoverEditors()
-  const editor = editors[0]
-  if (!editor) {
-    throw new Error('No running editors found')
-  }
-
-  const client = createEditorctlClient({ port: editor.wsPort })
-
-  // Open a project (adjust to your path).
-  await client.call('openProject', { path: '/Users/vlad/dev/papa-cherry-2' })
-
-  // Discover RPC surface at runtime.
-  const meta = await client.methods()
-  const methodsByGroup = new Map<string, string[]>()
-  for (const entry of meta.methods) {
-    const list = methodsByGroup.get(entry.group) ?? []
-    list.push(entry.method)
-    methodsByGroup.set(entry.group, list)
-  }
-
-  // Print a quick grouped overview.
-  for (const [group, methods] of methodsByGroup) {
-    console.log(`${group}: ${methods.join(', ')}`)
-  }
-
-  // Inspect a schema to build input dynamically.
-  const { inputSchema } = await client.schema('openProject')
-  console.log('openProject input schema:', inputSchema)
-}
-
-run().catch((error) => {
-  console.error(error)
-  process.exitCode = 1
-})
 ```
 
 ## Example: discover editors + pick by launch dir
@@ -132,22 +50,21 @@ run().catch((error) => {
 ## Example: open prefab
 
 ```ts
-import { createEditorctlClient } from '@tekton/editorctl-client'
+import { createClient } from '@tekton/editorctl-client'
 
 async function run() {
-  const client = createEditorctlClient({ port: 17870 })
+  const client = createClient({ port: 17870 })
 
-  await client.call('openProject', { path: '/Users/vlad/dev/papa-cherry-2' })
+  await client.openProject({ path: '/Users/vlad/dev/papa-cherry-2' })
 
-  const assets = await client.call('listAssetsOfType', { type: 'prefab' })
-  const prefabId = assets[0]?.id
-
+  const prefabs = await client.listAssetsOfType({ type: 'prefab' })
+  const prefabId = prefabs[0]?.id
   if (!prefabId) {
     throw new Error('No prefab assets found')
   }
 
   // Resolves only after the prefab is fully loaded and MainScene is ready.
-  await client.call('openPrefab', { assetId: prefabId })
+  await client.openPrefab({ assetId: prefabId })
 }
 
 run().catch((error) => {
@@ -159,12 +76,12 @@ run().catch((error) => {
 ## Example: take a screenshot
 
 ```ts
-import { createEditorctlClient } from '@tekton/editorctl-client'
+import { createClient } from '@tekton/editorctl-client'
 
 async function run() {
-  const client = createEditorctlClient({ port: 17870 })
+  const client = createClient({ port: 17870 })
 
-  const result = await client.call('takeAppScreenshot', { format: 'png' })
+  const result = await client.takeAppScreenshot({ format: 'png' })
   console.log(`saved screenshot: ${result.path}`)
 }
 
@@ -187,7 +104,7 @@ Use the provided type guards and error utilities for robust error handling:
 import { isRpcError, isTransportError, getErrorLog } from '@tekton/editorctl-client'
 
 try {
-  await client.call('openProject', { path: '/invalid' })
+  await client.openProject({ path: '/invalid' })
 } catch (err) {
   if (isTransportError(err)) {
     console.error('Network failure:', err.message)
@@ -199,3 +116,14 @@ try {
   }
 }
 ```
+
+## Generated control methods
+
+Control RPC methods are generated from `@tekton/control-rpc-contract` and exposed directly on the client instance. Prefer these when you want typed calls with rich JSDoc, while keeping the lower-level `call()` available for dynamic use cases.
+
+```ts
+await client.openProject({ path: '/Users/vlad/dev/papa-cherry-2' })
+await client.ping()
+```
+
+Generated sources live under `src/__generated__` and are intentionally uncommitted. Build/typecheck runs codegen automatically.

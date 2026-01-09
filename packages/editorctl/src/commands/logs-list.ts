@@ -1,6 +1,6 @@
 import type { Command } from 'commander'
 
-import { createEditorctlClient } from '@tekton/editorctl-client'
+import { createClient } from '@tekton/editorctl-client'
 import { stat } from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
@@ -107,8 +107,8 @@ function getPortOption(program: Command): number | undefined {
 }
 
 async function resolveEditorByPort(port: number): Promise<{ appLaunchDir: string }> {
-	const client = createEditorctlClient({ port })
-	const record = await client.call('ping', {})
+	const client = createClient({ port })
+	const record = await client.ping()
 	if (!record.appLaunchDir) {
 		throw createValidationError('Ping response is missing appLaunchDir.', { port, instanceId: record.instanceId })
 	}

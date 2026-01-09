@@ -1,4 +1,4 @@
-import { createEditorctlClient, discoverEditors } from '@tekton/editorctl-client'
+import { createClient, discoverEditors } from '@tekton/editorctl-client'
 import process from 'node:process'
 
 const port = Number.parseInt(process.env.EDITOR_CONTROL_WS_PORT ?? '17870', 10)
@@ -15,7 +15,7 @@ async function run() {
 		throw new Error(`No running editor found on port ${port}`)
 	}
 
-	const client = createEditorctlClient({ port: selected.wsPort })
+	const client = createClient({ port: selected.wsPort })
 
 	const meta = await client.methods()
 	process.stdout.write(`methods: ${meta.methods.length}\n`)
@@ -24,7 +24,7 @@ async function run() {
 	process.stdout.write(`schema openProject: ${schema.inputSchema ? 'ok' : 'missing'}\n`)
 
 	if (projectPath) {
-		await client.call('openProject', { path: projectPath })
+		await client.openProject({ path: projectPath })
 		process.stdout.write('openProject: ok\n')
 	}
 }
