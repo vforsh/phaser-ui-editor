@@ -198,7 +198,7 @@ export class MainScene extends BaseScene {
 
 		const isDefaultCameraSettings = cameraState.zoom === 1 && cameraState.scrollX === 0 && cameraState.scrollY === 0
 		if (isDefaultCameraSettings) {
-			this.cameraService.alignToContextFrame()
+			this.cameraService.focusOnContextFrame()
 		}
 
 		this.setupAppCommands()
@@ -393,7 +393,7 @@ export class MainScene extends BaseScene {
 		appCommands.on('reset-image-original-size', (data) => this.ops.resetImageOriginalSize(data), this, false, signal)
 		appCommands.on('adjust-container-to-children-bounds', (data) => this.ops.adjustContainerToChildrenBounds(data), this, false, signal)
 		appCommands.on('set-camera', (params) => this.cameraService.setCamera(params), this, false, signal)
-		appCommands.on('focus-on-object', (id) => this.cameraService.focusOnObject(id), this, false, signal)
+		appCommands.on('focus-on-object', (payload) => this.cameraService.focusOnObjectById(payload), this, false, signal)
 
 		appCommands.on('handle-asset-drop', (data) => this.ops.handleAssetDrop(data), this, false, signal)
 

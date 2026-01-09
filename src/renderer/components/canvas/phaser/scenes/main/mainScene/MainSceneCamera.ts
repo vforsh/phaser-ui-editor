@@ -8,6 +8,20 @@ export type CameraParams = {
 	scrollY?: number
 }
 
+type FocusTarget =
+	| { getBounds(): Phaser.Geom.Rectangle }
+	| { bounds: Phaser.Geom.Rectangle; centerX: number; centerY: number; width: number; height: number }
+
+export type FocusOnOptions = {
+	zoom?: number
+	paddingPct?: number
+	animate?: boolean
+	durationMs?: number
+	maxZoom?: number
+	minZoom?: number
+	avoidNoopZoom?: boolean
+}
+
 export class MainSceneCamera {
 	constructor(private deps: MainSceneDeps) {}
 
@@ -61,67 +75,116 @@ export class MainSceneCamera {
 		camera.scrollY -= pointerPosAfterZoom.y - pointerPosBeforeZoom.y
 	}
 
-	public focusOnObject(objId: string): void {
-		const obj = this.deps.objectsFactory.getObjectById(objId)
-		if (!obj) {
+	/**
+	 * Focuses the camera on the provided target bounds with optional zoom and padding.
+	 *
+	 * Note: context-frame focus uses a custom path in {@link focusOnContextFrame} because
+	 * `EditContextFrame.getBounds()` can return zero-size bounds.
+	 */
+	public focusOn(target: FocusTarget, options: FocusOnOptions = {}): void {
+		const camera = this.deps.scene.cameras.main
+		const bounds = this.getBoundsFromTarget(target)
+		if (!bounds) {
+			this.deps.logger.warn('focusOn: target has invalid bounds')
+			return
+		}
+
+		const paddingPct = this.normalizePadding(options.paddingPct)
+		const targetZoom = this.resolveTargetZoom(camera, bounds, paddingPct, options)
+		const targetScrollX = bounds.centerX - camera.width / 2
+		const targetScrollY = bounds.centerY - camera.height / 2
+
+		if (options.animate) {
+			this.deps.scene.tweens.add({
+				targets: camera,
+				zoom: targetZoom,
+				scrollX: targetScrollX,
+				scrollY: targetScrollY,
+				duration: options.durationMs ?? 100,
+				ease: Phaser.Math.Easing.Cubic.Out,
+				onUpdate: () => {
+					this.onResizeOrCameraChange()
+				},
+			})
+			return
+		}
+
+		camera.zoom = targetZoom
+		camera.scrollX = targetScrollX
+		camera.scrollY = targetScrollY
+		this.onResizeOrCameraChange()
+	}
+
+	public focusOnContextFrame(options: FocusOnOptions = {}): void {
+		const contextFrame = (this.deps as Partial<MainSceneDeps>).contextFrame
+		if (!contextFrame) {
+			this.deps.logger.warn('focusOnContextFrame: contextFrame is not ready yet')
 			return
 		}
 
 		const camera = this.deps.scene.cameras.main
-		const bounds = obj.getBounds()
-
-		const targetX = bounds.centerX
-		const targetY = bounds.centerY
-
-		let targetZoom = camera.zoom
-		if (bounds.width > 0 && bounds.height > 0) {
-			const padding = 0.2 // 20% padding
-			const availableWidth = camera.width * (1 - padding)
-			const availableHeight = camera.height * (1 - padding)
-			targetZoom = Math.min(availableWidth / bounds.width, availableHeight / bounds.height)
-			targetZoom = Math.min(targetZoom, 2) // Don't zoom in too much
+		const { width, height } = contextFrame.aabbSize
+		if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+			this.deps.logger.warn('focusOnContextFrame: contextFrame size invalid')
+			return
 		}
 
-		this.deps.scene.tweens.add({
-			targets: camera,
-			zoom: targetZoom,
-			scrollX: targetX - camera.width / 2,
-			scrollY: targetY - camera.height / 2,
-			duration: 100,
-			ease: Phaser.Math.Easing.Cubic.Out,
-			onUpdate: () => {
-				this.onResizeOrCameraChange()
-			},
+		const pos = contextFrame.getWorldPosition()
+		const bounds = new Phaser.Geom.Rectangle(pos.x - width / 2, pos.y - height / 2, width, height)
+
+		const paddingPct = this.normalizePadding(options.paddingPct)
+		let targetZoom = options.zoom
+		if (targetZoom == null) {
+			const fitZoom = this.computeFitZoom(camera, bounds, paddingPct)
+			if (fitZoom != null) {
+				targetZoom = this.avoidNoopZoom(fitZoom, camera.zoom)
+			}
+		}
+
+		this.focusOn(contextFrame, { ...options, zoom: targetZoom, paddingPct, avoidNoopZoom: true })
+	}
+
+	public focusOnObjectById(params: { id: string; zoom?: number; paddingPct?: number }): void {
+		const obj = this.deps.objectsFactory.getObjectById(params.id)
+		if (!obj) {
+			this.deps.logger.warn(`focusOnObjectById: object not found (${params.id})`)
+			return
+		}
+
+		this.focusOn(obj, {
+			zoom: params.zoom,
+			paddingPct: params.paddingPct,
+			animate: true,
+			durationMs: 100,
+			maxZoom: 2,
+			avoidNoopZoom: true,
 		})
 	}
 
-	public alignToContextFrame(): void {
-		const camera = this.deps.scene.cameras.main
-		const contextFrame = (this.deps as Partial<MainSceneDeps>).contextFrame
-		if (!contextFrame) {
-			this.deps.logger.warn('alignToContextFrame: contextFrame is not ready yet')
+	public focusOnSelectionOrContextFrame(): void {
+		const selection = this.deps.editContexts.current?.selection
+		if (!selection || selection.isEmpty) {
+			this.focusOnContextFrame()
 			return
 		}
 
-		const contextSize = contextFrame.aabbSize
+		selection.updateBounds()
 
-		// center camera to (0, 0)
-		camera.scrollX = -camera.width / 2
-		camera.scrollY = -camera.height / 2
-
-		const zoomPaddingX = camera.width * 0.1
-		const zoomPaddingY = camera.height * 0.1
-
-		const currentZoom = camera.zoom
-		let newZoom = Math.min(camera.width / (contextSize.width + zoomPaddingX), camera.height / (contextSize.height + zoomPaddingY))
-
-		if (Phaser.Math.Fuzzy.Equal(newZoom, currentZoom)) {
-			newZoom /= 2
+		if (selection.count === 1) {
+			const obj = selection.objects[0]
+			this.focusOn(obj, { animate: true, durationMs: 100, maxZoom: 2, avoidNoopZoom: true })
+			return
 		}
 
-		camera.zoom = newZoom
+		this.focusOn(selection, { animate: true, durationMs: 100, maxZoom: 2, avoidNoopZoom: true })
+	}
 
-		this.onResizeOrCameraChange()
+	public focusOnObject(objId: string): void {
+		this.focusOnObjectById({ id: objId })
+	}
+
+	public alignToContextFrame(): void {
+		this.focusOnContextFrame()
 	}
 
 	public onResizeOrCameraChange(gameSize?: Phaser.Structs.Size): void {
@@ -134,5 +197,99 @@ export class MainSceneCamera {
 		state.canvas.camera.zoom = camera.zoom
 		state.canvas.camera.scrollX = camera.scrollX
 		state.canvas.camera.scrollY = camera.scrollY
+	}
+
+	private getBoundsFromTarget(target: FocusTarget): Phaser.Geom.Rectangle | null {
+		if ('getBounds' in target && typeof target.getBounds === 'function') {
+			const bounds = target.getBounds()
+			return this.isValidBounds(bounds) ? bounds : null
+		}
+
+		if ('bounds' in target) {
+			const bounds = target.bounds
+			return this.isValidBounds(bounds) ? bounds : null
+		}
+
+		return null
+	}
+
+	private isValidBounds(bounds: Phaser.Geom.Rectangle | null | undefined): boolean {
+		return Boolean(
+			bounds &&
+			Number.isFinite(bounds.width) &&
+			Number.isFinite(bounds.height) &&
+			Number.isFinite(bounds.centerX) &&
+			Number.isFinite(bounds.centerY),
+		)
+	}
+
+	private normalizePadding(paddingPct?: number): number {
+		if (paddingPct == null) {
+			return 0.1
+		}
+
+		if (!Number.isFinite(paddingPct)) {
+			this.deps.logger.warn('focusOn: paddingPct is not finite, using default')
+			return 0.1
+		}
+
+		return Phaser.Math.Clamp(paddingPct, 0, 0.9)
+	}
+
+	private resolveTargetZoom(
+		camera: Phaser.Cameras.Scene2D.Camera,
+		bounds: Phaser.Geom.Rectangle,
+		paddingPct: number,
+		options: FocusOnOptions,
+	): number {
+		if (options.zoom != null) {
+			return options.zoom
+		}
+
+		const fitZoom = this.computeFitZoom(camera, bounds, paddingPct)
+		if (fitZoom == null) {
+			return camera.zoom
+		}
+
+		const clampedZoom = this.clampZoom(fitZoom, options.minZoom, options.maxZoom)
+		if (options.avoidNoopZoom) {
+			return this.avoidNoopZoom(clampedZoom, camera.zoom)
+		}
+
+		return clampedZoom
+	}
+
+	private computeFitZoom(camera: Phaser.Cameras.Scene2D.Camera, bounds: Phaser.Geom.Rectangle, paddingPct: number): number | null {
+		if (bounds.width <= 0 || bounds.height <= 0) {
+			return null
+		}
+
+		const availableWidth = camera.width * (1 - paddingPct * 2)
+		const availableHeight = camera.height * (1 - paddingPct * 2)
+
+		if (availableWidth <= 0 || availableHeight <= 0) {
+			return null
+		}
+
+		return Math.min(availableWidth / bounds.width, availableHeight / bounds.height)
+	}
+
+	private clampZoom(zoom: number, minZoom?: number, maxZoom?: number): number {
+		let nextZoom = zoom
+		if (minZoom != null) {
+			nextZoom = Math.max(minZoom, nextZoom)
+		}
+		if (maxZoom != null) {
+			nextZoom = Math.min(maxZoom, nextZoom)
+		}
+		return nextZoom
+	}
+
+	private avoidNoopZoom(nextZoom: number, currentZoom: number): number {
+		if (Phaser.Math.Fuzzy.Equal(nextZoom, currentZoom)) {
+			return currentZoom / 2
+		}
+
+		return nextZoom
 	}
 }

@@ -31,7 +31,7 @@ export class MainSceneKeyboardInput {
 		this.registerKeyDown('A', (e) => this.onKeyDownSelectAll(e), signal)
 
 		this.registerKeyDown('R', () => this.deps.restart(), signal)
-		this.registerKeyDown('F', () => this.deps.cameraService.alignToContextFrame(), signal)
+		this.registerKeyDown('F', () => this.deps.cameraService.focusOnSelectionOrContextFrame(), signal)
 
 		this.registerKeyDown('DELETE', () => this.deps.ops.removeSelection(), signal)
 		this.registerKeyDown('BACKSPACE', () => this.deps.ops.removeSelection(), signal)

@@ -455,7 +455,7 @@ export default function HierarchyItem({
 				}}
 				onClick={handleClick}
 				onDoubleClick={() => {
-					appCommands.emit('focus-on-object', objId)
+					appCommands.emit('focus-on-object', { id: objId })
 				}}
 				className={clsx(styles.itemContainer, {
 					[styles.itemSelected]: isSelectedInCanvas,

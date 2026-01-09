@@ -167,6 +167,20 @@ Example (`editorctl`):
 npm run editorctl -- --port <wsPort> call takeAppPartScreenshot '{"selector":"[data-testid=\\"hierarchy-panel\\"]","format":"png"}'
 ```
 
+## Camera commands (misc group)
+
+- `setCamera`: update camera zoom and/or scroll position.
+- `focusOnObject`: focus the camera on a scene object by id (optional zoom or padding override).
+
+Examples (`editorctl`):
+
+```bash
+npm run editorctl -- --port <wsPort> call setCamera '{"zoom":1.5,"scrollX":100,"scrollY":50}'
+npm run editorctl -- --port <wsPort> call focusOnObject '{"id":"<objectId>","zoom":2}'
+```
+
+If `zoom` is omitted, `focusOnObject` uses a fit-to-bounds zoom with 10% padding (default).
+
 ## Modal commands (misc group)
 
 These commands control **global** renderer modals. Only one modal can be open at a time; opening a modal closes any previously open modal.

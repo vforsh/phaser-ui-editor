@@ -14,6 +14,7 @@ import { createPrefabAsset } from './handlers/createPrefabAsset'
 import { createPrefabInstance } from './handlers/createPrefabInstance'
 import { deleteObjects } from './handlers/deleteObjects'
 import { duplicateObject } from './handlers/duplicateObject'
+import { focusOnObject } from './handlers/focusOnObject'
 import { getAssetInfo } from './handlers/getAssetInfo'
 import { getCanvasMetrics } from './handlers/getCanvasMetrics'
 import { getCanvasState } from './handlers/getCanvasState'
@@ -79,6 +80,7 @@ export class EditorControlService {
 			createGraphicsAt: createGraphicsAt(this.ctx),
 			createGraphicsObject: createGraphicsObject(this.ctx),
 			duplicateObject: duplicateObject(this.ctx),
+			focusOnObject: focusOnObject(this.ctx),
 			moveObjectInHierarchy: moveObjectInHierarchy(this.ctx),
 			renameObject: renameObject(this.ctx),
 			patchObject: patchObject(this.ctx),

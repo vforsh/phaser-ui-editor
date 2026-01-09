@@ -66,7 +66,7 @@ export type AppCommands = {
 
 	// camera
 	'set-camera': (payload: CameraParams) => void
-	'focus-on-object': (id: string) => void
+	'focus-on-object': (payload: { id: string; zoom?: number; paddingPct?: number }) => void
 
 	// history
 	'undo': () => void

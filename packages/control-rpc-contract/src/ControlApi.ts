@@ -40,6 +40,7 @@ import { createPrefabAssetCommand } from './commands/createPrefabAsset.js'
 import { createPrefabInstanceCommand } from './commands/createPrefabInstance.js'
 import { deleteObjectsCommand } from './commands/deleteObjects.js'
 import { duplicateObjectCommand } from './commands/duplicateObject.js'
+import { focusOnObjectCommand } from './commands/focusOnObject.js'
 import { getAssetInfoCommand } from './commands/getAssetInfo.js'
 import { getCanvasMetricsCommand } from './commands/getCanvasMetrics.js'
 import { getCanvasStateCommand } from './commands/getCanvasState.js'
@@ -90,6 +91,7 @@ export const controlContract = {
 	createGraphicsAt: createGraphicsAtCommand,
 	createGraphicsObject: createGraphicsObjectCommand,
 	duplicateObject: duplicateObjectCommand,
+	focusOnObject: focusOnObjectCommand,
 	moveObjectInHierarchy: moveObjectInHierarchyCommand,
 	renameObject: renameObjectCommand,
 	patchObject: patchObjectCommand,
