@@ -220,13 +220,14 @@ export const assetNodeSchema: z.ZodType<AssetNode> = z.lazy(() => {
 		.describe('Union of all possible asset node types')
 })
 
-export const listAssetsCommand = {
+export const listAssetsTreeCommand = {
 	group: 'assets',
 	kind: 'read',
-	description: 'Lists all assets in the project, optionally filtered by type.',
+	description: 'Lists assets in the project as a tree, optionally filtered by type or starting from a subtree.',
 	input: z
 		.object({
 			types: z.array(assetTypeSchema).optional().describe('Optional list of asset types to include'),
+			path: z.string().min(1).optional().describe('Optional project-relative path to start listing from'),
 		})
 		.strict()
 		.describe('Input parameters for listing assets'),

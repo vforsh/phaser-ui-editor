@@ -148,9 +148,9 @@ All callers (main WS router, renderer bridge, `EditorControlService`, and `edito
 
 **Note:** `listHierarchy` returns a **tree** (`HierarchyNode` with `children?`). `editorctl` prints the raw tree as JSON (there is no human-readable table output anymore).
 
-**Note:** `listAssets` returns the **asset tree** (`AssetNode[]`). It supports optional filtering by type:
+**Note:** `listAssetsTree` returns the **asset tree** (`AssetNode[]`). It supports optional filtering by type or subtree path:
 
-- Request: `{"method":"listAssets","params":{"types":["prefab","folder"]}}`
+- Request: `{"method":"listAssetsTree","params":{"types":["prefab","folder"]}}`
 - Response: `{ assets: [...] }` (a pruned tree: nodes are kept if they match the filter or contain matching descendants)
 
 **Note:** `listAssetsOfType` returns a **flat array** of all matching nodes:
@@ -161,10 +161,11 @@ All callers (main WS router, renderer bridge, `EditorControlService`, and `edito
 Example (`editorctl`):
 
 ```bash
+npm run editorctl -- --port <wsPort> call listAssetsTree '{"types":["prefab"]}'
 npm run editorctl -- --port <wsPort> call listAssetsOfType '{"type":"prefab"}'
 ```
 
-Paths returned by `listAssets` and `listAssetsOfType` are **project-relative** (relative to `projectDir`). For spritesheet frames/folders, `path` is a **virtual hierarchy path** used for display.
+Paths returned by `listAssetsTree` and `listAssetsOfType` are **project-relative** (relative to `projectDir`). For spritesheet frames/folders, `path` is a **virtual hierarchy path** used for display.
 
 ## Screenshot commands (debug group)
 

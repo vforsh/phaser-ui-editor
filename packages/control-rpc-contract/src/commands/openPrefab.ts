@@ -17,7 +17,7 @@ export const openPrefabCommand = {
 				.strict(),
 			z
 				.object({
-					path: z.string().min(1).describe('Project-relative path to the prefab file (as returned by listAssets)'),
+					path: z.string().min(1).describe('Project-relative path to the prefab file (as returned by listAssetsTree)'),
 				})
 				.strict(),
 		])

@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import type { CommandDefinition } from '../ControlApi.js'
 
-import { assetNodeSchema, assetTypeSchema } from './listAssets.js'
+import { assetNodeSchema, assetTypeSchema } from './listAssetsTree.js'
 
 export const listAssetsOfTypeCommand = {
 	group: 'assets',

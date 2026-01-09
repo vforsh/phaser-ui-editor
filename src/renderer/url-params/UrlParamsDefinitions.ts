@@ -54,7 +54,7 @@ export const URL_PARAMS = [
 	{
 		name: 'prefabPath',
 		description:
-			'Project-relative prefab path to auto-open on boot (requires `projectPath`). Use the path returned by `window.editor.listAssets()`. `prefabId` takes precedence when both are set.',
+			'Project-relative prefab path to auto-open on boot (requires `projectPath`). Use the path returned by `window.editor.listAssetsTree()`. `prefabId` takes precedence when both are set.',
 		group: 'project',
 	},
 	{

@@ -25,8 +25,8 @@ import { getPrefabContent } from './handlers/getPrefabContent'
 import { getPrefabDocument } from './handlers/getPrefabDocument'
 import { getProjectInfo } from './handlers/getProjectInfo'
 import { getSelectedAssets } from './handlers/getSelectedAssets'
-import { listAssets } from './handlers/listAssets'
 import { listAssetsOfType } from './handlers/listAssetsOfType'
+import { listAssetsTree } from './handlers/listAssetsTree'
 import { listHierarchy } from './handlers/listHierarchy'
 import { listModals } from './handlers/listModals'
 import { moveObjectInHierarchy } from './handlers/moveObjectInHierarchy'
@@ -72,7 +72,7 @@ export class EditorControlService {
 			getProjectInfo: getProjectInfo(this.ctx),
 			openPrefab: openPrefab(this.ctx),
 			listHierarchy: listHierarchy(this.ctx),
-			listAssets: listAssets(this.ctx),
+			listAssetsTree: listAssetsTree(this.ctx),
 			listAssetsOfType: listAssetsOfType(this.ctx),
 			selectObject: selectObject(this.ctx),
 			switchToContext: switchToContext(this.ctx),

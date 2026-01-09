@@ -53,7 +53,7 @@ npm run editorctl -- --port <wsPort> call getControlMeta '{}'
 - **Find and open the repro prefab** (paths are project-relative):
 
 ```bash
-npm run editorctl -- --port <wsPort> call listAssets '{"types":["prefab"]}'
+npm run editorctl -- --port <wsPort> call listAssetsTree '{"types":["prefab"]}'
 ```
 
 ```bash

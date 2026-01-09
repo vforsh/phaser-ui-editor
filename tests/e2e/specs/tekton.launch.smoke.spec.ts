@@ -93,7 +93,7 @@ test('tekton: launch smoke (window.editor + openProject + openPrefab)', async ({
 
 		await test.step('open first prefab (to boot the MainScene / set canvas root)', async () => {
 			const prefab = await page.evaluate(async () => {
-				const { assets } = await window.editor.listAssets({ types: ['prefab'] })
+				const { assets } = await window.editor.listAssetsTree({ types: ['prefab'] })
 
 				const findFirstPrefab = (nodes: any[]): { id: string; path: string } | null => {
 					for (const node of nodes) {
@@ -172,7 +172,7 @@ test('tekton: launch auto-open prefab via prefabPath', async ({ windowEditor }) 
 		const page = await getMainPage(app, windowEditor)
 		await waitForProjectOpen(page, windowEditor, 90_000)
 
-		const listResult = await windowEditor.call(page, 'listAssets', { types: ['prefab'] })
+		const listResult = await windowEditor.call(page, 'listAssetsTree', { types: ['prefab'] })
 		const assets = (listResult as { assets?: unknown }).assets
 		prefabs = Array.isArray(assets) ? collectPrefabs(assets) : []
 
@@ -227,7 +227,7 @@ test('tekton: prefabId overrides prefabPath on boot', async ({ windowEditor }) =
 		const page = await getMainPage(app, windowEditor)
 		await waitForProjectOpen(page, windowEditor, 90_000)
 
-		const listResult = await windowEditor.call(page, 'listAssets', { types: ['prefab'] })
+		const listResult = await windowEditor.call(page, 'listAssetsTree', { types: ['prefab'] })
 		const assets = (listResult as { assets?: unknown }).assets
 		prefabs = Array.isArray(assets) ? collectPrefabs(assets) : []
 

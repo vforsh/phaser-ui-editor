@@ -39,7 +39,7 @@ Tip: launch with project pre-opened:
 You can auto-open a prefab by adding `prefabId` or `prefabPath` alongside `projectPath`.
 
 - `prefabId` takes precedence when both are present.
-- `prefabPath` must be project-relative (same shape as `window.editor.listAssets()`).
+- `prefabPath` must be project-relative (same shape as `window.editor.listAssetsTree()`).
 
 ```ts
 import { buildRendererUrl } from '../../tests/e2e/utils/renderer-url'
@@ -73,7 +73,7 @@ Important nuance:
 
 - `openProject()` loads project state/assets, but **does not guarantee the canvas scene is booted**.
 - `openPrefab()` resolves only after the **prefab is fully loaded and initialized** in the canvas.
-    - So in launch-mode tests, do: `openProject` → `listAssets(types:['prefab'])` → `openPrefab`.
+    - So in launch-mode tests, do: `openProject` → `listAssetsTree(types:['prefab'])` → `openPrefab`.
 
 ```ts
 import { _electron as electron, type ElectronApplication, type Page } from 'playwright'
@@ -113,7 +113,7 @@ test('launch: open project + wait for prefab', async ({ windowEditor }) => {
 
 	// Boot the canvas by opening a prefab.
 	const prefab = await page.evaluate(async () => {
-		const { assets } = await window.editor.listAssets({ types: ['prefab'] })
+		const { assets } = await window.editor.listAssetsTree({ types: ['prefab'] })
 		const stack = [...assets]
 		while (stack.length) {
 			const node = stack.shift()

@@ -26,7 +26,7 @@ export type CommandDefinition<I extends z.ZodTypeAny = z.ZodTypeAny, O extends z
 
 export { controlMetaSchema, type ControlMeta, type ControlMetaMethod } from './commands/getControlMeta.js'
 export { projectConfigSchema, type ProjectConfig } from './commands/getProjectInfo.js'
-export { assetNodeSchema, assetTypeSchema, type AssetNode, type AssetType } from './commands/listAssets.js'
+export { assetNodeSchema, assetTypeSchema, type AssetNode, type AssetType } from './commands/listAssetsTree.js'
 export { hierarchyNodeSchema, type HierarchyNode } from './commands/listHierarchy.js'
 export { successSchema } from './shared-schemas.js'
 
@@ -51,8 +51,8 @@ import { getPrefabContentCommand } from './commands/getPrefabContent.js'
 import { getPrefabDocumentCommand } from './commands/getPrefabDocument.js'
 import { getProjectInfoCommand } from './commands/getProjectInfo.js'
 import { getSelectedAssetsCommand } from './commands/getSelectedAssets.js'
-import { listAssetsCommand } from './commands/listAssets.js'
 import { listAssetsOfTypeCommand } from './commands/listAssetsOfType.js'
+import { listAssetsTreeCommand } from './commands/listAssetsTree.js'
 import { listHierarchyCommand } from './commands/listHierarchy.js'
 import { listModalsCommand } from './commands/listModals.js'
 import { moveObjectInHierarchyCommand } from './commands/moveObjectInHierarchy.js'
@@ -83,7 +83,7 @@ export const controlContract = {
 	getProjectInfo: getProjectInfoCommand,
 	openPrefab: openPrefabCommand,
 	listHierarchy: listHierarchyCommand,
-	listAssets: listAssetsCommand,
+	listAssetsTree: listAssetsTreeCommand,
 	listAssetsOfType: listAssetsOfTypeCommand,
 	selectObject: selectObjectCommand,
 	switchToContext: switchToContextCommand,
