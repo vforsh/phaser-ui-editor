@@ -9,7 +9,7 @@ The user should provide:
 - A plan file reference (required):
     - Repo-relative path (recommended): `@tasks/plan.md`
     - Absolute path (also allowed): `/abs/path/to/your/repo/tasks/plan.md`
-- An optional post-create action (optional): `cursor` or `codex`
+- An optional post-create action (optional): e.g. `cursor` or `codex`
 
 Examples:
 
@@ -79,16 +79,16 @@ Do not block on a dirty working tree. If there are uncommitted changes, warn bri
 
 Always print all following commands as fenced code blocks (note triple backticks). Replace `NEW_DIR` and `PLAN_REL_PATH` with the values derived above.
 
-- Codex:
-
-```
-codex --yolo --cd NEW_DIR "execute PLAN_REL_PATH"
-```
-
 - Cursor:
 
 ```
 cursor NEW_DIR
+```
+
+- Codex:
+
+```
+codex --yolo --cd NEW_DIR "execute PLAN_REL_PATH"
 ```
 
 - Claude Code:
