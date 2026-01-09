@@ -47,30 +47,11 @@ import { getAssetItemId } from './assetItemId'
 import styles from './AssetsPanel.module.css'
 import { AssetsSearch } from './AssetsSearch'
 import AssetTreeItem from './AssetTreeItem'
+import { flattenAssets } from './assetTreeUtils'
 import { addAssetId } from './build-asset-tree'
 
 interface AssetsPanelProps {
 	logger: Logger<ILogObj>
-}
-
-// Helper function to flatten the asset tree - moved outside component for better performance
-const flattenAssets = (items: Snapshot<AssetTreeItemData>[]): Snapshot<AssetTreeItemData>[] => {
-	const result: Snapshot<AssetTreeItemData>[] = []
-
-	const traverse = (items: Snapshot<AssetTreeItemData>[]) => {
-		items.forEach((item) => {
-			result.push(item)
-
-			const children = getAssetChildren(item as AssetTreeItemData)
-			if (children) {
-				traverse(children)
-			}
-		})
-	}
-
-	traverse(items)
-
-	return result
 }
 
 /**

@@ -1,5 +1,6 @@
 import '@mantine/core/styles.css'
 import '@mantine/notifications/styles.css'
+import '@mantine/spotlight/styles.css'
 import 'mantine-contextmenu/styles.css'
 import './styles/layout.css'
 import { mainApi } from '@main-api/main-api'
@@ -13,6 +14,7 @@ import { useSnapshot } from 'valtio'
 
 import { AppCommands } from './AppCommands'
 import { AppEvents } from './AppEvents'
+import { AssetsSearchPanel } from './components/assetsPanel/AssetsSearchPanel'
 import { TypedEventEmitter } from './components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { CommandEmitter } from './components/canvas/phaser/robowhale/utils/events/CommandEmitter'
 import { ControlRpcCommandsModal } from './components/controlRpcCommands/ControlRpcCommandsModal'
@@ -235,6 +237,7 @@ function App() {
 					<AppShell>
 						<EditorLayout />
 					</AppShell>
+					<AssetsSearchPanel />
 					<SettingsModal
 						opened={modalState.active?.id === 'settings'}
 						onClose={() => modalService.close('settings')}

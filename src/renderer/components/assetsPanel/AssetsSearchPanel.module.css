@@ -1,0 +1,44 @@
+/* Override Mantine Spotlight highlight styles */
+:global(.mantine-Spotlight-actionLabel mark) {
+	color: var(--mantine-color-teal-4) !important;
+	background-color: rgba(18, 184, 134, 0.15) !important;
+	font-weight: 600 !important;
+	border-radius: 2px !important;
+	padding: 0 2px !important;
+}
+
+/* Override Mantine's blue hover - multiple approaches */
+:global(.mantine-Spotlight-action:hover),
+:global(.mantine-Spotlight-action[data-hovered]),
+:global(.mantine-Spotlight-action[data-active]),
+:global(.mantine-ActionIcon-root[data-hovered]),
+:global(button.mantine-Spotlight-action:hover),
+:global(button.mantine-Spotlight-action[data-hovered]) {
+	background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Override CSS variables that Mantine uses */
+:global(.mantine-Spotlight-action) {
+	--_action-hover-bg: rgba(255, 255, 255, 0.05) !important;
+	--_action-bg: transparent !important;
+	--mantine-primary-color-filled: rgba(255, 255, 255, 0.05) !important;
+	--mantine-color-blue-filled: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Target the specific Mantine mod classes */
+:global(.mantine-Spotlight-action[data-hovered='true']) {
+	background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+:global(.mantine-Spotlight-action.mantine-active) {
+	background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Override hover - use a lighter gray that brightens instead of dims */
+:global(.mantine-Spotlight-action:hover),
+:global(.mantine-Spotlight-action:focus),
+:global(.mantine-Spotlight-action[data-hovered]),
+:global(.mantine-Spotlight-action[data-hovered='true']) {
+	background-color: rgba(255, 255, 255, 0.08) !important;
+	isolation: isolate;
+}
