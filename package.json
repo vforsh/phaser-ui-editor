@@ -104,6 +104,8 @@
 		"zod-to-json-schema": "^3.25.1"
 	},
 	"devDependencies": {
+		"@commitlint/cli": "^20.3.1",
+		"@commitlint/config-conventional": "^20.3.1",
 		"@playwright/test": "^1.57.0",
 		"@total-typescript/ts-reset": "^0.6.1",
 		"@types/fontkit": "^2.0.7",
@@ -139,7 +141,8 @@
 		"vite-tsconfig-paths": "^6.0.3"
 	},
 	"simple-git-hooks": {
-		"pre-commit": "npx lint-staged"
+		"pre-commit": "npx lint-staged",
+		"commit-msg": "npx --no-install commitlint --edit \"$1\""
 	},
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,json,jsonc,json5,yaml,yml,html,css,scss,less,md,mdx,graphql,gql,toml}": [
