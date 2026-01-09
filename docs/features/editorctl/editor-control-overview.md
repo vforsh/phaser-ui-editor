@@ -153,7 +153,18 @@ All callers (main WS router, renderer bridge, `EditorControlService`, and `edito
 - Request: `{"method":"listAssets","params":{"types":["prefab","folder"]}}`
 - Response: `{ assets: [...] }` (a pruned tree: nodes are kept if they match the filter or contain matching descendants)
 
-Paths returned by `listAssets` are **project-relative** (relative to `projectDir`). For spritesheet frames/folders, `path` is a **virtual hierarchy path** used for display.
+**Note:** `listAssetsOfType` returns a **flat array** of all matching nodes:
+
+- Request: `{"method":"listAssetsOfType","params":{"type":"prefab"}}`
+- Response: `{ assets: [...] }` (a flat array of matching `AssetNode` objects)
+
+Example (`editorctl`):
+
+```bash
+npm run editorctl -- --port <wsPort> call listAssetsOfType '{"type":"prefab"}'
+```
+
+Paths returned by `listAssets` and `listAssetsOfType` are **project-relative** (relative to `projectDir`). For spritesheet frames/folders, `path` is a **virtual hierarchy path** used for display.
 
 ## Screenshot commands (debug group)
 

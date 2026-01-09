@@ -52,6 +52,7 @@ import { getPrefabDocumentCommand } from './commands/getPrefabDocument.js'
 import { getProjectInfoCommand } from './commands/getProjectInfo.js'
 import { getSelectedAssetsCommand } from './commands/getSelectedAssets.js'
 import { listAssetsCommand } from './commands/listAssets.js'
+import { listAssetsOfTypeCommand } from './commands/listAssetsOfType.js'
 import { listHierarchyCommand } from './commands/listHierarchy.js'
 import { listModalsCommand } from './commands/listModals.js'
 import { moveObjectInHierarchyCommand } from './commands/moveObjectInHierarchy.js'
@@ -83,6 +84,7 @@ export const controlContract = {
 	openPrefab: openPrefabCommand,
 	listHierarchy: listHierarchyCommand,
 	listAssets: listAssetsCommand,
+	listAssetsOfType: listAssetsOfTypeCommand,
 	selectObject: selectObjectCommand,
 	switchToContext: switchToContextCommand,
 	deleteObjects: deleteObjectsCommand,

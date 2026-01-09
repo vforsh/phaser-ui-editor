@@ -32,6 +32,7 @@ export function exposeWindowEditor(appCommands: AppCommandsEmitter): void {
 		openPrefab: (params) => handlers.openPrefab(params),
 		listHierarchy: (params) => handlers.listHierarchy(params ?? {}),
 		listAssets: (params) => handlers.listAssets(params ?? {}),
+		listAssetsOfType: (params) => handlers.listAssetsOfType(params),
 		selectObject: (params) => handlers.selectObject(params),
 		selectAssets: (params) => handlers.selectAssets(params),
 		getSelectedAssets: (params) => handlers.getSelectedAssets(params ?? {}),

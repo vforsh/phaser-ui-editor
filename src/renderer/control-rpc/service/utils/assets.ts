@@ -164,3 +164,21 @@ export function pruneAssetByType(asset: AssetNode, types: Set<AssetType>): Asset
 		})
 		.otherwise(() => (keepSelf ? asset : null))
 }
+
+export function collectAssetsOfType(node: AssetNode, type: AssetType, out: AssetNode[]): void {
+	if (node.type === type) {
+		out.push(node)
+	}
+
+	const children = match(node)
+		.with({ type: 'folder' }, (f) => f.children)
+		.with({ type: 'spritesheet' }, (s) => s.frames)
+		.with({ type: 'spritesheet-folder' }, (f) => f.children)
+		.otherwise(() => undefined)
+
+	if (children) {
+		for (const child of children) {
+			collectAssetsOfType(child as AssetNode, type, out)
+		}
+	}
+}
