@@ -1,6 +1,6 @@
 # /plan — Generate an implementation plan (questions-first) and save to tasks/
 
-Use this command to standardize planning into the following workflow (Cursor custom commands overview: [Cursor docs — Commands](https://cursor.com/docs/agent/chat/commands)).
+Use this command to standardize planning into the following workflow.
 
 ## Objective
 
@@ -47,7 +47,13 @@ Stop after questions. **Do not draft the plan until answers arrive.**
 
 Create a plan document in Markdown and save it in `tasks/`:
 
-- Filename: `tasks/impl-plan-<topic>.md` (kebab-case, descriptive).
+- Filename: `tasks/<kind>-<topic>.md`
+    - `<kind>`: `feature` | `refactor` | `bugfix`
+    - `<topic>`: short, kebab-case, and clearly describes what the plan is for (e.g. `camera-focus-on`, `hierarchy-dnd`, `rpc-focus-on-object`)
+    - Examples:
+        - `tasks/feature-add-grid-snap.md`
+        - `tasks/refactor-main-scene-camera-focus.md`
+        - `tasks/bugfix-hierarchy-selection-stuck.md`
 - Structure:
     - **Goal**
     - **Current state** (what exists now; key files/functions/commands)
