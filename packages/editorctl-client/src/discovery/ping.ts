@@ -7,11 +7,29 @@ import type { JsonRpcRequest, JsonRpcResponse } from '../rpc/types'
 
 import { generateId } from '../rpc/id'
 
+/**
+ * Options for pinging a running Tekton Editor instance over the control websocket.
+ */
 export type PingOptions = {
+	/**
+	 * Control websocket port to connect to (typically discovered from the registry).
+	 */
 	port: number
+	/**
+	 * Timeout (in milliseconds) to wait for a `ping` response before rejecting.
+	 */
 	timeoutMs: number
 }
 
+/**
+ * Validates that a websocket endpoint is a Tekton Editor control RPC server by calling JSON-RPC `ping`.
+ *
+ * The promise resolves with the instance record returned from the editor.
+ *
+ * @param options - Connection options (port + timeout).
+ * @returns The instance record returned by the editor.
+ * @throws If the connection fails, times out, returns an error, or fails schema validation.
+ */
 export function pingEditor(options: PingOptions): Promise<InstanceRecord> {
 	return new Promise((resolve, reject) => {
 		const requestId = generateId()

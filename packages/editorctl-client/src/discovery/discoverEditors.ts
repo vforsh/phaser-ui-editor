@@ -7,15 +7,46 @@ import { pingEditor } from './ping'
 
 export type DiscoveredEditor = InstanceRecord
 
+/**
+ * Options for discovering running Tekton Editor instances.
+ */
 export type DiscoverEditorsOptions = {
+	/**
+	 * Whether to validate discovered instances by opening a websocket connection and calling `ping`.
+	 *
+	 * When enabled, unreachable instances are removed from the registry before results are returned.
+	 *
+	 * @default true
+	 */
 	ping?: boolean
+	/**
+	 * WebSocket ping timeout (in milliseconds) used when {@link DiscoverEditorsOptions.ping} is enabled.
+	 *
+	 * @default 400
+	 */
 	pingTimeoutMs?: number
+	/**
+	 * Maximum age (in milliseconds) of registry entries. Entries older than this are treated as stale
+	 * and removed from the registry.
+	 *
+	 * @default 8000
+	 */
 	maxStaleMs?: number
 }
 
 const DEFAULT_PING_TIMEOUT_MS = 400
 const DEFAULT_MAX_STALE_MS = 8000
 
+/**
+ * Discover Tekton Editor instances registered on this machine.
+ *
+ * Reads `@tekton/control-rpc-contract`'s discovery registry directory for instance records.
+ * Stale or invalid registry files are ignored (and stale ones are deleted). When `ping` is enabled,
+ * each candidate instance is validated via a JSON-RPC `ping` call; unreachable instances are removed.
+ *
+ * @param options - Discovery options (ping, timeouts, staleness window).
+ * @returns A list of validated instance records.
+ */
 export async function discoverEditors(options: DiscoverEditorsOptions = {}): Promise<DiscoveredEditor[]> {
 	const registryDir = getRegistryDir()
 	const ping = options.ping ?? true
