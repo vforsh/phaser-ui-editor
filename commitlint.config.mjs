@@ -10,6 +10,6 @@ export default {
 			"always",
 			["build", "chore", "ci", "docs", "feat", "fix", "perf", "refactor", "style", "test"],
 		],
+		"body-max-line-length": [0],
 	},
 };
-
