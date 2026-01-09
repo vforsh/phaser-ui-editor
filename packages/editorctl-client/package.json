@@ -15,7 +15,7 @@
 		}
 	},
 	"scripts": {
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsx ./scripts/generate-control-methods.ts && tsc --noEmit"
 	},
 	"dependencies": {
 		"@tekton/control-rpc-contract": "file:../control-rpc-contract",

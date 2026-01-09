@@ -14,8 +14,31 @@ if (!editor) {
 
 const client = createEditorctlClient({ port: editor.wsPort })
 
+// Call generated convenience methods directly.
+await client.openProject({ path: '/Users/vlad/dev/papa-cherry-2' })
+await client.ping()
+
 const meta = await client.methods()
 const schema = await client.schema('openProject')
+```
+
+## Generated control methods
+
+Control RPC methods are generated from `@tekton/control-rpc-contract` and exposed directly on the client instance. Prefer these when you want typed calls with rich JSDoc, while keeping the lower-level `call()` available for dynamic use cases.
+
+```ts
+await client.openProject({ path: '/Users/vlad/dev/papa-cherry-2' })
+await client.ping()
+```
+
+Generated sources live under `src/__generated__` and are intentionally uncommitted. Build/typecheck runs codegen automatically.
+
+## Dev smoke script
+
+Run the generated-method smoke script from the repo root:
+
+```bash
+npx tsx scripts/editorctl-client-generated-methods-smoke.ts
 ```
 
 ## One-shot call (no client)

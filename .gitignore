@@ -51,6 +51,7 @@ web_modules/
 packages/**/src/**/*.js
 packages/**/src/**/*.d.ts
 packages/**/src/**/*.map
+packages/editorctl-client/src/__generated__/
 
 # Optional npm cache directory
 .npm

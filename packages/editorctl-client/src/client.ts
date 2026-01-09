@@ -1,5 +1,8 @@
 import type { ControlInput, ControlMeta, ControlMetaMethod, ControlMethod, ControlOutput } from '@tekton/control-rpc-contract'
 
+import { controlContract, isControlMethod } from '@tekton/control-rpc-contract'
+
+import type { GeneratedControlMethods } from './__generated__/control-methods'
 import type { DiscoveredEditor } from './discovery/discoverEditors'
 
 import { RpcClient } from './rpc/client'
@@ -28,7 +31,7 @@ export interface EditorctlClientOptions {
 /**
  * Typed client for the Tekton Editor control RPC.
  */
-export interface EditorctlClient {
+export interface EditorctlClientBase {
 	/**
 	 * Calls a control RPC method with the provided JSON params.
 	 *
@@ -79,7 +82,9 @@ export interface EditorctlClient {
 	}>
 }
 
-class EditorctlClientImpl implements EditorctlClient {
+export interface EditorctlClient extends EditorctlClientBase, GeneratedControlMethods {}
+
+class EditorctlClientImpl implements EditorctlClientBase {
 	private rpc: RpcClient
 
 	constructor(options: EditorctlClientOptions) {
@@ -121,6 +126,57 @@ class EditorctlClientImpl implements EditorctlClient {
 	}
 }
 
+const reservedMethodNames = new Set(['call', 'methods', 'schema'])
+
+function attachControlMethods(client: EditorctlClientBase): void {
+	for (const method of Object.keys(controlContract).sort()) {
+		if (reservedMethodNames.has(method) || method in client) {
+			continue
+		}
+
+		Object.defineProperty(client, method, {
+			value: (input?: ControlInput<ControlMethod>) => client.call(method as ControlMethod, input as never),
+			writable: false,
+			enumerable: false,
+			configurable: false,
+		})
+	}
+}
+
+function createControlMethodsProxy(client: EditorctlClientBase): EditorctlClient {
+	const cachedMethods = new Map<string, (input?: ControlInput<ControlMethod>) => Promise<ControlOutput<ControlMethod>>>()
+	const proxyTarget = client as EditorctlClient
+
+	return new Proxy(proxyTarget, {
+		get(target, prop, receiver) {
+			if (prop === 'then') {
+				return undefined
+			}
+
+			if (typeof prop !== 'string') {
+				return Reflect.get(target, prop, receiver)
+			}
+
+			if (prop in target) {
+				return Reflect.get(target, prop, receiver)
+			}
+
+			if (!isControlMethod(prop)) {
+				return undefined
+			}
+
+			const cached = cachedMethods.get(prop)
+			if (cached) {
+				return cached
+			}
+
+			const method = (input?: ControlInput<ControlMethod>) => target.call(prop, input as never)
+			cachedMethods.set(prop, method)
+			return method
+		},
+	})
+}
+
 /**
  * Creates a typed client for the Tekton Editor control RPC.
  *
@@ -144,5 +200,7 @@ class EditorctlClientImpl implements EditorctlClient {
  */
 export function createEditorctlClient(options: EditorctlClientOptions | DiscoveredEditor): EditorctlClient {
 	const normalizedOptions: EditorctlClientOptions = 'wsPort' in options ? { port: options.wsPort } : options
-	return new EditorctlClientImpl(normalizedOptions)
+	const client = new EditorctlClientImpl(normalizedOptions)
+	attachControlMethods(client)
+	return createControlMethodsProxy(client)
 }

@@ -27,7 +27,7 @@
 		"editorctl": "tsx --tsconfig packages/editorctl/tsconfig.json packages/editorctl/src/cli.ts",
 		"editorctl:client-smoke": "tsx scripts/editorctl-client-smoke.ts",
 		"build:editorctl": "tsc --project packages/editorctl/tsconfig.build.json",
-		"build:editorctl-client": "tsc --project packages/editorctl-client/tsconfig.build.json",
+		"build:editorctl-client": "tsx packages/editorctl-client/scripts/build.ts",
 		"build:control-rpc-contract": "tsc --project packages/control-rpc-contract/tsconfig.json",
 		"build:json-schema-utils": "tsc --project packages/json-schema-utils/tsconfig.json",
 		"build:packages": "npm run build:control-rpc-contract && npm run build:json-schema-utils && npm run build:editorctl-client && npm run build:editorctl",
