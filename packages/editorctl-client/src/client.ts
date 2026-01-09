@@ -38,7 +38,7 @@ export interface EditorctlClient {
 	 *
 	 * @example
 	 * ```ts
-	 * const result = await client.call('listEditors', {})
+	 * const result = await client.call('ping', {})
 	 * ```
 	 */
 	call<M extends ControlMethod>(method: M, input?: ControlInput<M>): Promise<ControlOutput<M>>
@@ -129,10 +129,10 @@ class EditorctlClientImpl implements EditorctlClient {
  *
  * @example
  * ```ts
- * import { createEditorctlClient } from '@tekton/editorctl-client'
+ * import { createEditorctlClient, discoverEditors } from '@tekton/editorctl-client'
  *
- * const client = createEditorctlClient({ port: 17870 })
- * const editors = await client.call('listEditors', {})
+ * const [editor] = await discoverEditors()
+ * const client = createEditorctlClient({ port: editor.wsPort })
  * ```
  */
 export function createEditorctlClient(options: EditorctlClientOptions): EditorctlClient {

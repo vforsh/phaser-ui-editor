@@ -25,7 +25,6 @@ import { getPrefabDocument } from './handlers/getPrefabDocument'
 import { getProjectInfo } from './handlers/getProjectInfo'
 import { getSelectedAssets } from './handlers/getSelectedAssets'
 import { listAssets } from './handlers/listAssets'
-import { listEditors } from './handlers/listEditors'
 import { listHierarchy } from './handlers/listHierarchy'
 import { listModals } from './handlers/listModals'
 import { moveObjectInHierarchy } from './handlers/moveObjectInHierarchy'
@@ -34,6 +33,7 @@ import { openPrefab } from './handlers/openPrefab'
 import { openProject } from './handlers/openProject'
 import { patchObject } from './handlers/patchObject'
 import { patchObjectComponent } from './handlers/patchObjectComponent'
+import { ping } from './handlers/ping'
 import { removeObjectComponent } from './handlers/removeObjectComponent'
 import { renameObject } from './handlers/renameObject'
 import { savePrefab } from './handlers/savePrefab'
@@ -93,7 +93,7 @@ export class EditorControlService {
 			getCanvasState: getCanvasState(this.ctx),
 			getCanvasMetrics: getCanvasMetrics(this.ctx),
 			getControlMeta: getControlMeta(this.ctx),
-			listEditors: listEditors(this.ctx),
+			ping: ping(this.ctx),
 			setCamera: setCamera(this.ctx),
 			takeAppScreenshot: takeAppScreenshot(this.ctx),
 			takeAppPartScreenshot: takeAppPartScreenshot(this.ctx),

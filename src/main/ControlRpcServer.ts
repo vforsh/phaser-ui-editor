@@ -1,6 +1,8 @@
 import { BrowserWindow, ipcMain } from 'electron'
 import { WebSocketServer, type RawData, type WebSocket } from 'ws'
 
+import type { InstanceRegistry } from './discovery/InstanceRegistry'
+
 import { ERR_NO_RENDERER_WINDOW, ERR_RENDERER_TIMEOUT, JSONRPC_PARSE_ERROR } from '../renderer/control-rpc/jsonrpc-errors'
 import { validateControlRequest } from '../renderer/control-rpc/jsonrpc-validate'
 import {
@@ -25,6 +27,8 @@ type RpcRouterOptions = {
 	port: number
 	timeoutMs?: number
 	protocol?: 'ws' | 'wss'
+	registry: InstanceRegistry
+	getPrimaryWindowId?: () => number | null
 }
 
 /**
@@ -127,30 +131,10 @@ export class ControlRpcServer {
 		const { request, traceId } = validation
 		this.logger.info(this.formatLog(traceId, request.method, 'recv'))
 
-		if (request.method === 'listEditors') {
-			const wsPort = this.options.port
-			const wsProtocol = this.options.protocol ?? 'ws'
-			const wsUrl = `${wsProtocol}://127.0.0.1:${wsPort}`
-			const appLaunchDir = process.cwd()
-			const e2eEnabled = process.env.PW_E2E === '1'
-			const e2eInstanceKey = process.env.PW_E2E_INSTANCE_KEY
-
-			const e2e = e2eEnabled
-				? {
-						enabled: true as const,
-						// Fallback keeps the control contract stable (instanceKey is required when enabled === true).
-						instanceKey: e2eInstanceKey && e2eInstanceKey.length > 0 ? e2eInstanceKey : 'default',
-					}
-				: { enabled: false as const }
-
-			const editors = editorRegistry.getEditors().map((editor) => ({
-				wsUrl,
-				wsPort,
-				appLaunchDir,
-				projectPath: editor.projectPath,
-				e2e,
-			}))
-			this.sendJson(ws, createJsonRpcResult(request.id, editors))
+		if (request.method === 'ping') {
+			this.options.registry.touch()
+			const record = this.options.registry.getRecord()
+			this.sendJson(ws, createJsonRpcResult(request.id, record))
 			this.logger.info(this.formatLog(traceId, request.method, 'reply', { ok: true }))
 			return
 		}
@@ -212,6 +196,14 @@ export class ControlRpcServer {
 		if (window) {
 			editorRegistry.setProjectPath(window.id, status.projectPath)
 		}
+
+		const projectPath = this.getPrimaryProjectPath()
+		this.options.registry.updateProjectPath(projectPath)
+	}
+
+	private getPrimaryProjectPath(): string | null {
+		const preferredWindowId = this.options.getPrimaryWindowId?.() ?? null
+		return editorRegistry.getPrimaryProjectPath(preferredWindowId)
 	}
 
 	/**

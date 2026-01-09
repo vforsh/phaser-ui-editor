@@ -9,7 +9,7 @@ Meta-only CLI for controlling a running Tekton Editor instance via JSON-RPC.
 3. Call methods via `editorctl`.
 
 ```bash
-editorctl --port 17870 call listEditors '{}'
+editorctl discover
 ```
 
 ## Common workflow
@@ -17,7 +17,7 @@ editorctl --port 17870 call listEditors '{}'
 List editors and open a project:
 
 ```bash
-editorctl --port 17870 call listEditors '{}'
+editorctl ls
 editorctl --port 17870 call openProject '{"path":"/Users/vlad/dev/papa-cherry-2"}'
 ```
 

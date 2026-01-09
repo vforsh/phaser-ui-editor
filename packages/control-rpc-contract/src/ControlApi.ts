@@ -51,7 +51,6 @@ import { getPrefabDocumentCommand } from './commands/getPrefabDocument.js'
 import { getProjectInfoCommand } from './commands/getProjectInfo.js'
 import { getSelectedAssetsCommand } from './commands/getSelectedAssets.js'
 import { listAssetsCommand } from './commands/listAssets.js'
-import { listEditorsCommand } from './commands/listEditors.js'
 import { listHierarchyCommand } from './commands/listHierarchy.js'
 import { listModalsCommand } from './commands/listModals.js'
 import { moveObjectInHierarchyCommand } from './commands/moveObjectInHierarchy.js'
@@ -60,6 +59,7 @@ import { openPrefabCommand } from './commands/openPrefab.js'
 import { openProjectCommand } from './commands/openProject.js'
 import { patchObjectCommand } from './commands/patchObject.js'
 import { patchObjectComponentCommand } from './commands/patchObjectComponent.js'
+import { pingCommand } from './commands/ping.js'
 import { removeObjectComponentCommand } from './commands/removeObjectComponent.js'
 import { renameObjectCommand } from './commands/renameObject.js'
 import { savePrefabCommand } from './commands/savePrefab.js'
@@ -104,7 +104,7 @@ export const controlContract = {
 	getCanvasState: getCanvasStateCommand,
 	getCanvasMetrics: getCanvasMetricsCommand,
 	getControlMeta: getControlMetaCommand,
-	listEditors: listEditorsCommand,
+	ping: pingCommand,
 	setCamera: setCameraCommand,
 	takeAppScreenshot: takeAppScreenshotCommand,
 	takeAppPartScreenshot: takeAppPartScreenshotCommand,

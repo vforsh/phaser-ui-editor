@@ -64,13 +64,13 @@
 
 - **CLI args**: Always pass `--` before args (e.g. `npm run editorctl -- ...`) so npm forwards flags correctly. Avoid subtle “args swallowed” issues. Keep examples consistent.
 
-- **Targeting**: Use `--port <wsPort>` from `listEditors`. If multiple editors are running, don’t guess—choose the one matching the right project + launch dir. Wrong targeting creates “works on my machine” false positives.
+- **Targeting**: Use `--port <wsPort>` from `discover`/`ls`. If multiple editors are running, don’t guess—choose the one matching the right project + launch dir. Wrong targeting creates “works on my machine” false positives.
 
-- **1) Discover running editors**: Start with `npm run editorctl -- listEditors` to find running instances + ports. Treat as required first step; most follow-ups depend on correct targeting. If multiple entries: pick the one for your worktree.
+- **1) Discover running editors**: Start with `npm run editorctl -- ls` to find running instances + ports. Treat as required first step; most follow-ups depend on correct targeting. If multiple entries: pick the one for your worktree.
 
-- **2) If none are running**: If `listEditors` is empty, start the editor (prefer `npm run start:bg`; don’t disrupt the user). Wait for the `[control-rpc] ws://127.0.0.1:<port>` line; then run `listEditors` again. If startup is messy: check build/package issues before retrying.
+- **2) If none are running**: If `discover` is empty, start the editor (prefer `npm run start:bg`; don’t disrupt the user). Wait for the `[control-rpc] ws://127.0.0.1:<port>` line; then run `ls` again. If startup is messy: check build/package issues before retrying.
 
-- **Wait for**: In start output, look for `[control-rpc] ws://127.0.0.1:<port>` (control channel ready). Only then re-run `listEditors` to confirm port is discoverable. Avoid startup races + inconsistent results.
+- **Wait for**: In start output, look for `[control-rpc] ws://127.0.0.1:<port>` (control channel ready). Only then re-run `ls` to confirm port is discoverable. Avoid startup races + inconsistent results.
 
 - **3) Pick the right instance**: If multiple instances: choose deliberately. Use `projectPath` (what’s open / should be open) and `appLaunchDir` (which checkout) to confirm. When documenting, include the chosen port for reproducibility.
 
@@ -82,9 +82,9 @@
 
 - **Default testbed**: Open `/Users/vlad/dev/papa-cherry-2` via `openProject` using the discovered port. Keep the path explicit for reproducibility. If it fails: double-check port + project existence.
 
-- **Subsequent calls**: Use the discovered `wsPort` for all follow-up `call <method>` invocations. Prefer copy/paste from `listEditors` over retyping. Keep commands consistent so you can compare results across runs.
+- **Subsequent calls**: Use the discovered `wsPort` for all follow-up `call <method>` invocations. Prefer copy/paste from `discover` over retyping. Keep commands consistent so you can compare results across runs.
 
-- **Tip**: Use `projectPath` from `listEditors` to confirm the project is actually open. Don’t assume the editor remembered your last project (esp. across restarts). This saves time when commands mysteriously no-op.
+- **Tip**: Use `projectPath` from `discover` to confirm the project is actually open. Don’t assume the editor remembered your last project (esp. across restarts). This saves time when commands mysteriously no-op.
 
 ---
 

@@ -5,6 +5,7 @@ import { Command } from 'commander'
 import process from 'node:process'
 
 import { registerCallCommand } from './commands/call'
+import { registerDiscoverCommand } from './commands/discover'
 import { registerHelpCommand } from './commands/help'
 import { registerMethodsCommand } from './commands/methods'
 import { registerSchemaCommand } from './commands/schema'
@@ -25,6 +26,7 @@ const getClient = () => {
 }
 
 registerCallCommand(program, getClient)
+registerDiscoverCommand(program)
 registerMethodsCommand(program, getClient)
 registerSchemaCommand(program, getClient)
 registerHelpCommand(program, getClient)

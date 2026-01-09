@@ -5,11 +5,15 @@ Typed Node/Bun client for Tekton Editor control RPC, powered by runtime discover
 ## Usage
 
 ```ts
-import { createEditorctlClient } from '@tekton/editorctl-client'
+import { createEditorctlClient, discoverEditors } from '@tekton/editorctl-client'
 
-const client = createEditorctlClient({ port: 17870 })
+const [editor] = await discoverEditors()
+if (!editor) {
+  throw new Error('No running editors found')
+}
 
-const editors = await client.call('listEditors', {})
+const client = createEditorctlClient({ port: editor.wsPort })
+
 const meta = await client.methods()
 const schema = await client.schema('openProject')
 ```
@@ -17,17 +21,17 @@ const schema = await client.schema('openProject')
 ## Example: open project + inspect methods
 
 ```ts
-import { createEditorctlClient } from '@tekton/editorctl-client'
+import { createEditorctlClient, discoverEditors } from '@tekton/editorctl-client'
 
 async function run() {
-  const client = createEditorctlClient({ port: 17870 })
-
   // Discover running editors and pick one.
-  const editors = await client.call('listEditors', {})
+  const editors = await discoverEditors()
   const editor = editors[0]
   if (!editor) {
     throw new Error('No running editors found')
   }
+
+  const client = createEditorctlClient({ port: editor.wsPort })
 
   // Open a project (adjust to your path).
   await client.call('openProject', { path: '/Users/vlad/dev/papa-cherry-2' })
@@ -57,14 +61,13 @@ run().catch((error) => {
 })
 ```
 
-## Example: list editors + pick by launch dir
+## Example: discover editors + pick by launch dir
 
 ```ts
-import { createEditorctlClient } from '@tekton/editorctl-client'
+import { discoverEditors } from '@tekton/editorctl-client'
 
 async function run() {
-  const client = createEditorctlClient({ port: 17870 })
-  const editors = await client.call('listEditors', {})
+  const editors = await discoverEditors()
 
   const pick = editors.find((entry) =>
     entry.appLaunchDir?.includes('tekton.editorctl-refactor-meta'),

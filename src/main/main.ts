@@ -1,17 +1,24 @@
+import type { InstanceRecord } from '@tekton/control-rpc-contract'
+
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
+import { APP_ID } from '@tekton/control-rpc-contract'
 import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu, screen } from 'electron'
 import getPort from 'get-port'
+import { randomUUID } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 
 import { CHANNELS } from '../shared/ipc/channels'
 import { ControlRpcServer } from './ControlRpcServer'
+import { InstanceRegistry } from './discovery/InstanceRegistry'
+import { editorRegistry } from './EditorRegistry'
 import { registerMainApiHandlers } from './ipc/register-main-api-handlers'
 import { RendererFileLogger } from './RendererFileLogger'
 
 let mainWindow: BrowserWindow | null = null
 let controlRpcServer: ControlRpcServer | null = null
 let controlRpcAddress = ''
+let instanceRegistry: InstanceRegistry | null = null
 let rendererLogger: RendererFileLogger | null = null
 const LOG_LEVEL_OPTIONS = ['SILLY', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL'] as const
 type LogLevelOption = (typeof LOG_LEVEL_OPTIONS)[number]
@@ -79,6 +86,8 @@ const createWindow = () => {
 	if (startInBackground) {
 		sizeWindowToPrimaryWorkArea(mainWindow)
 	}
+
+	editorRegistry.setPrimaryWindowId(mainWindow.id)
 
 	const windowTitle = getWindowTitle()
 	if (windowTitle) {
@@ -431,18 +440,54 @@ async function setupControlRpcServer() {
 	const port = await getPort({ port: preferredPort })
 	const protocol: 'ws' | 'wss' = 'ws'
 	controlRpcAddress = `${protocol}://127.0.0.1:${port}`
-	controlRpcServer = new ControlRpcServer({ port, protocol })
+	const instanceId = randomUUID()
+	const startedAt = Date.now()
+	const record: InstanceRecord = {
+		schemaVersion: 1,
+		appId: APP_ID,
+		instanceId,
+		pid: process.pid,
+		wsPort: port,
+		wsUrl: controlRpcAddress,
+		appLaunchDir: process.cwd(),
+		projectPath: editorRegistry.getPrimaryProjectPath(mainWindow?.id ?? null),
+		startedAt,
+		updatedAt: startedAt,
+		appVersion: app.getVersion(),
+		e2e: getE2eMetadata(),
+	}
+
+	instanceRegistry = new InstanceRegistry(record)
+	controlRpcServer = new ControlRpcServer({
+		port,
+		protocol,
+		registry: instanceRegistry,
+		getPrimaryWindowId: () => mainWindow?.id ?? null,
+	})
 	controlRpcServer.start()
+	instanceRegistry.start()
 	console.log(`[control-rpc] ${controlRpcAddress}`)
 }
 
 app.on('window-all-closed', () => {
+	instanceRegistry?.dispose()
 	controlRpcServer?.stop()
 	app.quit()
 })
 
 app.on('before-quit', () => {
 	rendererLogger?.dispose()
+	instanceRegistry?.dispose()
+})
+
+process.once('SIGINT', () => {
+	instanceRegistry?.dispose()
+	app.quit()
+})
+
+process.once('SIGTERM', () => {
+	instanceRegistry?.dispose()
+	app.quit()
 })
 
 function shouldStartInBackground(): boolean {
@@ -468,4 +513,17 @@ function getActiveBrowserWindow(): BrowserWindow | null {
 	}
 
 	return mainWindow
+}
+
+function getE2eMetadata(): InstanceRecord['e2e'] {
+	const e2eEnabled = process.env.PW_E2E === '1'
+	if (!e2eEnabled) {
+		return { enabled: false }
+	}
+
+	const e2eInstanceKey = process.env.PW_E2E_INSTANCE_KEY
+	return {
+		enabled: true,
+		instanceKey: e2eInstanceKey && e2eInstanceKey.length > 0 ? e2eInstanceKey : 'default',
+	}
 }

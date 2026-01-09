@@ -52,7 +52,7 @@ export function exposeWindowEditor(appCommands: AppCommandsEmitter): void {
 		getPrefabDocument: (params) => handlers.getPrefabDocument(params ?? {}),
 		getCanvasState: (params) => handlers.getCanvasState(params ?? {}),
 		getControlMeta: (params) => handlers.getControlMeta(params ?? {}),
-		listEditors: (params) => handlers.listEditors(params ?? {}),
+		ping: (params) => handlers.ping(params ?? {}),
 		setCamera: (params) => handlers.setCamera(params ?? {}),
 		takeAppScreenshot: (params) => handlers.takeAppScreenshot(params ?? {}),
 		takeAppPartScreenshot: (params) => handlers.takeAppPartScreenshot(params),

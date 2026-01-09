@@ -16,12 +16,40 @@ export type EditorInfo = {
  */
 class EditorRegistry {
 	private readonly projectPaths = new Map<number, string | null>()
+	private primaryWindowId: number | null = null
 
 	/**
 	 * Updates the known project path for a specific window.
 	 */
 	setProjectPath(windowId: number, path: string | null): void {
 		this.projectPaths.set(windowId, path)
+	}
+
+	/**
+	 * Sets the primary window id for discovery metadata.
+	 */
+	setPrimaryWindowId(windowId: number | null): void {
+		this.primaryWindowId = windowId
+	}
+
+	/**
+	 * Returns the preferred project path for discovery metadata.
+	 */
+	getPrimaryProjectPath(preferredWindowId?: number | null): string | null {
+		const windows = BrowserWindow.getAllWindows()
+		if (windows.length === 0) {
+			return null
+		}
+
+		const candidateId = preferredWindowId ?? this.primaryWindowId
+		const resolvedId = candidateId && windows.some((win) => win.id === candidateId) ? candidateId : windows[0].id
+		const candidatePath = this.projectPaths.get(resolvedId)
+		if (candidatePath !== undefined) {
+			return candidatePath ?? null
+		}
+
+		const fallback = this.getEditors()[0]
+		return fallback?.projectPath ?? null
 	}
 
 	/**

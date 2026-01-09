@@ -1,4 +1,6 @@
 export * from './ControlApi.js'
+export * from './discovery/constants.js'
+export * from './discovery/InstanceRecord.js'
 export * from './modal-ids.js'
 export * from './settings-sections.js'
 export * from './state-schemas.js'

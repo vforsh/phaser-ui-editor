@@ -21,14 +21,14 @@ Tools:
 - **Discover a running editor (`wsPort`)** (don’t guess ports):
 
 ```bash
-npm run editorctl -- listEditors
+npm run editorctl -- ls
 ```
 
-- **If `listEditors` is empty**: start the editor, wait for `[control-rpc] ws://127.0.0.1:<port>`, then re-run discovery:
+- **If discovery is empty**: start the editor, wait for `[control-rpc] ws://127.0.0.1:<port>`, then re-run discovery:
 
 ```bash
 npm run start:bg
-npm run editorctl -- listEditors
+npm run editorctl -- ls
 ```
 
 - **Pick the right instance**: match your checkout (`appLaunchDir`) and intended project (`projectPath`).

@@ -29,6 +29,10 @@
 			"types": "./dist/state-schemas.d.ts",
 			"default": "./dist/state-schemas.js"
 		},
+		"./discovery/registry": {
+			"types": "./dist/discovery/registry.d.ts",
+			"default": "./dist/discovery/registry.js"
+		},
 		"./commands/*": {
 			"types": "./dist/commands/*.d.ts",
 			"default": "./dist/commands/*.js"

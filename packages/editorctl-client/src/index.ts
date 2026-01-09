@@ -55,12 +55,14 @@ export type EditorctlClient = ClientType
  *
  * @example
  * ```ts
- * import { createEditorctlClient } from '@tekton/editorctl-client'
+ * import { createEditorctlClient, discoverEditors } from '@tekton/editorctl-client'
  *
- * const client = createEditorctlClient({ port: 17870 })
- * const editors = await client.call('listEditors', {})
+ * const [editor] = await discoverEditors()
+ * const client = createEditorctlClient({ port: editor.wsPort })
  * ```
  */
 export const createEditorctlClient = createClient
 
 export { TransportError } from './transport/ws'
+export { discoverEditors } from './discovery/discoverEditors'
+export type { DiscoverEditorsOptions, DiscoveredEditor } from './discovery/discoverEditors'

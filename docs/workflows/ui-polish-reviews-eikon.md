@@ -6,7 +6,7 @@ Use `eikon` for quick visual-polish critique of Tekton UI screenshots (inconsist
 
 ```bash
 # List running editor instances and their control-rpc ports
-npm run editorctl -- listEditors
+npm run editorctl -- ls
 ```
 
 Pick the `wsPort` for the instance you want to control, then use it as `--port <wsPort>` in commands below.
