@@ -23,5 +23,5 @@ export const listAssetsOfType: CommandHandler<'listAssetsOfType'> = (_ctx) => as
 		collectAssetsOfType(root, type, matches)
 	}
 
-	return { assets: matches }
+	return matches
 }

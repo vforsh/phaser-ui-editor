@@ -156,7 +156,7 @@ All callers (main WS router, renderer bridge, `EditorControlService`, and `edito
 **Note:** `listAssetsOfType` returns a **flat array** of all matching nodes:
 
 - Request: `{"method":"listAssetsOfType","params":{"type":"prefab"}}`
-- Response: `{ assets: [...] }` (a flat array of matching `AssetNode` objects)
+- Response: `[...]` (a flat array of matching `AssetNode` objects)
 
 Example (`editorctl`):
 

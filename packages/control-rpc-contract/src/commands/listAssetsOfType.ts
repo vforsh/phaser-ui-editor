@@ -14,10 +14,5 @@ export const listAssetsOfTypeCommand = {
 		})
 		.strict()
 		.describe('Input parameters for listing assets of a specific type'),
-	output: z
-		.object({
-			assets: z.array(assetNodeSchema).describe('Flat list of asset nodes matching the type'),
-		})
-		.strict()
-		.describe('Response containing the flat list of assets'),
+	output: z.array(assetNodeSchema).describe('Flat list of asset nodes matching the type'),
 } satisfies CommandDefinition

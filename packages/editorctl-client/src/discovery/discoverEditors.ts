@@ -40,10 +40,6 @@ const DEFAULT_MAX_STALE_MS = 8000
 /**
  * Discover Tekton Editor instances registered on this machine.
  *
- * Reads `@tekton/control-rpc-contract`'s discovery registry directory for instance records.
- * Stale or invalid registry files are ignored (and stale ones are deleted). When `ping` is enabled,
- * each candidate instance is validated via a JSON-RPC `ping` call; unreachable instances are removed.
- *
  * @param options - Discovery options (ping, timeouts, staleness window).
  * @returns A list of validated instance records.
  */

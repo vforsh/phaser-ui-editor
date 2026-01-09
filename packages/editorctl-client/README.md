@@ -116,7 +116,7 @@ async function run() {
 
   await client.call('openProject', { path: '/Users/vlad/dev/papa-cherry-2' })
 
-  const { assets } = await client.call('listAssetsOfType', { type: 'prefab' })
+  const assets = await client.call('listAssetsOfType', { type: 'prefab' })
   const prefabId = assets[0]?.id
 
   if (!prefabId) {
