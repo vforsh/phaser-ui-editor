@@ -8,6 +8,7 @@ import type {
 
 import type { EditorctlClient as ClientType, EditorctlClientOptions as OptionsType } from './client'
 
+import { withEditorPort as fluentWithPort, withEditor as fluentWithEditor } from './call'
 import { createEditorctlClient as createClient } from './client'
 
 /**
@@ -63,9 +64,20 @@ export type EditorctlClient = ClientType
  */
 export const createEditorctlClient = createClient
 
+/**
+ * Creates a one-shot client for a running Tekton Editor using its WebSocket port.
+ */
+export const withEditorPort = fluentWithPort
+
+/**
+ * Creates a one-shot client for a discovered Tekton Editor instance.
+ */
+export const withEditor = fluentWithEditor
+
 export { TransportError } from './transport/ws'
 export { isRpcError, isTransportError } from './errors'
 export type { RpcError } from './errors'
 export { discoverEditors } from './discovery/discoverEditors'
 export type { DiscoverEditorsOptions, DiscoveredEditor } from './discovery/discoverEditors'
 export { getErrorLog, getErrorMessage, getErrorName } from './utils/error'
+export type { OneShotCallOptions, OneShotClient } from './call'

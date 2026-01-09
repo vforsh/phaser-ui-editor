@@ -1,6 +1,6 @@
 # @tekton/editorctl-client
 
-Typed Node/Bun client for Tekton Editor control RPC, powered by runtime discovery.
+Typed Node/Bun client for Tekton Editor control RPC.
 
 ## Usage
 
@@ -16,6 +16,26 @@ const client = createEditorctlClient({ port: editor.wsPort })
 
 const meta = await client.methods()
 const schema = await client.schema('openProject')
+```
+
+## One-shot call (no client)
+
+Use `withEditorPort()` or `withEditor()` when you want to perform a single RPC request without creating a long-lived client object.
+
+```ts
+import { withEditor, withEditorPort, discoverEditors } from '@tekton/editorctl-client'
+
+// Option A: Use a discovered editor instance.
+const [editor] = await discoverEditors()
+if (editor) {
+  await withEditor(editor).call('openProject', { path: '/Users/vlad/dev/papa-cherry-2' })
+}
+
+// Option B: Use a known port directly.
+await withEditorPort(17870).call('ping', {})
+
+// Optional: override the default 30s per-request timeout.
+await withEditorPort(17870, { timeoutMs: 5_000 }).call('ping', {})
 ```
 
 ## Example: open project + inspect methods
@@ -142,33 +162,6 @@ run().catch((error) => {
 })
 ```
 
-## Example: method-specific help output
-
-```ts
-import { createEditorctlClient } from '@tekton/editorctl-client'
-import { buildExampleObject, derefRoot, isObjectSchema, renderObjectShape } from '@tekton/json-schema-utils'
-
-async function run() {
-  const client = createEditorctlClient({ port: 17870 })
-  const { inputSchema } = await client.schema('openProject')
-  const root = derefRoot(inputSchema)
-
-  if (isObjectSchema(root)) {
-    const lines = renderObjectShape(root, 2)
-    console.log(lines.join('\n'))
-    const example = buildExampleObject(root)
-    if (example) {
-      console.log('Example:', JSON.stringify(example))
-    }
-  }
-}
-
-run().catch((error) => {
-  console.error(error)
-  process.exitCode = 1
-})
-```
-
 ## Errors
 
 The client throws two main types of errors:
@@ -194,8 +187,3 @@ try {
   }
 }
 ```
-
-## Notes
-
-- `methods()` and `schema()` rely on the editor's `getControlMeta` discovery method.
-- Transport is WebSocket-only.

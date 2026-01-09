@@ -1,5 +1,7 @@
 import type { ControlInput, ControlMeta, ControlMetaMethod, ControlMethod, ControlOutput } from '@tekton/control-rpc-contract'
 
+import type { DiscoveredEditor } from './discovery/discoverEditors'
+
 import { RpcClient } from './rpc/client'
 import { WsTransport } from './transport/ws'
 
@@ -122,7 +124,7 @@ class EditorctlClientImpl implements EditorctlClient {
 /**
  * Creates a typed client for the Tekton Editor control RPC.
  *
- * @param options - Connection options such as the control RPC port.
+ * @param options - Connection options or a discovered editor instance.
  * @returns A client instance for making RPC calls.
  * @throws TransportError when the transport fails.
  * @throws Error with `isRpcError` when the request fails at the JSON-RPC layer.
@@ -132,9 +134,15 @@ class EditorctlClientImpl implements EditorctlClient {
  * import { createEditorctlClient, discoverEditors } from '@tekton/editorctl-client'
  *
  * const [editor] = await discoverEditors()
+ *
+ * // Pass editor directly:
+ * const client = createEditorctlClient(editor)
+ *
+ * // Or pass options:
  * const client = createEditorctlClient({ port: editor.wsPort })
  * ```
  */
-export function createEditorctlClient(options: EditorctlClientOptions): EditorctlClient {
-	return new EditorctlClientImpl(options)
+export function createEditorctlClient(options: EditorctlClientOptions | DiscoveredEditor): EditorctlClient {
+	const normalizedOptions: EditorctlClientOptions = 'wsPort' in options ? { port: options.wsPort } : options
+	return new EditorctlClientImpl(normalizedOptions)
 }

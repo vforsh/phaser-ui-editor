@@ -4,6 +4,14 @@ export interface WsTransportOptions {
 	port: number
 	maxAttempts?: number
 	retryDelay?: number
+	/**
+	 * Timeout (in milliseconds) to wait for a single request/response roundtrip.
+	 *
+	 * When exceeded, the websocket is closed and the request fails with {@link TransportError}.
+	 *
+	 * When omitted, no timeout is enforced (the request may wait indefinitely).
+	 */
+	timeoutMs?: number
 }
 
 export class TransportError extends Error {
@@ -44,9 +52,18 @@ export class WsTransport {
 			const ws = new WebSocket(`ws://127.0.0.1:${this.options.port}`)
 			let settled = false
 
+			const timeoutMs = this.options.timeoutMs
+			const timeout =
+				typeof timeoutMs === 'number'
+					? setTimeout(() => {
+							finishReject(new TransportError(`Request timed out after ${timeoutMs}ms`))
+						}, timeoutMs)
+					: null
+
 			const finishResolve = (value: string) => {
 				if (settled) return
 				settled = true
+				if (timeout) clearTimeout(timeout)
 				resolve(value)
 				ws.close()
 			}
@@ -54,6 +71,7 @@ export class WsTransport {
 			const finishReject = (error: Error) => {
 				if (settled) return
 				settled = true
+				if (timeout) clearTimeout(timeout)
 				reject(error)
 				ws.close()
 			}
