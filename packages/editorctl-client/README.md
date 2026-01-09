@@ -116,19 +116,8 @@ async function run() {
 
   await client.call('openProject', { path: '/Users/vlad/dev/papa-cherry-2' })
 
-  const assets = await client.call('listAssets', { types: ['prefab'] })
-  const stack = [...assets.assets]
-  let prefabId: string | null = null
-
-  while (stack.length) {
-    const node = stack.shift()
-    if (!node) continue
-    if (node.type === 'prefab') {
-      prefabId = node.id
-      break
-    }
-    if (Array.isArray(node.children)) stack.push(...node.children)
-  }
+  const { assets } = await client.call('listAssetsOfType', { type: 'prefab' })
+  const prefabId = assets[0]?.id
 
   if (!prefabId) {
     throw new Error('No prefab assets found')
