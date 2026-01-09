@@ -38,6 +38,9 @@
 			"default": "./dist/commands/*.js"
 		}
 	},
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
 	"dependencies": {
 		"minimatch": "^10.0.1",
 		"path-browserify-esm": "^1.0.6",

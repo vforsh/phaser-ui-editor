@@ -9,6 +9,9 @@
 		"dist"
 	],
 	"type": "module",
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
 	"dependencies": {
 		"@tekton/editorctl-client": "file:../editorctl-client",
 		"@tekton/json-schema-utils": "file:../json-schema-utils",
