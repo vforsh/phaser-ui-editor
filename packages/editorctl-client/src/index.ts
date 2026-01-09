@@ -64,5 +64,8 @@ export type EditorctlClient = ClientType
 export const createEditorctlClient = createClient
 
 export { TransportError } from './transport/ws'
+export { isRpcError, isTransportError } from './errors'
+export type { RpcError } from './errors'
 export { discoverEditors } from './discovery/discoverEditors'
 export type { DiscoverEditorsOptions, DiscoveredEditor } from './discovery/discoverEditors'
+export { getErrorLog, getErrorMessage, getErrorName } from './utils/error'

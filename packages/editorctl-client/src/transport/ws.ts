@@ -7,6 +7,8 @@ export interface WsTransportOptions {
 }
 
 export class TransportError extends Error {
+	readonly isTransportError = true
+
 	constructor(message: string, options?: { cause?: unknown }) {
 		super(message, options)
 		this.name = 'TransportError'

@@ -1,3 +1,4 @@
+import type { RpcError } from '../errors'
 import type { ControlMethod, JsonRpcRequest, JsonRpcResponse, OutputFor } from './types'
 
 import { WsTransport } from '../transport/ws'
@@ -18,9 +19,10 @@ export class RpcClient {
 		const response = JSON.parse(responseText) as JsonRpcResponse<M>
 
 		if (response.error) {
-			const err = new Error(response.error.message || 'RPC error')
-			// @ts-expect-error - attaching rpc error flag
+			const err = new Error(response.error.message || 'RPC error') as RpcError
 			err.isRpcError = true
+			err.code = response.error.code
+			err.data = response.error.data
 			throw err
 		}
 

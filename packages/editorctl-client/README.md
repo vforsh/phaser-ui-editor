@@ -169,6 +169,32 @@ run().catch((error) => {
 })
 ```
 
+## Errors
+
+The client throws two main types of errors:
+
+- **TransportError**: Connectivity issues (connection refused, premature close). The client automatically retries failed transport attempts based on `maxAttempts` (default 3).
+- **RpcError**: Thrown when the editor receives the request but returns an error (e.g., invalid params).
+
+Use the provided type guards and error utilities for robust error handling:
+
+```ts
+import { isRpcError, isTransportError, getErrorLog } from '@tekton/editorctl-client'
+
+try {
+  await client.call('openProject', { path: '/invalid' })
+} catch (err) {
+  if (isTransportError(err)) {
+    console.error('Network failure:', err.message)
+  } else if (isRpcError(err)) {
+    console.error(`RPC failure (${err.code}):`, err.message)
+  } else {
+    // getErrorLog formats unknown errors into "Name - Message"
+    console.error('Unexpected failure:', getErrorLog(err))
+  }
+}
+```
+
 ## Notes
 
 - `methods()` and `schema()` rely on the editor's `getControlMeta` discovery method.
