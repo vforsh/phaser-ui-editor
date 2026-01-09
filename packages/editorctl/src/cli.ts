@@ -7,6 +7,8 @@ import process from 'node:process'
 import { registerCallCommand } from './commands/call'
 import { registerDiscoverCommand } from './commands/discover'
 import { registerHelpCommand } from './commands/help'
+import { registerLogsFetchCommand } from './commands/logs-fetch'
+import { registerLogsListCommand } from './commands/logs-list'
 import { registerMethodsCommand } from './commands/methods'
 import { registerSchemaCommand } from './commands/schema'
 import { handleError } from './lib/errors'
@@ -27,6 +29,8 @@ const getClient = () => {
 
 registerCallCommand(program, getClient)
 registerDiscoverCommand(program)
+registerLogsListCommand(program)
+registerLogsFetchCommand(program)
 registerMethodsCommand(program, getClient)
 registerSchemaCommand(program, getClient)
 registerHelpCommand(program, getClient)

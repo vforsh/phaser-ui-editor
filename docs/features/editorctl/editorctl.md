@@ -30,9 +30,63 @@ By default, `editorctl` connects to port `17870`. To target a different port:
 npm run editorctl -- --port 17870 -- methods
 ```
 
+### Local utilities (no control-rpc)
+
+`editorctl` also includes a small set of **local filesystem utilities** that do **not** connect to the editor.
+
+#### `logs:list`
+
+List available renderer log files from the running editor’s logs directory (newest first).  
+When `--port` is not provided, you must pass `--dir`.
+
+```bash
+npm run editorctl -- --port 17870 logs:list
+```
+
+```bash
+npm run editorctl -- logs:list --format json
+```
+
+```bash
+npm run editorctl -- logs:list --dir /abs/path/to/logs
+```
+
+#### `logs:fetch`
+
+Fetch the latest renderer log tail (after the last `SYS : PAGE RELOADED`) and include the session header block.  
+By default it uses the running editor’s logs directory from `--port`. If `--port` is not provided, pass `--dir` (or `--file`).
+
+```bash
+npm run editorctl -- --port 17870 logs:fetch
+```
+
+```bash
+npm run editorctl -- logs:fetch --file logs/renderer-2026-01-09T13-44-13.log
+```
+
+```bash
+npm run editorctl -- logs:fetch --full
+```
+
+```bash
+npm run editorctl -- logs:fetch --format json
+```
+
 ### Meta commands (introspection + generic invocation)
 
 `editorctl` exposes **meta-only** commands. Use these to discover and call methods safely.
+
+#### `discover` / `ls`
+
+List running editor instances. Includes `logsDir` derived from `appLaunchDir`.
+
+```bash
+npm run editorctl -- ls
+```
+
+```bash
+npm run editorctl -- ls --json
+```
 
 #### `methods`
 

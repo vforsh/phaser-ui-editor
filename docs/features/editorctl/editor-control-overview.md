@@ -27,6 +27,7 @@ Path: `packages/editorctl/`
 - Exposes meta-only commands (`call`, `methods`, `schema`, `help`) and relies on `getControlMeta` for discovery.
 - Sends JSON-RPC over WebSocket using `@tekton/editorctl-client`.
 - **Type source**: `@tekton/control-rpc-contract`.
+- Includes a small set of local utilities (e.g. `logs:list`, `logs:fetch`) that operate on the repo filesystem and do not use control-rpc.
 
 ### Main process WebSocket router: `ControlRpcServer`
 
