@@ -4,12 +4,16 @@ Typed Node/Bun client for Tekton Editor control RPC.
 
 ## Usage
 
-The recommended way to set up a client in scripts is using `connect()`, which automatically discovers running editor instances and picks the "latest" one.
+The recommended way to set up a client in scripts is using `connect()`, which automatically discovers running editor instances and applies a sensible default selection policy:
+
+- Prefer an editor launched from the same repo directory as the running script (nearest parent dir containing `package.json`)
+- Else, try `EDITOR_CONTROL_WS_PORT` (direct port ping, bypasses registry)
+- Else, pick the latest started editor among discovered instances
 
 ```ts
 import { connect } from '@tekton/editorctl-client'
 
-// Pick the latest editor and connect
+// Connect using the default selection policy
 const { client, editor } = await connect()
 
 console.log(`Connected to editor in ${editor.appLaunchDir}`)
