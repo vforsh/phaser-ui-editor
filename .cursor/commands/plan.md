@@ -13,6 +13,8 @@ Given a user request (feature/bugfix/refactor) plus any provided context (repo f
 
 - **No assumptions**: if something materially affects API/UX/behavior, ask.
 - **Read context first**: inspect referenced files/paths and any attached docs/logs before asking questions.
+- **Greenfield + experimental**: this project is greenfield and intentionally experimental; optimize for iteration speed and clarity over long-term stability.
+- **No backward-compat constraint**: do not spend effort preserving backward compatibility (APIs, file formats, CLI flags, RPC contracts) unless the user explicitly asks.
 - **Guard clauses**: prefer “return early” patterns in the eventual implementation plan.
 - **Keep scope tight**: do not propose large rewrites unless required by the request.
 - **Save the plan**: the final plan must be written to a new Markdown file in `tasks/`.
@@ -39,6 +41,7 @@ Ask questions in a format that is easy to answer:
 
 - Number each question (`1)`, `2)`, …).
 - Use lettered options (`a)`, `b)`, `c)`) for multiple-choice.
+- When presenting options and there’s a recommended choice: explicitly call it out (e.g. “Recommended: b) …”) with a concise reason (1 sentence) why.
 - Clearly mark yes/no questions as such.
 - Keep questions short and specific.
 
