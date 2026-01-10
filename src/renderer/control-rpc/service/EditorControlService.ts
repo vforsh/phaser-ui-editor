@@ -39,6 +39,7 @@ import { openProject } from './handlers/openProject'
 import { patchObject } from './handlers/patchObject'
 import { patchObjectComponent } from './handlers/patchObjectComponent'
 import { ping } from './handlers/ping'
+import { reload } from './handlers/reload'
 import { removeObjectComponent } from './handlers/removeObjectComponent'
 import { renameObject } from './handlers/renameObject'
 import { savePrefab } from './handlers/savePrefab'
@@ -89,6 +90,7 @@ export class EditorControlService {
 			focusOnObject: focusOnObject(this.ctx),
 			moveObjectInHierarchy: moveObjectInHierarchy(this.ctx),
 			renameObject: renameObject(this.ctx),
+			reload: reload(this.ctx),
 			patchObject: patchObject(this.ctx),
 			patchObjectComponent: patchObjectComponent(this.ctx),
 			removeObjectComponent: removeObjectComponent(this.ctx),

@@ -192,6 +192,18 @@ Example (`editorctl`):
 npm run editorctl -- --port <wsPort> call takeAppPartScreenshot '{"selector":"[data-testid=\\"hierarchy-panel\\"]","format":"png"}'
 ```
 
+## Reload command (misc group)
+
+- `reload`: Reloads the renderer unconditionally. **Warning: Unsaved changes will be lost.**
+    - `force` (optional): If `true`, reloads ignoring the cache (menu "Force Reload" equivalent).
+
+Example (`editorctl`):
+
+```bash
+npm run editorctl -- call reload '{}'
+npm run editorctl -- call reload '{"force":true}'
+```
+
 ## Camera commands (misc group)
 
 - `setCamera`: update camera zoom and/or scroll position.

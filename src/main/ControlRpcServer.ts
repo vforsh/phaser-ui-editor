@@ -177,17 +177,16 @@ export class ControlRpcServer {
 		traceId: string,
 		ws: WebSocket,
 	): Promise<boolean> {
-		if (method !== 'listRendererLogs' && method !== 'fetchRendererLog') {
+		if (method !== 'listRendererLogs' && method !== 'fetchRendererLog' && method !== 'reload') {
 			return false
 		}
 
 		try {
-			if (app.isPackaged) {
+			if ((method === 'listRendererLogs' || method === 'fetchRendererLog') && app.isPackaged) {
 				throw new Error('Renderer logs are not available in packaged builds.')
 			}
 
-			const logsDir = path.join(process.cwd(), 'logs')
-			const result = await this.runMainMethod(method, input, logsDir)
+			const result = await this.runMainMethod(method, input)
 			const parsedOutput = controlContract[method].output.safeParse(result)
 			if (!parsedOutput.success) {
 				this.sendJson(
@@ -204,6 +203,12 @@ export class ControlRpcServer {
 
 			this.sendJson(ws, createJsonRpcResult(id, parsedOutput.data as ControlOutput<typeof method>))
 			this.logger.info(this.formatLog(traceId, method, 'reply', { ok: true }))
+
+			if (method === 'reload') {
+				const payload = input as ControlInput<'reload'>
+				this.triggerReload(payload.force ?? false)
+			}
+
 			return true
 		} catch (error) {
 			const message = error instanceof Error ? error.message : 'internal error'
@@ -221,10 +226,14 @@ export class ControlRpcServer {
 	}
 
 	private async runMainMethod(
-		method: 'listRendererLogs' | 'fetchRendererLog',
+		method: 'listRendererLogs' | 'fetchRendererLog' | 'reload',
 		input: ControlInput<ControlMethod>,
-		logsDir: string,
 	): Promise<ControlOutput<typeof method>> {
+		if (method === 'reload') {
+			return { success: true } as ControlOutput<typeof method>
+		}
+
+		const logsDir = path.join(process.cwd(), 'logs')
 		if (method === 'listRendererLogs') {
 			return (await listRendererLogs(logsDir)) as ControlOutput<typeof method>
 		}
@@ -237,6 +246,22 @@ export class ControlRpcServer {
 			full: payload.full,
 			maxLines: payload.maxLines,
 		})) as ControlOutput<typeof method>
+	}
+
+	private triggerReload(force: boolean): void {
+		const targetWindow = BrowserWindow.getAllWindows()[0]
+		if (!targetWindow || targetWindow.isDestroyed()) {
+			return
+		}
+
+		// Schedule reload on next tick to ensure JSON-RPC response is sent first
+		setTimeout(() => {
+			if (force) {
+				targetWindow.webContents.reloadIgnoringCache()
+			} else {
+				targetWindow.webContents.reload()
+			}
+		}, 0)
 	}
 
 	/**

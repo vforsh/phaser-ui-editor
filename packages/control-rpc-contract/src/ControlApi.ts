@@ -65,6 +65,7 @@ import { openProjectCommand } from './commands/openProject.js'
 import { patchObjectCommand } from './commands/patchObject.js'
 import { patchObjectComponentCommand } from './commands/patchObjectComponent.js'
 import { pingCommand } from './commands/ping.js'
+import { reloadCommand } from './commands/reload.js'
 import { removeObjectComponentCommand } from './commands/removeObjectComponent.js'
 import { renameObjectCommand } from './commands/renameObject.js'
 import { savePrefabCommand } from './commands/savePrefab.js'
@@ -100,6 +101,7 @@ export const controlContract = {
 	focusOnObject: focusOnObjectCommand,
 	moveObjectInHierarchy: moveObjectInHierarchyCommand,
 	renameObject: renameObjectCommand,
+	reload: reloadCommand,
 	patchObject: patchObjectCommand,
 	patchObjectComponent: patchObjectComponentCommand,
 	removeObjectComponent: removeObjectComponentCommand,
