@@ -17,7 +17,7 @@ type DiscoverOptions = {
 export function registerDiscoverCommand(program: Command): void {
 	program
 		.command('discover')
-		.aliases(['ls', 'editors'])
+		.aliases(['ls', 'editors', 'hi'])
 		.description('List running Tekton Editor instances')
 		.option('--json', 'Output JSON')
 		.option('--no-ping', 'Skip ping verification')

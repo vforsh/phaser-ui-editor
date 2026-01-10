@@ -26,7 +26,7 @@ Inspect methods and schemas:
 ```bash
 editorctl --port 17870 methods
 editorctl --port 17870 schema openProject
-editorctl --port 17870 help openProject
+editorctl --port 17870 info openProject
 ```
 
 ## Troubleshooting

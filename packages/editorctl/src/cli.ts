@@ -6,7 +6,7 @@ import process from 'node:process'
 
 import { registerCallCommand } from './commands/call'
 import { registerDiscoverCommand } from './commands/discover'
-import { registerHelpCommand } from './commands/help'
+import { registerInfoCommand } from './commands/info'
 import { registerLogsCommand } from './commands/logs'
 import { registerMethodsCommand } from './commands/methods'
 import { registerSchemaCommand } from './commands/schema'
@@ -114,11 +114,11 @@ async function validateWorktreeMatch(editor: DiscoveredEditor, expectedRepoRoot:
 
 registerDiscoverCommand(program)
 registerTargetCommand(program, getClientAndEditor)
-registerCallCommand(program, getClient)
 registerLogsCommand(program, getClient)
 registerMethodsCommand(program, getClient)
+registerCallCommand(program, getClient)
 registerSchemaCommand(program, getClient)
-registerHelpCommand(program, getClient)
+registerInfoCommand(program, getClient)
 
 program.parseAsync(process.argv).catch((error: unknown) => {
 	handleError(error)
