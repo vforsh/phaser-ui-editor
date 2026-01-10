@@ -4,10 +4,6 @@
 
 - **Stable UI test IDs**: For app UI, add `data-testid` to _stable, large components_ (things tests/automation will target long-term). Use durable IDs; stable across copy/layout refactors. Don’t derive IDs from labels or DOM structure.
 
-- **Commits**: Conventional Commits only (`feat|fix|refactor|build|ci|chore|docs|style|perf|test`). Pick type by user-visible intent, not files touched. If there’s nuance: add a short “why” body.
-
-- **Merge messages**: No generic/squash placeholders (esp. from `wt merge`) like `Changes to 7 files`. Replace with a real Conventional Commit summary describing the outcome, not the mechanics. Add a short body when it clarifies constraints/edge cases/follow-ups.
-
 - **Writing style**: Direct; information-dense. Avoid filler, repetition, and long preambles (esp. in agent replies and “how-to” docs). Optimize for scanability: someone should find the rule fast and apply it correctly.
 
 - **Adding rules**: When adding new rules/sections to `AGENTS.md`, keep them short and scannable. 3-5 sentences per bullet. Use the existing format: `##` section headers, bold-labeled bullets, and `---` separators between sections. Prefer telegraph style; add extra sentences only when they prevent misinterpretation.
@@ -36,13 +32,13 @@
 
 ---
 
-## Git Worktrees
+## Git
+
+- **Commits**: Conventional Commits only (`feat|fix|refactor|build|ci|chore|docs|style|perf|test`). Pick type by user-visible intent, not files touched. If there’s nuance: add a short “why” body.
 
 - **Worktrees root**: Worktrees live as siblings under `~/dev/tekton-editor/` "container" directory.
 
 - **Main checkout**: Primary working tree: `~/dev/tekton-editor/tekton` (`master` branch). Treat it as the default base for tooling/scripts unless a worktree is mentioned.
-
-- **One folder per worktree**: Name each worktree `tekton.<branch-sanitized>`. Keep names consistent so branch ↔ folder is obvious at a glance. Example: `feature/snap-to-grid` → `tekton.feature-snap-to-grid`.
 
 - **Worktrunk (`wt`) CLI**: Manage worktrees via Worktrunk’s `wt` CLI: `https://github.com/max-sixty/worktrunk`. Use it to create/switch worktrees without manual branch/folder wiring.
 
@@ -53,42 +49,6 @@
 - **Merging worktree**: Don’t let `wt merge` create the squash commit if it would fall back to “Squash commits from …” (commitlint will fail). Do the squash commit yourself, then let Worktrunk fast-forward without creating a commit. From the feature worktree run: `base=$(git merge-base master HEAD) && git reset --soft "$base" && git add -A && git commit -m "feat: <summary>" && wt merge --no-commit -y`. (Use `fix:`/`refactor:` etc. as appropriate.)
 
 - **Plan files before merge**: If the worktree was created from a plan file (e.g. `tasks/*.md`), remove that file before running `wt merge`.
-
----
-
-## Running & testing the editor
-
-- **When**: If the feature needs runtime verification (Canvas/Hierarchy/Inspector behavior, control RPC, etc.), drive the running editor via `editorctl`. Use it when runtime behavior can differ from code review (selection, focus, IPC, rendering). Prefer validating the user’s workflow, not just the happy path.
-
-- **Docs**: See [`docs/features/editorctl/editorctl.md`](./docs/features/editorctl/editorctl.md). Use docs to discover methods + payload shapes (don’t guess). If you add/change a method/contract: update docs so the workflow stays reliable.
-
-- **Pre-flight**: Run `npm run build:packages` before `editorctl` (esp. fresh checkout / contract changes). Avoid “method not found” / schema mismatch from stale packages. If runtime behavior is weird: rebuild before digging deeper.
-
-- **Discover**: Prefer meta commands (`methods`, `schema <method>`, `call <method> '<json>'`) to explore capabilities. Stay aligned with the current RPC surface area; avoid calling non-existent commands. When unsure: inspect schemas; don’t infer params.
-
-- **CLI args**: Always pass `--` before args (e.g. `npm run editorctl -- ...`) so npm forwards flags correctly. Avoid subtle “args swallowed” issues. Keep examples consistent.
-
-- **Targeting**: Use `--port <wsPort>` from `discover`/`ls`. If multiple editors are running, don’t guess—choose the one matching the right project + launch dir. Wrong targeting creates “works on my machine” false positives.
-
-- **1) Discover running editors**: Start with `npm run editorctl -- ls` to find running instances + ports. Treat as required first step; most follow-ups depend on correct targeting. If multiple entries: pick the one for your worktree.
-
-- **2) If none are running**: If `discover` is empty, start the editor (prefer `npm run start:bg`; don’t disrupt the user). Wait for the `[control-rpc] ws://127.0.0.1:<port>` line; then run `ls` again. If startup is messy: check build/package issues before retrying.
-
-- **Wait for**: In start output, look for `[control-rpc] ws://127.0.0.1:<port>` (control channel ready). Only then re-run `ls` to confirm port is discoverable. Avoid startup races + inconsistent results.
-
-- **3) Pick the right instance**: If multiple instances: choose deliberately. Use `projectPath` (what’s open / should be open) and `appLaunchDir` (which checkout) to confirm. When documenting, include the chosen port for reproducibility.
-
-- **Instance `projectPath`**: Should match the project you intend to test (default: `/Users/vlad/dev/papa-cherry-2`). If it doesn’t: open the correct project before deeper calls. Prevents debugging the wrong state.
-
-- **Instance `appLaunchDir`**: Should match the worktree/checkout you’re working in. If it points elsewhere: you may be testing old code. Fix targeting before trusting results.
-
-- **4) Open a project**: Most commands won’t work without an open project. Use default testbed `/Users/vlad/dev/papa-cherry-2` (has `project.json5`) unless user specifies another. Confirm via reported `projectPath`.
-
-- **Default testbed**: Open `/Users/vlad/dev/papa-cherry-2` via `openProject` using the discovered port. Keep the path explicit for reproducibility. If it fails: double-check port + project existence.
-
-- **Subsequent calls**: Use the discovered `wsPort` for all follow-up `call <method>` invocations. Prefer copy/paste from `discover` over retyping. Keep commands consistent so you can compare results across runs.
-
-- **Tip**: Use `projectPath` from `discover` to confirm the project is actually open. Don’t assume the editor remembered your last project (esp. across restarts). This saves time when commands mysteriously no-op.
 
 ---
 
