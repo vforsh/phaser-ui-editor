@@ -21,6 +21,24 @@ program
 	.name('editorctl')
 	.description('Control Tekton Editor via JSON-RPC')
 	.option('-p, --port <number>', 'WebSocket port', (val) => Number.parseInt(val, 10), DEFAULT_PORT)
+	.configureHelp({
+		helpWidth: 100,
+		subcommandTerm: (cmd) => {
+			let usage = cmd.usage()
+			if (cmd.options.length <= 1) {
+				usage = usage.replace('[options] ', '').trim()
+			}
+			return usage ? `${cmd.name()} ${usage}` : cmd.name()
+		},
+		subcommandDescription: (cmd) => {
+			const description = cmd.description()
+			const aliases = cmd.aliases()
+			if (aliases.length > 0) {
+				return `${description} (aliases: ${aliases.join(', ')})`
+			}
+			return description
+		},
+	})
 
 const getClient = async () => {
 	const options = program.opts()
@@ -33,11 +51,11 @@ const getClient = async () => {
 }
 
 registerDiscoverCommand(program)
+registerTargetCommand(program)
 registerCallCommand(program, getClient)
 registerMethodsCommand(program, getClient)
 registerSchemaCommand(program, getClient)
 registerHelpCommand(program, getClient)
-registerTargetCommand(program)
 
 program.parseAsync(process.argv).catch((error: unknown) => {
 	handleError(error)

@@ -13,14 +13,10 @@ type TargetOptions = {
 }
 
 export function registerTargetCommand(program: Command): void {
-	registerCommand(program, 'target', 'Show the editor instance that would be targeted')
-	registerCommand(program, 'whoami', 'Alias for target')
-}
-
-function registerCommand(program: Command, name: string, description: string): void {
 	program
-		.command(name)
-		.description(description)
+		.command('target')
+		.alias('ping')
+		.description('Show the editor instance that would be targeted')
 		.option('--json', 'Output JSON')
 		.action(async (options: TargetOptions) => {
 			const entry = await resolveTarget(program)

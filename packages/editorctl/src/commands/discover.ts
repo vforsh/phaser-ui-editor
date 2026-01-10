@@ -15,14 +15,10 @@ type DiscoverOptions = {
 }
 
 export function registerDiscoverCommand(program: Command): void {
-	registerCommand(program, 'discover', 'List running Tekton Editor instances')
-	registerCommand(program, 'ls', 'Alias for discover')
-}
-
-function registerCommand(program: Command, name: string, description: string): void {
 	program
-		.command(name)
-		.description(description)
+		.command('discover')
+		.aliases(['ls', 'editors'])
+		.description('List running Tekton Editor instances')
 		.option('--json', 'Output JSON')
 		.option('--no-ping', 'Skip ping verification')
 		.option('--timeout <ms>', 'Ping timeout in milliseconds', (value) => Number.parseInt(value, 10), DEFAULT_TIMEOUT_MS)
