@@ -20,7 +20,7 @@ const program = new Command()
 program
 	.name('editorctl')
 	.description('Control Tekton Editor via JSON-RPC')
-	.option('--port <number>', 'WebSocket port', (val) => Number.parseInt(val, 10), DEFAULT_PORT)
+	.option('-p, --port <number>', 'WebSocket port', (val) => Number.parseInt(val, 10), DEFAULT_PORT)
 
 const getClient = () => {
 	const options = program.opts()
