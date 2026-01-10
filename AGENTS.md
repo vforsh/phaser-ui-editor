@@ -74,4 +74,4 @@
 
 - **String-first logging**: Put the main information in a string so it survives into text logs reliably. If you need to log structured data, serialize it (e.g. JSON) into the message string (or include a short, string summary + a serialized payload). Don’t rely on logging raw objects as separate args for anything important.
 
-- **Signal, not noise**: Add info logs around crucial transitions (open/save, persistence, cache invalidate, RPC boundaries) so flows are traceable, but keep volume low. Prefer one log per milestone with compact counts/ids over per-item spam. If a loop would log per node/asset/object, gate it behind debug or aggregate counts first.
+- **Signal, not noise**: Add `info` logs around crucial transitions (open/save, persistence, cache invalidate, RPC boundaries) so flows are traceable, but keep volume low. Prefer one log per milestone with compact counts/ids over per-item spam. If a loop would log per node/asset/object, gate it behind debug or aggregate counts first.
