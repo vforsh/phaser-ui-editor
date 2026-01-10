@@ -58,6 +58,8 @@
 
 - **Log files**: In dev, main window renderer `console.*` is captured by the main process and written under `./logs` (files live at `./logs/renderer-<runId>.log`). Use it for quick debugging when you can’t attach devtools or want a stable artifact. Treat as dev-only diagnostics, not a replacement for real error reporting.
 
+- **Fetch logs**: Run `npm run editorctl -- logs` to fetch logs from a running Tekton Editor instance. If you get “No running Tekton Editor instances found…”, start the app. If you get a target/match error, run `npm run editorctl -- editors` to find the right instance, then rerun with an explicit port (e.g. `npm run editorctl -- --port <port> logs`).
+
 - **Quirk**: Uses Electron `console-message` (string payload), so object logging can degrade (e.g. `label [object Object]`). Prefer serializing important structured data.
 
 - **Log channels**: For app logging, use the channel-based logger from `src/renderer/logs/logs.ts` (import `logger`) and pick the channel that best matches the purpose via `logger.getOrCreate(<channel>)`. Channels are defined in `src/renderer/logs/LogChannel.ts`. Avoid raw `console.*` for non-trivial logging; it’s easy to lose context and harder to filter.
