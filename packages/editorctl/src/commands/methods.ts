@@ -12,7 +12,8 @@ export function registerMethodsCommand(program: Command, getClient: () => Promis
 		.description('List available control RPC methods and metadata')
 		.option('--format <format>', 'Output format: json or table', 'json')
 		.option('--group <name>', 'Filter by method group')
-		.action(async (options: { format?: string; group?: string }) => {
+		.option('-d, --detail <level>', 'Detail level: minimal, standard, verbose', 'standard')
+		.action(async (options: { format?: string; group?: string; detail: 'minimal' | 'standard' | 'verbose' }) => {
 			try {
 				const client = await getClient()
 				const meta = await client.getMeta()
@@ -22,8 +23,37 @@ export function registerMethodsCommand(program: Command, getClient: () => Promis
 					methods = methods.filter((entry) => entry.group === options.group)
 				}
 
+				methods = [...methods].sort((a, b) => a.method.localeCompare(b.method))
+
+				if (options.detail === 'minimal') {
+					const names = methods.map((m) => m.method)
+					if (options.format === 'json') {
+						printJson(names)
+						return
+					}
+
+					process.stdout.write(`${names.join('\n')}\n`)
+					return
+				}
+
+				if (options.detail === 'standard') {
+					if (options.format === 'json') {
+						printJson(methods.map((m) => ({ method: m.method, description: m.description })))
+						return
+					}
+
+					printTable(
+						['method', 'description'],
+						methods.map((m) => [m.method, m.description]),
+					)
+					return
+				}
+
 				if (options.format === 'table') {
-					printMethodsTable(methods)
+					printTable(
+						['method', 'group', 'description'],
+						methods.map((entry) => [entry.method, entry.group, entry.description]),
+					)
 					return
 				}
 
@@ -34,15 +64,12 @@ export function registerMethodsCommand(program: Command, getClient: () => Promis
 		})
 }
 
-function printMethodsTable(methods: ControlMetaMethod[]): void {
-	const rows = methods.map((entry) => [entry.method, entry.group, entry.description])
-	const headers = ['method', 'group', 'description']
-
+function printTable(headers: string[], rows: (string | undefined)[][]): void {
 	const widths = headers.map((header, index) => {
 		return Math.max(header.length, ...rows.map((row) => row[index]?.length ?? 0))
 	})
 
-	const formatRow = (row: string[]) => row.map((cell, i) => cell.padEnd(widths[i])).join('  ')
+	const formatRow = (row: (string | undefined)[]) => row.map((cell, i) => (cell ?? '').padEnd(widths[i])).join('  ')
 
 	process.stdout.write(`${formatRow(headers)}\n`)
 	for (const row of rows) {
