@@ -64,24 +64,24 @@ function handleRpcRequest(service: EditorControlService, scheduler: RpcScheduler
 
 	const validation = validateControlRequest(request)
 	if (!validation.ok) {
-		rpcLogger.error('validation failed', validation.response)
+		rpcLogger.error(`${validation.traceId} # ${request.method} validation-failed`, validation.response)
 		return Promise.resolve(validation.response)
 	}
 
 	const { id, method } = validation.request
 	const { input, traceId } = validation
 
-	rpcLogger.info({ traceId, method, phase: 'recv' })
+	rpcLogger.info(`${traceId} # ${method} recv`, { params: request.params })
 
 	const run = async (): Promise<JsonRpcResponse> => {
 		const start = Date.now()
 
-		rpcLogger.info({ traceId, method, phase: 'exec-start' })
+		rpcLogger.info(`${traceId} # ${method} exec-start`, { params: request.params })
 
 		const result = await scheduler.schedule(method, async () => callHandler(service, method, input))
 
 		const durationMs = Date.now() - start
-		rpcLogger.info({ traceId, method, phase: 'exec-end', durationMs, ok: true })
+		rpcLogger.info(`${traceId} # ${method} exec-end durationMs=${durationMs} ok=true`, { result })
 
 		const parsedOutput = controlContract[method].output.safeParse(result)
 		if (!parsedOutput.success) {
@@ -90,7 +90,7 @@ function handleRpcRequest(service: EditorControlService, scheduler: RpcScheduler
 				issues: parsedOutput.error.flatten(),
 				traceId,
 			})
-			rpcLogger.error({ traceId, method, phase: 'error', code: ERR_INVALID_RPC_RESPONSE })
+			rpcLogger.error(`${traceId} # ${method} error code=${ERR_INVALID_RPC_RESPONSE}`, {})
 			return errorResponse
 		}
 
@@ -105,7 +105,7 @@ function handleRpcRequest(service: EditorControlService, scheduler: RpcScheduler
 				traceId,
 				details: error.details,
 			})
-			rpcLogger.error({ traceId, method, phase: 'error', code: error.code, message: error.message })
+			rpcLogger.error(`${traceId} # ${method} error code=${error.code} message=${error.message}`, {})
 			return errorResponse
 		}
 
@@ -115,7 +115,7 @@ function handleRpcRequest(service: EditorControlService, scheduler: RpcScheduler
 			traceId,
 			stack: error instanceof Error ? error.stack : undefined,
 		})
-		rpcLogger.error({ traceId, method, phase: 'error', code: JSONRPC_INTERNAL_ERROR, message })
+		rpcLogger.error(`${traceId} # ${method} error code=${JSONRPC_INTERNAL_ERROR} message=${message}`, {})
 		return errorResponse
 	})
 }
