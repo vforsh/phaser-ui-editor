@@ -78,8 +78,14 @@ export type EditorctlClient = ClientType
  */
 export const createClient = createClientInternal
 
-export { TransportError } from './transport/ws'
-export { isRpcError, isTransportError, RpcError } from './errors'
+export { isTransportError, TransportError } from './transport/TransportError'
+export { isRpcError, RpcError } from './rpc/RpcError'
 export { discoverEditors } from './discovery/discoverEditors'
 export type { DiscoverEditorsOptions, DiscoveredEditor } from './discovery/discoverEditors'
+export { pickEditor } from './discovery/pickEditor'
+export { PickEditorError } from './discovery/PickEditorError'
+export type { PickEditorErrorDetails, PickEditorErrorReason } from './discovery/PickEditorError'
+export type { PickEditorOptions, PickEditorPrefer } from './discovery/pickEditor'
+export { connect } from './connect'
+export type { ConnectOptions, ConnectResult } from './connect'
 export { getErrorLog, getErrorMessage, getErrorName } from './utils/error'

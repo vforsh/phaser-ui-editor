@@ -2,6 +2,8 @@ import type { ControlMethod } from '@tekton/control-rpc-contract'
 
 import WebSocket from 'ws'
 
+import { TransportError } from './TransportError'
+
 export interface WsTransportOptions {
 	port: number
 	maxAttempts?: number
@@ -14,21 +16,6 @@ export interface WsTransportOptions {
 	 * When omitted, no timeout is enforced (the request may wait indefinitely).
 	 */
 	timeoutMs?: number
-}
-
-export class TransportError extends Error {
-	readonly isTransportError = true
-	readonly port?: number
-	readonly method?: ControlMethod
-	readonly instanceId?: string
-
-	constructor(message: string, options?: { cause?: unknown; port?: number; method?: ControlMethod; instanceId?: string }) {
-		super(message, options)
-		this.name = 'TransportError'
-		this.port = options?.port
-		this.method = options?.method
-		this.instanceId = options?.instanceId
-	}
 }
 
 export class WsTransport {

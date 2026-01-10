@@ -1,8 +1,9 @@
 import type { ControlMethod, JsonRpcRequest, JsonRpcResponse, OutputFor } from './types'
 
-import { RpcError, isTransportError } from '../errors'
-import { WsTransport, TransportError } from '../transport/ws'
+import { isTransportError, TransportError } from '../transport/TransportError'
+import { WsTransport } from '../transport/ws'
 import { generateId } from './id'
+import { RpcError } from './RpcError'
 
 export interface RpcClientContext {
 	port: number

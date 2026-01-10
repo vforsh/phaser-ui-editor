@@ -1,13 +1,8 @@
-import { createClient, discoverEditors } from '@tekton/editorctl-client'
+import { connect } from '@tekton/editorctl-client'
 
 async function run(): Promise<void> {
-	const editors = await discoverEditors()
-	const editor = editors[0]
-	if (!editor) {
-		throw new Error('No running editors found')
-	}
-
-	const client = createClient({ port: editor.wsPort })
+	// Use connect() to validate happy path ergonomics
+	const { client } = await connect()
 
 	await client.ping()
 	await client.openProject({ path: '/Users/vlad/dev/papa-cherry-2' })
