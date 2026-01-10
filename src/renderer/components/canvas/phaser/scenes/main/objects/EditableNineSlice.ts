@@ -16,6 +16,7 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
 	public readonly kind = 'NineSlice'
 	public readonly id: string
+	public localId: string | undefined
 	public readonly asset: PrefabImageAsset | PrefabSpritesheetFrameAsset
 	private _isLocked = false
 	private _stateObj: EditableNineSliceJson
@@ -86,6 +87,7 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 		return {
 			...this.toJSON(),
 			id: this.id,
+			localId: this.localId,
 			asset: this.asset,
 			type: 'NineSlice',
 			depth: this.depth,

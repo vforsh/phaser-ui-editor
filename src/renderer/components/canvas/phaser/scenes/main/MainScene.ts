@@ -418,6 +418,7 @@ export class MainScene extends BaseScene {
 			signal,
 		)
 		appCommands.on('get-object-path', (id) => this.ops.getObjectPath(id), this, false, signal)
+		appCommands.on('rename-object', (data) => this.ops.renameObject(data), this, false, signal)
 		appCommands.on('save-prefab', () => this.persistence.savePrefab(), this, false, signal)
 		appCommands.on('discard-unsaved-prefab', this.restart, this, false, signal)
 

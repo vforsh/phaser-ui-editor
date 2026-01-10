@@ -820,4 +820,24 @@ export class MainSceneOps {
 			selection.updateBounds()
 		})
 	}
+
+	public renameObject(data: { objectId: string; name: string }): void {
+		const obj = this.deps.objectsFactory.getObjectById(data.objectId)
+		if (!obj) {
+			return
+		}
+
+		const trimmedName = data.name.trim()
+		if (trimmedName.length === 0) {
+			return
+		}
+
+		if (obj.name === trimmedName) {
+			return
+		}
+
+		this.deps.history.withUndo('Rename object', () => {
+			obj.setName(trimmedName)
+		})
+	}
 }

@@ -30,6 +30,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 	public readonly [EDITABLE_SYMBOL] = true
 	public readonly kind = 'Container'
 	public readonly id: string
+	public localId: string | undefined
 	public readonly prefab: PrefabRef | null
 	public readonly isRoot: boolean
 	private readonly __events = new TypedEventEmitter<Events>()
@@ -180,6 +181,7 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		return {
 			...this.toJSON(),
 			id: this.id,
+			localId: this.localId,
 			prefab: this.prefab,
 			type: 'Container',
 			depth: this.depth,

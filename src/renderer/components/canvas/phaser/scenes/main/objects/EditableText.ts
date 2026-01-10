@@ -16,6 +16,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	public readonly [EDITABLE_SYMBOL] = true
 	public readonly kind = 'Text'
 	public readonly id: string
+	public localId: string | undefined
 	public readonly asset: PrefabWebFontAsset
 	private _isLocked = false
 	private _stateObj: EditableTextJson
@@ -137,6 +138,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 		return {
 			...this.toJSON(),
 			id: this.id,
+			localId: this.localId,
 			asset: this.asset,
 			type: 'Text',
 			depth: this.depth,

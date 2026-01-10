@@ -15,6 +15,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 	public readonly [EDITABLE_SYMBOL] = true
 	public readonly kind = 'BitmapText'
 	public readonly id: string
+	public localId: string | undefined
 	public readonly asset: PrefabBitmapFontAsset
 	private readonly __events = new TypedEventEmitter<Events>()
 	private _isLocked = false
@@ -125,6 +126,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		return {
 			...this.toJSON(),
 			id: this.id,
+			localId: this.localId,
 			asset: this.asset,
 			type: 'BitmapText',
 			depth: this.depth,

@@ -182,6 +182,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		const children = json.children.map((childJson) => this.fromJson(childJson))
 		const container = new EditableContainer(this.scene, id, json.prefab, json.x, json.y, children, isRoot)
 
+		container.localId = json.localId
 		container.setScale(json.scale.x, json.scale.y)
 		container.setRotation(json.rotation)
 		container.setAlpha(json.alpha)
@@ -200,6 +201,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		const id = this.getObjectId()
 		const image = new EditableImage(this.scene, id, json.asset, json.x, json.y, json.textureKey, json.frameKey)
 
+		image.localId = json.localId
 		image.setName(json.name)
 		image.setVisible(json.visible)
 		image.setLocked(json.locked)
@@ -227,6 +229,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 			json.ninePatchConfig,
 		)
 
+		nineSlice.localId = json.localId
 		nineSlice.setPosition(json.x, json.y)
 		nineSlice.setName(json.name)
 		nineSlice.setVisible(json.visible)
@@ -245,6 +248,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		const id = this.getObjectId()
 		const text = new EditableText(this.scene, id, json.asset, json.x, json.y, json.text, json.style)
 
+		text.localId = json.localId
 		text.setName(json.name)
 		text.setVisible(json.visible)
 		text.setAlpha(json.alpha)
@@ -263,6 +267,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		const id = this.getObjectId()
 		const bitmapText = new EditableBitmapText(this.scene, id, json.asset, json.font, json.text, json.fontSize, json.align)
 
+		bitmapText.localId = json.localId
 		bitmapText.setPosition(json.x, json.y)
 		bitmapText.setName(json.name)
 		bitmapText.setVisible(json.visible)
@@ -283,6 +288,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		const id = this.getObjectId()
 		const graphics = new EditableGraphics(this.scene, id, json.x, json.y, json.width, json.height, json.shape, json.fill, json.stroke)
 
+		graphics.localId = json.localId
 		graphics.setName(json.name)
 		graphics.setVisible(json.visible)
 		graphics.setAlpha(json.alpha)

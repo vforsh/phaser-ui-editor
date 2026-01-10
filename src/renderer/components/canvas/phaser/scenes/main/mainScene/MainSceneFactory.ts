@@ -28,6 +28,7 @@ import {
 } from '../../../../../../types/prefabs/PrefabAsset'
 import { PrefabFile } from '../../../../../../types/prefabs/PrefabFile'
 import { EditableContainer } from '../objects/EditableContainer'
+import { ensureLocalIds } from '../objects/localId'
 
 export type MainSceneFactoryOptions = {
 	textures: Phaser.Textures.TextureManager
@@ -182,6 +183,7 @@ export class MainSceneFactory {
 		await this.options.assetLoader.loadPrefabAssets(prefabFile.content)
 
 		const containerJson = { ...prefabFile.content, prefab: { id: prefab.id, name: prefab.name } }
+		ensureLocalIds(containerJson)
 		const container = this.options.objectsFactory.fromJson(containerJson) as EditableContainer
 		container.setName(this.options.getNewObjectName(context, container))
 

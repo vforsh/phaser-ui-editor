@@ -75,7 +75,7 @@ export function isObjectOfType<T extends EditableObjectType>(obj: EditableObject
 
 // #region JSON
 export type CreateEditableObjectJson<T extends { readonly type: string; locked: boolean; components: EditableComponentJson[] }> =
-	Phaser.Types.GameObjects.JSONGameObject & T
+	Phaser.Types.GameObjects.JSONGameObject & T & { localId?: string }
 
 export type EditableObjectJson =
 	| EditableContainerJson

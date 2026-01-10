@@ -122,11 +122,7 @@ export default function HierarchyPanel(props: HierarchyPanelProps) {
 	}
 
 	const completeRename = (objId: string, newName: string) => {
-		const objState = state.canvas.objectById(objId)
-		if (objState) {
-			objState.name = newName
-		}
-
+		appCommands.emit('rename-object', { objectId: objId, name: newName })
 		setItemToRename(null)
 	}
 

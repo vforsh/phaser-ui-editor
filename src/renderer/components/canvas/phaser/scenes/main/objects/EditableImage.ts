@@ -15,6 +15,7 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 	public readonly [EDITABLE_SYMBOL] = true
 	public readonly kind = 'Image'
 	public readonly id: string
+	public localId: string | undefined
 	public readonly asset: PrefabImageAsset | PrefabSpritesheetFrameAsset
 	private _isLocked = false
 	private _stateObj: EditableImageJson
@@ -89,6 +90,7 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 		return {
 			...this.toJSON(),
 			id: this.id,
+			localId: this.localId,
 			asset: this.asset,
 			type: 'Image',
 			depth: this.depth,

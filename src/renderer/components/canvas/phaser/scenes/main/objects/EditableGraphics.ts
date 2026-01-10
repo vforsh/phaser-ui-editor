@@ -52,6 +52,7 @@ export class EditableGraphics extends Phaser.GameObjects.Graphics implements IEd
 	public readonly [EDITABLE_SYMBOL] = true
 	public readonly kind = 'Graphics'
 	public readonly id: string
+	public localId: string | undefined
 	private _isLocked = false
 	private _stateObj: EditableGraphicsJson
 	private _stateChanges: StateChangesEmitter<EditableGraphicsJson>
@@ -149,6 +150,7 @@ export class EditableGraphics extends Phaser.GameObjects.Graphics implements IEd
 		return {
 			...this.toJSON(),
 			id: this.id,
+			localId: this.localId,
 			type: 'Graphics',
 			depth: this.depth,
 			blendMode: this.blendMode,

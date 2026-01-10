@@ -18,6 +18,7 @@ import {
 import { PrefabFile } from '../../../../../../types/prefabs/PrefabFile'
 import { EditableContainer, EditableContainerJson } from '../objects/EditableContainer'
 import { EditableObjectJson } from '../objects/EditableObject'
+import { ensureLocalIds } from '../objects/localId'
 import { MainSceneDeps } from './mainSceneTypes'
 
 export class MainScenePrefabPersistence {
@@ -27,6 +28,7 @@ export class MainScenePrefabPersistence {
 		let root: EditableContainer
 
 		if (prefabFile.content) {
+			ensureLocalIds(prefabFile.content)
 			await this.deps.assetLoader.loadPrefabAssets(prefabFile.content)
 			root = this.deps.objectsFactory.fromJson(prefabFile.content, true) as EditableContainer
 		} else {

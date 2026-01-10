@@ -8,7 +8,7 @@ import { resolveObjectSelectorV0 } from '../utils/resolve-object-selector'
 /**
  * @see {@link renameObjectCommand} for command definition
  */
-export const renameObject: CommandHandler<'renameObject'> = (_ctx) => async (params) => {
+export const renameObject: CommandHandler<'renameObject'> = (ctx) => async (params) => {
 	const resolved = resolveObjectSelectorV0(params.target)
 	if (!resolved.ok) {
 		return resolved
@@ -22,6 +22,6 @@ export const renameObject: CommandHandler<'renameObject'> = (_ctx) => async (par
 		}
 	}
 
-	obj.name = params.name
+	ctx.appCommands.emit('rename-object', { objectId: resolved.id, name: params.name })
 	return { ok: true }
 }
