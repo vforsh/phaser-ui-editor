@@ -223,6 +223,28 @@ npm run editorctl -- --port <wsPort> call listModals '{}'
 npm run editorctl -- --port <wsPort> call closeAllModals '{}'
 ```
 
+## Prefab commands (misc group)
+
+- `openPrefab`: Opens a prefab by `assetId` or `path`.
+    - **Note**: This command will fail with `ERR_UNSAVED_PREFAB_CHANGES` if the currently opened prefab has unsaved changes and you are trying to open a different one.
+- `savePrefab`: Saves the currently opened prefab.
+- `discardUnsavedPrefab`: Discards any unsaved changes in the currently opened prefab by reloading it.
+
+Example (`editorctl`) for handling unsaved changes:
+
+```bash
+# 1. Try to open prefab B while prefab A is dirty
+npm run editorctl -- call openPrefab '{"path":"prefabs/B.json"}'
+# Result: Error -32014 (unsaved_prefab_changes)
+
+# 2. Decide to discard changes in A
+npm run editorctl -- call discardUnsavedPrefab '{}'
+
+# 3. Retry opening B
+npm run editorctl -- call openPrefab '{"path":"prefabs/B.json"}'
+# Result: Success
+```
+
 ## How to add new command
 
 This checklist covers the end-to-end path: **external JSON-RPC → main WS router → renderer bridge → `EditorControlService` → internal editor action → `editorctl`**.

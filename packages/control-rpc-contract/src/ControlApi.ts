@@ -39,6 +39,7 @@ import { createObjectCommand, createObjectFromAssetCommand } from './commands/cr
 import { createPrefabAssetCommand } from './commands/createPrefabAsset.js'
 import { createPrefabInstanceCommand } from './commands/createPrefabInstance.js'
 import { deleteObjectsCommand } from './commands/deleteObjects.js'
+import { discardUnsavedPrefabCommand } from './commands/discardUnsavedPrefab.js'
 import { duplicateObjectCommand } from './commands/duplicateObject.js'
 import { fetchRendererLogCommand } from './commands/fetchRendererLog.js'
 import { focusOnObjectCommand } from './commands/focusOnObject.js'
@@ -90,6 +91,7 @@ export const controlContract = {
 	selectObject: selectObjectCommand,
 	switchToContext: switchToContextCommand,
 	deleteObjects: deleteObjectsCommand,
+	discardUnsavedPrefab: discardUnsavedPrefabCommand,
 	createObject: createObjectCommand,
 	createObjectFromAsset: createObjectFromAssetCommand,
 	createGraphicsAt: createGraphicsAtCommand,

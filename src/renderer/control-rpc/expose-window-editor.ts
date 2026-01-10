@@ -41,6 +41,7 @@ export function exposeWindowEditor(appCommands: AppCommandsEmitter): void {
 		createObject: (params) => handlers.createObject(params),
 		createObjectFromAsset: (params) => handlers.createObjectFromAsset(params),
 		duplicateObject: (params) => handlers.duplicateObject(params),
+		discardUnsavedPrefab: (params) => handlers.discardUnsavedPrefab(params ?? {}),
 		moveObjectInHierarchy: (params) => handlers.moveObjectInHierarchy(params),
 		renameObject: (params) => handlers.renameObject(params),
 		patchObject: (params) => handlers.patchObject(params),

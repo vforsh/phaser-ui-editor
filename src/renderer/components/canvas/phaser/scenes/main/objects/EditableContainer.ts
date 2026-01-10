@@ -107,6 +107,10 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 	 * @returns true if hierarchy has changed since last check, false otherwise
 	 */
 	public checkForHierarchyChanges(): boolean {
+		if (!this._stateObj) {
+			return false
+		}
+
 		const editables = this.editables
 
 		const hasChanges =
@@ -135,6 +139,8 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 			if (gameObject instanceof EditableContainer) {
 				gameObject.events.on('hierarchy-changed', () => this.events.emit('hierarchy-changed'), this, this.preDestroySignal)
 			}
+
+			this.checkForHierarchyChanges()
 		}
 	}
 
@@ -150,6 +156,8 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 			if (gameObject instanceof EditableContainer) {
 				gameObject.events.offByContext(this, 'hierarchy-changed')
 			}
+
+			this.checkForHierarchyChanges()
 		}
 	}
 

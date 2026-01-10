@@ -13,6 +13,7 @@ import { createObjectFromAsset } from './handlers/createObjectFromAsset'
 import { createPrefabAsset } from './handlers/createPrefabAsset'
 import { createPrefabInstance } from './handlers/createPrefabInstance'
 import { deleteObjects } from './handlers/deleteObjects'
+import { discardUnsavedPrefab } from './handlers/discardUnsavedPrefab'
 import { duplicateObject } from './handlers/duplicateObject'
 import { fetchRendererLog } from './handlers/fetchRendererLog'
 import { focusOnObject } from './handlers/focusOnObject'
@@ -79,6 +80,7 @@ export class EditorControlService {
 			selectObject: selectObject(this.ctx),
 			switchToContext: switchToContext(this.ctx),
 			deleteObjects: deleteObjects(this.ctx),
+			discardUnsavedPrefab: discardUnsavedPrefab(this.ctx),
 			createObject: createObject(this.ctx),
 			createObjectFromAsset: createObjectFromAsset(this.ctx),
 			createGraphicsAt: createGraphicsAt(this.ctx),

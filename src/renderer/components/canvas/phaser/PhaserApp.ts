@@ -105,6 +105,7 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 
 		this.appCommands = appCommands
 		this.appCommands.on('open-prefab', this.openPrefab, this, false, this.destroySignal)
+		this.appCommands.on('discard-unsaved-prefab', this.discardUnsavedPrefab, this, false, this.destroySignal)
 		this.appCommands.on('undo', () => this.undoHub.undo(), this, false, this.destroySignal)
 		this.appCommands.on('redo', () => this.undoHub.redo(), this, false, this.destroySignal)
 		this.appCommands.on('get-canvas-metrics', this.getCanvasMetrics, this, false, this.destroySignal)
@@ -197,6 +198,49 @@ export class PhaserApp extends Phaser.Game implements PhaserGameExtra {
 
 		// save the prefab asset id to the state so it will auto-open it next time
 		state.canvas.lastOpenedPrefabAssetId = prefabAssetId
+	}
+
+	private async discardUnsavedPrefab() {
+		if (!state.canvas.currentPrefab) {
+			this.logger.warn('discardUnsavedPrefab: no current prefab')
+			return
+		}
+
+		const prefabAssetId = state.canvas.currentPrefab.id
+		const prefabAsset = getAssetById(state.assets.items, prefabAssetId)
+		if (!prefabAsset || !isAssetOfType(prefabAsset, 'prefab')) {
+			this.logger.error(`failed to discard prefab: '${prefabAssetId}' not found or not a prefab`)
+			return
+		}
+
+		// Force reset UI state
+		state.canvas.camera = { zoom: 1, scrollX: 0, scrollY: 0 }
+		state.canvas.selection = []
+		state.canvas.selectionChangedAt = Date.now()
+		state.canvas.hover = []
+		state.canvas.activeContextId = undefined
+		state.canvas.clipboard = undefined
+
+		// Clear undo history
+		// Discard reloads from disk and intentionally drops undo history so “undo” can’t resurrect discarded in-memory edits.
+		this.undoHub.clear()
+
+		const { error, data } = await until(() => mainApi.readJson({ path: prefabAsset.path }))
+		if (error) {
+			this.logger.error(`failed to reload prefab from '${prefabAsset.path}' (${getErrorLog(error)})`)
+			return
+		}
+
+		const prefabFile = data as PrefabFile
+		const prefabRelPath = getAssetRelativePath(prefabAsset.path)
+
+		this.logger.info(`reloaded (discarded) prefab '${prefabAsset.name}' (assetId: ${prefabAsset.id}, path: ${prefabRelPath})`)
+
+		this.scene.start('MainScene', {
+			project: new Project({ config: this.projectConfig }),
+			prefabAsset,
+			prefabFile,
+		} satisfies MainSceneInitData)
 	}
 
 	private getCanvasMetrics() {

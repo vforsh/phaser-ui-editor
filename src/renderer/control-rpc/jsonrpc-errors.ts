@@ -20,6 +20,8 @@ export const ERR_ELEMENT_NOT_FOUND = -32010
 export const ERR_INVALID_SELECTOR = -32011
 export const ERR_NO_PROJECT_OPEN = -32012
 export const ERR_ZERO_SIZE = -32013
+export const ERR_UNSAVED_PREFAB_CHANGES = -32014
+export const ERR_DISCARD_UNSAVED_PREFAB_FAILED = -32015
 
 export type JsonRpcErrorData =
 	| { kind: 'zod'; issues: unknown; traceId: string }

@@ -4,6 +4,7 @@ import type { CommandHandler } from '../types'
 
 import { state } from '../../../state/State'
 import { getAssetById } from '../../../types/assets'
+import { isIdInPrefabDocument, waitForDocumentRevisionBump } from '../utils/canvasDocument'
 import { resolveObjectSelectorV0 } from '../utils/resolve-object-selector'
 
 const SUPPORTED_ASSET_TYPES = ['image', 'spritesheet-frame', 'prefab', 'web-font', 'bitmap-font'] as const
@@ -30,6 +31,13 @@ export const createObjectFromAsset: CommandHandler<'createObjectFromAsset'> = (c
 		}
 	}
 
+	if (!isIdInPrefabDocument(state.canvas.root, parent.id)) {
+		return {
+			ok: false,
+			error: { kind: 'validation', message: 'parent is not part of the prefab document' },
+		}
+	}
+
 	const asset = getAssetById(state.assets.items, params.assetId)
 	if (!asset) {
 		return {
@@ -48,6 +56,8 @@ export const createObjectFromAsset: CommandHandler<'createObjectFromAsset'> = (c
 		}
 	}
 
+	const beforeRevision = state.canvas.documentRevision
+
 	if (parent.type === 'Container') {
 		ctx.appCommands.emit('switch-to-context', parent.id)
 	} else {
@@ -63,6 +73,17 @@ export const createObjectFromAsset: CommandHandler<'createObjectFromAsset'> = (c
 		return {
 			ok: false,
 			error: { kind: 'internal', message: 'failed to create object from asset' },
+		}
+	}
+
+	const didBump = await waitForDocumentRevisionBump(beforeRevision, { timeoutMs: 3000 })
+	if (!didBump) {
+		return {
+			ok: false,
+			error: {
+				kind: 'internal',
+				message: 'object created but document did not update (timeout)',
+			},
 		}
 	}
 

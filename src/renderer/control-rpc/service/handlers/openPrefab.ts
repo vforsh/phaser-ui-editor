@@ -1,3 +1,4 @@
+import type { ControlMethod } from '@tekton/control-rpc-contract'
 import type { openPrefabCommand } from '@tekton/control-rpc-contract/commands/openPrefab'
 
 import { P, match } from 'ts-pattern'
@@ -5,6 +6,8 @@ import { P, match } from 'ts-pattern'
 import type { CommandHandler } from '../types'
 
 import { state, subscribe } from '../../../state/State'
+import { ControlOperationalError } from '../../control-errors'
+import { ERR_UNSAVED_PREFAB_CHANGES } from '../../jsonrpc-errors'
 import { findAssetByPath } from '../utils/assets'
 
 /**
@@ -18,6 +21,23 @@ export const openPrefab: CommandHandler<'openPrefab'> = (ctx) => async (params) 
 
 	if (!assetId) {
 		throw new Error('openPrefab requires assetId or a valid prefab path')
+	}
+
+	// Guard clause: if the currently opened prefab has unsaved changes, block opening a different prefab.
+	if (state.canvas.hasUnsavedChanges && state.canvas.currentPrefab?.id && state.canvas.currentPrefab.id !== assetId) {
+		const cmdSavePrefab: ControlMethod = 'savePrefab'
+		const cmdDiscardUnsavedPrefab: ControlMethod = 'discardUnsavedPrefab'
+		const cmdOpenPrefab: ControlMethod = 'openPrefab'
+
+		throw new ControlOperationalError({
+			code: ERR_UNSAVED_PREFAB_CHANGES,
+			reason: 'unsaved_prefab_changes',
+			message: `Unsaved prefab changes detected. Run \`${cmdSavePrefab}\` to save, or \`${cmdDiscardUnsavedPrefab}\` to discard, then retry \`${cmdOpenPrefab}\`.`,
+			details: {
+				currentPrefabAssetId: state.canvas.currentPrefab.id,
+				requestedPrefabAssetId: assetId,
+			},
+		})
 	}
 
 	// Fast-path: if the requested prefab is already open and the scene has initialized,
