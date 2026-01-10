@@ -9,7 +9,7 @@ export const reloadCommand = {
 	kind: 'write',
 	description: 'Reloads the renderer unconditionally; unsaved changes will be lost.',
 	input: z.object({
-		force: z.boolean().optional(),
+		force: z.boolean().optional().describe('If true, reloads ignoring the cache.'),
 	}),
 	output: successSchema,
 } satisfies CommandDefinition
