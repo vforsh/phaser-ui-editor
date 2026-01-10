@@ -1,6 +1,8 @@
 import type { ControlInput, ControlMeta, ControlMetaMethod, ControlMethod, ControlOutput } from '@tekton/control-rpc-contract'
 
 import { controlContract, isControlMethod } from '@tekton/control-rpc-contract'
+import fs from 'node:fs'
+import path from 'node:path'
 
 import type { GeneratedControlMethods } from './__generated__/control-methods'
 import type { DiscoveredEditor } from './discovery/discoverEditors'
@@ -31,6 +33,35 @@ export interface EditorctlClientOptions {
 	 * @defaultValue 30000
 	 */
 	timeoutMs?: number
+	/**
+	 * Unique identifier for the editor instance (used for richer errors).
+	 */
+	instanceId?: string
+}
+
+/**
+ * Metadata options for {@link EditorctlClientBase.getMeta}.
+ */
+export interface GetMetaOptions {
+	/**
+	 * Whether to ignore the cache and fetch live metadata from the editor.
+	 * @defaultValue false
+	 */
+	cache?: boolean
+}
+
+/**
+ * Result of {@link EditorctlClientBase.openProjectIfNeeded}.
+ */
+export interface OpenProjectIfNeededResult {
+	/**
+	 * Whether a new project was opened.
+	 */
+	opened: boolean
+	/**
+	 * The canonical path of the opened project.
+	 */
+	projectPath: string
 }
 
 /**
@@ -41,31 +72,45 @@ export interface EditorctlClientBase {
 	 * Calls a control RPC method with the provided JSON params.
 	 *
 	 * @param method - Control RPC method name.
-	 * @param input - JSON params object (omit or pass `{}` for no params).
+	 * @param args - JSON params object. Required if the method has required params.
 	 * @returns The method output payload.
 	 * @throws TransportError when the transport fails.
-	 * @throws Error with `isRpcError` when the request fails at the JSON-RPC layer.
+	 * @throws RpcError when the request fails at the JSON-RPC layer.
 	 *
 	 * @example
 	 * ```ts
-	 * const result = await client.call('ping', {})
+	 * const result = await client.call('ping')
 	 * ```
 	 */
-	call<M extends ControlMethod>(method: M, input?: ControlInput<M>): Promise<ControlOutput<M>>
+	call<M extends ControlMethod>(
+		method: M,
+		...args: ControlInput<M> extends Record<string, never> ? [] | [ControlInput<M>] : [ControlInput<M>]
+	): Promise<ControlOutput<M>>
 	/**
-	 * Fetches the live control RPC discovery metadata from the running editor.
+	 * Fetches control RPC discovery metadata from the running editor.
 	 *
+	 * Results are cached by default after the first call.
+	 *
+	 * @param options - Metadata options (e.g. disabling cache).
 	 * @returns The discovery payload, including method list and JSON Schemas.
 	 * @throws TransportError when the transport fails.
-	 * @throws Error with `isRpcError` when the request fails at the JSON-RPC layer.
+	 * @throws RpcError when the request fails at the JSON-RPC layer.
 	 *
 	 * @example
 	 * ```ts
-	 * const meta = await client.methods()
+	 * const meta = await client.getMeta()
 	 * console.log(meta.methods.map((entry) => entry.method))
 	 * ```
 	 */
-	methods(): Promise<ControlMeta>
+	getMeta(options?: GetMetaOptions): Promise<ControlMeta>
+	/**
+	 * Forces a refresh of the cached control RPC discovery metadata.
+	 *
+	 * @returns The discovery payload, including method list and JSON Schemas.
+	 * @throws TransportError when the transport fails.
+	 * @throws RpcError when the request fails at the JSON-RPC layer.
+	 */
+	refreshMeta(): Promise<ControlMeta>
 	/**
 	 * Fetches the JSON schemas for a specific method using runtime discovery.
 	 *
@@ -85,30 +130,69 @@ export interface EditorctlClientBase {
 		inputSchema: ControlMetaMethod['inputSchema']
 		outputSchema: ControlMetaMethod['outputSchema']
 	}>
+	/**
+	 * Opens a project only if it's not already open.
+	 *
+	 * This method is idempotent and handles path normalization (including symlinks).
+	 *
+	 * @param input - Project opening params.
+	 * @returns The result of the operation.
+	 *
+	 * @example
+	 * ```ts
+	 * await client.openProjectIfNeeded({ path: '~/my-project' })
+	 * ```
+	 */
+	openProjectIfNeeded(input: { path: string }): Promise<OpenProjectIfNeededResult>
 }
 
 export interface EditorctlClient extends EditorctlClientBase, GeneratedControlMethods {}
 
 class EditorctlClientImpl implements EditorctlClientBase {
 	private rpc: RpcClient
+	private metaPromise: Promise<ControlMeta> | null = null
 
 	constructor(options: EditorctlClientOptions) {
+		const timeoutMs = options.timeoutMs ?? 30000
 		const transport = new WsTransport({
 			port: options.port,
 			maxAttempts: options.maxAttempts,
 			retryDelay: options.retryDelay,
-			timeoutMs: options.timeoutMs,
+			timeoutMs,
 		})
-		this.rpc = new RpcClient(transport)
+		this.rpc = new RpcClient(transport, {
+			port: options.port,
+			instanceId: (options as any).instanceId,
+		})
 	}
 
-	async call<M extends ControlMethod>(method: M, input?: ControlInput<M>): Promise<ControlOutput<M>> {
-		const params = (input ?? {}) as ControlInput<M>
+	async call<M extends ControlMethod>(
+		method: M,
+		...args: ControlInput<M> extends Record<string, never> ? [] | [ControlInput<M>] : [ControlInput<M>]
+	): Promise<ControlOutput<M>> {
+		const params = (args[0] ?? {}) as ControlInput<M>
 		return this.rpc.request(method, params)
 	}
 
-	async methods(): Promise<ControlMeta> {
-		return this.rpc.request('getControlMeta', {} as ControlInput<'getControlMeta'>)
+	async getMeta(options: GetMetaOptions = {}): Promise<ControlMeta> {
+		const useCache = options.cache ?? true
+
+		if (useCache && this.metaPromise) {
+			return this.metaPromise
+		}
+
+		const promise = this.rpc.request('getControlMeta', {} as ControlInput<'getControlMeta'>)
+
+		if (useCache) {
+			this.metaPromise = promise
+		}
+
+		return promise
+	}
+
+	async refreshMeta(): Promise<ControlMeta> {
+		this.metaPromise = null
+		return this.getMeta()
 	}
 
 	async schema<M extends ControlMethod>(
@@ -118,7 +202,7 @@ class EditorctlClientImpl implements EditorctlClientBase {
 		inputSchema: ControlMetaMethod['inputSchema']
 		outputSchema: ControlMetaMethod['outputSchema']
 	}> {
-		const meta = await this.methods()
+		const meta = await this.getMeta()
 		const entry = meta.methods.find((item) => item.method === method)
 		if (!entry) {
 			throw new Error(`Unknown method: ${method}`)
@@ -130,9 +214,42 @@ class EditorctlClientImpl implements EditorctlClientBase {
 			outputSchema: entry.outputSchema,
 		}
 	}
+
+	async openProjectIfNeeded(input: { path: string }): Promise<OpenProjectIfNeededResult> {
+		const requestedPath = await normalizePath(input.path)
+
+		try {
+			const projectInfo = await this.call('getProjectInfo')
+			const currentPath = await normalizePath(projectInfo.path)
+
+			if (requestedPath === currentPath) {
+				return { opened: false, projectPath: projectInfo.path }
+			}
+		} catch {
+			// Ignore error and proceed to open (e.g. no project open)
+		}
+
+		await this.call('openProject', { path: input.path })
+
+		// Try to get canonical path after opening
+		try {
+			const projectInfo = await this.call('getProjectInfo')
+			return { opened: true, projectPath: projectInfo.path }
+		} catch {
+			return { opened: true, projectPath: input.path }
+		}
+	}
 }
 
-const reservedMethodNames = new Set(['call', 'methods', 'schema'])
+async function normalizePath(p: string): Promise<string> {
+	try {
+		return await fs.promises.realpath(p)
+	} catch {
+		return path.resolve(p)
+	}
+}
+
+const reservedMethodNames = new Set(['call', 'getMeta', 'refreshMeta', 'schema', 'openProjectIfNeeded'])
 
 /**
  * Attaches control RPC methods from the contract directly to the client instance.
@@ -194,7 +311,7 @@ function createControlMethodsProxy(client: EditorctlClientBase): EditorctlClient
 				return cached
 			}
 
-			const method = (input?: ControlInput<ControlMethod>) => target.call(prop, input as never)
+			const method = (input?: ControlInput<ControlMethod>) => target.call(prop as never, input as never)
 			cachedMethods.set(prop, method)
 			return method
 		},
@@ -207,7 +324,7 @@ function createControlMethodsProxy(client: EditorctlClientBase): EditorctlClient
  * @param options - Connection options or a discovered editor instance.
  * @returns A client instance for making RPC calls.
  * @throws TransportError when the transport fails.
- * @throws Error with `isRpcError` when the request fails at the JSON-RPC layer.
+ * @throws RpcError when the request fails at the JSON-RPC layer.
  *
  * @example
  * ```ts
@@ -223,7 +340,8 @@ function createControlMethodsProxy(client: EditorctlClientBase): EditorctlClient
  * ```
  */
 export function createClient(options: EditorctlClientOptions | DiscoveredEditor): EditorctlClient {
-	const normalizedOptions: EditorctlClientOptions = 'wsPort' in options ? { ...options, port: options.wsPort } : options
+	const normalizedOptions: EditorctlClientOptions =
+		'wsPort' in options ? { ...options, port: options.wsPort, instanceId: options.instanceId } : options
 	const client = new EditorctlClientImpl(normalizedOptions)
 	attachControlMethods(client)
 	return createControlMethodsProxy(client)

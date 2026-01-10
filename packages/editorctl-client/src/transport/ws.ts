@@ -1,3 +1,5 @@
+import type { ControlMethod } from '@tekton/control-rpc-contract'
+
 import WebSocket from 'ws'
 
 export interface WsTransportOptions {
@@ -16,10 +18,16 @@ export interface WsTransportOptions {
 
 export class TransportError extends Error {
 	readonly isTransportError = true
+	readonly port?: number
+	readonly method?: ControlMethod
+	readonly instanceId?: string
 
-	constructor(message: string, options?: { cause?: unknown }) {
+	constructor(message: string, options?: { cause?: unknown; port?: number; method?: ControlMethod; instanceId?: string }) {
 		super(message, options)
 		this.name = 'TransportError'
+		this.port = options?.port
+		this.method = options?.method
+		this.instanceId = options?.instanceId
 	}
 }
 
@@ -56,7 +64,7 @@ export class WsTransport {
 			const timeout =
 				typeof timeoutMs === 'number'
 					? setTimeout(() => {
-							finishReject(new TransportError(`Request timed out after ${timeoutMs}ms`))
+							finishReject(new TransportError(`Request timed out after ${timeoutMs}ms`, { port: this.options.port }))
 						}, timeoutMs)
 					: null
 
@@ -85,13 +93,13 @@ export class WsTransport {
 			})
 
 			ws.on('error', (err) => {
-				finishReject(new TransportError(`Connection error: ${err.message}`, { cause: err }))
+				finishReject(new TransportError(`Connection error: ${err.message}`, { cause: err, port: this.options.port }))
 			})
 
 			ws.on('close', (code, reason) => {
 				if (settled) return
 				const details = reason?.toString() ? ` (${reason.toString()})` : ''
-				finishReject(new TransportError(`Connection closed before response (code ${code})${details}`))
+				finishReject(new TransportError(`Connection closed before response (code ${code})${details}`, { port: this.options.port }))
 			})
 		})
 	}

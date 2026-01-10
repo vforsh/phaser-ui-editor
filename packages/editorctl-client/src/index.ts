@@ -6,7 +6,12 @@ import type {
 	ControlOutput as ContractControlOutput,
 } from '@tekton/control-rpc-contract'
 
-import type { EditorctlClient as ClientType, EditorctlClientOptions as OptionsType } from './client'
+import type {
+	EditorctlClient as ClientType,
+	EditorctlClientOptions as OptionsType,
+	GetMetaOptions as GetMetaOptionsType,
+	OpenProjectIfNeededResult as OpenProjectIfNeededResultType,
+} from './client'
 
 import { createClient as createClientInternal } from './client'
 
@@ -41,6 +46,16 @@ export type ControlMetaMethod = ContractControlMetaMethod
 export type EditorctlClientOptions = OptionsType
 
 /**
+ * Metadata options for `getMeta`.
+ */
+export type GetMetaOptions = GetMetaOptionsType
+
+/**
+ * Result of `openProjectIfNeeded`.
+ */
+export type OpenProjectIfNeededResult = OpenProjectIfNeededResultType
+
+/**
  * Typed client interface for the Tekton Editor control RPC.
  */
 export type EditorctlClient = ClientType
@@ -51,7 +66,7 @@ export type EditorctlClient = ClientType
  * @param options - Connection options such as the control RPC port.
  * @returns A client instance for making RPC calls.
  * @throws TransportError when the transport fails.
- * @throws Error with `isRpcError` when the request fails at the JSON-RPC layer.
+ * @throws RpcError when the request fails at the JSON-RPC layer.
  *
  * @example
  * ```ts
@@ -64,8 +79,7 @@ export type EditorctlClient = ClientType
 export const createClient = createClientInternal
 
 export { TransportError } from './transport/ws'
-export { isRpcError, isTransportError } from './errors'
-export type { RpcError } from './errors'
+export { isRpcError, isTransportError, RpcError } from './errors'
 export { discoverEditors } from './discovery/discoverEditors'
 export type { DiscoverEditorsOptions, DiscoveredEditor } from './discovery/discoverEditors'
 export { getErrorLog, getErrorMessage, getErrorName } from './utils/error'

@@ -15,10 +15,12 @@ if (!editor) {
 const client = createClient({ port: editor.wsPort })
 
 // Call generated convenience methods directly.
-await client.openProject({ path: '/Users/vlad/dev/papa-cherry-2' })
+// openProjectIfNeeded is idempotent and handles path normalization.
+await client.openProjectIfNeeded({ path: '/Users/vlad/dev/papa-cherry-2' })
 await client.ping()
 
-const meta = await client.methods()
+// Fetch metadata (cached by default).
+const meta = await client.getMeta()
 const schema = await client.schema('openProject')
 ```
 
@@ -55,7 +57,7 @@ import { createClient } from '@tekton/editorctl-client'
 async function run() {
   const client = createClient({ port: 17870 })
 
-  await client.openProject({ path: '/Users/vlad/dev/papa-cherry-2' })
+  await client.openProjectIfNeeded({ path: '/Users/vlad/dev/papa-cherry-2' })
 
   const prefabs = await client.listAssetsOfType({ type: 'prefab' })
   const prefabId = prefabs[0]?.id
@@ -93,9 +95,9 @@ run().catch((error) => {
 
 ## Errors
 
-The client throws two main types of errors:
+The client throws two main types of errors, both of which include request context (`method`, `port`, and optional `instanceId`):
 
-- **TransportError**: Connectivity issues (connection refused, premature close). The client automatically retries failed transport attempts based on `maxAttempts` (default 3).
+- **TransportError**: Connectivity issues (connection refused, premature close, or 30s timeout). The client automatically retries failed transport attempts based on `maxAttempts` (default 3).
 - **RpcError**: Thrown when the editor receives the request but returns an error (e.g., invalid params).
 
 Use the provided type guards and error utilities for robust error handling:
@@ -104,12 +106,12 @@ Use the provided type guards and error utilities for robust error handling:
 import { isRpcError, isTransportError, getErrorLog } from '@tekton/editorctl-client'
 
 try {
-  await client.openProject({ path: '/invalid' })
+  await client.openProjectIfNeeded({ path: '/invalid' })
 } catch (err) {
   if (isTransportError(err)) {
-    console.error('Network failure:', err.message)
+    console.error(`Network failure on port ${err.port}:`, err.message)
   } else if (isRpcError(err)) {
-    console.error(`RPC failure (${err.code}):`, err.message)
+    console.error(`RPC failure (${err.code}) for ${err.method}:`, err.message)
   } else {
     // getErrorLog formats unknown errors into "Name - Message"
     console.error('Unexpected failure:', getErrorLog(err))
