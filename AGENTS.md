@@ -16,6 +16,8 @@
 
 - **Typechecking**: Use `npm run typecheck` for one-shot typechecking. Don’t use `typecheck-dev` for “quick checks” (watch mode).
 
+- **Rebuild workspace packages**: If you change anything under `packages/`, rebuild the affected package(s) before testing. Prefer the package-specific scripts (e.g. `npm run build:control-rpc-contract`, `npm run build:json-schema-utils`, `npm run build:editorctl-client`, `npm run build:editorctl`); use `npm run build:packages` only when multiple packages changed.
+
 ---
 
 ## Critical Thinking
