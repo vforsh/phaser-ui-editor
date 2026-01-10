@@ -1,10 +1,9 @@
-import type { DiscoveredEditor } from '@tekton/editorctl-client'
 import type { Command } from 'commander'
 
 import { discoverEditors } from '@tekton/editorctl-client'
-import path from 'node:path'
 import process from 'node:process'
 
+import { formatDiscoveredEditor, getLogsDir } from '../lib/discovered-editor-format'
 import { printJson } from '../lib/output'
 
 const DEFAULT_TIMEOUT_MS = 400
@@ -39,36 +38,7 @@ function registerCommand(program: Command, name: string, description: string): v
 			}
 
 			for (const entry of entries) {
-				process.stdout.write(`${formatEntry(entry)}\n`)
+				process.stdout.write(`${formatDiscoveredEditor(entry)}\n`)
 			}
 		})
-}
-
-function formatEntry(entry: DiscoveredEditor): string {
-	const e2eValue = entry.e2e?.enabled ? `on(${entry.e2e.instanceKey})` : 'off'
-	const projectValue = entry.projectPath ?? 'null'
-	const appVersion = entry.appVersion ?? 'unknown'
-	const logsDir = getLogsDir(entry) ?? 'unknown'
-
-	return [
-		`wsUrl=${entry.wsUrl}`,
-		`wsPort=${entry.wsPort}`,
-		`pid=${entry.pid}`,
-		`launchDir="${entry.appLaunchDir}"`,
-		`logsDir="${logsDir}"`,
-		`project="${projectValue}"`,
-		`appVersion=${appVersion}`,
-		`startedAt=${entry.startedAt}`,
-		`updatedAt=${entry.updatedAt}`,
-		`instanceId=${entry.instanceId}`,
-		`e2e=${e2eValue}`,
-	].join(' ')
-}
-
-function getLogsDir(entry: DiscoveredEditor): string | undefined {
-	if (!entry.appLaunchDir) {
-		return undefined
-	}
-
-	return path.join(entry.appLaunchDir, 'logs')
 }

@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 
-import { createClient } from '@tekton/editorctl-client'
+import { connect, createClient } from '@tekton/editorctl-client'
 import { Command } from 'commander'
 import process from 'node:process'
 
 import { registerCallCommand } from './commands/call'
 import { registerDiscoverCommand } from './commands/discover'
 import { registerHelpCommand } from './commands/help'
-import { registerLogsFetchCommand } from './commands/logs-fetch'
-import { registerLogsListCommand } from './commands/logs-list'
 import { registerMethodsCommand } from './commands/methods'
 import { registerSchemaCommand } from './commands/schema'
+import { registerTargetCommand } from './commands/target'
+import { wasPortFlagProvided } from './lib/cli-args'
 import { handleError } from './lib/errors'
 
 const DEFAULT_PORT = Number.parseInt(process.env.EDITOR_CONTROL_WS_PORT ?? '17870', 10)
@@ -22,18 +22,22 @@ program
 	.description('Control Tekton Editor via JSON-RPC')
 	.option('-p, --port <number>', 'WebSocket port', (val) => Number.parseInt(val, 10), DEFAULT_PORT)
 
-const getClient = () => {
+const getClient = async () => {
 	const options = program.opts()
-	return createClient({ port: options.port })
+	if (wasPortFlagProvided()) {
+		return createClient({ port: options.port })
+	}
+
+	const { client } = await connect()
+	return client
 }
 
 registerDiscoverCommand(program)
-registerLogsListCommand(program)
-registerLogsFetchCommand(program)
 registerCallCommand(program, getClient)
 registerMethodsCommand(program, getClient)
 registerSchemaCommand(program, getClient)
 registerHelpCommand(program, getClient)
+registerTargetCommand(program)
 
 program.parseAsync(process.argv).catch((error: unknown) => {
 	handleError(error)

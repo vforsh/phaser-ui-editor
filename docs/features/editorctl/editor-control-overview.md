@@ -27,7 +27,7 @@ Path: `packages/editorctl/`
 - Exposes meta-only commands (`call`, `methods`, `schema`, `help`) and relies on `getControlMeta` for discovery.
 - Sends JSON-RPC over WebSocket using `@tekton/editorctl-client`.
 - **Type source**: `@tekton/control-rpc-contract`.
-- Includes renderer log helpers (`logs:list`, `logs:fetch`) that prefer control RPC when `--port` is provided, with local filesystem overrides via `--dir`/path-like `--file`.
+- Includes meta commands (`call`, `methods`, `schema`, `help`, `target`) that rely on `getControlMeta` for discovery.
 
 ### Control RPC Enablement
 

@@ -24,52 +24,10 @@ npm run editorctl -- --help
 
 If you hit a "Cannot find module .../dist/..." error, re-run `npm run build:packages`.
 
-By default, `editorctl` connects to port `17870`. To target a different port:
+When `--port` is provided, `editorctl` connects to that port. Without `--port`, it uses the auto-connect policy (same repo → `EDITOR_CONTROL_WS_PORT` → latest discovered). To target a specific port:
 
 ```bash
 npm run editorctl -- --port 17870 -- methods
-```
-
-### Logs utilities (RPC preferred)
-
-`editorctl` includes renderer log helpers. When `--port` is provided they **prefer control RPC**. Use `--dir` or a path-like `--file` to force local filesystem reads.
-
-#### `logs:list`
-
-List available renderer log files (newest first).  
-With `--port`, the list comes from control RPC. Without `--port`, you must pass `--dir`.
-
-```bash
-npm run editorctl -- --port 17870 logs:list
-```
-
-```bash
-npm run editorctl -- logs:list --format json
-```
-
-```bash
-npm run editorctl -- logs:list --dir /abs/path/to/logs
-```
-
-#### `logs:fetch`
-
-Fetch the latest renderer log tail (after the last `SYS : PAGE RELOADED`) and include the session header block.  
-With `--port`, the content comes from control RPC unless `--dir` or a path-like `--file` is provided.
-
-```bash
-npm run editorctl -- --port 17870 logs:fetch
-```
-
-```bash
-npm run editorctl -- logs:fetch --file logs/renderer-2026-01-09T13-44-13.log
-```
-
-```bash
-npm run editorctl -- logs:fetch --full
-```
-
-```bash
-npm run editorctl -- logs:fetch --format json
 ```
 
 ### Meta commands (introspection + generic invocation)
@@ -94,6 +52,18 @@ List available control RPC methods and their metadata.
 
 ```bash
 npm run editorctl -- methods
+```
+
+#### `target` / `whoami`
+
+Show the editor instance that would be targeted. Respects `--port` when provided.
+
+```bash
+npm run editorctl -- target
+```
+
+```bash
+npm run editorctl -- target --json
 ```
 
 #### `schema <method>`

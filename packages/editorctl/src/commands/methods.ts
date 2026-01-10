@@ -6,7 +6,7 @@ import process from 'node:process'
 import { normalizeDiscoveryError } from '../lib/discovery'
 import { printJson } from '../lib/output'
 
-export function registerMethodsCommand(program: Command, getClient: () => EditorctlClient): void {
+export function registerMethodsCommand(program: Command, getClient: () => Promise<EditorctlClient>): void {
 	program
 		.command('methods')
 		.description('List available control RPC methods and metadata')
@@ -14,7 +14,7 @@ export function registerMethodsCommand(program: Command, getClient: () => Editor
 		.option('--group <name>', 'Filter by method group')
 		.action(async (options: { format?: string; group?: string }) => {
 			try {
-				const client = getClient()
+				const client = await getClient()
 				const meta = await client.getMeta()
 
 				let methods = meta.methods

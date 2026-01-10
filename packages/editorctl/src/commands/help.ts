@@ -7,7 +7,7 @@ import { createInputHelpText } from '../help/json-schema-input-help'
 import { normalizeDiscoveryError } from '../lib/discovery'
 import { createValidationError } from '../lib/errors'
 
-export function registerHelpCommand(program: Command, getClient: () => EditorctlClient): void {
+export function registerHelpCommand(program: Command, getClient: () => Promise<EditorctlClient>): void {
 	program
 		.command('help')
 		.argument('[method]', 'Control RPC method name')
@@ -19,7 +19,7 @@ export function registerHelpCommand(program: Command, getClient: () => Editorctl
 			}
 
 			try {
-				const client = getClient()
+				const client = await getClient()
 				const schema = await client.schema(method as never)
 				const helpText = createInputHelpText({ method, inputSchema: schema.inputSchema })
 				process.stdout.write(`${helpText}\n`)

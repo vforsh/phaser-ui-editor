@@ -1,4 +1,4 @@
-import { TransportError } from '@tekton/editorctl-client'
+import { PickEditorError, TransportError } from '@tekton/editorctl-client'
 import process from 'node:process'
 
 export enum ExitCode {
@@ -43,7 +43,15 @@ function serializeError(error: unknown): { exitCode: ExitCode; payload: JsonErro
 	let details: unknown
 
 	if (error && typeof error === 'object') {
-		if (error instanceof TransportError || ('isTransportError' in error && error.isTransportError)) {
+		if (isPickEditorError(error)) {
+			exitCode = ExitCode.Validation
+			code = 'validation_error'
+			details = {
+				reason: error.reason,
+				options: error.options,
+				details: error.details,
+			}
+		} else if (error instanceof TransportError || ('isTransportError' in error && error.isTransportError)) {
 			exitCode = ExitCode.Transport
 			code = 'transport_error'
 		} else if ('isRpcError' in error && error.isRpcError) {
@@ -61,4 +69,12 @@ function serializeError(error: unknown): { exitCode: ExitCode; payload: JsonErro
 	const payload: JsonErrorPayload = details === undefined ? { message, code } : { message, code, details }
 
 	return { exitCode, payload }
+}
+
+function isPickEditorError(error: object): error is PickEditorError {
+	if (error instanceof PickEditorError) {
+		return true
+	}
+
+	return 'name' in error && error.name === 'PickEditorError'
 }
