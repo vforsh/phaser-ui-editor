@@ -7,9 +7,11 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 const configDir = path.dirname(fileURLToPath(import.meta.url))
 const rendererRoot = path.resolve(configDir, 'src/renderer')
 const rendererTsconfig = path.resolve(configDir, 'tsconfig.app.json')
+const nodeTsconfig = path.resolve(configDir, 'tsconfig.node.json')
 
 export default defineConfig({
 	main: {
+		plugins: [tsconfigPaths({ projects: [nodeTsconfig] })],
 		resolve: {
 			conditions: ['node', 'require'],
 			alias: {
@@ -47,6 +49,7 @@ export default defineConfig({
 		},
 	},
 	preload: {
+		plugins: [tsconfigPaths({ projects: [nodeTsconfig] })],
 		build: {
 			externalizeDeps: false,
 			lib: {
