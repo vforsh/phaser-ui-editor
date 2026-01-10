@@ -35,7 +35,7 @@ Control RPC is **always enabled** in all builds, except when running in **E2E mo
 
 When enabled:
 
-- The main process starts a WebSocket server (default port 17870).
+- The main process starts a WebSocket server.
 - The renderer process installs a bridge to handle incoming requests.
 - The editor status is periodically updated to the main process for discovery.
 
