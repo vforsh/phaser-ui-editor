@@ -8,7 +8,7 @@ const sessionHeaderSchema = z
 	.object({
 		startLine: z.number().int().min(1),
 		endLine: z.number().int().min(1),
-		text: z.string(),
+		text: z.array(z.string()).describe('Session header lines (no trailing newline characters).'),
 	})
 	.strict()
 	.describe('Session header block extracted from the log file.')
@@ -17,7 +17,7 @@ const tailSchema = z
 	.object({
 		startLine: z.number().int().min(1),
 		endLine: z.number().int().min(0),
-		text: z.string(),
+		text: z.array(z.string()).describe('Tail lines (no trailing newline characters).'),
 		markerLine: z.number().int().min(1).optional(),
 	})
 	.strict()

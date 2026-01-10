@@ -21,13 +21,13 @@ type RendererLogEntry = RendererLogDescriptor & {
 export type SessionHeader = {
 	startLine: number
 	endLine: number
-	text: string
+	text: string[]
 }
 
 export type TailSection = {
 	startLine: number
 	endLine: number
-	text: string
+	text: string[]
 	markerLine?: number
 }
 
@@ -176,17 +176,17 @@ function extractSessionHeader(lines: string[]): SessionHeader | null {
 		}
 	}
 
-	const text = lines.slice(startIndex, endIndex + 1).join('\n')
+	const text = lines.slice(startIndex, endIndex + 1)
 	return { startLine: startIndex + 1, endLine: endIndex + 1, text }
 }
 
 function extractTail(lines: string[], options: { full: boolean }): TailSection {
 	if (lines.length === 0) {
-		return { startLine: 1, endLine: 0, text: '' }
+		return { startLine: 1, endLine: 0, text: [] }
 	}
 
 	if (options.full) {
-		return { startLine: 1, endLine: lines.length, text: lines.join('\n') }
+		return { startLine: 1, endLine: lines.length, text: lines }
 	}
 
 	let markerIndex = -1
@@ -198,7 +198,7 @@ function extractTail(lines: string[], options: { full: boolean }): TailSection {
 	}
 
 	const startIndex = markerIndex === -1 ? 0 : markerIndex + 1
-	const text = lines.slice(startIndex).join('\n')
+	const text = lines.slice(startIndex)
 	const tail: TailSection = {
 		startLine: startIndex + 1,
 		endLine: lines.length,
@@ -220,21 +220,20 @@ function applyTailLimits(
 		return { tail, truncated: false }
 	}
 
-	const lines = splitLines(tail.text)
-	if (lines.length <= options.maxLines) {
+	if (tail.text.length <= options.maxLines) {
 		return { tail: { ...tail }, truncated: false }
 	}
 
-	const keptLines = lines.slice(lines.length - options.maxLines)
+	const keptLines = tail.text.slice(tail.text.length - options.maxLines)
 	const newStartLine = tail.endLine - options.maxLines + 1
 	const truncatedTail: TailSection = {
 		...tail,
 		startLine: Math.max(1, newStartLine),
-		text: keptLines.join('\n'),
+		text: keptLines,
 	}
 
 	const truncation: TailTruncation = {
-		originalLines: lines.length,
+		originalLines: tail.text.length,
 		keptLines: options.maxLines,
 		reason: 'maxLines',
 	}

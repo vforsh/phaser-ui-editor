@@ -7,6 +7,7 @@ import process from 'node:process'
 import { registerCallCommand } from './commands/call'
 import { registerDiscoverCommand } from './commands/discover'
 import { registerHelpCommand } from './commands/help'
+import { registerLogsCommand } from './commands/logs'
 import { registerMethodsCommand } from './commands/methods'
 import { registerSchemaCommand } from './commands/schema'
 import { registerTargetCommand } from './commands/target'
@@ -53,6 +54,7 @@ const getClient = async () => {
 registerDiscoverCommand(program)
 registerTargetCommand(program)
 registerCallCommand(program, getClient)
+registerLogsCommand(program, getClient)
 registerMethodsCommand(program, getClient)
 registerSchemaCommand(program, getClient)
 registerHelpCommand(program, getClient)
