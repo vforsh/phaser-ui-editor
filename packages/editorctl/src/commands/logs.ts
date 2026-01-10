@@ -13,6 +13,7 @@ type LogsOptions = {
 	runId?: string
 	full?: boolean
 	maxLines?: number
+	sessionHeader?: boolean
 	includeSessionHeader?: boolean
 }
 
@@ -25,7 +26,9 @@ export function registerLogsCommand(program: Command, getClient: () => Promise<E
 		.option('--run-id <runId>', 'Renderer log run id')
 		.option('--full', 'Return full log content')
 		.option('--max-lines <n>', 'Limit tail to the last N lines', (value) => Number.parseInt(value, 10))
-		.option('--include-session-header', 'Include session header block before the tail')
+		.option('--session-header', 'Include session header block before the tail', true)
+		.option('--no-session-header', 'Exclude session header block')
+		.option('--include-session-header', '(Deprecated) Alias for --session-header')
 		.action(async (options: LogsOptions) => {
 			if (options.maxLines !== undefined) {
 				if (!Number.isFinite(options.maxLines) || options.maxLines <= 0) {
@@ -46,12 +49,24 @@ export function registerLogsCommand(program: Command, getClient: () => Promise<E
 				return
 			}
 
-			const chunks: string[] = []
-			if (options.includeSessionHeader && result.sessionHeader?.text.length) {
-				chunks.push(result.sessionHeader.text.join('\n'))
+			if (result.truncated && result.truncation) {
+				const { keptLines, originalLines, reason } = result.truncation
+				process.stderr.write(`tail truncated: kept ${keptLines}/${originalLines} lines (reason: ${reason})\n`)
 			}
 
-			if (result.tail.text.length) {
+			const showHeader = !options.full && options.sessionHeader !== false && (result.sessionHeader?.text.length ?? 0) > 0
+			const showTail = result.tail.text.length > 0
+
+			const chunks: string[] = []
+			if (showHeader) {
+				chunks.push(result.sessionHeader!.text.join('\n'))
+			}
+
+			if (showHeader && showTail) {
+				chunks.push('---')
+			}
+
+			if (showTail) {
 				chunks.push(result.tail.text.join('\n'))
 			}
 
