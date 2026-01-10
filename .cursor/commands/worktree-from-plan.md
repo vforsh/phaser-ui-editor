@@ -68,12 +68,12 @@ Do not block on a dirty working tree. If there are uncommitted changes, warn bri
 
 - `NEW_DIR` = absolute path to the new worktree
 
-6. Copy the plan file into the new worktree (from the original branch):
+6. Move the plan file into the new worktree (remove from original):
 
 - Use the normalized `PLAN_REL_PATH` derived above.
-- Write the plan into the new worktree at the same relative path:
+- Move the plan into the new worktree at the same relative path:
     - `mkdir -p "$(dirname "$NEW_DIR/$PLAN_REL_PATH")"`
-    - `cp "$PLAN_ABS_PATH" "$NEW_DIR/$PLAN_REL_PATH"`
+    - `mv "$PLAN_ABS_PATH" "$NEW_DIR/$PLAN_REL_PATH"`
 
 7. Print commands
 
