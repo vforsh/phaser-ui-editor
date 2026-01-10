@@ -11,6 +11,7 @@ export const openProjectCommand = {
 	input: z
 		.object({
 			path: z.string().min(1, 'path is required').describe('Absolute file system path to the project directory'),
+			forceReopen: z.boolean().optional().describe('When true, reopen even if the project is already open'),
 		})
 		.strict()
 		.describe('Input parameters for opening a project'),

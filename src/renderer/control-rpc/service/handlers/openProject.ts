@@ -12,7 +12,7 @@ export const openProject: CommandHandler<'openProject'> = (_ctx) => async (param
 		throw new Error('openProject requires a path')
 	}
 
-	const opened = await openProjectByPath(params.path)
+	const opened = await openProjectByPath(params.path, { forceReopen: params.forceReopen })
 	if (!opened) {
 		throw new Error(`failed to open project at '${params.path}'`)
 	}

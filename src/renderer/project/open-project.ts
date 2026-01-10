@@ -27,14 +27,23 @@ type OpenedProject = {
  * - Notifies the main process (dev) via `controlIpc.sendEditorStatus({ projectPath })` if available
  *
  * @param projectDirPath Absolute path to the project directory containing `project.json5`.
- * @returns `true` if the project was loaded and state was updated; otherwise `false`.
+ * @param opts Optional opening controls (e.g. force reopen).
+ * @returns `true` if the project was loaded or already open; otherwise `false`.
  */
-export async function openProjectByPath(projectDirPath: string, log?: AppLogger): Promise<boolean> {
+export async function openProjectByPath(projectDirPath: string, opts?: { forceReopen?: boolean }, log?: AppLogger): Promise<boolean> {
 	const logger = log ?? rootLogger
 
 	if (path.isAbsolute(projectDirPath) === false) {
 		logger.warn(`project path is not absolute: '${projectDirPath}'`)
 		return false
+	}
+
+	if (!opts?.forceReopen && state.projectDir) {
+		const requestedPath = normalizeProjectDirPath(projectDirPath)
+		const currentPath = normalizeProjectDirPath(state.projectDir)
+		if (requestedPath === currentPath) {
+			return true
+		}
 	}
 
 	const openedProject = await loadProject(projectDirPath, logger)
@@ -76,6 +85,16 @@ export async function openProjectByPath(projectDirPath: string, log?: AppLogger)
 	}
 
 	return true
+}
+
+function normalizeProjectDirPath(projectDirPath: string): string {
+	const normalized = path.normalize(projectDirPath)
+	const root = path.parse(normalized).root
+	if (normalized === root) {
+		return normalized
+	}
+
+	return normalized.replace(/[\\/]+$/, '')
 }
 
 async function loadProject(projectDirPath: string, logger: AppLogger): Promise<OpenedProject | null> {

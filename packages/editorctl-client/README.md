@@ -88,7 +88,7 @@ import {
 
 try {
   const { client } = await connect()
-  await client.openProjectIfNeeded({ path: '/invalid' })
+  await client.openProject({ path: '/invalid', forceReopen: false })
 } catch (err) {
   if (err instanceof PickEditorError) {
     console.error(`Selection failed (${err.reason}):`, err.message)

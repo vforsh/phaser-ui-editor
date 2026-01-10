@@ -6,12 +6,7 @@ import type {
 	ControlOutput as ContractControlOutput,
 } from '@tekton/control-rpc-contract'
 
-import type {
-	EditorctlClient as ClientType,
-	EditorctlClientOptions as OptionsType,
-	GetMetaOptions as GetMetaOptionsType,
-	OpenProjectIfNeededResult as OpenProjectIfNeededResultType,
-} from './client'
+import type { EditorctlClient as ClientType, EditorctlClientOptions as OptionsType, GetMetaOptions as GetMetaOptionsType } from './client'
 
 import { createClient as createClientInternal } from './client'
 
@@ -49,11 +44,6 @@ export type EditorctlClientOptions = OptionsType
  * Metadata options for `getMeta`.
  */
 export type GetMetaOptions = GetMetaOptionsType
-
-/**
- * Result of `openProjectIfNeeded`.
- */
-export type OpenProjectIfNeededResult = OpenProjectIfNeededResultType
 
 /**
  * Typed client interface for the Tekton Editor control RPC.

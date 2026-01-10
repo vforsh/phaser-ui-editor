@@ -1,8 +1,6 @@
 import type { ControlInput, ControlMeta, ControlMetaMethod, ControlMethod, ControlOutput } from '@tekton/control-rpc-contract'
 
 import { controlContract, isControlMethod } from '@tekton/control-rpc-contract'
-import fs from 'node:fs'
-import path from 'node:path'
 
 import type { GeneratedControlMethods } from './__generated__/control-methods'
 import type { DiscoveredEditor } from './discovery/discoverEditors'
@@ -48,20 +46,6 @@ export interface GetMetaOptions {
 	 * @defaultValue false
 	 */
 	cache?: boolean
-}
-
-/**
- * Result of {@link EditorctlClientBase.openProjectIfNeeded}.
- */
-export interface OpenProjectIfNeededResult {
-	/**
-	 * Whether a new project was opened.
-	 */
-	opened: boolean
-	/**
-	 * The canonical path of the opened project.
-	 */
-	projectPath: string
 }
 
 /**
@@ -130,20 +114,6 @@ export interface EditorctlClientBase {
 		inputSchema: ControlMetaMethod['inputSchema']
 		outputSchema: ControlMetaMethod['outputSchema']
 	}>
-	/**
-	 * Opens a project only if it's not already open.
-	 *
-	 * This method is idempotent and handles path normalization (including symlinks).
-	 *
-	 * @param input - Project opening params.
-	 * @returns The result of the operation.
-	 *
-	 * @example
-	 * ```ts
-	 * await client.openProjectIfNeeded({ path: '~/my-project' })
-	 * ```
-	 */
-	openProjectIfNeeded(input: { path: string }): Promise<OpenProjectIfNeededResult>
 }
 
 export interface EditorctlClient extends EditorctlClientBase, GeneratedControlMethods {}
@@ -214,42 +184,9 @@ class EditorctlClientImpl implements EditorctlClientBase {
 			outputSchema: entry.outputSchema,
 		}
 	}
-
-	async openProjectIfNeeded(input: { path: string }): Promise<OpenProjectIfNeededResult> {
-		const requestedPath = await normalizePath(input.path)
-
-		try {
-			const projectInfo = await this.call('getProjectInfo')
-			const currentPath = await normalizePath(projectInfo.path)
-
-			if (requestedPath === currentPath) {
-				return { opened: false, projectPath: projectInfo.path }
-			}
-		} catch {
-			// Ignore error and proceed to open (e.g. no project open)
-		}
-
-		await this.call('openProject', { path: input.path })
-
-		// Try to get canonical path after opening
-		try {
-			const projectInfo = await this.call('getProjectInfo')
-			return { opened: true, projectPath: projectInfo.path }
-		} catch {
-			return { opened: true, projectPath: input.path }
-		}
-	}
 }
 
-async function normalizePath(p: string): Promise<string> {
-	try {
-		return await fs.promises.realpath(p)
-	} catch {
-		return path.resolve(p)
-	}
-}
-
-const reservedMethodNames = new Set(['call', 'getMeta', 'refreshMeta', 'schema', 'openProjectIfNeeded'])
+const reservedMethodNames = new Set(['call', 'getMeta', 'refreshMeta', 'schema'])
 
 /**
  * Attaches control RPC methods from the contract directly to the client instance.

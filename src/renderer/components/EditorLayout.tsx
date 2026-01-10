@@ -121,7 +121,7 @@ export default function EditorLayout() {
 	}, [isProjectOpen])
 
 	const openProject = async (projectDirPath: string) => {
-		await openProjectByPath(projectDirPath, logger)
+		await openProjectByPath(projectDirPath, undefined, logger)
 	}
 
 	const displayHierarchyPanel = snap.layout.showHierarchyPanel
