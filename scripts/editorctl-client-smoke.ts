@@ -10,7 +10,7 @@ async function run() {
 
 	const client = createClient({ port: selected.wsPort })
 
-	const meta = await client.methods()
+	const meta = await client.getMeta()
 	process.stdout.write(`methods: ${meta.methods.length}\n`)
 
 	const schema = await client.schema('openProject')

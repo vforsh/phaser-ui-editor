@@ -7,7 +7,7 @@ async function run(): Promise<void> {
 	await client.ping()
 	await client.openProject({ path: '/Users/vlad/dev/papa-cherry-2' })
 
-	const meta = await client.methods()
+	const meta = await client.getMeta()
 	const hasOpenProject = meta.methods.some((entry) => entry.method === 'openProject')
 	if (!hasOpenProject) {
 		throw new Error('Expected openProject in method list')
