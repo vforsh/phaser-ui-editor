@@ -16,7 +16,15 @@
 
 - **Typechecking**: Use `npm run typecheck` for one-shot typechecking. Don’t use `typecheck-dev` for “quick checks” (watch mode).
 
-- **Rebuild workspace packages**: If you change anything under `packages/`, rebuild the affected package(s) before testing. Prefer the package-specific scripts (e.g. `npm run build:control-rpc-contract`, `npm run build:json-schema-utils`, `npm run build:editorctl-client`, `npm run build:editorctl`); use `npm run build:packages` only when multiple packages changed.
+---
+
+## Workspace packages
+
+- **Workspace packages (`packages/*`)**: `packages/` are npm workspaces. Root `npm run typecheck` only checks the app (`tsconfig.app.json`) and does **not** typecheck packages.
+
+- **Rebuild + package typecheck**: If you change anything under `packages/`, rebuild and typecheck the affected package(s) before testing. Prefer the package-specific scripts (e.g. `npm run build:control-rpc-contract`, `npm run build:json-schema-utils`, `npm run build:editorctl-client`, `npm run build:editorctl`); use `npm run build:packages` only when multiple packages changed.
+
+- **Public API must be documented (JSDoc)**: Any public API in `packages/*` (anything exported for consumption by other packages/apps) must have JSDoc. Document parameters, return values, and important invariants/edge cases so changes are safe to make later.
 
 ---
 
