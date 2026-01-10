@@ -1,6 +1,6 @@
 # @tekton/editorctl
 
-Meta-only CLI for controlling a running Tekton Editor instance via JSON-RPC.
+Meta-only CLI for controlling a running Tekton Editor instance via JSON-RPC. Based on [@tekton/editorctl-client](../editorctl-client).
 
 ## Quickstart
 

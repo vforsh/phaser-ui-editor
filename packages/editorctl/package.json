@@ -10,7 +10,9 @@
 	],
 	"type": "module",
 	"scripts": {
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"typecheck:watch": "tsc --noEmit --watch",
+		"build": "tsc -p tsconfig.build.json"
 	},
 	"dependencies": {
 		"@tekton/editorctl-client": "file:../editorctl-client",

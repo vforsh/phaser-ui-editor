@@ -13,13 +13,9 @@ export function registerSchemaCommand(program: Command, getClient: () => Editorc
 		.action(async (method: string) => {
 			try {
 				const client = getClient()
-				const meta = await client.methods()
-				const entry = meta.methods.find((item) => item.method === method)
-				if (!entry) {
-					throw createValidationError('Unknown method. Run `editorctl methods`.')
-				}
+				const schema = await client.schema(method as never)
 
-				printJson({ method: entry.method, inputSchema: entry.inputSchema, outputSchema: entry.outputSchema })
+				printJson(schema)
 			} catch (error) {
 				throw normalizeDiscoveryError(error)
 			}

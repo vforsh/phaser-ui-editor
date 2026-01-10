@@ -20,13 +20,8 @@ export function registerHelpCommand(program: Command, getClient: () => Editorctl
 
 			try {
 				const client = getClient()
-				const meta = await client.methods()
-				const entry = meta.methods.find((item) => item.method === method)
-				if (!entry) {
-					throw createValidationError('Unknown method. Run `editorctl methods`.')
-				}
-
-				const helpText = createInputHelpText({ method, inputSchema: entry.inputSchema })
+				const schema = await client.schema(method as never)
+				const helpText = createInputHelpText({ method, inputSchema: schema.inputSchema })
 				process.stdout.write(`${helpText}\n`)
 			} catch (error) {
 				throw normalizeDiscoveryError(error)

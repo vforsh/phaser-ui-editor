@@ -15,7 +15,7 @@ export function registerMethodsCommand(program: Command, getClient: () => Editor
 		.action(async (options: { format?: string; group?: string }) => {
 			try {
 				const client = getClient()
-				const meta = await client.methods()
+				const meta = await client.getMeta()
 
 				let methods = meta.methods
 				if (options.group) {
