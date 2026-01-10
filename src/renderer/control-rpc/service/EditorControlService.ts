@@ -14,6 +14,7 @@ import { createPrefabAsset } from './handlers/createPrefabAsset'
 import { createPrefabInstance } from './handlers/createPrefabInstance'
 import { deleteObjects } from './handlers/deleteObjects'
 import { duplicateObject } from './handlers/duplicateObject'
+import { fetchRendererLog } from './handlers/fetchRendererLog'
 import { focusOnObject } from './handlers/focusOnObject'
 import { getAssetInfo } from './handlers/getAssetInfo'
 import { getCanvasMetrics } from './handlers/getCanvasMetrics'
@@ -29,6 +30,7 @@ import { listAssetsOfType } from './handlers/listAssetsOfType'
 import { listAssetsTree } from './handlers/listAssetsTree'
 import { listHierarchy } from './handlers/listHierarchy'
 import { listModals } from './handlers/listModals'
+import { listRendererLogs } from './handlers/listRendererLogs'
 import { moveObjectInHierarchy } from './handlers/moveObjectInHierarchy'
 import { openModal } from './handlers/openModal'
 import { openPrefab } from './handlers/openPrefab'
@@ -105,6 +107,8 @@ export class EditorControlService {
 			savePrefab: savePrefab(this.ctx),
 			createPrefabInstance: createPrefabInstance(this.ctx),
 			createPrefabAsset: createPrefabAsset(this.ctx),
+			listRendererLogs: listRendererLogs(this.ctx),
+			fetchRendererLog: fetchRendererLog(this.ctx),
 		} satisfies ControlApi
 
 		this.handlers = handlers

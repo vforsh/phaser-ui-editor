@@ -1,9 +1,17 @@
-import { BrowserWindow, ipcMain } from 'electron'
+import { controlContract, type ControlInput, type ControlMethod, type ControlOutput } from '@tekton/control-rpc-contract'
+import { BrowserWindow, app, ipcMain } from 'electron'
+import path from 'node:path'
 import { WebSocketServer, type RawData, type WebSocket } from 'ws'
 
 import type { InstanceRegistry } from './discovery/InstanceRegistry'
 
-import { ERR_NO_RENDERER_WINDOW, ERR_RENDERER_TIMEOUT, JSONRPC_PARSE_ERROR } from '../renderer/control-rpc/jsonrpc-errors'
+import {
+	ERR_INVALID_RPC_RESPONSE,
+	ERR_NO_RENDERER_WINDOW,
+	ERR_RENDERER_TIMEOUT,
+	JSONRPC_INTERNAL_ERROR,
+	JSONRPC_PARSE_ERROR,
+} from '../renderer/control-rpc/jsonrpc-errors'
 import { validateControlRequest } from '../renderer/control-rpc/jsonrpc-validate'
 import {
 	CONTROL_EDITOR_STATUS_CHANNEL,
@@ -14,6 +22,7 @@ import {
 	createJsonRpcResult,
 } from '../renderer/control-rpc/rpc'
 import { logger } from '../renderer/logs/logs'
+import { fetchRendererLog, listRendererLogs } from './control-rpc/renderer-logs'
 import { editorRegistry } from './EditorRegistry'
 
 type PendingRequest = {
@@ -91,7 +100,7 @@ export class ControlRpcServer {
 	 */
 	private handleConnection(ws: WebSocket): void {
 		ws.on('message', (data) => {
-			this.handleMessage(ws, data)
+			void this.handleMessage(ws, data)
 		})
 
 		ws.on('close', () => {
@@ -113,7 +122,7 @@ export class ControlRpcServer {
 	 * - -32602: invalid params
 	 * - -32001: no renderer window available
 	 */
-	private handleMessage(ws: WebSocket, data: RawData): void {
+	private async handleMessage(ws: WebSocket, data: RawData): Promise<void> {
 		let parsed: unknown
 		try {
 			parsed = JSON.parse(data.toString())
@@ -139,6 +148,11 @@ export class ControlRpcServer {
 			return
 		}
 
+		const handled = await this.handleMainMethod(request.method, request.id, validation.input, traceId, ws)
+		if (handled) {
+			return
+		}
+
 		const targetWindow = BrowserWindow.getAllWindows()[0]
 		if (!targetWindow || targetWindow.isDestroyed()) {
 			const errorResponse = createJsonRpcError(request.id, ERR_NO_RENDERER_WINDOW, 'no renderer window available', {
@@ -154,6 +168,75 @@ export class ControlRpcServer {
 		this.trackRequest(request.id, request.method, ws, targetWindow.id)
 		this.logger.info(this.formatLog(traceId, request.method, 'forward', { windowId: targetWindow.id }))
 		targetWindow.webContents.send(CONTROL_RPC_REQUEST_CHANNEL, request)
+	}
+
+	private async handleMainMethod(
+		method: ControlMethod,
+		id: string | number,
+		input: ControlInput<ControlMethod>,
+		traceId: string,
+		ws: WebSocket,
+	): Promise<boolean> {
+		if (method !== 'listRendererLogs' && method !== 'fetchRendererLog') {
+			return false
+		}
+
+		try {
+			if (app.isPackaged) {
+				throw new Error('Renderer logs are not available in packaged builds.')
+			}
+
+			const logsDir = path.join(process.cwd(), 'logs')
+			const result = await this.runMainMethod(method, input, logsDir)
+			const parsedOutput = controlContract[method].output.safeParse(result)
+			if (!parsedOutput.success) {
+				this.sendJson(
+					ws,
+					createJsonRpcError(id, ERR_INVALID_RPC_RESPONSE, 'invalid rpc response', {
+						kind: 'zod',
+						issues: parsedOutput.error.flatten(),
+						traceId,
+					}),
+				)
+				this.logger.error(this.formatLog(traceId, method, 'error', { code: ERR_INVALID_RPC_RESPONSE }))
+				return true
+			}
+
+			this.sendJson(ws, createJsonRpcResult(id, parsedOutput.data as ControlOutput<typeof method>))
+			this.logger.info(this.formatLog(traceId, method, 'reply', { ok: true }))
+			return true
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'internal error'
+			this.sendJson(
+				ws,
+				createJsonRpcError(id, JSONRPC_INTERNAL_ERROR, message, {
+					kind: 'exception',
+					traceId,
+					stack: error instanceof Error ? error.stack : undefined,
+				}),
+			)
+			this.logger.error(this.formatLog(traceId, method, 'error', { code: JSONRPC_INTERNAL_ERROR, message }))
+			return true
+		}
+	}
+
+	private async runMainMethod(
+		method: 'listRendererLogs' | 'fetchRendererLog',
+		input: ControlInput<ControlMethod>,
+		logsDir: string,
+	): Promise<ControlOutput<typeof method>> {
+		if (method === 'listRendererLogs') {
+			return (await listRendererLogs(logsDir)) as ControlOutput<typeof method>
+		}
+
+		const payload = input as ControlInput<'fetchRendererLog'>
+		return (await fetchRendererLog({
+			logsDir,
+			fileName: payload.fileName,
+			runId: payload.runId,
+			full: payload.full,
+			maxLines: payload.maxLines,
+		})) as ControlOutput<typeof method>
 	}
 
 	/**

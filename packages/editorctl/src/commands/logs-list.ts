@@ -14,38 +14,61 @@ type OutputFormat = 'text' | 'json'
 export function registerLogsListCommand(program: Command): void {
 	program
 		.command('logs:list')
-		.description('List renderer log files from the local logs directory')
+		.description('List renderer log files (prefers control RPC when --port is set)')
 		.option('--dir <path>', 'Logs directory (defaults to ./logs)')
 		.option('--format <text|json>', 'Output format', 'text')
 		.action(async (options: { dir?: string; format?: string }) => {
 			const cwd = process.cwd()
-			const logsDir = await resolveLogsDir({
-				cwd,
-				dirOption: options.dir,
-				portOption: getPortOption(program),
-				portProvided: wasPortProvided(),
-			})
-			await assertDirectoryExists(logsDir)
-
-			const entries = await listRendererLogFiles(logsDir, cwd)
-			if (entries.length === 0) {
-				throw createValidationError('No renderer logs found in logs directory.', { logsDir })
-			}
-
 			const format = parseFormat(options.format)
-			if (format === 'json') {
-				printJson(
-					entries.map((entry) => ({
-						fileName: entry.fileName,
-						runId: entry.runId,
-						path: entry.absolutePath,
-						relativePath: entry.relativePath,
-					})),
-				)
+			const portProvided = wasPortProvided()
+			const portOption = getPortOption(program)
+
+			if (options.dir) {
+				const logsDir = await resolveLogsDir({ cwd, dirOption: options.dir, portOption, portProvided })
+				await assertDirectoryExists(logsDir)
+
+				const entries = await listRendererLogFiles(logsDir, cwd)
+				if (entries.length === 0) {
+					throw createValidationError('No renderer logs found in logs directory.', { logsDir })
+				}
+
+				if (format === 'json') {
+					printJson(
+						entries.map((entry) => ({
+							fileName: entry.fileName,
+							runId: entry.runId,
+							path: entry.absolutePath,
+							relativePath: entry.relativePath,
+						})),
+					)
+					return
+				}
+
+				const lines = entries.map((entry) => entry.relativePath ?? entry.absolutePath)
+				process.stdout.write(`${lines.join('\n')}\n`)
 				return
 			}
 
-			const lines = entries.map((entry) => entry.relativePath ?? entry.absolutePath)
+			if (!portProvided) {
+				throw createValidationError('Missing --dir. Provide --dir when --port is not set.')
+			}
+
+			if (!portOption || Number.isNaN(portOption)) {
+				throw createValidationError('Invalid --port value.', { port: portOption })
+			}
+
+			const client = createClient({ port: portOption })
+			const entries = await client.call('listRendererLogs')
+			if (entries.length === 0) {
+				throw createValidationError('No renderer logs returned by the control RPC.', { port: portOption })
+			}
+
+			if (format === 'json') {
+				printJson(entries)
+				return
+			}
+
+			const lines = entries.map((entry) => entry.fileName)
 			process.stdout.write(`${lines.join('\n')}\n`)
 		})
 }

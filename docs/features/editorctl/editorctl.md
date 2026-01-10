@@ -30,14 +30,14 @@ By default, `editorctl` connects to port `17870`. To target a different port:
 npm run editorctl -- --port 17870 -- methods
 ```
 
-### Local utilities (no control-rpc)
+### Logs utilities (RPC preferred)
 
-`editorctl` also includes a small set of **local filesystem utilities** that do **not** connect to the editor.
+`editorctl` includes renderer log helpers. When `--port` is provided they **prefer control RPC**. Use `--dir` or a path-like `--file` to force local filesystem reads.
 
 #### `logs:list`
 
-List available renderer log files from the running editor’s logs directory (newest first).  
-When `--port` is not provided, you must pass `--dir`.
+List available renderer log files (newest first).  
+With `--port`, the list comes from control RPC. Without `--port`, you must pass `--dir`.
 
 ```bash
 npm run editorctl -- --port 17870 logs:list
@@ -54,7 +54,7 @@ npm run editorctl -- logs:list --dir /abs/path/to/logs
 #### `logs:fetch`
 
 Fetch the latest renderer log tail (after the last `SYS : PAGE RELOADED`) and include the session header block.  
-By default it uses the running editor’s logs directory from `--port`. If `--port` is not provided, pass `--dir` (or `--file`).
+With `--port`, the content comes from control RPC unless `--dir` or a path-like `--file` is provided.
 
 ```bash
 npm run editorctl -- --port 17870 logs:fetch

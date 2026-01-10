@@ -40,6 +40,7 @@ import { createPrefabAssetCommand } from './commands/createPrefabAsset.js'
 import { createPrefabInstanceCommand } from './commands/createPrefabInstance.js'
 import { deleteObjectsCommand } from './commands/deleteObjects.js'
 import { duplicateObjectCommand } from './commands/duplicateObject.js'
+import { fetchRendererLogCommand } from './commands/fetchRendererLog.js'
 import { focusOnObjectCommand } from './commands/focusOnObject.js'
 import { getAssetInfoCommand } from './commands/getAssetInfo.js'
 import { getCanvasMetricsCommand } from './commands/getCanvasMetrics.js'
@@ -55,6 +56,7 @@ import { listAssetsOfTypeCommand } from './commands/listAssetsOfType.js'
 import { listAssetsTreeCommand } from './commands/listAssetsTree.js'
 import { listHierarchyCommand } from './commands/listHierarchy.js'
 import { listModalsCommand } from './commands/listModals.js'
+import { listRendererLogsCommand } from './commands/listRendererLogs.js'
 import { moveObjectInHierarchyCommand } from './commands/moveObjectInHierarchy.js'
 import { openModalCommand } from './commands/openModal.js'
 import { openPrefabCommand } from './commands/openPrefab.js'
@@ -116,6 +118,8 @@ export const controlContract = {
 	savePrefab: savePrefabCommand,
 	createPrefabInstance: createPrefabInstanceCommand,
 	createPrefabAsset: createPrefabAssetCommand,
+	listRendererLogs: listRendererLogsCommand,
+	fetchRendererLog: fetchRendererLogCommand,
 } as const
 
 /**
