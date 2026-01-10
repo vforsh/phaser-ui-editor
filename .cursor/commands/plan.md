@@ -16,6 +16,7 @@ Given a user request (feature/bugfix/refactor) plus any provided context (repo f
 - **Guard clauses**: prefer “return early” patterns in the eventual implementation plan.
 - **Keep scope tight**: do not propose large rewrites unless required by the request.
 - **Save the plan**: the final plan must be written to a new Markdown file in `tasks/`.
+- **Editorctl verification**: the plan must always include a section describing how to verify the change using `editorctl` (copy/paste commands when possible). If verification requires new control RPC / `editorctl` methods, the plan must propose them and include their implementation steps.
 
 ## Inputs (what to use)
 
@@ -62,6 +63,7 @@ Create a plan document in Markdown and save it in `tasks/`:
     - **Rollout order** (safe sequencing)
     - **Risks / edge cases**
     - **Testing notes** (how to verify)
+    - **Editorctl verification** (how to verify using `editorctl`; include any new methods required and their implementation steps)
     - **Final checklist**: run `npm run typecheck` and `npm run lint` and fix any errors (use `npm run lint:fix` when appropriate).
 
 ## Output expectations
