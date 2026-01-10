@@ -29,9 +29,19 @@ Path: `packages/editorctl/`
 - **Type source**: `@tekton/control-rpc-contract`.
 - Includes a small set of local utilities (e.g. `logs:list`, `logs:fetch`) that operate on the repo filesystem and do not use control-rpc.
 
+### Control RPC Enablement
+
+Control RPC is **always enabled** in all builds, except when running in **E2E mode** (Playwright).
+
+When enabled:
+
+- The main process starts a WebSocket server (default port 17870).
+- The renderer process installs a bridge to handle incoming requests.
+- The editor status is periodically updated to the main process for discovery.
+
 ### Main process WebSocket router: `ControlRpcServer`
 
-Path: `src/renderer/backend-main/control-rpc/main-rpc.ts`
+Path: `src/main/ControlRpcServer.ts`
 
 Responsibilities:
 
@@ -47,7 +57,7 @@ Important behavior:
 
 ### Preload IPC bridge: `window.controlIpc`
 
-Path: `src/renderer/backend-preload/control-rpc/preload.ts` + `src/renderer/backend-preload/index.ts`
+Path: `src/preload/create-control-ipc.ts` + `src/preload/preload.ts`
 
 Responsibilities:
 
@@ -55,9 +65,9 @@ Responsibilities:
     - `onRpcRequest(handler)` → subscribe to `CONTROL_RPC_REQUEST_CHANNEL`
     - `sendRpcResponse(response)` → send to `CONTROL_RPC_RESPONSE_CHANNEL`
 
-Enablement (current behavior):
+Enablement:
 
-- `window.controlIpc` is exposed only when `process.env.NODE_ENV !== 'production'`.
+- `window.controlIpc` is exposed in all builds, but the renderer only uses it when the **Control RPC** setting is enabled.
 
 ### Renderer bridge: `useControlRpcBridge`
 
@@ -65,11 +75,12 @@ Path: `src/renderer/control-rpc/renderer-rpc.ts`
 
 Responsibilities:
 
-- In dev (`import.meta.env.DEV`), listens for `window.controlIpc` requests.
+- Enabled unless running in **E2E mode** (Playwright).
+- When enabled, listens for `window.controlIpc` requests.
 - Dispatches them to `EditorControlService.handlers` using a generic method lookup.
 - Sends JSON-RPC responses back to main via `window.controlIpc.sendRpcResponse`.
 
-Error handling (current behavior):
+Error handling:
 
 - Invalid request shape: error `400` (`invalid json-rpc request`)
 - Unknown method: error `404`
@@ -77,11 +88,13 @@ Error handling (current behavior):
 
 ### Renderer API: `window.editor`
 
-Path: `src/renderer/control-rpc/expose-window-editor.ts` (wired in `src/App.tsx`)
+Path: `src/renderer/control-rpc/expose-window-editor.ts` (wired in `src/renderer/App.tsx`)
 
 Responsibilities:
 
-- In dev (`import.meta.env.DEV`), exposes `window.editor.*` methods that call `EditorControlService.handlers` directly (no WS/IPC).
+- **Dev-only** (`import.meta.env.DEV`): exposes `window.editor.*` methods that call `EditorControlService.handlers` directly (no WS/IPC).
+- This is useful for debugging commands from the DevTools console.
+- In production, `window.editor` is not exposed.
 
 ### Command translation layer: `EditorControlService`
 

@@ -12,9 +12,13 @@ import trash from 'trash'
 import type { TexturePacker } from '../../../types/texture-packer'
 import type { MainApi } from '../../shared/main-api/MainApi'
 
+import { controlRpcManager } from '../ControlRpcManager'
 import { normalizeAbsolutePath } from './utils/path'
 
 export const mainApiHandlers: MainApi = {
+	async setControlRpcEnabled({ enabled }) {
+		return controlRpcManager.setEnabled(enabled)
+	},
 	async globby({ patterns, options }) {
 		return globby(patterns, options)
 	},

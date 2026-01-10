@@ -5,6 +5,7 @@ import { logger } from '../../../logs/logs'
 import { LogLevel } from '../../../logs/LogsManager'
 import { clearSavedData, state, useSnapshot } from '../../../state/State'
 
+// Force rewrite to fix sync issue
 export function DevSection() {
 	const settingsSnap = useSnapshot(state).settings
 

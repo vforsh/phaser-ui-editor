@@ -9,16 +9,12 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { CHANNELS } from '../shared/ipc/channels'
-import { ControlRpcServer } from './ControlRpcServer'
-import { InstanceRegistry } from './discovery/InstanceRegistry'
+import { controlRpcManager } from './ControlRpcManager'
 import { editorRegistry } from './EditorRegistry'
 import { registerMainApiHandlers } from './ipc/register-main-api-handlers'
 import { RendererFileLogger } from './RendererFileLogger'
 
 let mainWindow: BrowserWindow | null = null
-let controlRpcServer: ControlRpcServer | null = null
-let controlRpcAddress = ''
-let instanceRegistry: InstanceRegistry | null = null
 let rendererLogger: RendererFileLogger | null = null
 const LOG_LEVEL_OPTIONS = ['SILLY', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL'] as const
 type LogLevelOption = (typeof LOG_LEVEL_OPTIONS)[number]
@@ -53,7 +49,10 @@ app.whenReady().then(() => {
 	// Kick off the renderer ASAP; do the rest right after.
 	setImmediate(() => registerMainApiHandlers())
 	setImmediate(() => createAppMenu())
-	setImmediate(() => setupControlRpcServer())
+
+	if (!isE2E) {
+		setImmediate(() => controlRpcManager.setEnabled(true))
+	}
 
 	app.on('activate', () => {
 		if (mainWindow) {
@@ -216,7 +215,7 @@ function resolveGitDirFromFile(gitFilePath: string): string | null {
 	}
 }
 
-function setupRendererLogger(webContents: Electron.WebContents) {
+const setupRendererLogger = (webContents: Electron.WebContents) => {
 	const runId = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
 	rendererLogger = new RendererFileLogger({
 		logsDir: path.join(process.cwd(), 'logs'),
@@ -226,25 +225,26 @@ function setupRendererLogger(webContents: Electron.WebContents) {
 	rendererLogger.attachErrorStackIpc(ipcMain, CHANNELS.ERROR_STACK_REPORTER)
 }
 
+const openSettings = (section: string = 'general') => {
+	const win = getActiveBrowserWindow()
+	if (!win) {
+		return
+	}
+
+	win.webContents.send('menu:open-settings', { section })
+}
+
+const openControlRpcCommands = () => {
+	const win = getActiveBrowserWindow()
+	if (!win) {
+		return
+	}
+
+	win.webContents.send('menu:open-control-rpc-commands', {})
+}
+
 const createAppMenu = () => {
 	const isMac = process.platform === 'darwin'
-	const openSettings = () => {
-		const win = getActiveBrowserWindow()
-		if (!win) {
-			return
-		}
-
-		win.webContents.send('menu:open-settings', { section: 'general' })
-	}
-
-	const openControlRpcCommands = () => {
-		const win = getActiveBrowserWindow()
-		if (!win) {
-			return
-		}
-
-		win.webContents.send('menu:open-control-rpc-commands', {})
-	}
 
 	const macAppMenu: Electron.MenuItemConstructorOptions[] = isMac
 		? [
@@ -254,7 +254,7 @@ const createAppMenu = () => {
 						{
 							label: 'Settings...',
 							accelerator: 'CmdOrCtrl+,',
-							click: openSettings,
+							click: () => openSettings(),
 						},
 						{ role: 'about' },
 						{ type: 'separator' as const },
@@ -420,73 +420,42 @@ const showControlRpcAddressPopup = () => {
 		return
 	}
 
+	const { wsUrl } = controlRpcManager.getStatus()
+	const isStarted = !!wsUrl
+	const buttons = isStarted ? ['Copy to Clipboard', 'OK'] : ['OK']
+
 	dialog
 		.showMessageBox(mainWindow, {
 			title: 'Control RPC Address',
-			message: `The editor is listening for control commands at:\n\n${controlRpcAddress || 'Not started yet'}`,
+			message: `The editor is listening for control commands at:\n\n${wsUrl || 'Disabled (not available in E2E mode)'}`,
 			type: 'info',
-			buttons: ['Copy to Clipboard', 'OK'],
-			defaultId: 0,
+			buttons,
+			defaultId: isStarted ? 1 : 0,
 		})
 		.then(({ response }) => {
-			if (response === 1 && controlRpcAddress) {
-				clipboard.writeText(controlRpcAddress)
+			if (isStarted && response === 0 && wsUrl) {
+				clipboard.writeText(wsUrl)
 			}
 		})
 }
 
-async function setupControlRpcServer() {
-	const preferredPort = Number(process.env.EDITOR_CONTROL_WS_PORT) || 17870
-	const port = await getPort({ port: preferredPort })
-	const protocol: 'ws' | 'wss' = 'ws'
-	controlRpcAddress = `${protocol}://127.0.0.1:${port}`
-	const instanceId = randomUUID()
-	const startedAt = Date.now()
-	const record: InstanceRecord = {
-		schemaVersion: 1,
-		appId: APP_ID,
-		instanceId,
-		pid: process.pid,
-		wsPort: port,
-		wsUrl: controlRpcAddress,
-		appLaunchDir: process.cwd(),
-		projectPath: editorRegistry.getPrimaryProjectPath(mainWindow?.id ?? null),
-		startedAt,
-		updatedAt: startedAt,
-		appVersion: app.getVersion(),
-		e2e: getE2eMetadata(),
-	}
-
-	instanceRegistry = new InstanceRegistry(record)
-	controlRpcServer = new ControlRpcServer({
-		port,
-		protocol,
-		registry: instanceRegistry,
-		getPrimaryWindowId: () => mainWindow?.id ?? null,
-	})
-	controlRpcServer.start()
-	instanceRegistry.start()
-	console.log(`[control-rpc] ${controlRpcAddress}`)
-}
-
 app.on('window-all-closed', () => {
-	instanceRegistry?.dispose()
-	controlRpcServer?.stop()
+	controlRpcManager.stop()
 	app.quit()
 })
 
 app.on('before-quit', () => {
 	rendererLogger?.dispose()
-	instanceRegistry?.dispose()
+	controlRpcManager.stop()
 })
 
 process.once('SIGINT', () => {
-	instanceRegistry?.dispose()
+	controlRpcManager.stop()
 	app.quit()
 })
 
 process.once('SIGTERM', () => {
-	instanceRegistry?.dispose()
+	controlRpcManager.stop()
 	app.quit()
 })
 

@@ -33,6 +33,13 @@ class EditorRegistry {
 	}
 
 	/**
+	 * Returns the primary window id.
+	 */
+	getPrimaryWindowId(): number | null {
+		return this.primaryWindowId
+	}
+
+	/**
 	 * Returns the preferred project path for discovery metadata.
 	 */
 	getPrimaryProjectPath(preferredWindowId?: number | null): string | null {

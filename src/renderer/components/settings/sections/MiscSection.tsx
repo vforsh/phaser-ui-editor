@@ -5,11 +5,13 @@ import { Check, X } from 'lucide-react'
 
 import { logger } from '../../../logs/logs'
 import { exportedSettingsV1Schema, type ExportedSettingsV1 } from '../../../settings/EditorSettings'
-import { replaceSettings, state, unproxy } from '../../../state/State'
+import { replaceSettings, state, unproxy, useSnapshot } from '../../../state/State'
 
 const settingsFileFilters = [{ name: 'JSON', extensions: ['json'] }]
 
 export function MiscSection() {
+	const settings = useSnapshot(state.settings)
+
 	const handleExportSettings = async () => {
 		try {
 			const payload: ExportedSettingsV1 = {

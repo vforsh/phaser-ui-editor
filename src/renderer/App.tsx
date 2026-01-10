@@ -28,6 +28,7 @@ import { TOKENS } from './di/tokens'
 import { UndoHub } from './history/UndoHub'
 import { logger } from './logs/logs'
 import { LogLevel } from './logs/LogsManager'
+import { ModalParamsById } from './modals/ModalIds'
 import { ModalService } from './modals/ModalService'
 import { isSettingsSectionId } from './settings/EditorSettings'
 import { clearSavedData, state, subscribe } from './state/State'
@@ -51,7 +52,9 @@ function App() {
 		container.bind({ provide: TOKENS.AppCommands, useValue: appCommands })
 		const modalService = new ModalService(appCommands)
 		container.bind({ provide: TOKENS.ModalService, useValue: modalService })
-		exposeWindowEditor(appCommands)
+		if (import.meta.env.DEV) {
+			exposeWindowEditor(appCommands)
+		}
 		const undoHub = new UndoHub({
 			onChange: (historyState) => {
 				state.app.history = historyState
@@ -66,8 +69,16 @@ function App() {
 	useControlRpcBridge(appCommands)
 	const modalService = diContainer.get(TOKENS.ModalService)
 	const modalState = useSnapshot(modalService.state)
-	const settingsParams = modalService.getParams('settings')
-	const controlRpcParams = modalService.getParams('controlRpcCommands')
+
+	const settingsParams =
+		modalState.active?.id === 'settings'
+			? (modalState.active.params as ModalParamsById['settings'])
+			: modalService.getParams('settings')
+
+	const controlRpcParams =
+		modalState.active?.id === 'controlRpcCommands'
+			? (modalState.active.params as ModalParamsById['controlRpcCommands'])
+			: modalService.getParams('controlRpcCommands')
 
 	useEffect(() => {
 		if (!window.appMenu) {

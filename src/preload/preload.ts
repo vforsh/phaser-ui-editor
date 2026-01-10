@@ -12,7 +12,7 @@ exposeInRenderer('mainApi', createMainApi())
 
 exposeInRenderer('appMenu', createAppMenu())
 
-if (process.env.NODE_ENV !== 'production') exposeInRenderer('controlIpc', createControlIpc())
+exposeInRenderer('controlIpc', createControlIpc())
 
 if (process.env.NODE_ENV !== 'production') exposeInRenderer('errorStackReporter', createErrorStackReporter())
 

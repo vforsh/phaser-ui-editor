@@ -219,6 +219,14 @@ export const mainApiContract = {
 			action: z.enum(['rectangle', 'ellipse']).nullable(),
 		}),
 	},
+	setControlRpcEnabled: {
+		input: z.object({ enabled: z.boolean() }),
+		output: z.object({
+			enabled: z.boolean(),
+			wsUrl: z.string().nullable(),
+			wsPort: z.number().nullable(),
+		}),
+	},
 } as const
 
 export type MainApiContract = typeof mainApiContract

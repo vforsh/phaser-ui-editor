@@ -5,6 +5,7 @@ import type { AppCommandsEmitter } from '../AppCommands'
 
 import { logger } from '../logs/logs'
 import { state, subscribe } from '../state/State'
+import { UrlParams } from '../url-params/UrlParams'
 import { ControlOperationalError } from './control-errors'
 import { ERR_INVALID_RPC_RESPONSE, JSONRPC_INTERNAL_ERROR } from './jsonrpc-errors'
 import { validateControlRequest } from './jsonrpc-validate'
@@ -15,17 +16,18 @@ import { EditorControlService } from './service/EditorControlService'
 /**
  * Installs a renderer-side bridge for the external control RPC.
  *
- * In development, listens for JSON-RPC requests coming from `window.controlIpc`, handles them
- * via `EditorControlService`, and forwards the resulting JSON-RPC response back to the main
- * process through the same IPC bridge.
+ * Listens for JSON-RPC requests coming from `window.controlIpc`, handles them
+ * via `EditorControlService`, and forwards the resulting JSON-RPC response
+ * back to the main process through the same IPC bridge.
  *
- * No-op outside dev mode or when the preload bridge is not available.
+ * Enabled unless running in E2E mode.
  */
 export function useControlRpcBridge(appCommands: AppCommandsEmitter): void {
 	const scheduler = useMemo(() => new RpcScheduler(), [])
 
 	useEffect(() => {
-		if (!import.meta.env.DEV) {
+		const isE2E = UrlParams.getBool('e2e')
+		if (isE2E) {
 			return
 		}
 
