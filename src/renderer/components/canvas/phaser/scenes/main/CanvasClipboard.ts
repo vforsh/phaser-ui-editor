@@ -5,6 +5,7 @@ import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { TypedEventEmitter } from '../../robowhale/phaser3/TypedEventEmitter'
 import { EditableObject, EditableObjectJson } from './objects/EditableObject'
 import { EditableObjectsFactory } from './objects/EditableObjectsFactory'
+import { assignNewLocalIds } from './objects/localId'
 
 type Events = {
 	// "copy": (data: string) => void
@@ -40,6 +41,7 @@ export class CanvasClipboard extends TypedEventEmitter<Events> {
 		}
 
 		const itemsJsons = JSON.parse(state.canvas.clipboard) as EditableObjectJson[]
+		itemsJsons.forEach((json) => assignNewLocalIds(json))
 		const items = itemsJsons.map((json: EditableObjectJson) => this.factory.fromJson(json))
 
 		return items

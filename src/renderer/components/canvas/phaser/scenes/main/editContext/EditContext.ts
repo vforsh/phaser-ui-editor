@@ -1,9 +1,11 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
+import { notifications } from '@mantine/notifications'
 import { ILogObj, Logger } from 'tslog'
 
 import { MainScene } from '../MainScene'
 import { EditableContainer } from '../objects/EditableContainer'
 import { EditableObject, isEditable } from '../objects/EditableObject'
+import { isInsidePrefabInstance } from '../prefabs/prefabLock'
 import { AdjustableRect } from './AdjustableRect'
 import { Selection } from './Selection'
 import { SelectionRect } from './SelectionRect'
@@ -548,6 +550,17 @@ export class EditContext extends TypedEventEmitter<Events> {
 				this.selection = this.createSelection([gameObject])
 			}
 		} else if (pointer.event.ctrlKey || pointer.event.metaKey) {
+			if (isInsidePrefabInstance(gameObject) || isInsidePrefabInstance(this.target)) {
+				notifications.show({
+					id: 'prefab-locked',
+					title: 'Prefab instance locked',
+					message: 'Duplicate is disabled inside prefab instances.',
+					color: 'yellow',
+					autoClose: 4000,
+				})
+				return
+			}
+
 			const toClone = this.selection?.includes(gameObject) ? this.selection.objects : [gameObject]
 			const clonedObjects = toClone.map((obj) => {
 				const clone = this.scene.objectsFactory.clone(obj, { addToScene: false })

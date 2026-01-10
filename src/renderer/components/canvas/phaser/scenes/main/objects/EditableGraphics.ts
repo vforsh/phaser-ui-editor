@@ -1,6 +1,7 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { proxy } from 'valtio'
 
+import { PrefabRuntimeMeta } from '../prefabs/prefabRuntimeMeta'
 import { ComponentsManager } from './components/base/ComponentsManager'
 import { EditableComponentJson } from './components/base/EditableComponent'
 import { CreateEditableObjectJson, EDITABLE_SYMBOL, EditableObjectEvents, IEditableObject } from './EditableObject'
@@ -53,6 +54,7 @@ export class EditableGraphics extends Phaser.GameObjects.Graphics implements IEd
 	public readonly kind = 'Graphics'
 	public readonly id: string
 	public localId: string | undefined
+	public prefabMeta?: PrefabRuntimeMeta
 	private _isLocked = false
 	private _stateObj: EditableGraphicsJson
 	private _stateChanges: StateChangesEmitter<EditableGraphicsJson>

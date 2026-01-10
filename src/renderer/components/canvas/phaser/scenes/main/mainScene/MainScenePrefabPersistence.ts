@@ -12,13 +12,19 @@ import {
 	AssetTreeWebFontData,
 	getAssetById,
 	getAssetRelativePath,
+	getAssetsOfType,
 	getNameWithoutExtension,
 	isAssetOfType,
 } from '../../../../../../types/assets'
+import {
+	CanvasDocumentJson,
+	CanvasDocumentNodeJson,
+	PrefabObjectPatch,
+	isPrefabInstanceJson,
+} from '../../../../../../types/prefabs/PrefabDocument'
 import { PrefabFile } from '../../../../../../types/prefabs/PrefabFile'
 import { EditableContainer, EditableContainerJson } from '../objects/EditableContainer'
 import { EditableObjectJson } from '../objects/EditableObject'
-import { ensureLocalIds } from '../objects/localId'
 import { MainSceneDeps } from './mainSceneTypes'
 
 export class MainScenePrefabPersistence {
@@ -28,11 +34,16 @@ export class MainScenePrefabPersistence {
 		let root: EditableContainer
 
 		if (prefabFile.content) {
-			ensureLocalIds(prefabFile.content)
-			await this.deps.assetLoader.loadPrefabAssets(prefabFile.content)
-			root = this.deps.objectsFactory.fromJson(prefabFile.content, true) as EditableContainer
+			const stats = getPrefabDocumentStats(prefabFile.content)
+			this.deps.logger.info(
+				`[prefab-open] prefab='${this.deps.sceneInitData.prefabAsset.name}' id=${this.deps.sceneInitData.prefabAsset.id} instances=${stats.prefabInstances} overrides(objects=${stats.overrideObjects} components=${stats.overrideComponents})`,
+			)
+			root = await this.deps.prefabDocument.expandDocumentToRuntime(prefabFile.content, true)
 		} else {
 			const name = getNameWithoutExtension(this.deps.sceneInitData.prefabAsset)
+			this.deps.logger.info(
+				`[prefab-open] prefab='${this.deps.sceneInitData.prefabAsset.name}' id=${this.deps.sceneInitData.prefabAsset.id} empty-content=true`,
+			)
 			root = this.deps.objectsFactory.container(name)
 		}
 
@@ -49,6 +60,7 @@ export class MainScenePrefabPersistence {
 
 		const prefabFilePath = this.deps.sceneInitData.prefabAsset.path
 		const prefabContent = this.deps.rootToJson()
+		const stats = getPrefabDocumentStats(prefabContent)
 
 		const prefabFile: PrefabFile = {
 			content: prefabContent,
@@ -62,14 +74,25 @@ export class MainScenePrefabPersistence {
 			return err(errorLog)
 		}
 
-		this.deps.logger.info(`saved '${this.deps.sceneInitData.prefabAsset.name}' at ${prefabFilePath}`)
+		const assetFiles = prefabFile.assetPack[0]?.files.length ?? 0
+		this.deps.logger.info(
+			`[prefab-save] prefab='${this.deps.sceneInitData.prefabAsset.name}' id=${this.deps.sceneInitData.prefabAsset.id} instances=${stats.prefabInstances} overrides(objects=${stats.overrideObjects} components=${stats.overrideComponents}) assetFiles=${assetFiles} path=${prefabFilePath}`,
+		)
+		this.deps.prefabDocument.invalidatePrefab(this.deps.sceneInitData.prefabAsset.id)
 
 		this.deps.history.setBaseline() // sync baseline revision after successful save
 
 		return ok(undefined)
 	}
 
-	private calculatePrefabAssetPack(prefabContent: EditableContainerJson): PrefabFile['assetPack'] {
+	public getPrefabDocument(): { expanded: EditableContainerJson; collapsed: CanvasDocumentJson } {
+		return {
+			expanded: this.deps.getRoot().toJson(),
+			collapsed: this.deps.rootToJson(),
+		}
+	}
+
+	private calculatePrefabAssetPack(prefabContent: CanvasDocumentJson): PrefabFile['assetPack'] {
 		const files: Phaser.Types.Loader.FileConfig[] = []
 		const dedupe = new Set<string>()
 
@@ -165,7 +188,92 @@ export class MainScenePrefabPersistence {
 			)
 		}
 
-		const traverse = (object: EditableObjectJson) => {
+		const images = getAssetsOfType(state.assets.items, 'image')
+		const imageByTextureKey = new Map<string, AssetTreeImageData>()
+		for (const image of images) {
+			imageByTextureKey.set(getAssetRelativePath(image.path), image)
+		}
+
+		const spritesheets = getAssetsOfType(state.assets.items, 'spritesheet')
+		const spritesheetByTextureKey = new Map<string, AssetTreeSpritesheetData>()
+		for (const spritesheet of spritesheets) {
+			spritesheetByTextureKey.set(getAssetRelativePath(spritesheet.image.path), spritesheet)
+		}
+
+		const bitmapFonts = getAssetsOfType(state.assets.items, 'bitmap-font')
+		const bitmapFontByName = new Map<string, AssetTreeBitmapFontData>()
+		for (const bitmapFont of bitmapFonts) {
+			bitmapFontByName.set(bitmapFont.name, bitmapFont)
+		}
+
+		const webFonts = getAssetsOfType(state.assets.items, 'web-font')
+		const webFontByFamily = new Map<string, AssetTreeWebFontData>()
+		for (const webFont of webFonts) {
+			webFontByFamily.set(webFont.fontFamily, webFont)
+		}
+
+		const addOverrideAssets = (patch: PrefabObjectPatch) => {
+			const textureKey = typeof patch.textureKey === 'string' ? patch.textureKey : null
+			if (textureKey) {
+				const spritesheet = spritesheetByTextureKey.get(textureKey)
+				const image = imageByTextureKey.get(textureKey)
+				if (patch.frameKey !== undefined && patch.frameKey !== null) {
+					if (spritesheet) {
+						addAtlas(textureKey, spritesheet)
+					} else {
+						warn(`missing spritesheet for override textureKey '${textureKey}' (frameKey '${patch.frameKey}')`)
+					}
+				} else if (image) {
+					addImage(textureKey, image)
+				} else if (spritesheet) {
+					addAtlas(textureKey, spritesheet)
+				} else {
+					warn(`missing asset for override textureKey '${textureKey}'`)
+				}
+			} else if (patch.frameKey !== undefined && patch.frameKey !== null) {
+				warn(`missing textureKey for override frameKey '${patch.frameKey}'`)
+			}
+
+			const bitmapFontKey = typeof patch.font === 'string' ? patch.font : null
+			if (bitmapFontKey) {
+				const bitmapFont = bitmapFontByName.get(bitmapFontKey)
+				if (bitmapFont) {
+					addBitmapFont(bitmapFontKey, bitmapFont)
+				} else {
+					warn(`missing bitmap font for override font '${bitmapFontKey}'`)
+				}
+			}
+
+			const fontFamily = typeof patch.style?.fontFamily === 'string' ? patch.style.fontFamily : null
+			if (fontFamily) {
+				const webFont = webFontByFamily.get(fontFamily)
+				if (webFont) {
+					addWebFont(fontFamily, webFont)
+				} else {
+					warn(`missing web font for override fontFamily '${fontFamily}'`)
+				}
+			}
+		}
+
+		const traverseOverrides = (object: CanvasDocumentNodeJson) => {
+			if (isPrefabInstanceJson(object)) {
+				const overrides = object.overrides?.objects ?? []
+				for (const entry of overrides) {
+					addOverrideAssets(entry.patch)
+				}
+				return
+			}
+
+			if (object.type === 'Container') {
+				object.children.forEach(traverseOverrides)
+			}
+		}
+
+		const traverse = (object: EditableObjectJson | CanvasDocumentJson['children'][number]) => {
+			if (isPrefabInstanceJson(object)) {
+				return
+			}
+
 			if (object.type === 'Container') {
 				object.children.forEach(traverse)
 				return
@@ -238,6 +346,7 @@ export class MainScenePrefabPersistence {
 		}
 
 		traverse(prefabContent)
+		traverseOverrides(prefabContent)
 
 		files.sort((a, b) => getFileSortKey(a).localeCompare(getFileSortKey(b)))
 
@@ -254,4 +363,25 @@ function getFileSortKey(file: Phaser.Types.Loader.FileConfig): string {
 	}
 
 	return [data.type ?? '', data.key ?? '', data.url ?? '', data.textureURL ?? '', data.atlasURL ?? '', data.fontDataURL ?? ''].join('|')
+}
+
+function getPrefabDocumentStats(root: CanvasDocumentNodeJson) {
+	const stats = { prefabInstances: 0, overrideObjects: 0, overrideComponents: 0 }
+
+	const visit = (node: CanvasDocumentNodeJson) => {
+		if (isPrefabInstanceJson(node)) {
+			stats.prefabInstances += 1
+			stats.overrideObjects += node.overrides?.objects?.length ?? 0
+			stats.overrideComponents += node.overrides?.components?.length ?? 0
+			return
+		}
+
+		if (node.type === 'Container') {
+			node.children.forEach(visit)
+		}
+	}
+
+	visit(root)
+
+	return stats
 }

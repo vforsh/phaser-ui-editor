@@ -3,6 +3,7 @@ import { IPatchesConfig, NinePatch } from '@koreez/phaser3-ninepatch'
 import { proxy } from 'valtio'
 
 import { PrefabImageAsset, PrefabSpritesheetFrameAsset } from '../../../../../../types/prefabs/PrefabAsset'
+import { PrefabRuntimeMeta } from '../prefabs/prefabRuntimeMeta'
 import { ComponentsManager } from './components/base/ComponentsManager'
 import { EditableComponentJson } from './components/base/EditableComponent'
 import { CreateEditableObjectJson, EDITABLE_SYMBOL, EditableObjectEvents, IEditableObject } from './EditableObject'
@@ -17,6 +18,7 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 	public readonly kind = 'NineSlice'
 	public readonly id: string
 	public localId: string | undefined
+	public prefabMeta?: PrefabRuntimeMeta
 	public readonly asset: PrefabImageAsset | PrefabSpritesheetFrameAsset
 	private _isLocked = false
 	private _stateObj: EditableNineSliceJson

@@ -17,6 +17,7 @@ import {
 	isAssetOfType,
 } from '../../../../../../types/assets'
 import { PrefabAsset } from '../../../../../../types/prefabs/PrefabAsset'
+import { CanvasDocumentNodeJson, isPrefabInstanceJson } from '../../../../../../types/prefabs/PrefabDocument'
 import { BmFontData } from '../../../robowhale/phaser3/gameObjects/bitmap-text/create-bmfont-data'
 import { parseJsonBitmapFont } from '../../../robowhale/phaser3/gameObjects/bitmap-text/parse-json-bitmap-font'
 import { EditableContainerJson } from '../objects/EditableContainer'
@@ -47,11 +48,15 @@ export class MainSceneAssetLoader {
 		}
 	}
 
-	public calculatePrefabAssets(prefabRoot: EditableContainerJson): PrefabAsset[] {
+	public calculatePrefabAssets(prefabRoot: CanvasDocumentNodeJson): PrefabAsset[] {
 		const assetIds = new Set<string>()
 		const assets: PrefabAsset[] = []
 
-		const traverse = (object: EditableObjectJson) => {
+		const traverse = (object: CanvasDocumentNodeJson) => {
+			if (isPrefabInstanceJson(object)) {
+				return
+			}
+
 			if (object.type === 'Container') {
 				for (const child of object.children) {
 					traverse(child)
@@ -60,8 +65,9 @@ export class MainSceneAssetLoader {
 				return
 			}
 
-			const objectAssets = match(object)
+			const objectAssets = match(object as EditableObjectJson)
 				.returnType<PrefabAsset[]>()
+				.with({ type: 'Container' }, () => [])
 				.with({ type: 'Image' }, (image) => [image.asset])
 				.with({ type: 'Text' }, (text) => [text.asset])
 				.with({ type: 'BitmapText' }, (bitmapText) => [bitmapText.asset])

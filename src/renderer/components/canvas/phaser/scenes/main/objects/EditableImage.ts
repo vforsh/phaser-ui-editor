@@ -2,6 +2,7 @@ import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/T
 import { proxy } from 'valtio'
 
 import { PrefabImageAsset, PrefabSpritesheetFrameAsset } from '../../../../../../types/prefabs/PrefabAsset'
+import { PrefabRuntimeMeta } from '../prefabs/prefabRuntimeMeta'
 import { ComponentsManager } from './components/base/ComponentsManager'
 import { EditableComponentJson } from './components/base/EditableComponent'
 import { CreateEditableObjectJson, EDITABLE_SYMBOL, EditableObjectEvents, IEditableObject } from './EditableObject'
@@ -16,6 +17,7 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 	public readonly kind = 'Image'
 	public readonly id: string
 	public localId: string | undefined
+	public prefabMeta?: PrefabRuntimeMeta
 	public readonly asset: PrefabImageAsset | PrefabSpritesheetFrameAsset
 	private _isLocked = false
 	private _stateObj: EditableImageJson

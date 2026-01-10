@@ -19,6 +19,7 @@ import { EditableImage, EditableImageJson } from './EditableImage'
 import { EditableNineSlice, EditableNineSliceJson } from './EditableNineSlice'
 import { EditableObject, EditableObjectJson } from './EditableObject'
 import { EditableText, EditableTextJson, EditableTextStyleJson } from './EditableText'
+import { cloneWithNewLocalIds, createLocalId } from './localId'
 
 type Events = {
 	// emitted after an object is created and has an id, but **not added to the scene**
@@ -85,6 +86,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 	public container(name: string): EditableContainer {
 		const id = this.getObjectId()
 		const container = new EditableContainer(this.scene, id, null, 0, 0, [])
+		container.localId = createLocalId()
 		container.name = name
 		this.register(container)
 		return container
@@ -93,6 +95,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 	public image(asset: PrefabImageAsset | PrefabSpritesheetFrameAsset, texture: string, frame?: string | number): EditableImage {
 		const id = this.getObjectId()
 		const image = new EditableImage(this.scene, id, asset, 0, 0, texture, frame)
+		image.localId = createLocalId()
 		this.register(image)
 		return image
 	}
@@ -107,6 +110,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 	): EditableNineSlice {
 		const id = this.getObjectId()
 		const nineSlice = new EditableNineSlice(this.scene, id, asset, width, height, texture, frame, patchesConfig)
+		nineSlice.localId = createLocalId()
 		this.register(nineSlice)
 		return nineSlice
 	}
@@ -114,6 +118,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 	public text(asset: PrefabWebFontAsset, content: string, style: EditableTextStyleJson): EditableText {
 		const id = this.getObjectId()
 		const text = new EditableText(this.scene, id, asset, 0, 0, content, style)
+		text.localId = createLocalId()
 		text.setOrigin(0.5)
 		this.register(text)
 		return text
@@ -122,6 +127,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 	public bitmapText(asset: PrefabBitmapFontAsset, font: string, content: string, fontSize?: number): EditableBitmapText {
 		const id = this.getObjectId()
 		const bitmapText = new EditableBitmapText(this.scene, id, asset, font, content, fontSize)
+		bitmapText.localId = createLocalId()
 		bitmapText.setOrigin(0.5)
 		this.register(bitmapText)
 		return bitmapText
@@ -155,6 +161,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 			miterLimit: 10,
 		}
 		const graphics = new EditableGraphics(this.scene, id, 0, 0, 120, 80, shape, fill, stroke)
+		graphics.localId = createLocalId()
 		this.register(graphics)
 		return graphics
 	}
@@ -182,7 +189,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		const children = json.children.map((childJson) => this.fromJson(childJson))
 		const container = new EditableContainer(this.scene, id, json.prefab, json.x, json.y, children, isRoot)
 
-		container.localId = json.localId
+		container.localId = json.localId ?? createLocalId()
 		container.setScale(json.scale.x, json.scale.y)
 		container.setRotation(json.rotation)
 		container.setAlpha(json.alpha)
@@ -201,7 +208,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		const id = this.getObjectId()
 		const image = new EditableImage(this.scene, id, json.asset, json.x, json.y, json.textureKey, json.frameKey)
 
-		image.localId = json.localId
+		image.localId = json.localId ?? createLocalId()
 		image.setName(json.name)
 		image.setVisible(json.visible)
 		image.setLocked(json.locked)
@@ -229,7 +236,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 			json.ninePatchConfig,
 		)
 
-		nineSlice.localId = json.localId
+		nineSlice.localId = json.localId ?? createLocalId()
 		nineSlice.setPosition(json.x, json.y)
 		nineSlice.setName(json.name)
 		nineSlice.setVisible(json.visible)
@@ -248,7 +255,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		const id = this.getObjectId()
 		const text = new EditableText(this.scene, id, json.asset, json.x, json.y, json.text, json.style)
 
-		text.localId = json.localId
+		text.localId = json.localId ?? createLocalId()
 		text.setName(json.name)
 		text.setVisible(json.visible)
 		text.setAlpha(json.alpha)
@@ -267,7 +274,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		const id = this.getObjectId()
 		const bitmapText = new EditableBitmapText(this.scene, id, json.asset, json.font, json.text, json.fontSize, json.align)
 
-		bitmapText.localId = json.localId
+		bitmapText.localId = json.localId ?? createLocalId()
 		bitmapText.setPosition(json.x, json.y)
 		bitmapText.setName(json.name)
 		bitmapText.setVisible(json.visible)
@@ -288,7 +295,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 		const id = this.getObjectId()
 		const graphics = new EditableGraphics(this.scene, id, json.x, json.y, json.width, json.height, json.shape, json.fill, json.stroke)
 
-		graphics.localId = json.localId
+		graphics.localId = json.localId ?? createLocalId()
 		graphics.setName(json.name)
 		graphics.setVisible(json.visible)
 		graphics.setAlpha(json.alpha)
@@ -310,7 +317,7 @@ export class EditableObjectsFactory extends TypedEventEmitter<Events> {
 	}
 
 	public clone(obj: EditableObject, options?: CloneOptions): EditableObject {
-		const json = obj.toJson()
+		const json = cloneWithNewLocalIds(obj.toJson())
 
 		const cloned = this.fromJson(json)
 

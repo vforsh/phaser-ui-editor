@@ -2,6 +2,7 @@ import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/T
 import { proxy } from 'valtio'
 
 import { PrefabBitmapFontAsset } from '../../../../../../types/prefabs/PrefabAsset'
+import { PrefabRuntimeMeta } from '../prefabs/prefabRuntimeMeta'
 import { ComponentsManager } from './components/base/ComponentsManager'
 import { EditableComponentJson } from './components/base/EditableComponent'
 import { CreateEditableObjectJson, EDITABLE_SYMBOL, EditableObjectEvents, IEditableObject } from './EditableObject'
@@ -16,6 +17,7 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 	public readonly kind = 'BitmapText'
 	public readonly id: string
 	public localId: string | undefined
+	public prefabMeta?: PrefabRuntimeMeta
 	public readonly asset: PrefabBitmapFontAsset
 	private readonly __events = new TypedEventEmitter<Events>()
 	private _isLocked = false

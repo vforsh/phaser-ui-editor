@@ -1,8 +1,8 @@
 import { state, subscribe } from '@state/State'
 import { match } from 'ts-pattern'
 
+import { CanvasDocumentJson } from '../../../../../../types/prefabs/PrefabDocument'
 import { EditableContainer } from '../objects/EditableContainer'
-import { EditableContainerJson } from '../objects/EditableContainer'
 import { isObjectOfType } from '../objects/EditableObject'
 import { MainSceneDeps } from './mainSceneTypes'
 
@@ -22,7 +22,7 @@ export type TransformControlsSnapshot = {
  * - `rootJson` is only used to restore the document for undo/redo.
  */
 export type CanvasDocumentSnapshot = {
-	rootJson: EditableContainerJson
+	rootJson: CanvasDocumentJson
 	documentRevision: number
 	activeContextId?: string
 	selectionIds: string[]
@@ -131,7 +131,7 @@ export class MainSceneHistory {
 			// while `super-root` was active can't crash.
 			this.deps.editContexts.add(this.deps.getSuperRoot(), { switchTo: false })
 
-			const newRoot = this.deps.objectsFactory.fromJson(snapshot.rootJson, true) as EditableContainer
+			const newRoot = await this.deps.prefabDocument.expandDocumentToRuntime(snapshot.rootJson)
 			this.deps.setRoot(newRoot)
 			this.deps.getSuperRoot().add(newRoot)
 

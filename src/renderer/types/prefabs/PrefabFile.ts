@@ -1,7 +1,7 @@
-import { EditableContainerJson } from '../../components/canvas/phaser/scenes/main/objects/EditableContainer'
+import { CanvasDocumentJson } from './PrefabDocument'
 
 export type PrefabFile = {
-	content: EditableContainerJson | null
+	content: CanvasDocumentJson | null
 
 	/**
 	 * Used in the runtime to load the assets before displaying the prefab.

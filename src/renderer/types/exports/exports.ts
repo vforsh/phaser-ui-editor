@@ -23,6 +23,7 @@ import { EditableImageJson } from '../../components/canvas/phaser/scenes/main/ob
 import { EditableNineSliceJson } from '../../components/canvas/phaser/scenes/main/objects/EditableNineSlice'
 import { EditableObjectJson } from '../../components/canvas/phaser/scenes/main/objects/EditableObject'
 import { EditableTextJson } from '../../components/canvas/phaser/scenes/main/objects/EditableText'
+import { CanvasDocumentJson, NodeAddress, PrefabInstanceJson, PrefabOverrides } from '../prefabs/PrefabDocument'
 import { PrefabFile } from '../prefabs/PrefabFile'
 
 export type {
@@ -35,6 +36,10 @@ export type {
 	EditableTextJson,
 	GridLayoutComponentJson,
 	HorizontalLayoutComponentJson,
+	CanvasDocumentJson,
+	NodeAddress,
+	PrefabInstanceJson,
+	PrefabOverrides,
 	PrefabFile,
 	VerticalLayoutComponentJson,
 }

@@ -1,6 +1,7 @@
 import { Logger, ILogObj } from 'tslog'
 
 import type { Aligner } from '../Aligner'
+import type { PrefabDocumentService } from '../prefabs/PrefabDocumentService'
 import type { MainSceneAssetLoader } from './MainSceneAssetLoader'
 import type { MainSceneCamera } from './MainSceneCamera'
 import type { MainSceneHistory } from './MainSceneHistory'
@@ -10,6 +11,7 @@ import type { MainSceneOps } from './MainSceneSelectionOps'
 
 import { Project } from '../../../../../../project/Project'
 import { AssetTreePrefabData } from '../../../../../../types/assets'
+import { CanvasDocumentJson } from '../../../../../../types/prefabs/PrefabDocument'
 import { PrefabFile } from '../../../../../../types/prefabs/PrefabFile'
 import { CanvasClipboard } from '../CanvasClipboard'
 import { EditContextsManager } from '../editContext/EditContextsManager'
@@ -17,7 +19,7 @@ import { EditContextFrame } from '../EditContextFrame'
 import { Grid } from '../Grid'
 import { LayoutSystem } from '../layout/LayoutSystem'
 import { EditableComponentsFactory } from '../objects/components/base/EditableComponentsFactory'
-import { EditableContainer, EditableContainerJson } from '../objects/EditableContainer'
+import { EditableContainer } from '../objects/EditableContainer'
 import { EditableObjectsFactory } from '../objects/EditableObjectsFactory'
 import { Rulers } from '../Rulers'
 
@@ -94,6 +96,9 @@ export interface MainSceneDeps {
 	/** Screenshot/export utilities for the current canvas. */
 	screenshot: MainSceneScreenshot
 
+	/** Prefab document resolver/serializer + template cache. */
+	prefabDocument: PrefabDocumentService
+
 	/** Current editable root for the active edit context. */
 	getRoot: () => EditableContainer
 
@@ -109,8 +114,8 @@ export interface MainSceneDeps {
 	/** Notify MainScene to recompute overlays and derived state after resize/camera changes. */
 	onResizeOrCameraChange: () => void
 
-	/** Serialize the current editable root to JSON for persistence/history/snapshots. */
-	rootToJson: () => EditableContainerJson
+	/** Serialize the current editable root to a collapsed document JSON for persistence/history/snapshots. */
+	rootToJson: () => CanvasDocumentJson
 
 	/** Return sibling ids for an object id (used for ordering + layout operations). */
 	getObjectSiblingsIds: (id: string) => string[]

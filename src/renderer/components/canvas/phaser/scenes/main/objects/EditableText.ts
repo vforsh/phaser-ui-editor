@@ -3,6 +3,7 @@ import { signalFromEvent } from '@components/canvas/phaser/robowhale/utils/event
 import { proxy } from 'valtio'
 
 import { PrefabWebFontAsset } from '../../../../../../types/prefabs/PrefabAsset'
+import { PrefabRuntimeMeta } from '../prefabs/prefabRuntimeMeta'
 import { ComponentsManager } from './components/base/ComponentsManager'
 import { EditableComponentJson } from './components/base/EditableComponent'
 import { CreateEditableObjectJson, EDITABLE_SYMBOL, EditableObjectEvents, IEditableObject } from './EditableObject'
@@ -17,6 +18,7 @@ export class EditableText extends Phaser.GameObjects.Text implements IEditableOb
 	public readonly kind = 'Text'
 	public readonly id: string
 	public localId: string | undefined
+	public prefabMeta?: PrefabRuntimeMeta
 	public readonly asset: PrefabWebFontAsset
 	private _isLocked = false
 	private _stateObj: EditableTextJson

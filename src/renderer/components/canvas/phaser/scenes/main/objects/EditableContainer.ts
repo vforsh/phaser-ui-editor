@@ -1,6 +1,7 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { proxy } from 'valtio'
 
+import { PrefabRuntimeMeta } from '../prefabs/prefabRuntimeMeta'
 import { ComponentsManager } from './components/base/ComponentsManager'
 import { EditableComponentJson } from './components/base/EditableComponent'
 import {
@@ -31,6 +32,8 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 	public readonly kind = 'Container'
 	public readonly id: string
 	public localId: string | undefined
+	public prefabInstanceLocalId: string | undefined
+	public prefabMeta?: PrefabRuntimeMeta
 	public readonly prefab: PrefabRef | null
 	public readonly isRoot: boolean
 	private readonly __events = new TypedEventEmitter<Events>()

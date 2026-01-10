@@ -1,5 +1,5 @@
+import { notifications } from '@mantine/notifications'
 import { state } from '@state/State'
-import { err } from 'neverthrow'
 import { match } from 'ts-pattern'
 
 import { CreateGraphicsAtData } from '../../../../../../AppCommands'
@@ -14,6 +14,8 @@ import { EditableContainer } from '../objects/EditableContainer'
 import { EditableGraphics } from '../objects/EditableGraphics'
 import { EditableObject, EditableObjectType, isEditable, isObjectOfType } from '../objects/EditableObject'
 import { isPositionLockedForRuntimeObject } from '../objects/editing/editRestrictions'
+import { cloneWithNewLocalIds } from '../objects/localId'
+import { isInsidePrefabInstance } from '../prefabs/prefabLock'
 import { MainSceneComponentOps } from './MainSceneComponentOps'
 import { MainSceneFactory } from './MainSceneFactory'
 import { MainSceneDeps } from './mainSceneTypes'
@@ -39,8 +41,37 @@ export class MainSceneOps {
 			logger: this.deps.logger,
 			assetLoader: this.deps.assetLoader,
 			objectsFactory: this.deps.objectsFactory,
+			prefabDocument: this.deps.prefabDocument,
 			getNewObjectName: this.getNewObjectName.bind(this),
 		})
+	}
+
+	private notifyPrefabLocked(action: string) {
+		notifications.show({
+			id: 'prefab-locked',
+			title: 'Prefab instance locked',
+			message: `${action} is disabled inside prefab instances.`,
+			color: 'yellow',
+			autoClose: 4000,
+		})
+	}
+
+	private canMutateHierarchy(objects: EditableObject[], action: string): boolean {
+		if (objects.some((obj) => isInsidePrefabInstance(obj))) {
+			this.notifyPrefabLocked(action)
+			return false
+		}
+
+		return true
+	}
+
+	private canMutateContext(target: EditableObject, action: string): boolean {
+		if (isInsidePrefabInstance(target)) {
+			this.notifyPrefabLocked(action)
+			return false
+		}
+
+		return true
 	}
 
 	public selectAllInCurrentContext() {
@@ -198,6 +229,10 @@ export class MainSceneOps {
 			return
 		}
 
+		if (!this.canMutateContext(editContext.target, 'Create objects')) {
+			return
+		}
+
 		const newObj = match(data.type)
 			.with('Container', () => this.deps.objectsFactory.container('group'))
 			.with('Graphics', () => this.deps.objectsFactory.graphicsRectangle())
@@ -237,6 +272,10 @@ export class MainSceneOps {
 			: this.deps.editContexts.findParentContext(parentObj)
 
 		if (!editContext) {
+			return
+		}
+
+		if (!this.canMutateContext(editContext.target, 'Create objects')) {
 			return
 		}
 
@@ -281,6 +320,10 @@ export class MainSceneOps {
 			return
 		}
 
+		if (!this.canMutateHierarchy([obj], 'Duplicate')) {
+			return
+		}
+
 		const editContext = this.deps.editContexts.findParentContext(obj)
 		if (!editContext) {
 			this.deps.logger.error(`failed to find edit context for '${obj.name}' (${objId})`)
@@ -290,7 +333,7 @@ export class MainSceneOps {
 		const objJson = obj.toJson()
 
 		const newObjName = this.getNewObjectName(editContext, obj)
-		const newObj = this.deps.objectsFactory.fromJson(objJson)
+		const newObj = this.deps.objectsFactory.fromJson(cloneWithNewLocalIds(objJson))
 		newObj.setName(newObjName)
 		newObj.setPosition(obj.x + 30, obj.y + 30)
 
@@ -325,6 +368,14 @@ export class MainSceneOps {
 
 	public deleteObjects(objIds: string[]) {
 		const before = this.deps.history.isRestoring ? null : this.deps.history.captureSnapshot()
+		const objs = objIds
+			.map((objId) => this.deps.objectsFactory.getObjectById(objId))
+			.filter((obj): obj is EditableObject => Boolean(obj))
+
+		if (!this.canMutateHierarchy(objs, 'Delete')) {
+			return
+		}
+
 		let somethingDeleted = false
 		for (const objId of objIds) {
 			const obj = this.deps.objectsFactory.getObjectById(objId)
@@ -357,6 +408,10 @@ export class MainSceneOps {
 
 		const newParent = this.deps.objectsFactory.getObjectById(newParentId)
 		if (!newParent || !isObjectOfType(newParent, 'Container')) {
+			return
+		}
+
+		if (!this.canMutateHierarchy([obj, newParent], 'Move')) {
 			return
 		}
 
@@ -564,6 +619,9 @@ export class MainSceneOps {
 		}
 
 		const editContext = this.deps.editContexts.current!
+		if (!this.canMutateContext(editContext.target, 'Create objects')) {
+			return null
+		}
 		const worldPos = this.deps.scene.cameras.main.getWorldPoint(data.position.x, data.position.y)
 		const localPos = new Phaser.Math.Vector2()
 		editContext.target.pointToContainer(worldPos, localPos)
@@ -620,6 +678,10 @@ export class MainSceneOps {
 			return
 		}
 
+		if (!this.canMutateHierarchy(selection.objects, 'Group')) {
+			return
+		}
+
 		return this.deps.history.withUndo('Group', () => {
 			const name = this.getNewObjectName(editContext, selection.objects[0])
 			const bounds = selection.objects.length === 1 ? this.deps.aligner.getRotatedBounds(selection.objects[0]) : selection.bounds
@@ -657,6 +719,10 @@ export class MainSceneOps {
 
 		const groups = selection.objects.filter((obj) => obj instanceof EditableContainer)
 		if (groups.length === 0) {
+			return
+		}
+
+		if (!this.canMutateHierarchy(groups, 'Ungroup')) {
 			return
 		}
 
@@ -721,6 +787,10 @@ export class MainSceneOps {
 			return
 		}
 
+		if (!this.canMutateContext(editContext.target, 'Paste')) {
+			return
+		}
+
 		// pasting on super root is not allowed
 		if (editContext.target === this.deps.getSuperRoot()) {
 			this.deps.logger.warn(`adding objects to super root is not allowed`)
@@ -753,6 +823,10 @@ export class MainSceneOps {
 			return
 		}
 
+		if (!this.canMutateHierarchy(selection.objects, 'Delete')) {
+			return
+		}
+
 		return this.deps.history.withUndo('Delete objects', () => {
 			selection.objects.slice(0).forEach((obj) => {
 				obj.parentContainer.remove(obj, true)
@@ -777,6 +851,10 @@ export class MainSceneOps {
 			return
 		}
 
+		if (!this.canMutateHierarchy(selected.objects, 'Reorder')) {
+			return
+		}
+
 		return this.deps.history.withUndo('Move down in hierarchy', () => {
 			selected.objects.forEach((obj) => {
 				if (toBottom) {
@@ -791,6 +869,10 @@ export class MainSceneOps {
 	public moveSelectionUpInHierarchy(toTop = false) {
 		const selected = this.deps.editContexts.current?.selection
 		if (!selected) {
+			return
+		}
+
+		if (!this.canMutateHierarchy(selected.objects, 'Reorder')) {
 			return
 		}
 
@@ -824,6 +906,10 @@ export class MainSceneOps {
 	public renameObject(data: { objectId: string; name: string }): void {
 		const obj = this.deps.objectsFactory.getObjectById(data.objectId)
 		if (!obj) {
+			return
+		}
+
+		if (!this.canMutateHierarchy([obj], 'Rename')) {
 			return
 		}
 

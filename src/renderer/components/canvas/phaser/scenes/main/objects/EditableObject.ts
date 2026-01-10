@@ -1,6 +1,7 @@
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { match } from 'ts-pattern'
 
+import { PrefabRuntimeMeta } from '../prefabs/prefabRuntimeMeta'
 import { ComponentsManager } from './components/base/ComponentsManager'
 import { EditableComponentJson } from './components/base/EditableComponent'
 import { EditableBitmapText, EditableBitmapTextJson } from './EditableBitmapText'
@@ -46,6 +47,8 @@ export interface IEditableObject {
 	get components(): ComponentsManager
 
 	get events(): EditableObjectEmitter
+
+	prefabMeta?: PrefabRuntimeMeta
 
 	/**
 	 * These methods update the underlying Phaser object's properties without syncing to the reactive state (Valtio).

@@ -1,9 +1,6 @@
 import type { ILogObj, Logger } from 'tslog'
 
 import { IPatchesConfig } from '@koreez/phaser3-ninepatch'
-import { mainApi } from '@main-api/main-api'
-import { until } from '@open-draft/until'
-import { getErrorLog } from '@utils/error/utils'
 import { match } from 'ts-pattern'
 
 import type {
@@ -17,6 +14,7 @@ import type {
 import type { EditContext } from '../editContext/EditContext'
 import type { EditableObject } from '../objects/EditableObject'
 import type { EditableObjectsFactory } from '../objects/EditableObjectsFactory'
+import type { PrefabDocumentService } from '../prefabs/PrefabDocumentService'
 import type { MainSceneAssetLoader } from './MainSceneAssetLoader'
 
 import {
@@ -26,15 +24,13 @@ import {
 	PrefabSpritesheetFrameAsset,
 	PrefabWebFontAsset,
 } from '../../../../../../types/prefabs/PrefabAsset'
-import { PrefabFile } from '../../../../../../types/prefabs/PrefabFile'
-import { EditableContainer } from '../objects/EditableContainer'
-import { ensureLocalIds } from '../objects/localId'
 
 export type MainSceneFactoryOptions = {
 	textures: Phaser.Textures.TextureManager
 	logger: Logger<ILogObj>
 	assetLoader: MainSceneAssetLoader
 	objectsFactory: EditableObjectsFactory
+	prefabDocument: PrefabDocumentService
 	getNewObjectName: (context: EditContext, objToName: EditableObject, prefix?: string) => string
 }
 
@@ -168,25 +164,13 @@ export class MainSceneFactory {
 	}
 
 	private async createFromPrefab(prefab: AssetTreePrefabData, context: EditContext): Promise<EditableObject | null> {
-		const { error, data } = await until(() => mainApi.readJson({ path: prefab.path }))
-		if (error) {
-			this.options.logger.error(`failed to load prefab file '${prefab.path}' (${getErrorLog(error)})`)
-			return null
-		}
-
-		const prefabFile = data as PrefabFile
-		if (!prefabFile.content) {
+		const instance = await this.options.prefabDocument.createPrefabInstanceRuntime(prefab)
+		if (!instance) {
 			this.options.logger.error(`${prefab.name} (${prefab.id}) is empty`)
 			return null
 		}
 
-		await this.options.assetLoader.loadPrefabAssets(prefabFile.content)
-
-		const containerJson = { ...prefabFile.content, prefab: { id: prefab.id, name: prefab.name } }
-		ensureLocalIds(containerJson)
-		const container = this.options.objectsFactory.fromJson(containerJson) as EditableContainer
-		container.setName(this.options.getNewObjectName(context, container))
-
-		return container
+		instance.setName(this.options.getNewObjectName(context, instance))
+		return instance
 	}
 }

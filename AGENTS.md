@@ -65,3 +65,5 @@
 - **Log channels**: For app logging, use the channel-based logger from `src/renderer/logs/logs.ts` (import `logger`) and pick the channel that best matches the purpose via `logger.getOrCreate(<channel>)`. Channels are defined in `src/renderer/logs/LogChannel.ts`. Avoid raw `console.*` for non-trivial logging; it’s easy to lose context and harder to filter.
 
 - **String-first logging**: Put the main information in a string so it survives into text logs reliably. If you need to log structured data, serialize it (e.g. JSON) into the message string (or include a short, string summary + a serialized payload). Don’t rely on logging raw objects as separate args for anything important.
+
+- **Signal, not noise**: Add info logs around crucial transitions (open/save, persistence, cache invalidate, RPC boundaries) so flows are traceable, but keep volume low. Prefer one log per milestone with compact counts/ids over per-item spam. If a loop would log per node/asset/object, gate it behind debug or aggregate counts first.

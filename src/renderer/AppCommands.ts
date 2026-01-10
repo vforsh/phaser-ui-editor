@@ -8,6 +8,7 @@ import {
 	EditableComponentJson,
 	EditableComponentType,
 } from '@components/canvas/phaser/scenes/main/objects/components/base/EditableComponent'
+import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
 import { EditableObjectType, type EditableObject } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 
 import type { ModalId, ModalListResult, ModalParamsById } from './modals/ModalIds'
@@ -16,6 +17,7 @@ import { CommandEmitter } from './components/canvas/phaser/robowhale/utils/event
 import { CameraParams } from './components/canvas/phaser/scenes/main/mainScene/MainSceneCamera'
 import { ScreenshotOptions } from './components/canvas/phaser/scenes/main/mainScene/MainSceneScreenshot'
 import { AssetTreeItemData } from './types/assets'
+import { CanvasDocumentJson } from './types/prefabs/PrefabDocument'
 
 export type CreateGraphicsAtData = {
 	shape: 'rectangle' | 'ellipse'
@@ -42,6 +44,7 @@ export type AppCommands = {
 	'rename-object': (data: { objectId: string; name: string }) => void
 	'save-prefab': () => void
 	'discard-unsaved-prefab': () => void
+	'get-prefab-document': () => { expanded: EditableContainerJson; collapsed: CanvasDocumentJson }
 
 	'select-object': (id: string) => void
 	'select-objects': (ids: string[]) => void

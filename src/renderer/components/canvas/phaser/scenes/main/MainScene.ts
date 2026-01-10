@@ -4,6 +4,7 @@ import { UrlParams } from '@url-params'
 import { ILogObj, Logger } from 'tslog'
 
 import { AppCommandsEmitter } from '../../../../../AppCommands'
+import { CanvasDocumentJson } from '../../../../../types/prefabs/PrefabDocument'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { Aligner, type AlignType } from './Aligner'
 import { CanvasClipboard } from './CanvasClipboard'
@@ -24,8 +25,9 @@ import { MainSceneScreenshot } from './mainScene/MainSceneScreenshot'
 import { MainSceneOps } from './mainScene/MainSceneSelectionOps'
 import { MainSceneDeps, MainSceneInitData } from './mainScene/mainSceneTypes'
 import { EditableComponentsFactory } from './objects/components/base/EditableComponentsFactory'
-import { EditableContainer, EditableContainerJson } from './objects/EditableContainer'
+import { EditableContainer } from './objects/EditableContainer'
 import { EditableObjectsFactory } from './objects/EditableObjectsFactory'
+import { PrefabDocumentService } from './prefabs/PrefabDocumentService'
 import { Rulers } from './Rulers'
 
 export class MainScene extends BaseScene {
@@ -53,6 +55,7 @@ export class MainScene extends BaseScene {
 	private clipboard!: CanvasClipboard
 	private aligner!: Aligner
 	private contextDimming?: ContextDimming
+	private prefabDocument!: PrefabDocumentService
 
 	public init(data: MainSceneInitData) {
 		super.init(data)
@@ -75,8 +78,8 @@ export class MainScene extends BaseScene {
 		this.history.stopTransformControlsUndo()
 	}
 
-	private rootToJson(): EditableContainerJson {
-		return this.root.toJson()
+	private rootToJson(): CanvasDocumentJson {
+		return this.prefabDocument.serializeRuntimeToDocument(this.root)
 	}
 
 	public async create() {
@@ -131,10 +134,18 @@ export class MainScene extends BaseScene {
 			ops: undefined as any, // to be filled
 			persistence: undefined as any, // to be filled
 			screenshot: undefined as any, // to be filled
+			prefabDocument: undefined as any, // to be filled
 		}
 
 		this.assetLoader = new MainSceneAssetLoader(this.deps)
 		this.deps.assetLoader = this.assetLoader
+
+		this.prefabDocument = new PrefabDocumentService({
+			logger: this.logger.getSubLogger({ name: ':prefab-doc' }),
+			objectsFactory: this.objectsFactory,
+			assetLoader: this.assetLoader,
+		})
+		this.deps.prefabDocument = this.prefabDocument
 
 		this.history = new MainSceneHistory(this.deps)
 		this.deps.history = this.history
@@ -420,6 +431,8 @@ export class MainScene extends BaseScene {
 		appCommands.on('get-object-path', (id) => this.ops.getObjectPath(id), this, false, signal)
 		appCommands.on('rename-object', (data) => this.ops.renameObject(data), this, false, signal)
 		appCommands.on('save-prefab', () => this.persistence.savePrefab(), this, false, signal)
+		appCommands.on('discard-unsaved-prefab', this.restart, this, false, signal)
+		appCommands.on('get-prefab-document', () => this.persistence.getPrefabDocument(), this, false, signal)
 
 		appCommands.on('take-canvas-screenshot', (options) => this.screenshot.take(options), this, false, signal)
 	}
