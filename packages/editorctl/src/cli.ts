@@ -27,10 +27,10 @@ const getClient = () => {
 	return createClient({ port: options.port })
 }
 
-registerCallCommand(program, getClient)
 registerDiscoverCommand(program)
 registerLogsListCommand(program)
 registerLogsFetchCommand(program)
+registerCallCommand(program, getClient)
 registerMethodsCommand(program, getClient)
 registerSchemaCommand(program, getClient)
 registerHelpCommand(program, getClient)
