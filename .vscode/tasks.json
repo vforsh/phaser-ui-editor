@@ -18,8 +18,15 @@
 			"command": "node",
 			"args": ["scripts/start-desktop-app-with-cleanup.mjs"],
 			"isBackground": true,
-			"group": "build",
-			"problemMatcher": ["$tsc-watch"]
+			"group": "build"
+		},
+		{
+			"label": "start: app:bg",
+			"detail": "Runs electron-vite in dev mode (Vite dev server + Electron main/preload) in the background.",
+			"type": "shell",
+			"command": "npm run start:bg",
+			"isBackground": true,
+			"group": "build"
 		},
 		{
 			"label": "tsc: watch",
