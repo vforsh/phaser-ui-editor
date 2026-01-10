@@ -1,9 +1,13 @@
 import { mainApi } from '@main-api/main-api'
 import { state } from '@state/State'
+import md5 from 'blueimp-md5'
 import path from 'path-browserify-esm'
 import { match } from 'ts-pattern'
 
 import { imageDataToUrl } from '../utils/image-data-to-url'
+
+/** Directory name for prefab thumbnails under .tekton */
+const PREFAB_THUMBNAILS_DIR = 'prefab-thumbnails'
 
 export type AssetTreeData = AssetTreeItemData[]
 
@@ -417,4 +421,72 @@ export function getExtension(item: { name: string; type: AssetTreeItemDataType }
 
 export function getNameWithoutExtension(item: { name: string; type: AssetTreeItemDataType }): string {
 	return item.name.replace(getExtension(item), '')
+}
+
+/**
+ * Returns the absolute path to the prefab thumbnails directory.
+ * Returns null if no project is open.
+ */
+export function getPrefabThumbnailsDir(): string | null {
+	if (!state.projectDir) {
+		return null
+	}
+
+	return path.join(state.projectDir, '.tekton', PREFAB_THUMBNAILS_DIR)
+}
+
+/**
+ * Returns the filename for a prefab's thumbnail based on its path hash.
+ * Uses MD5 hash of the prefab path to generate a unique filename.
+ */
+export function getPrefabThumbnailFilename(prefabPath: string): string {
+	return `${md5(prefabPath)}.png`
+}
+
+/**
+ * Returns the absolute path to a prefab's thumbnail image.
+ * Returns null if no project is open.
+ *
+ * @param prefab - The prefab asset data
+ */
+export function getPrefabThumbnailAbsPath(prefab: AssetTreePrefabData): string | null {
+	const thumbnailsDir = getPrefabThumbnailsDir()
+	if (!thumbnailsDir) {
+		return null
+	}
+
+	return path.join(thumbnailsDir, getPrefabThumbnailFilename(prefab.path))
+}
+
+/**
+ * Fetches a prefab's thumbnail and returns a blob URL.
+ * Returns null if no project is open or thumbnail doesn't exist.
+ *
+ * @param prefab - The prefab asset data
+ * @param signal - Optional AbortSignal for cancellation
+ */
+export async function fetchPrefabThumbnailUrl(prefab: AssetTreePrefabData, signal?: AbortSignal): Promise<string | null> {
+	const thumbnailPath = getPrefabThumbnailAbsPath(prefab)
+	if (!thumbnailPath) {
+		return null
+	}
+
+	try {
+		const exists = await mainApi.exists({ path: thumbnailPath })
+		if (signal?.aborted) {
+			return null
+		}
+		if (!exists) {
+			return null
+		}
+
+		const fileResult = await mainApi.readFile({ path: thumbnailPath })
+		if (signal?.aborted) {
+			return null
+		}
+
+		return imageDataToUrl(fileResult.bytes, 'image/png')
+	} catch {
+		return null
+	}
 }

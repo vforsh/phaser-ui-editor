@@ -4,19 +4,20 @@ import { Button, Divider, Group, Stack } from '@mantine/core'
 import { useForceUpdate } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
 import { state } from '@state/State'
-import { ClipboardPaste, Eye, Image, Info, Move, Scaling, Type, TypeOutline } from 'lucide-react'
+import { ClipboardPaste, Cuboid, Eye, Image, Info, Move, Scaling, Type, TypeOutline } from 'lucide-react'
 import { match } from 'ts-pattern'
 import { ILogObj, Logger } from 'tslog'
 import { useSnapshot } from 'valtio'
 
 import { useAppCommands } from '../../di/DiHooks'
-import { getAssetById, isGraphicAsset, type AssetTreeItemData } from '../../types/assets'
+import { getAssetById, isAssetOfType, isGraphicAsset, type AssetTreeItemData } from '../../types/assets'
 import { InspectorSection, InspectorSectionDef } from './InspectorSection'
 import { InspectorSectionsScrollArea } from './InspectorSectionsScrollArea'
 import { NoSelection } from './NoSelection'
 import { AssetSection } from './sections/assets/AssetSection'
 import { BitmapFontSection } from './sections/assets/BitmapFontSection'
 import { GraphicAssetPreviewSection } from './sections/assets/GraphicAssetPreviewSection'
+import { PrefabAssetPreviewSection } from './sections/assets/PrefabAssetPreviewSection'
 import { WebFontSection } from './sections/assets/WebFontSection'
 import { AddComponentButton } from './sections/components/AddComponentButton'
 import { ComponentSection } from './sections/components/ComponentSection'
@@ -280,6 +281,15 @@ function getAssetSections(item: AssetTreeItemData): InspectorSectionDef[] {
 			icon: Image,
 			data: item,
 			content: <GraphicAssetPreviewSection data={item} />,
+			defaultExpanded: true,
+		})
+	} else if (isAssetOfType(item, 'prefab')) {
+		sections.unshift({
+			type: 'asset-prefab-preview',
+			title: 'Preview',
+			icon: Cuboid,
+			data: item,
+			content: <PrefabAssetPreviewSection data={item} />,
 			defaultExpanded: true,
 		})
 	}

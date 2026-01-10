@@ -48,6 +48,7 @@ export const stateSchema = z.object({
 		selectionChangedAt: z.number().int().positive().optional(),
 		items: z.array(z.unknown()) as z.ZodType<AssetTreeItemData[]>,
 		searchHistory: z.array(z.string()).default([]),
+		prefabThumbnailUpdatedAt: z.record(z.number().int().positive()).default({}),
 		locateAsset: z.function().args(z.string()).optional(),
 		focusPanel: z.function().optional(),
 	}),
@@ -129,6 +130,7 @@ const initialStateParsed = merge(
 			selection: [],
 			items: [],
 			searchHistory: [],
+			prefabThumbnailUpdatedAt: {},
 		},
 		canvas: {
 			hasUnsavedChanges: false,

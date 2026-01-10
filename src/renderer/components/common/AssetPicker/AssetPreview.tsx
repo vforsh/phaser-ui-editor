@@ -1,9 +1,9 @@
 import { Box, Image } from '@mantine/core'
-import { File, FileJson, FileSpreadsheet, FileType, Image as ImageIcon } from 'lucide-react'
+import { Cuboid, File, FileJson, FileSpreadsheet, FileType, Image as ImageIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { match } from 'ts-pattern'
 
-import { AssetTreeItemData, fetchImageUrl, isGraphicAsset } from '../../../types/assets'
+import { AssetTreeItemData, fetchImageUrl, fetchPrefabThumbnailUrl, isAssetOfType, isGraphicAsset } from '../../../types/assets'
 
 interface AssetPreviewProps {
 	asset: AssetTreeItemData
@@ -12,16 +12,23 @@ interface AssetPreviewProps {
 export function AssetPreview({ asset }: AssetPreviewProps) {
 	const [imageUrl, setImageUrl] = useState<string | null>(null)
 
-	// TODO use react-query
 	useEffect(() => {
-		if (!isGraphicAsset(asset)) return
+		if (isGraphicAsset(asset)) {
+			const ac = new AbortController()
+			fetchImageUrl(asset, ac.signal).then((url) => setImageUrl(url))
+			return () => ac.abort()
+		}
 
-		const ac = new AbortController()
-		fetchImageUrl(asset, ac.signal).then((url) => setImageUrl(url))
-		return () => ac.abort()
+		if (isAssetOfType(asset, 'prefab')) {
+			const ac = new AbortController()
+			fetchPrefabThumbnailUrl(asset, ac.signal).then((url) => setImageUrl(url))
+			return () => ac.abort()
+		}
+
+		setImageUrl(null)
 	}, [asset])
 
-	if (isGraphicAsset(asset)) {
+	if (isGraphicAsset(asset) || isAssetOfType(asset, 'prefab')) {
 		if (imageUrl) {
 			return (
 				<Box
@@ -38,6 +45,10 @@ export function AssetPreview({ asset }: AssetPreviewProps) {
 			)
 		}
 
+		if (isAssetOfType(asset, 'prefab')) {
+			return <Cuboid size={16} />
+		}
+
 		return <ImageIcon size={16} />
 	}
 
@@ -46,7 +57,6 @@ export function AssetPreview({ asset }: AssetPreviewProps) {
 		.with({ type: 'file' }, () => <File size={16} />)
 		.with({ type: 'json' }, () => <FileJson size={16} />)
 		.with({ type: 'xml' }, () => <FileSpreadsheet size={16} />)
-		.with({ type: 'prefab' }, () => <File size={16} />)
 		.with({ type: 'web-font' }, () => <FileType size={16} />)
 		.with({ type: 'spritesheet-folder' }, () => <File size={16} />)
 		.exhaustive()

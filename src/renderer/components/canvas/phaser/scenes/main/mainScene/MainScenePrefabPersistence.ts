@@ -25,10 +25,15 @@ import {
 import { PrefabFile } from '../../../../../../types/prefabs/PrefabFile'
 import { EditableContainer, EditableContainerJson } from '../objects/EditableContainer'
 import { EditableObjectJson } from '../objects/EditableObject'
+import { MainScenePrefabThumbnailer } from './MainScenePrefabThumbnailer'
 import { MainSceneDeps } from './mainSceneTypes'
 
 export class MainScenePrefabPersistence {
-	constructor(private deps: MainSceneDeps) {}
+	private readonly thumbnailer: MainScenePrefabThumbnailer
+
+	constructor(private deps: MainSceneDeps) {
+		this.thumbnailer = new MainScenePrefabThumbnailer(deps)
+	}
 
 	public async initRoot(prefabFile: PrefabFile) {
 		let root: EditableContainer
@@ -54,7 +59,7 @@ export class MainScenePrefabPersistence {
 
 	public async savePrefab(): Promise<Result<void, string>> {
 		if (!state.canvas.hasUnsavedChanges) {
-			this.deps.logger.info(`no changes in '${this.deps.sceneInitData.prefabAsset.name}', skipping save`)
+			this.deps.logger.debug(`no changes in '${this.deps.sceneInitData.prefabAsset.name}', skipping save`)
 			return ok(undefined)
 		}
 
@@ -81,6 +86,9 @@ export class MainScenePrefabPersistence {
 		this.deps.prefabDocument.invalidatePrefab(this.deps.sceneInitData.prefabAsset.id)
 
 		this.deps.history.setBaseline() // sync baseline revision after successful save
+
+		// Fire-and-forget thumbnail capture after successful save (non-blocking)
+		void this.thumbnailer.captureAndWriteCurrentPrefabThumbnail()
 
 		return ok(undefined)
 	}

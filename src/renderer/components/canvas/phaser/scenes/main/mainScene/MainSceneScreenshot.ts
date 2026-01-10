@@ -1,5 +1,6 @@
 import { mainApi } from '@main-api/main-api'
 import { state } from '@state/State'
+import path from 'path-browserify-esm'
 
 import { MainSceneDeps } from './mainSceneTypes'
 import { formatScreenshotTimestamp, getPrefabBaseName, sanitizeFileNamePart } from './mainSceneUtils'
@@ -21,13 +22,17 @@ export class MainSceneScreenshot {
 	 * @returns The absolute path to the saved screenshot file
 	 */
 	public async take(options?: ScreenshotOptions): Promise<string> {
+		if (!state.projectDir) {
+			throw new Error('Cannot take screenshot: no project open')
+		}
+
 		const prefabName = this.getPrefabNameForScreenshot()
 		const timestamp = formatScreenshotTimestamp(new Date())
 		const format = options?.format ?? 'png'
 		const fileBase = sanitizeFileNamePart(`${timestamp}--${prefabName}`)
 		const fileName = `${fileBase}.${format}`
 
-		const targetDir = '/Users/vlad/dev/phaser-ui-editor/screenshots'
+		const targetDir = path.join(state.projectDir, 'screenshots')
 
 		const capture = async () => {
 			const blob = await this.getRendererSnapshot(format)

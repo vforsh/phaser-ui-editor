@@ -37,6 +37,8 @@ import {
 	getAssetById,
 	getAssetChildren,
 	getParentAsset,
+	getPrefabThumbnailFilename,
+	getPrefabThumbnailsDir,
 	isAssetOfType,
 	removeAssetById,
 	type AssetTreeItemData,
@@ -483,6 +485,27 @@ export default function AssetsPanel({ logger }: AssetsPanelProps) {
 			logger.error(`error renaming '${item.name}' to '${newName}' (${getErrorLog(error)})`, error)
 			// TODO show error toast
 			return
+		}
+
+		// Move prefab thumbnail if renaming a prefab (path-hash changes)
+		if (item.type === 'prefab') {
+			const thumbnailsDir = getPrefabThumbnailsDir()
+			if (thumbnailsDir) {
+				const oldThumbnailPath = path.join(thumbnailsDir, getPrefabThumbnailFilename(oldPath))
+				const newThumbnailPath = path.join(thumbnailsDir, getPrefabThumbnailFilename(newPath))
+
+				const { data: thumbnailExists } = await until(() => mainApi.exists({ path: oldThumbnailPath }))
+				if (thumbnailExists) {
+					const { error: renameError } = await until(() =>
+						mainApi.rename({ oldPath: oldThumbnailPath, newPath: newThumbnailPath }),
+					)
+					if (renameError) {
+						logger.warn(`failed to move prefab thumbnail (${getErrorLog(renameError)})`)
+					} else {
+						logger.debug(`moved prefab thumbnail from '${oldThumbnailPath}' to '${newThumbnailPath}'`)
+					}
+				}
+			}
 		}
 
 		// Update state

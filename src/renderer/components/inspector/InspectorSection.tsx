@@ -18,10 +18,12 @@ import { AssetTreeBitmapFontData, AssetTreeWebFontData } from '../../types/asset
 import classes from './InspectorSection.module.css'
 import { AssetSectionData } from './sections/assets/AssetSection'
 import { GraphicAssetPreviewSectionData } from './sections/assets/GraphicAssetPreviewSection'
+import { PrefabAssetPreviewSectionData } from './sections/assets/PrefabAssetPreviewSection'
 
 type AssetSectionDef =
 	| { type: 'asset-info'; data: AssetSectionData }
 	| { type: 'asset-graphic-preview'; data: GraphicAssetPreviewSectionData }
+	| { type: 'asset-prefab-preview'; data: PrefabAssetPreviewSectionData }
 	| { type: 'asset-bitmap-font'; data: AssetTreeBitmapFontData }
 	| { type: 'asset-web-font'; data: AssetTreeWebFontData }
 
