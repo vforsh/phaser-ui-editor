@@ -80,6 +80,32 @@ export class EditContext extends TypedEventEmitter<Events> {
 	private destroyController = new AbortController()
 	private debugGraphics: Phaser.GameObjects.Graphics | null = null
 	public objectsUnderSelectionRect: EditableObject[] = []
+	private readonly objectCorners: Phaser.Math.Vector2[] = [
+		new Phaser.Math.Vector2(),
+		new Phaser.Math.Vector2(),
+		new Phaser.Math.Vector2(),
+		new Phaser.Math.Vector2(),
+	]
+	private readonly rectCorners: Phaser.Math.Vector2[] = [
+		new Phaser.Math.Vector2(),
+		new Phaser.Math.Vector2(),
+		new Phaser.Math.Vector2(),
+		new Phaser.Math.Vector2(),
+	]
+	private readonly objectAabb = new Phaser.Geom.Rectangle()
+	private readonly polygonLines: Phaser.Geom.Line[] = [
+		new Phaser.Geom.Line(),
+		new Phaser.Geom.Line(),
+		new Phaser.Geom.Line(),
+		new Phaser.Geom.Line(),
+	]
+	private readonly rectLines: Phaser.Geom.Line[] = [
+		new Phaser.Geom.Line(),
+		new Phaser.Geom.Line(),
+		new Phaser.Geom.Line(),
+		new Phaser.Geom.Line(),
+	]
+	private readonly polygonScratch = new Phaser.Geom.Polygon()
 
 	/**
 	 * Whether the edit context is active.
@@ -215,38 +241,18 @@ export class EditContext extends TypedEventEmitter<Events> {
 	}
 
 	private processSelectionRectHover(): void {
-		// TODO there are way too much allocations here, need to find a better solution
-		this.objectsUnderSelectionRect = this.selectables.filter((selectable) => {
-			const globalOrigin = selectable.getWorldPosition()
-			const left = globalOrigin.x - selectable.displayWidth * selectable.originX
-			const right = globalOrigin.x + selectable.displayWidth * (1 - selectable.originX)
-			const top = globalOrigin.y - selectable.displayHeight * selectable.originY
-			const bottom = globalOrigin.y + selectable.displayHeight * (1 - selectable.originY)
+		this.objectsUnderSelectionRect.length = 0
 
-			const topLeft = new Phaser.Math.Vector2(left, top)
-			const topRight = new Phaser.Math.Vector2(right, top)
-			const bottomLeft = new Phaser.Math.Vector2(left, bottom)
-			const bottomRight = new Phaser.Math.Vector2(right, bottom)
-			const points = [topLeft, topRight, bottomRight, bottomLeft]
+		for (const selectable of this.selectables) {
+			const corners = this.getObjectCorners(selectable)
+			if (!Phaser.Geom.Rectangle.Overlaps(this.objectAabb, this.selectionRect.bounds)) {
+				continue
+			}
 
-			// TODO check if aabb intersects at first
-			// if not, return false
-			// if yes, continue with polygon intersection check
-
-			// account for rotation
-			const angleRad = selectable.rotation
-			points.forEach((point) => {
-				const dx = point.x - globalOrigin.x
-				const dy = point.y - globalOrigin.y
-				point.x = globalOrigin.x + (dx * Math.cos(angleRad) - dy * Math.sin(angleRad))
-				point.y = globalOrigin.y + (dx * Math.sin(angleRad) + dy * Math.cos(angleRad))
-			})
-
-			// create a polygon from the points
-			const polygon = new Phaser.Geom.Polygon(points)
-
-			return this.doesPolygonIntersectsRect(polygon, this.selectionRect.bounds)
-		})
+			if (this.doesPolygonIntersectsRect(corners, this.selectionRect.bounds)) {
+				this.objectsUnderSelectionRect.push(selectable)
+			}
+		}
 
 		this.hoverRects.forEach((rect) => rect.kill())
 
@@ -258,7 +264,10 @@ export class EditContext extends TypedEventEmitter<Events> {
 		})
 	}
 
-	private doesPolygonIntersectsRect(polygon: Phaser.Geom.Polygon, rect: Phaser.Geom.Rectangle): boolean {
+	private doesPolygonIntersectsRect(polygonPoints: Phaser.Math.Vector2[], rect: Phaser.Geom.Rectangle): boolean {
+		const polygon = this.polygonScratch
+		polygon.setTo(polygonPoints as any)
+
 		// First, check if any point of the polygon is inside the rectangle
 		for (const point of polygon.points) {
 			if (rect.contains(point.x, point.y)) {
@@ -267,14 +276,12 @@ export class EditContext extends TypedEventEmitter<Events> {
 		}
 
 		// Then, check if any point of the rectangle is inside the polygon
-		const rectPoints = [
-			new Phaser.Math.Vector2(rect.x, rect.y),
-			new Phaser.Math.Vector2(rect.x + rect.width, rect.y),
-			new Phaser.Math.Vector2(rect.x + rect.width, rect.y + rect.height),
-			new Phaser.Math.Vector2(rect.x, rect.y + rect.height),
-		]
+		this.rectCorners[0].set(rect.x, rect.y)
+		this.rectCorners[1].set(rect.x + rect.width, rect.y)
+		this.rectCorners[2].set(rect.x + rect.width, rect.y + rect.height)
+		this.rectCorners[3].set(rect.x, rect.y + rect.height)
 
-		for (const point of rectPoints) {
+		for (const point of this.rectCorners) {
 			if (polygon.contains(point.x, point.y)) {
 				return true
 			}
@@ -282,15 +289,13 @@ export class EditContext extends TypedEventEmitter<Events> {
 
 		// Finally, check if any line segment of the polygon intersects with any line segment of the rectangle
 		const polygonLines = this.getPolygonLines(polygon)
-		const rectLines = [
-			new Phaser.Geom.Line(rect.x, rect.y, rect.x + rect.width, rect.y),
-			new Phaser.Geom.Line(rect.x + rect.width, rect.y, rect.x + rect.width, rect.y + rect.height),
-			new Phaser.Geom.Line(rect.x + rect.width, rect.y + rect.height, rect.x, rect.y + rect.height),
-			new Phaser.Geom.Line(rect.x, rect.y + rect.height, rect.x, rect.y),
-		]
+		this.rectLines[0].setTo(rect.x, rect.y, rect.x + rect.width, rect.y)
+		this.rectLines[1].setTo(rect.x + rect.width, rect.y, rect.x + rect.width, rect.y + rect.height)
+		this.rectLines[2].setTo(rect.x + rect.width, rect.y + rect.height, rect.x, rect.y + rect.height)
+		this.rectLines[3].setTo(rect.x, rect.y + rect.height, rect.x, rect.y)
 
 		for (const polygonLine of polygonLines) {
-			for (const rectLine of rectLines) {
+			for (const rectLine of this.rectLines) {
 				if (Phaser.Geom.Intersects.LineToLine(polygonLine, rectLine)) {
 					return true
 				}
@@ -300,17 +305,58 @@ export class EditContext extends TypedEventEmitter<Events> {
 		return false
 	}
 
+	private getObjectCorners(selectable: EditableObject): Phaser.Math.Vector2[] {
+		const corners = this.objectCorners
+		const globalOrigin = selectable.getWorldPosition()
+		const left = globalOrigin.x - selectable.displayWidth * selectable.originX
+		const right = globalOrigin.x + selectable.displayWidth * (1 - selectable.originX)
+		const top = globalOrigin.y - selectable.displayHeight * selectable.originY
+		const bottom = globalOrigin.y + selectable.displayHeight * (1 - selectable.originY)
+
+		corners[0].set(left, top)
+		corners[1].set(right, top)
+		corners[2].set(right, bottom)
+		corners[3].set(left, bottom)
+
+		const angleRad = selectable.rotation
+		if (angleRad !== 0) {
+			const cos = Math.cos(angleRad)
+			const sin = Math.sin(angleRad)
+			for (const corner of corners) {
+				const dx = corner.x - globalOrigin.x
+				const dy = corner.y - globalOrigin.y
+				corner.set(globalOrigin.x + dx * cos - dy * sin, globalOrigin.y + dx * sin + dy * cos)
+			}
+		}
+
+		let minX = corners[0].x
+		let maxX = corners[0].x
+		let minY = corners[0].y
+		let maxY = corners[0].y
+
+		for (let i = 1; i < corners.length; i++) {
+			const corner = corners[i]
+			minX = Math.min(minX, corner.x)
+			maxX = Math.max(maxX, corner.x)
+			minY = Math.min(minY, corner.y)
+			maxY = Math.max(maxY, corner.y)
+		}
+
+		this.objectAabb.setTo(minX, minY, maxX - minX, maxY - minY)
+
+		return corners
+	}
+
 	private getPolygonLines(polygon: Phaser.Geom.Polygon): Phaser.Geom.Line[] {
-		const lines: Phaser.Geom.Line[] = []
 		const points = polygon.points
 
 		for (let i = 0; i < points.length; i++) {
 			const point1 = points[i]
 			const point2 = points[(i + 1) % points.length]
-			lines.push(new Phaser.Geom.Line(point1.x, point1.y, point2.x, point2.y))
+			this.polygonLines[i].setTo(point1.x, point1.y, point2.x, point2.y)
 		}
 
-		return lines
+		return this.polygonLines
 	}
 
 	private addHoverRects(amount = 3) {
