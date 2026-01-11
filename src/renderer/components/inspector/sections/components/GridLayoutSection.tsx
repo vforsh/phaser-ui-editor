@@ -1,4 +1,5 @@
-import { GridLayoutComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/GridLayoutComponent'
+import type { GridLayoutComponentJson } from '@tekton/runtime'
+
 import { Group, Space, Stack, Switch } from '@mantine/core'
 import { useSnapshot } from 'valtio'
 

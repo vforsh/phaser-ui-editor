@@ -1,0 +1,31 @@
+{
+	"name": "@tekton/runtime",
+	"version": "0.0.0",
+	"private": true,
+	"files": [
+		"dist"
+	],
+	"type": "module",
+	"sideEffects": false,
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		},
+		"./phaser/layout": {
+			"types": "./dist/phaser/layout/index.d.ts",
+			"default": "./dist/phaser/layout/index.js"
+		}
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"typecheck:watch": "tsc --noEmit --watch",
+		"build": "tsc"
+	},
+	"dependencies": {
+		"@koreez/phaser3-ninepatch": "^2.0.2",
+		"phaser": "^3.87.0"
+	}
+}

@@ -1,4 +1,5 @@
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import type { EditableObjectJson } from '@tekton/runtime'
+
 import { ActionIcon, Stack, TextInput, useMantineTheme } from '@mantine/core'
 import { copyToClipboard } from '@utils/copy-to-clipboard'
 import { Copy } from 'lucide-react'

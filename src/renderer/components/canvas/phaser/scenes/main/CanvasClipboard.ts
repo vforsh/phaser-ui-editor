@@ -1,9 +1,11 @@
+import type { EditableObjectJson } from '@tekton/runtime'
+
 import { state } from '@state/State'
 import { ILogObj, Logger } from 'tslog'
 
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { TypedEventEmitter } from '../../robowhale/phaser3/TypedEventEmitter'
-import { EditableObject, EditableObjectJson } from './objects/EditableObject'
+import { EditableObject } from './objects/EditableObject'
 import { EditableObjectsFactory } from './objects/EditableObjectsFactory'
 import { assignNewLocalIds } from './objects/localId'
 

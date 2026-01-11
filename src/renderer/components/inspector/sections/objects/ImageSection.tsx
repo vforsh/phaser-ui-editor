@@ -1,4 +1,5 @@
-import { EditableImageJson } from '@components/canvas/phaser/scenes/main/objects/EditableImage'
+import type { EditableImageJson } from '@tekton/runtime'
+
 import { Button, Stack, Tooltip } from '@mantine/core'
 import { State, state, useSnapshot } from '@state/State'
 import { Info } from 'lucide-react'

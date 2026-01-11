@@ -1,3 +1,5 @@
+import type { EditableComponentJson } from '@tekton/runtime'
+
 import { err } from 'neverthrow'
 
 import type { EditableComponentsFactory } from '../objects/components/base/EditableComponentsFactory'
@@ -5,7 +7,7 @@ import type { EditableObjectsFactory } from '../objects/EditableObjectsFactory'
 import type { MainSceneHistory } from './MainSceneHistory'
 
 import { AddComponentResult, MoveComponentResult, RemoveComponentResult } from '../objects/components/base/ComponentsManager'
-import { EditableComponentJson, EditableComponentType } from '../objects/components/base/EditableComponent'
+import { EditableComponentType } from '../objects/components/base/EditableComponent'
 
 /**
  * Component operation payload targeting a single editable object.

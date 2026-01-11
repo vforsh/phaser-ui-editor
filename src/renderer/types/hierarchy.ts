@@ -1,8 +1,10 @@
-import { EditableBitmapTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableBitmapText'
-import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
-import { EditableImageJson } from '@components/canvas/phaser/scenes/main/objects/EditableImage'
-import { EditableNineSliceJson } from '@components/canvas/phaser/scenes/main/objects/EditableNineSlice'
-import { EditableTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableText'
+import type {
+	EditableBitmapTextJson,
+	EditableContainerJson,
+	EditableImageJson,
+	EditableNineSliceJson,
+	EditableTextJson,
+} from '@tekton/runtime'
 
 type HierarchyImage = EditableImageJson & {
 	path: string

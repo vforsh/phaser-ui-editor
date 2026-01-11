@@ -1,4 +1,5 @@
-import { EditableNineSliceJson } from '@components/canvas/phaser/scenes/main/objects/EditableNineSlice'
+import type { EditableNineSliceJson } from '@tekton/runtime'
+
 import { isSizeLockedForObjectJson } from '@components/canvas/phaser/scenes/main/objects/editing/editRestrictions'
 import { Box, Group, Stack, TextInput, Tooltip } from '@mantine/core'
 import { useSnapshot } from '@state/State'

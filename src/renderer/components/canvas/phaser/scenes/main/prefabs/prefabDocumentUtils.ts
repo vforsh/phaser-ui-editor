@@ -1,14 +1,9 @@
-import type {
-	CanvasDocumentNodeJson,
-	NodeAddress,
-	PrefabInstanceJson,
-	PrefabOverrides,
-} from '../../../../../../types/prefabs/PrefabDocument'
+import type { CanvasDocumentNodeJson, EditableObjectJson, NodeAddress, PrefabInstanceJson, PrefabOverrides } from '@tekton/runtime'
+
 import type { EditableContainer } from '../objects/EditableContainer'
 import type { EditableObject } from '../objects/EditableObject'
-import type { EditableObjectJson } from '../objects/EditableObject'
 
-import { createEmptyPrefabOverrides, isPrefabInstanceJson } from '../../../../../../types/prefabs/PrefabDocument'
+import { createEmptyPrefabOverrides, isPrefabInstanceJson } from '../../../../../../prefabs/prefabContractUtils'
 import { createLocalId } from '../objects/localId'
 
 export type PrefabInstanceMeta = {

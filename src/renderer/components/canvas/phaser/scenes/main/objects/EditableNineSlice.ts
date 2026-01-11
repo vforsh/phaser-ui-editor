@@ -1,12 +1,12 @@
+import type { EditableNineSliceJson, PrefabImageAsset, PrefabSpritesheetFrameAsset } from '@tekton/runtime'
+
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { IPatchesConfig, NinePatch } from '@koreez/phaser3-ninepatch'
 import { proxy } from 'valtio'
 
-import { PrefabImageAsset, PrefabSpritesheetFrameAsset } from '../../../../../../types/prefabs/PrefabAsset'
 import { PrefabRuntimeMeta } from '../prefabs/prefabRuntimeMeta'
 import { ComponentsManager } from './components/base/ComponentsManager'
-import { EditableComponentJson } from './components/base/EditableComponent'
-import { CreateEditableObjectJson, EDITABLE_SYMBOL, EditableObjectEvents, IEditableObject } from './EditableObject'
+import { EDITABLE_SYMBOL, EditableObjectEvents, IEditableObject } from './EditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
 
 type Events = {
@@ -267,24 +267,3 @@ export class EditableNineSlice extends NinePatch implements IEditableObject {
 		return this.__events
 	}
 }
-
-export type EditableNineSliceJson = CreateEditableObjectJson<{
-	type: 'NineSlice'
-	id: string
-	asset: PrefabImageAsset | PrefabSpritesheetFrameAsset
-	depth: number
-	blendMode: string | Phaser.BlendModes | number
-	scale: { x: number; y: number }
-	originX: number
-	originY: number
-	locked: boolean
-	tint: number
-	tintFill: boolean
-	width: number
-	height: number
-	displayWidth: number
-	displayHeight: number
-	ninePatchConfig: IPatchesConfig
-	angle: number
-	components: EditableComponentJson[]
-}>

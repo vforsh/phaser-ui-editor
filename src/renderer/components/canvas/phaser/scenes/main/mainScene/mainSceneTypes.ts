@@ -1,6 +1,9 @@
+import type { CanvasDocumentJson, LayoutSystem, PrefabFile } from '@tekton/runtime'
+
 import { Logger, ILogObj } from 'tslog'
 
 import type { Aligner } from '../Aligner'
+import type { EditableObject } from '../objects/EditableObject'
 import type { PrefabDocumentService } from '../prefabs/PrefabDocumentService'
 import type { MainSceneAssetLoader } from './MainSceneAssetLoader'
 import type { MainSceneCamera } from './MainSceneCamera'
@@ -11,13 +14,10 @@ import type { MainSceneOps } from './MainSceneSelectionOps'
 
 import { Project } from '../../../../../../project/Project'
 import { AssetTreePrefabData } from '../../../../../../types/assets'
-import { CanvasDocumentJson } from '../../../../../../types/prefabs/PrefabDocument'
-import { PrefabFile } from '../../../../../../types/prefabs/PrefabFile'
 import { CanvasClipboard } from '../CanvasClipboard'
 import { EditContextsManager } from '../editContext/EditContextsManager'
 import { EditContextFrame } from '../EditContextFrame'
 import { Grid } from '../Grid'
-import { LayoutSystem } from '../layout/LayoutSystem'
 import { EditableComponentsFactory } from '../objects/components/base/EditableComponentsFactory'
 import { EditableContainer } from '../objects/EditableContainer'
 import { EditableObjectsFactory } from '../objects/EditableObjectsFactory'
@@ -70,7 +70,7 @@ export interface MainSceneDeps {
 	componentsFactory: EditableComponentsFactory
 
 	/** Layout/constraints engine (e.g. grid layouts, alignment rules). */
-	layoutSystem: LayoutSystem
+	layoutSystem: LayoutSystem<EditableContainer, EditableObject>
 
 	/** Clipboard integration for copy/cut/paste on canvas selection. */
 	clipboard: CanvasClipboard

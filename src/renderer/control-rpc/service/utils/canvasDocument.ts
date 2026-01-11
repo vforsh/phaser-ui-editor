@@ -1,5 +1,4 @@
-import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import type { EditableContainerJson, EditableObjectJson } from '@tekton/runtime'
 
 import { state, subscribe } from '../../../state/State'
 

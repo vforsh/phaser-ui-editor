@@ -1,14 +1,12 @@
+import type { CanvasDocumentJson, EditableComponentJson, EditableContainerJson } from '@tekton/runtime'
+
 import { AlignType } from '@components/canvas/phaser/scenes/main/Aligner'
 import {
 	AddComponentResult,
 	MoveComponentResult,
 	RemoveComponentResult,
 } from '@components/canvas/phaser/scenes/main/objects/components/base/ComponentsManager'
-import {
-	EditableComponentJson,
-	EditableComponentType,
-} from '@components/canvas/phaser/scenes/main/objects/components/base/EditableComponent'
-import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
+import { EditableComponentType } from '@components/canvas/phaser/scenes/main/objects/components/base/EditableComponent'
 import { EditableObjectType, type EditableObject } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 
 import type { ModalId, ModalListResult, ModalParamsById } from './modals/ModalIds'
@@ -17,7 +15,6 @@ import { CommandEmitter } from './components/canvas/phaser/robowhale/utils/event
 import { CameraParams } from './components/canvas/phaser/scenes/main/mainScene/MainSceneCamera'
 import { ScreenshotOptions } from './components/canvas/phaser/scenes/main/mainScene/MainSceneScreenshot'
 import { AssetTreeItemData } from './types/assets'
-import { CanvasDocumentJson } from './types/prefabs/PrefabDocument'
 
 export type CreateGraphicsAtData = {
 	shape: 'rectangle' | 'ellipse'

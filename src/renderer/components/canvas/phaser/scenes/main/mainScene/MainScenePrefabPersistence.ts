@@ -1,9 +1,19 @@
+import type {
+	CanvasDocumentJson,
+	CanvasDocumentNodeJson,
+	EditableContainerJson,
+	EditableObjectJson,
+	PrefabFile,
+	PrefabObjectPatch,
+} from '@tekton/runtime'
+
 import { mainApi } from '@main-api/main-api'
 import { until } from '@open-draft/until'
 import { state } from '@state/State'
 import { getErrorLog } from '@utils/error/utils'
 import { err, ok, Result } from 'neverthrow'
 
+import { isPrefabInstanceJson } from '../../../../../../prefabs/prefabContractUtils'
 import {
 	AssetTreeBitmapFontData,
 	AssetTreeImageData,
@@ -16,15 +26,7 @@ import {
 	getNameWithoutExtension,
 	isAssetOfType,
 } from '../../../../../../types/assets'
-import {
-	CanvasDocumentJson,
-	CanvasDocumentNodeJson,
-	PrefabObjectPatch,
-	isPrefabInstanceJson,
-} from '../../../../../../types/prefabs/PrefabDocument'
-import { PrefabFile } from '../../../../../../types/prefabs/PrefabFile'
-import { EditableContainer, EditableContainerJson } from '../objects/EditableContainer'
-import { EditableObjectJson } from '../objects/EditableObject'
+import { EditableContainer } from '../objects/EditableContainer'
 import { MainScenePrefabThumbnailer } from './MainScenePrefabThumbnailer'
 import { MainSceneDeps } from './mainSceneTypes'
 

@@ -1,8 +1,9 @@
+import type { EditableComponentJson } from '@tekton/runtime'
+
 import { err, ok, Result } from 'neverthrow'
 import { proxy } from 'valtio/vanilla'
 
 import { EditableObject } from '../../EditableObject'
-import { EditableComponentJson } from './EditableComponent'
 import { PreAddCheck, PreAddChecksFactory } from './PreAddChecksFactory'
 
 export abstract class BaseEditableComponent<TJson extends EditableComponentJson = EditableComponentJson> {

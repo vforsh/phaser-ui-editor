@@ -31,6 +31,7 @@ import { ILogObj, Logger } from 'tslog'
 import { Snapshot } from 'valtio'
 
 import { useAppCommands } from '../../di/DiHooks'
+import { createEmptyPrefabFile } from '../../prefabs/prefabContractUtils'
 import {
 	AssetTreeFolderData,
 	AssetTreePrefabData,
@@ -43,7 +44,6 @@ import {
 	removeAssetById,
 	type AssetTreeItemData,
 } from '../../types/assets'
-import { createEmptyPrefabFile } from '../../types/prefabs/PrefabFile'
 import { PanelTitle } from './../PanelTitle'
 import { getAssetItemId } from './assetItemId'
 import styles from './AssetsPanel.module.css'

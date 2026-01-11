@@ -1,3 +1,14 @@
+import type {
+	CanvasDocumentContainerJson,
+	CanvasDocumentJson,
+	CanvasDocumentNodeJson,
+	EditableContainerJson,
+	EditableObjectJson,
+	NodeAddress,
+	PrefabFile,
+	PrefabInstanceJson,
+	PrefabOverrides,
+} from '@tekton/runtime'
 import type { ILogObj, Logger } from 'tslog'
 
 import { mainApi } from '@main-api/main-api'
@@ -5,23 +16,12 @@ import { until } from '@open-draft/until'
 import { getErrorLog } from '@utils/error/utils'
 
 import type { AssetTreePrefabData } from '../../../../../../types/assets'
-import type { PrefabFile } from '../../../../../../types/prefabs/PrefabFile'
 import type { EditableContainer } from '../objects/EditableContainer'
-import type { EditableContainerJson } from '../objects/EditableContainer'
 import type { EditableObject } from '../objects/EditableObject'
-import type { EditableObjectJson } from '../objects/EditableObject'
 
+import { isPrefabInstanceJson } from '../../../../../../prefabs/prefabContractUtils'
 import { state } from '../../../../../../state/State'
 import { getAssetById } from '../../../../../../types/assets'
-import {
-	CanvasDocumentJson,
-	CanvasDocumentNodeJson,
-	CanvasDocumentContainerJson,
-	NodeAddress,
-	PrefabInstanceJson,
-	PrefabOverrides,
-	isPrefabInstanceJson,
-} from '../../../../../../types/prefabs/PrefabDocument'
 import { MainSceneAssetLoader } from '../mainScene/MainSceneAssetLoader'
 import { EditableObjectsFactory } from '../objects/EditableObjectsFactory'
 import { createLocalId } from '../objects/localId'

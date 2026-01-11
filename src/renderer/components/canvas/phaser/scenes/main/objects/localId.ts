@@ -1,6 +1,6 @@
-import { customAlphabet } from 'nanoid'
+import type { EditableObjectJson } from '@tekton/runtime'
 
-import type { EditableObjectJson } from './EditableObject'
+import { customAlphabet } from 'nanoid'
 
 const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 12)
 

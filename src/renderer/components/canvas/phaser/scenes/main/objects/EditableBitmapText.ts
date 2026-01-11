@@ -1,11 +1,11 @@
+import type { EditableBitmapTextJson, PrefabBitmapFontAsset } from '@tekton/runtime'
+
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { proxy } from 'valtio'
 
-import { PrefabBitmapFontAsset } from '../../../../../../types/prefabs/PrefabAsset'
 import { PrefabRuntimeMeta } from '../prefabs/prefabRuntimeMeta'
 import { ComponentsManager } from './components/base/ComponentsManager'
-import { EditableComponentJson } from './components/base/EditableComponent'
-import { CreateEditableObjectJson, EDITABLE_SYMBOL, EditableObjectEvents, IEditableObject } from './EditableObject'
+import { EDITABLE_SYMBOL, EditableObjectEvents, IEditableObject } from './EditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
 
 type Events = {
@@ -334,30 +334,3 @@ export class EditableBitmapText extends Phaser.GameObjects.BitmapText implements
 		return this.__events
 	}
 }
-
-export type EditableBitmapTextJson = CreateEditableObjectJson<{
-	type: 'BitmapText'
-	id: string
-	depth: number
-	blendMode: string | Phaser.BlendModes | number
-	scale: { x: number; y: number }
-	originX: number
-	originY: number
-	locked: boolean
-	text: string
-	font: string
-	fontSize: number
-	align: number
-	maxWidth: number
-	letterSpacing: number
-	lineSpacing: number
-	tint: number
-	tintFill: boolean
-	angle: number
-	width: number
-	height: number
-	displayWidth: number
-	displayHeight: number
-	components: EditableComponentJson[]
-	asset: PrefabBitmapFontAsset
-}>

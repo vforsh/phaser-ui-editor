@@ -1,4 +1,5 @@
-import { GraphicsStrokeJson } from '@components/canvas/phaser/scenes/main/objects/EditableGraphics'
+import type { GraphicsStrokeJson } from '@tekton/runtime'
+
 import { ColorInput, Stack } from '@mantine/core'
 import { useSnapshot } from 'valtio'
 

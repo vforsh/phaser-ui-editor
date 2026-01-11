@@ -1,0 +1,10 @@
+export type PhaserAlignKey =
+	| 'top-left'
+	| 'top-center'
+	| 'top-right'
+	| 'left-center'
+	| 'center'
+	| 'right-center'
+	| 'bottom-left'
+	| 'bottom-center'
+	| 'bottom-right'

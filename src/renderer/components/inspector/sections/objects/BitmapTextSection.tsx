@@ -1,4 +1,5 @@
-import { EditableBitmapTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableBitmapText'
+import type { EditableBitmapTextJson } from '@tekton/runtime'
+
 import { Group, Stack } from '@mantine/core'
 import { state, State, useSnapshot } from '@state/State'
 import { uniq } from 'es-toolkit'

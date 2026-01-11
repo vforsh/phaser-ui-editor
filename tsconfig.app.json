@@ -33,7 +33,9 @@
 			"@hooks/*": ["./src/renderer/hooks/*"],
 			"@tekton/control-rpc-contract": ["./packages/control-rpc-contract/src/index.ts"],
 			"@tekton/control-rpc-contract/commands/*": ["./packages/control-rpc-contract/src/commands/*"],
-			"@tekton/json-schema-utils": ["./packages/json-schema-utils/src/index.ts"]
+			"@tekton/json-schema-utils": ["./packages/json-schema-utils/src/index.ts"],
+			"@tekton/runtime": ["./packages/runtime/src/index.ts"],
+			"@tekton/runtime/phaser/layout": ["./packages/runtime/src/phaser/layout/index.ts"]
 		}
 	},
 	"include": ["src/renderer", "types", "src/shared/main-api"],

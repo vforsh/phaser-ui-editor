@@ -1,4 +1,5 @@
-import type { NodeAddress } from '../../../../../../types/prefabs/PrefabDocument'
+import type { NodeAddress } from '@tekton/runtime'
+
 import type { EditableObject } from '../objects/EditableObject'
 
 import { isPrefabInstanceRuntimeRoot } from './prefabDocumentUtils'

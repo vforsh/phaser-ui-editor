@@ -1,4 +1,5 @@
-import { EditableTextStyleJson } from '@components/canvas/phaser/scenes/main/objects/EditableText'
+import type { EditableTextStyleJson } from '@tekton/runtime'
+
 import { ColorInput, Group, Stack } from '@mantine/core'
 import { useSnapshot } from 'valtio'
 

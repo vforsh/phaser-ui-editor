@@ -1,3 +1,5 @@
+import type { VerticalLayoutComponentJson } from '@tekton/runtime'
+
 import { EditableContainer } from '../EditableContainer'
 import { EditableObject } from '../EditableObject'
 import { PhaserAlignKey } from '../PhaserAlign'
@@ -116,14 +118,4 @@ export class VerticalLayoutComponent extends BaseEditableComponent<VerticalLayou
 	}
 
 	protected onDeactivate(): void {}
-}
-
-export type VerticalLayoutComponentJson = {
-	type: 'vertical-layout'
-	id: string
-	active: boolean
-	cellWidth: number
-	cellHeight: number
-	cellPosition: PhaserAlignKey
-	spacingY: number
 }

@@ -1,7 +1,8 @@
+import type { CanvasDocumentJson } from '@tekton/runtime'
+
 import { state, subscribe } from '@state/State'
 import { match } from 'ts-pattern'
 
-import { CanvasDocumentJson } from '../../../../../../types/prefabs/PrefabDocument'
 import { EditableContainer } from '../objects/EditableContainer'
 import { isObjectOfType } from '../objects/EditableObject'
 import { MainSceneDeps } from './mainSceneTypes'

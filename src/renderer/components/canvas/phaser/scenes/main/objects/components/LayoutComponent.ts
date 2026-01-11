@@ -1,3 +1,4 @@
+import type { HorizontalConstraint, LayoutComponentJson, LayoutScalar, VerticalConstraint } from '@tekton/runtime'
 import type { ILogObj, Logger } from 'tslog'
 
 import { P, match } from 'ts-pattern'
@@ -12,35 +13,6 @@ import { EditableObject } from '../EditableObject'
 import { EditableText } from '../EditableText'
 import { StateChangesEmitter } from '../StateChangesEmitter'
 import { BaseEditableComponent } from './base/BaseEditableComponent'
-
-export type LayoutUnit = 'px' | 'percent'
-
-export type LayoutScalar = {
-	value: number
-	unit: LayoutUnit
-}
-
-export type HorizontalConstraint =
-	| { mode: 'none' }
-	| { mode: 'start'; start: LayoutScalar }
-	| { mode: 'center'; center: LayoutScalar }
-	| { mode: 'end'; end: LayoutScalar }
-	| { mode: 'stretch'; start: LayoutScalar; end: LayoutScalar }
-
-export type VerticalConstraint =
-	| { mode: 'none' }
-	| { mode: 'start'; start: LayoutScalar }
-	| { mode: 'center'; center: LayoutScalar }
-	| { mode: 'end'; end: LayoutScalar }
-	| { mode: 'stretch'; start: LayoutScalar; end: LayoutScalar }
-
-export type LayoutComponentJson = {
-	type: 'layout'
-	id: string
-	active: boolean
-	horizontal: HorizontalConstraint
-	vertical: VerticalConstraint
-}
 
 type LayoutApplyResult = {
 	resizedContainer?: EditableContainer

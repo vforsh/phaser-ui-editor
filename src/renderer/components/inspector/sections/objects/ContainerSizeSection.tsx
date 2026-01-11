@@ -1,4 +1,5 @@
-import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
+import type { EditableContainerJson } from '@tekton/runtime'
+
 import { isSizeLockedForObjectJson } from '@components/canvas/phaser/scenes/main/objects/editing/editRestrictions'
 import { NumberInputCustom } from '@components/inspector/sections/common/NumberInputCustom'
 import { Box, Button, Group, Stack, Tooltip } from '@mantine/core'

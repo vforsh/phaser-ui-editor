@@ -1,3 +1,7 @@
+import type { PhaserAlignKey } from '@tekton/runtime'
+
+export type { PhaserAlignKey } from '@tekton/runtime'
+
 export const PHASER_ALIGN = {
 	'top-left': Phaser.Display.Align.TOP_LEFT,
 	'top-center': Phaser.Display.Align.TOP_CENTER,
@@ -9,8 +13,6 @@ export const PHASER_ALIGN = {
 	'bottom-center': Phaser.Display.Align.BOTTOM_CENTER,
 	'bottom-right': Phaser.Display.Align.BOTTOM_RIGHT,
 } as const
-
-export type PhaserAlignKey = keyof typeof PHASER_ALIGN
 
 export type PhaserAlign = (typeof PHASER_ALIGN)[PhaserAlignKey]
 

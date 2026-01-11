@@ -1,5 +1,4 @@
-import type { EditableContainerJson } from '../../../components/canvas/phaser/scenes/main/objects/EditableContainer'
-import type { EditableObjectJson } from '../../../components/canvas/phaser/scenes/main/objects/EditableObject'
+import type { EditableContainerJson, EditableObjectJson } from '@tekton/runtime'
 
 /**
  * Represents a single segment in a hierarchy path (e.g., "Main/Container[1]").

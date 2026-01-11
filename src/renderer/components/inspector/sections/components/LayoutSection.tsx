@@ -1,12 +1,7 @@
-import {
-	HorizontalConstraint,
-	LayoutComponentJson,
-	LayoutScalar,
-	LayoutUnit,
-	VerticalConstraint,
-} from '@components/canvas/phaser/scenes/main/objects/components/LayoutComponent'
-import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import type { HorizontalConstraint, LayoutComponentJson, LayoutScalar, LayoutUnit, VerticalConstraint } from '@tekton/runtime'
+import type { EditableContainerJson } from '@tekton/runtime'
+import type { EditableObjectJson } from '@tekton/runtime'
+
 import { Group, SegmentedControl, Stack, Text, UnstyledButton } from '@mantine/core'
 import { state } from '@state/State'
 import { useMemo } from 'react'

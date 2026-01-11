@@ -1,16 +1,11 @@
 import type { IPatchesConfig } from '@koreez/phaser3-ninepatch'
 
-import type { EditableBitmapTextJson } from '../../components/canvas/phaser/scenes/main/objects/EditableBitmapText'
-import type { EditableContainerJson, PrefabRef } from '../../components/canvas/phaser/scenes/main/objects/EditableContainer'
-import type {
-	EditableGraphicsJson,
-	GraphicsFillJson,
-	GraphicsShapeJson,
-	GraphicsStrokeJson,
-} from '../../components/canvas/phaser/scenes/main/objects/EditableGraphics'
-import type { EditableImageJson } from '../../components/canvas/phaser/scenes/main/objects/EditableImage'
-import type { EditableNineSliceJson } from '../../components/canvas/phaser/scenes/main/objects/EditableNineSlice'
-import type { EditableTextJson, EditableTextStyleJson } from '../../components/canvas/phaser/scenes/main/objects/EditableText'
+import type { EditableBitmapTextJson } from '../objects/EditableBitmapText'
+import type { EditableContainerJson, PrefabRef } from '../objects/EditableContainer'
+import type { EditableGraphicsJson, GraphicsFillJson, GraphicsShapeJson, GraphicsStrokeJson } from '../objects/EditableGraphics'
+import type { EditableImageJson } from '../objects/EditableImage'
+import type { EditableNineSliceJson } from '../objects/EditableNineSlice'
+import type { EditableTextJson, EditableTextStyleJson } from '../objects/EditableText'
 
 export type NodeAddressSegment = { kind: 'local'; localId: string } | { kind: 'nestedPrefab'; prefabId: string }
 
@@ -70,10 +65,6 @@ export type PrefabOverrides = {
 	components: PrefabComponentOverride[]
 }
 
-export function createEmptyPrefabOverrides(): PrefabOverrides {
-	return { objects: [], components: [] }
-}
-
 export type PrefabInstanceJson = {
 	type: 'PrefabInstance'
 	localId?: string
@@ -111,7 +102,3 @@ export type CanvasDocumentNodeJson =
 	| PrefabInstanceJson
 
 export type CanvasDocumentJson = CanvasDocumentContainerJson
-
-export function isPrefabInstanceJson(node: CanvasDocumentNodeJson): node is PrefabInstanceJson {
-	return node.type === 'PrefabInstance'
-}

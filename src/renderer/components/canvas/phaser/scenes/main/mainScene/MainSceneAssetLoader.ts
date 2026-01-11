@@ -1,3 +1,5 @@
+import type { CanvasDocumentNodeJson, EditableContainerJson, EditableObjectJson, PrefabAsset } from '@tekton/runtime'
+
 import { mainApi } from '@main-api/main-api'
 import { state } from '@state/State'
 import { err, ok, Result } from 'neverthrow'
@@ -5,6 +7,7 @@ import { match } from 'ts-pattern'
 import WebFont from 'webfontloader'
 
 import { WebFontParsed } from '../../../../../../../shared/main-api/MainApi'
+import { isPrefabInstanceJson } from '../../../../../../prefabs/prefabContractUtils'
 import {
 	AssetTreeBitmapFontData,
 	AssetTreeItemDataOfType,
@@ -16,12 +19,8 @@ import {
 	GraphicAssetData,
 	isAssetOfType,
 } from '../../../../../../types/assets'
-import { PrefabAsset } from '../../../../../../types/prefabs/PrefabAsset'
-import { CanvasDocumentNodeJson, isPrefabInstanceJson } from '../../../../../../types/prefabs/PrefabDocument'
 import { BmFontData } from '../../../robowhale/phaser3/gameObjects/bitmap-text/create-bmfont-data'
 import { parseJsonBitmapFont } from '../../../robowhale/phaser3/gameObjects/bitmap-text/parse-json-bitmap-font'
-import { EditableContainerJson } from '../objects/EditableContainer'
-import { EditableObjectJson } from '../objects/EditableObject'
 import { MainSceneDeps } from './mainSceneTypes'
 
 type PhaserBmfontData = Phaser.Types.GameObjects.BitmapText.BitmapFontData

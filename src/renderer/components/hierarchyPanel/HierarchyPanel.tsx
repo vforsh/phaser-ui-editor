@@ -1,8 +1,9 @@
+import type { EditableContainerJson } from '@tekton/runtime'
+import type { EditableObjectJson } from '@tekton/runtime'
+
 import { DropIndicator } from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/tree-item'
 import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine'
 import { monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
-import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { Divider, Paper, ScrollArea, Stack } from '@mantine/core'
 import { useWindowEvent } from '@mantine/hooks'
 import { state, useSnapshot } from '@state/State'

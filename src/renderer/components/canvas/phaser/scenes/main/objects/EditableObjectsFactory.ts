@@ -1,24 +1,36 @@
+import type {
+	EditableBitmapTextJson,
+	EditableComponentJson,
+	EditableContainerJson,
+	EditableGraphicsJson,
+	EditableImageJson,
+	EditableNineSliceJson,
+	EditableObjectJson,
+	EditableTextJson,
+	EditableTextStyleJson,
+	GraphicsFillJson,
+	GraphicsShapeJson,
+	GraphicsStrokeJson,
+	PrefabBitmapFontAsset,
+	PrefabImageAsset,
+	PrefabSpritesheetFrameAsset,
+	PrefabWebFontAsset,
+} from '@tekton/runtime'
+
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { IPatchesConfig } from '@koreez/phaser3-ninepatch'
 import { customAlphabet } from 'nanoid'
 import { match } from 'ts-pattern'
 import { ILogObj, Logger } from 'tslog'
 
-import {
-	PrefabBitmapFontAsset,
-	PrefabImageAsset,
-	PrefabSpritesheetFrameAsset,
-	PrefabWebFontAsset,
-} from '../../../../../../types/prefabs/PrefabAsset'
-import { EditableComponentJson } from './components/base/EditableComponent'
 import { EditableComponentsFactory } from './components/base/EditableComponentsFactory'
-import { EditableBitmapText, EditableBitmapTextJson } from './EditableBitmapText'
-import { EditableContainer, EditableContainerJson } from './EditableContainer'
-import { EditableGraphics, EditableGraphicsJson, GraphicsFillJson, GraphicsShapeJson, GraphicsStrokeJson } from './EditableGraphics'
-import { EditableImage, EditableImageJson } from './EditableImage'
-import { EditableNineSlice, EditableNineSliceJson } from './EditableNineSlice'
-import { EditableObject, EditableObjectJson } from './EditableObject'
-import { EditableText, EditableTextJson, EditableTextStyleJson } from './EditableText'
+import { EditableBitmapText } from './EditableBitmapText'
+import { EditableContainer } from './EditableContainer'
+import { EditableGraphics } from './EditableGraphics'
+import { EditableImage } from './EditableImage'
+import { EditableNineSlice } from './EditableNineSlice'
+import { EditableObject } from './EditableObject'
+import { EditableText } from './EditableText'
 import { cloneWithNewLocalIds, createLocalId } from './localId'
 
 type Events = {

@@ -1,18 +1,11 @@
+import type { EditableContainerJson, PrefabRef } from '@tekton/runtime'
+
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { proxy } from 'valtio'
 
 import { PrefabRuntimeMeta } from '../prefabs/prefabRuntimeMeta'
 import { ComponentsManager } from './components/base/ComponentsManager'
-import { EditableComponentJson } from './components/base/EditableComponent'
-import {
-	CreateEditableObjectJson,
-	EDITABLE_SYMBOL,
-	EditableObject,
-	EditableObjectEvents,
-	EditableObjectJson,
-	IEditableObject,
-	isEditable,
-} from './EditableObject'
+import { EDITABLE_SYMBOL, EditableObject, EditableObjectEvents, IEditableObject, isEditable } from './EditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
 
 type Events = {
@@ -21,11 +14,6 @@ type Events = {
 	'size-changed': (width: number, height: number, prevWidth: number, prevHeight: number) => void
 	'hierarchy-changed': () => void
 } & EditableObjectEvents
-
-export type PrefabRef = {
-	id: string
-	name: string
-}
 
 export class EditableContainer extends Phaser.GameObjects.Container implements IEditableObject {
 	public readonly [EDITABLE_SYMBOL] = true
@@ -395,27 +383,3 @@ export class EditableContainer extends Phaser.GameObjects.Container implements I
 		return this._components
 	}
 }
-
-export type EditableContainerJson = CreateEditableObjectJson<{
-	type: 'Container'
-	id: string
-	children: EditableObjectJson[]
-	name: string
-	depth: number
-	blendMode: string | Phaser.BlendModes | number
-	scale: { x: number; y: number }
-	locked: boolean
-	angle: number
-	originX: number
-	originY: number
-	width: number
-	height: number
-	displayWidth: number
-	displayHeight: number
-	components: EditableComponentJson[]
-
-	/**
-	 * If the container was created from a prefab, this will be the reference to the prefab.
-	 */
-	prefab: PrefabRef | null
-}>

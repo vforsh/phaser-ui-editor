@@ -1,12 +1,20 @@
+import type {
+	EditableComponentJson,
+	GridLayoutComponentJson,
+	HorizontalLayoutComponentJson,
+	LayoutComponentJson,
+	VerticalLayoutComponentJson,
+} from '@tekton/runtime'
+
 import { nanoid } from 'nanoid'
 import { match } from 'ts-pattern'
 import { ILogObj, Logger } from 'tslog'
 
-import { GridLayoutComponent, GridLayoutComponentJson } from '../GridLayoutComponent'
-import { HorizontalLayoutComponent, HorizontalLayoutComponentJson } from '../HorizontalLayoutComponent'
-import { LayoutComponent, LayoutComponentJson } from '../LayoutComponent'
-import { VerticalLayoutComponent, VerticalLayoutComponentJson } from '../VerticalLayoutComponent'
-import { EditableComponent, EditableComponentJson, EditableComponentType } from './EditableComponent'
+import { GridLayoutComponent } from '../GridLayoutComponent'
+import { HorizontalLayoutComponent } from '../HorizontalLayoutComponent'
+import { LayoutComponent } from '../LayoutComponent'
+import { VerticalLayoutComponent } from '../VerticalLayoutComponent'
+import { EditableComponent, EditableComponentType } from './EditableComponent'
 
 interface EditableComponentsFactoryOptions {
 	logger: Logger<ILogObj>

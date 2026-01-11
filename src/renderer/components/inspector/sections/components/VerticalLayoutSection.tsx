@@ -1,4 +1,5 @@
-import { VerticalLayoutComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/VerticalLayoutComponent'
+import type { VerticalLayoutComponentJson } from '@tekton/runtime'
+
 import { Group, Stack } from '@mantine/core'
 import { useSnapshot } from 'valtio'
 

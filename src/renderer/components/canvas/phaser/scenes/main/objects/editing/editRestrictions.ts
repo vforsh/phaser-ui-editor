@@ -1,6 +1,7 @@
+import type { EditableContainerJson, EditableObjectJson } from '@tekton/runtime'
+
 import { EditableComponentType } from '../components/base/EditableComponent'
-import { EditableContainerJson } from '../EditableContainer'
-import { EditableObject, EditableObjectJson } from '../EditableObject'
+import { EditableObject } from '../EditableObject'
 
 export type EditableProperty = 'position' | 'size' | 'scale' | 'rotation' | 'origin'
 

@@ -1,4 +1,5 @@
-import { EditableGraphicsJson } from '@components/canvas/phaser/scenes/main/objects/EditableGraphics'
+import type { EditableGraphicsJson } from '@tekton/runtime'
+
 import { Group, Stack } from '@mantine/core'
 import { useSnapshot } from 'valtio'
 

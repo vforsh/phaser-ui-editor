@@ -1,5 +1,6 @@
+import type { EditableObjectJson } from '@tekton/runtime'
+
 import { TypedEventEmitter } from './robowhale/phaser3/TypedEventEmitter'
-import { EditableObjectJson } from './scenes/main/objects/EditableObject'
 
 // Events to notify parent React app about changes in PhaserApp
 export type PhaserAppEvents = {

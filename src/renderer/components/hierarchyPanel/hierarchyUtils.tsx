@@ -1,4 +1,6 @@
-import { EditableObjectJson, EditableObjectType } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import type { EditableObjectJson } from '@tekton/runtime'
+
+import { EditableObjectType } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { state } from '@state/State'
 import { Group as GroupIcon, Image as ImageIcon, ImageUpscale, Square, Type, TypeOutline } from 'lucide-react'
 import React from 'react'

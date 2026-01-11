@@ -1,6 +1,7 @@
+import type { EditableObjectJson, EditableObjectJsonType } from '@tekton/runtime'
+
 import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine'
 import { draggable, dropTargetForElements, ElementDropTargetGetFeedbackArgs } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
-import { EditableObjectJson, EditableObjectJsonType } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { Group, Text } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { until } from '@open-draft/until'

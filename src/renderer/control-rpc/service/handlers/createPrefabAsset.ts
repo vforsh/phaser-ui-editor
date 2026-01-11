@@ -10,7 +10,7 @@ import type { AssetTreeItemData } from '../../../types/assets'
 import type { CommandHandler } from '../types'
 
 import { buildAssetTree } from '../../../components/assetsPanel/build-asset-tree'
-import { createEmptyPrefabFile } from '../../../types/prefabs/PrefabFile'
+import { createEmptyPrefabFile } from '../../../prefabs/prefabContractUtils'
 
 /**
  * @see {@link createPrefabAssetCommand} for command definition

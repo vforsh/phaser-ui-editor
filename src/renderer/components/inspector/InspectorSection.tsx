@@ -1,14 +1,19 @@
-import { GridLayoutComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/GridLayoutComponent'
-import { HorizontalLayoutComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/HorizontalLayoutComponent'
-import { LayoutComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/LayoutComponent'
-import { VerticalLayoutComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/VerticalLayoutComponent'
-import { EditableBitmapTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableBitmapText'
-import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
-import { EditableGraphicsJson } from '@components/canvas/phaser/scenes/main/objects/EditableGraphics'
-import { EditableImageJson } from '@components/canvas/phaser/scenes/main/objects/EditableImage'
-import { EditableNineSlice, EditableNineSliceJson } from '@components/canvas/phaser/scenes/main/objects/EditableNineSlice'
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
-import { EditableTextJson, EditableTextStyleJson } from '@components/canvas/phaser/scenes/main/objects/EditableText'
+import type {
+	EditableBitmapTextJson,
+	EditableContainerJson,
+	EditableGraphicsJson,
+	EditableImageJson,
+	EditableNineSliceJson,
+	EditableObjectJson,
+	EditableTextJson,
+	EditableTextStyleJson,
+	GridLayoutComponentJson,
+	HorizontalLayoutComponentJson,
+	LayoutComponentJson,
+	VerticalLayoutComponentJson,
+} from '@tekton/runtime'
+
+import { EditableNineSlice } from '@components/canvas/phaser/scenes/main/objects/EditableNineSlice'
 import { Box, Collapse, Group, Text, UnstyledButton } from '@mantine/core'
 import { ChevronRight, LucideIcon } from 'lucide-react'
 import { useState } from 'react'

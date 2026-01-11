@@ -1,4 +1,5 @@
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import type { EditableObjectJson } from '@tekton/runtime'
+
 import { ColorInput, Stack } from '@mantine/core'
 import { Snapshot, useSnapshot } from 'valtio'
 

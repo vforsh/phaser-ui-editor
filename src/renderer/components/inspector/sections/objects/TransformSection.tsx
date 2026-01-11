@@ -1,5 +1,7 @@
-import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
-import { canChangeOrigin, canChangeScale, EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import type { EditableContainerJson } from '@tekton/runtime'
+import type { EditableObjectJson } from '@tekton/runtime'
+
+import { canChangeOrigin, canChangeScale } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
 import { isPositionLockedForObjectJson } from '@components/canvas/phaser/scenes/main/objects/editing/editRestrictions'
 import { NumberInputCustom } from '@components/inspector/sections/common/NumberInputCustom'
 import { findParentContainerId } from '@components/inspector/utils/findParentContainerId'

@@ -1,17 +1,17 @@
 import type {
+	EditableBitmapTextJson,
+	EditableComponentJson,
+	EditableContainerJson,
+	EditableGraphicsJson,
+	EditableImageJson,
+	EditableNineSliceJson,
+	EditableObjectJson,
+	EditableTextJson,
 	NodeAddress,
 	PrefabComponentOverride,
 	PrefabObjectPatch,
 	PrefabObjectOverride,
-} from '../../../../../../types/prefabs/PrefabDocument'
-import type { EditableComponentJson } from '../objects/components/base/EditableComponent'
-import type { EditableBitmapTextJson } from '../objects/EditableBitmapText'
-import type { EditableContainerJson } from '../objects/EditableContainer'
-import type { EditableGraphicsJson } from '../objects/EditableGraphics'
-import type { EditableImageJson } from '../objects/EditableImage'
-import type { EditableNineSliceJson } from '../objects/EditableNineSlice'
-import type { EditableObjectJson } from '../objects/EditableObject'
-import type { EditableTextJson } from '../objects/EditableText'
+} from '@tekton/runtime'
 
 type PatchableObjectJson =
 	| EditableContainerJson

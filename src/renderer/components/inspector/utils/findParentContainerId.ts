@@ -1,5 +1,5 @@
-import { EditableContainerJson } from '@components/canvas/phaser/scenes/main/objects/EditableContainer'
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import type { EditableContainerJson } from '@tekton/runtime'
+import type { EditableObjectJson } from '@tekton/runtime'
 
 export type ReadonlyContainerJson = Omit<EditableContainerJson, 'children'> & {
 	children: readonly EditableObjectJson[]

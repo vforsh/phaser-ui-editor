@@ -1,3 +1,5 @@
+import type { GridLayoutComponentJson } from '@tekton/runtime'
+
 import { EditableContainer } from '../EditableContainer'
 import { EditableObject } from '../EditableObject'
 import { PhaserAlignKey } from '../PhaserAlign'
@@ -154,17 +156,4 @@ export class GridLayoutComponent extends BaseEditableComponent<GridLayoutCompone
 	}
 
 	protected onDeactivate(): void {}
-}
-
-export type GridLayoutComponentJson = {
-	type: 'grid-layout'
-	id: string
-	active: boolean
-	columns: number
-	cellWidth: number
-	cellHeight: number
-	cellPosition: PhaserAlignKey
-	spacingX: number
-	spacingY: number
-	centerLastRow: boolean
 }

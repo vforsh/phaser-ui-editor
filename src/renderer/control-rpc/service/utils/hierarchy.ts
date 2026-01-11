@@ -1,7 +1,5 @@
 import type { HierarchyNode } from '@tekton/control-rpc-contract'
-
-import type { EditableContainerJson } from '../../../components/canvas/phaser/scenes/main/objects/EditableContainer'
-import type { EditableObjectJson } from '../../../components/canvas/phaser/scenes/main/objects/EditableObject'
+import type { EditableContainerJson, EditableObjectJson } from '@tekton/runtime'
 
 export function buildHierarchyNode(obj: EditableObjectJson): HierarchyNode {
 	const base: HierarchyNode = {

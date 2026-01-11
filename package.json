@@ -14,12 +14,8 @@
 	"workspaces": [
 		"packages/*"
 	],
-	"files": [
-		"exports.d.ts"
-	],
 	"type": "module",
 	"main": "out/main/index.js",
-	"types": "exports.d.ts",
 	"scripts": {
 		"start": "node scripts/start-desktop-app-with-cleanup.mjs",
 		"start:bg": "START_IN_BACKGROUND=1 node scripts/start-desktop-app-with-cleanup.mjs",
@@ -30,7 +26,7 @@
 		"build:editorctl-client": "tsx packages/editorctl-client/scripts/build.ts",
 		"build:control-rpc-contract": "tsc --project packages/control-rpc-contract/tsconfig.json",
 		"build:json-schema-utils": "tsc --project packages/json-schema-utils/tsconfig.json",
-		"build:packages": "npm run build:control-rpc-contract && npm run build:json-schema-utils && npm run build:editorctl-client && npm run build:editorctl",
+		"build:packages": "npm run build:runtime && npm run build:control-rpc-contract && npm run build:json-schema-utils && npm run build:editorctl-client && npm run build:editorctl",
 		"link:editorctl": "npm run build:editorctl && npm link",
 		"typecheck": "tsc --noEmit --project tsconfig.app.json",
 		"typecheck-dev": "tsc --noEmit --watch --project tsconfig.app.json",
@@ -43,9 +39,8 @@
 		"package": "npm run build && electron-builder",
 		"package:mac:dir": "npm run build && electron-builder --mac --dir",
 		"package:mac:dir:unsigned": "npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --dir",
-		"build-types": "node scripts/build-types.ts",
-		"update-types": "node scripts/build-types.ts --push",
-		"prepare": "simple-git-hooks"
+		"prepare": "simple-git-hooks",
+		"build:runtime": "tsc --project packages/runtime/tsconfig.json"
 	},
 	"dependencies": {
 		"@atlaskit/pragmatic-drag-and-drop": "^1.5.0",
@@ -65,6 +60,7 @@
 		"@sindresorhus/is": "^7.0.1",
 		"@tekton/control-rpc-contract": "file:packages/control-rpc-contract",
 		"@tekton/json-schema-utils": "file:packages/json-schema-utils",
+		"@tekton/runtime": "file:packages/runtime",
 		"@types/blueimp-md5": "^2.18.2",
 		"@types/opentype.js": "^1.3.8",
 		"@types/webfontloader": "^1.6.38",

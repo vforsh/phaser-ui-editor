@@ -23,7 +23,7 @@ import {
 	PrefabImageAsset,
 	PrefabSpritesheetFrameAsset,
 	PrefabWebFontAsset,
-} from '../../../../../../types/prefabs/PrefabAsset'
+} from '../../../../../../prefabs/prefabAssets'
 
 export type MainSceneFactoryOptions = {
 	textures: Phaser.Textures.TextureManager

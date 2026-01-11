@@ -1,4 +1,4 @@
-import { CanvasDocumentJson } from './PrefabDocument'
+import type { CanvasDocumentJson } from './PrefabDocument'
 
 export type PrefabFile = {
 	content: CanvasDocumentJson | null
@@ -7,11 +7,4 @@ export type PrefabFile = {
 	 * Used in the runtime to load the assets before displaying the prefab.
 	 */
 	assetPack: Phaser.Types.Loader.FileTypes.PackFileSection[]
-}
-
-export function createEmptyPrefabFile(): PrefabFile {
-	return {
-		content: null,
-		assetPack: [],
-	}
 }

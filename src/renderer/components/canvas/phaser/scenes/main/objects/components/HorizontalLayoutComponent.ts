@@ -1,3 +1,5 @@
+import type { HorizontalLayoutComponentJson } from '@tekton/runtime'
+
 import { EditableContainer } from '../EditableContainer'
 import { EditableObject } from '../EditableObject'
 import { PhaserAlignKey } from '../PhaserAlign'
@@ -116,14 +118,4 @@ export class HorizontalLayoutComponent extends BaseEditableComponent<HorizontalL
 	}
 
 	protected onDeactivate(): void {}
-}
-
-export type HorizontalLayoutComponentJson = {
-	type: 'horizontal-layout'
-	id: string
-	active: boolean
-	cellWidth: number
-	cellHeight: number
-	cellPosition: PhaserAlignKey
-	spacingX: number
 }

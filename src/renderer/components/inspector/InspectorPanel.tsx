@@ -1,5 +1,6 @@
-import { EditableComponentJson } from '@components/canvas/phaser/scenes/main/objects/components/base/EditableComponent'
-import { EditableObjectJson } from '@components/canvas/phaser/scenes/main/objects/EditableObject'
+import type { EditableComponentJson } from '@tekton/runtime'
+import type { EditableObjectJson } from '@tekton/runtime'
+
 import { Button, Divider, Group, Stack } from '@mantine/core'
 import { useForceUpdate } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'

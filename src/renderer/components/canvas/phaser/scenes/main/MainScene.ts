@@ -1,10 +1,13 @@
+import type { CanvasDocumentJson, LayoutSystem } from '@tekton/runtime'
+
 import { logger } from '@logs/logs'
 import { state } from '@state/State'
 import { UrlParams } from '@url-params'
 import { ILogObj, Logger } from 'tslog'
 
+import type { EditableObject } from './objects/EditableObject'
+
 import { AppCommandsEmitter } from '../../../../../AppCommands'
-import { CanvasDocumentJson } from '../../../../../types/prefabs/PrefabDocument'
 import { BaseScene } from '../../robowhale/phaser3/scenes/BaseScene'
 import { Aligner, type AlignType } from './Aligner'
 import { CanvasClipboard } from './CanvasClipboard'
@@ -14,7 +17,7 @@ import { EditContextsManager } from './editContext/EditContextsManager'
 import { Selection } from './editContext/Selection'
 import { EditContextFrame } from './EditContextFrame'
 import { Grid } from './Grid'
-import { LayoutSystem } from './layout/LayoutSystem'
+import { createEditorLayoutSystem } from './layout/createEditorLayoutSystem'
 import { MainSceneAssetLoader } from './mainScene/MainSceneAssetLoader'
 import { MainSceneCamera } from './mainScene/MainSceneCamera'
 import { MainSceneHistory, TransformType } from './mainScene/MainSceneHistory'
@@ -50,7 +53,7 @@ export class MainScene extends BaseScene {
 	// TODO move to a separate class, it should emit events on resize
 	public contextFrame!: EditContextFrame
 	public objectsFactory!: EditableObjectsFactory
-	public layoutSystem!: LayoutSystem
+	public layoutSystem!: LayoutSystem<EditableContainer, EditableObject>
 	private componentsFactory!: EditableComponentsFactory
 	private clipboard!: CanvasClipboard
 	private aligner!: Aligner
@@ -259,7 +262,7 @@ export class MainScene extends BaseScene {
 	}
 
 	private initLayoutSystem() {
-		this.layoutSystem = new LayoutSystem({
+		this.layoutSystem = createEditorLayoutSystem({
 			scene: this,
 			objectsFactory: this.objectsFactory,
 			logger: this.logger.getSubLogger({ name: ':layout' }),

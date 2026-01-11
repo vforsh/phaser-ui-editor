@@ -1,11 +1,11 @@
+import type { EditableImageJson, PrefabImageAsset, PrefabSpritesheetFrameAsset } from '@tekton/runtime'
+
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { proxy } from 'valtio'
 
-import { PrefabImageAsset, PrefabSpritesheetFrameAsset } from '../../../../../../types/prefabs/PrefabAsset'
 import { PrefabRuntimeMeta } from '../prefabs/prefabRuntimeMeta'
 import { ComponentsManager } from './components/base/ComponentsManager'
-import { EditableComponentJson } from './components/base/EditableComponent'
-import { CreateEditableObjectJson, EDITABLE_SYMBOL, EditableObjectEvents, IEditableObject } from './EditableObject'
+import { EDITABLE_SYMBOL, EditableObjectEvents, IEditableObject } from './EditableObject'
 import { StateChangesEmitter } from './StateChangesEmitter'
 
 type Events = {
@@ -304,23 +304,3 @@ export class EditableImage extends Phaser.GameObjects.Image implements IEditable
 		return this.__events
 	}
 }
-
-export type EditableImageJson = CreateEditableObjectJson<{
-	type: 'Image'
-	id: string
-	depth: number
-	blendMode: string | Phaser.BlendModes | number
-	scale: { x: number; y: number }
-	locked: boolean
-	tint: number
-	tintFill: boolean
-	angle: number
-	originX: number
-	originY: number
-	width: number
-	height: number
-	displayWidth: number
-	displayHeight: number
-	components: EditableComponentJson[]
-	asset: PrefabImageAsset | PrefabSpritesheetFrameAsset
-}>

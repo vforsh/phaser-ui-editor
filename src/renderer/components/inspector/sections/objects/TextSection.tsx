@@ -1,4 +1,5 @@
-import { EditableTextJson } from '@components/canvas/phaser/scenes/main/objects/EditableText'
+import type { EditableTextJson } from '@tekton/runtime'
+
 import { AssetPicker } from '@components/common/AssetPicker/AssetPicker'
 import { ColorInput, Group, Stack } from '@mantine/core'
 import { State, state, useSnapshot } from '@state/State'

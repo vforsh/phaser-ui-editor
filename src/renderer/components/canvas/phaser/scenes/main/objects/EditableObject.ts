@@ -1,15 +1,16 @@
+import type { EditableObjectJson, EditableObjectJsonType } from '@tekton/runtime'
+
 import { TypedEventEmitter } from '@components/canvas/phaser/robowhale/phaser3/TypedEventEmitter'
 import { match } from 'ts-pattern'
 
 import { PrefabRuntimeMeta } from '../prefabs/prefabRuntimeMeta'
 import { ComponentsManager } from './components/base/ComponentsManager'
-import { EditableComponentJson } from './components/base/EditableComponent'
-import { EditableBitmapText, EditableBitmapTextJson } from './EditableBitmapText'
-import { EditableContainer, EditableContainerJson } from './EditableContainer'
-import { EditableGraphics, EditableGraphicsJson } from './EditableGraphics'
-import { EditableImage, EditableImageJson } from './EditableImage'
-import { EditableNineSlice, EditableNineSliceJson } from './EditableNineSlice'
-import { EditableText, EditableTextJson } from './EditableText'
+import { EditableBitmapText } from './EditableBitmapText'
+import { EditableContainer } from './EditableContainer'
+import { EditableGraphics } from './EditableGraphics'
+import { EditableImage } from './EditableImage'
+import { EditableNineSlice } from './EditableNineSlice'
+import { EditableText } from './EditableText'
 
 export const EDITABLE_SYMBOL = Symbol('EditableObject')
 
@@ -75,21 +76,6 @@ export type EditableObjectOfType<T extends EditableObjectType> = Extract<Editabl
 export function isObjectOfType<T extends EditableObjectType>(obj: EditableObject, type: T): obj is EditableObjectOfType<T> {
 	return obj.kind === type
 }
-
-// #region JSON
-export type CreateEditableObjectJson<T extends { readonly type: string; locked: boolean; components: EditableComponentJson[] }> =
-	Phaser.Types.GameObjects.JSONGameObject & T & { localId?: string }
-
-export type EditableObjectJson =
-	| EditableContainerJson
-	| EditableImageJson
-	| EditableNineSliceJson
-	| EditableTextJson
-	| EditableBitmapTextJson
-	| EditableGraphicsJson
-
-export type EditableObjectJsonType = EditableObjectJson['type']
-// #endregion
 
 export function isTintable(obj: EditableObject): obj is EditableObject & { tint: number; tintFill: boolean } {
 	return 'tint' in obj && typeof obj.tint === 'number' && 'tintFill' in obj && typeof obj.tintFill === 'boolean'
